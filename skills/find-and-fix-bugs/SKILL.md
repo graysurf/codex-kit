@@ -22,6 +22,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Keep scan rules general; do not add repo-specific patterns.
 - Do not rely on grep results alone; use LLM analysis to confirm plausibility and impact.
 - Produce an issues list in English using `references/ISSUES_TEMPLATE.md`.
+- Use the ID format `PR-<number>-BUG-###` (example: `PR-128-BUG-001`). If the PR number is not known yet, use `PR-<number>` as a placeholder and update after PR creation.
 
 ## Selection
 
@@ -52,6 +53,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 ## PR
 
 - Use `gh pr create` and write the body in English using `references/PR_TEMPLATE.md`.
+- Set the PR title to the primary issue or a short summary of the fix. Do not reuse the commit subject. Capitalize the first word.
 - The PR must include:
   - Issues found (including those not fixed)
   - Fix approach

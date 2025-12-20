@@ -9,7 +9,7 @@ Status: open | fixed | deferred | needs-info
 
 | ID | Severity | Confidence | Area | Summary | Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| BUG-001 | high | medium | <module/path> | <one-line summary> | <file:line or repro> | open |
+| PR-<number>-BUG-001 | high | medium | <module/path> | <one-line summary> | <file:line or repro> | open |
 
 Notes:
 - <optional>
