@@ -23,6 +23,13 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Do not rely on grep results alone; use LLM analysis to confirm plausibility and impact.
 - Produce an issues list using `references/ISSUES_TEMPLATE.md`.
 - Use the ID format `PR-<number>-BUG-###` (example: `PR-128-BUG-001`). If the PR number is not known yet, use `PR-<number>` as a placeholder and update after PR creation.
+- For project-specific skills, consider adding a minimal repro script requirement; see `references/REPRO_GUIDE.md`.
+
+## Context window management
+
+- Prioritize scanning changed files and adjacent code before wider searches.
+- If `rg` results are large, process in batches (for example: 20-50 hits per batch).
+- Stop after enough high-confidence issues are identified to proceed with a fix.
 
 ## Selection
 
@@ -53,7 +60,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 1. Create a new branch: `fix/<severity>-<slug>` using the fixed severity levels.
 2. Implement the fix with minimal scope; avoid refactors.
-3. Add or update tests when possible; run lint/test/build commands when present (see Validation commands).
+3. Add or update tests when possible; run lint/test/build commands when present (see Validation commands). If validation fails, follow Retry policy.
 4. Update the issues list with status.
 
 ## Validation commands
@@ -63,6 +70,11 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Justfile targets: `lint`, `test`, `build`
 - Taskfile targets: `lint`, `test`, `build`
 - Language defaults when applicable: `go test ./...`, `pytest`, `cargo test`, `mvn test`, `gradle test`, `dotnet test`
+
+## Retry policy
+
+- If validation fails, fix based on error output and retry up to 2 times.
+- After 2 failed attempts, stop and report the failure with the last error output.
 
 ## Commit
 
