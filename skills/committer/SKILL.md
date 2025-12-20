@@ -12,7 +12,7 @@ Rules:
 - Prefer staged changes as input via `git-commit-context --stdout`
 - If `git-commit-context` is not available, collect fallback inputs:
   - `git diff --staged --no-color` for the diff
-  - `git-scope staged` for the scope tree (fallback: `git diff --staged --name-only`)
+  - `git-scope staged --no-color` for the scope tree (fallback: `git diff --staged --name-only`)
   - For each staged file, include its staged version via `git show :<path>`
   - If a file is deleted and has no index version, note it as deleted
 - Do not infer from unstaged changes or untracked files
@@ -58,7 +58,7 @@ Rules:
 
 ## Output and clarification rules
 
-- After a successful commit, run `git-scope commit HEAD`
+- After a successful commit, run `git-scope commit HEAD --no-color`
 - Print the `git-scope` output in a code block
 - If type, scope, or change summary is missing, ask a concise clarifying question and do not commit
 
