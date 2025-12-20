@@ -5,6 +5,25 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 
 # Committer
 
+## Use staged context only
+
+Rules:
+
+- Prefer staged changes as input via `git-commit-context --stdout`
+- If `git-commit-context` is not available, collect fallback inputs:
+  - `git diff --staged --no-color` for the diff
+  - `git-scope staged` for the scope tree (fallback: `git diff --staged --name-only`)
+  - For each staged file, include its staged version via `git show :<path>`
+  - If a file is deleted and has no index version, note it as deleted
+- Do not infer from unstaged changes or untracked files
+- If staged diff is empty, ask for staged changes or a change summary
+
+## Setup (if command missing)
+
+- `git-commit-context` is defined in `~/.config/zsh/scripts/git/git-tools.sh`
+- Load it with `source ~/.codex/tools/codex-tools.sh`
+- If that is unavailable, run `source ~/.config/zsh/scripts/git/git-tools.sh`
+
 ## Follow Semantic Commit format
 
 Use the exact header format:
@@ -26,13 +45,20 @@ Rules:
 - Start every body line with "- " and a capitalized word
 - Keep each line under 100 characters
 - Keep bullets concise and group related changes
+- Do not insert blank lines between body items
+
+## Commit execution
+
+- Generate the full commit message from staged context
+- Write the message to a temporary file to preserve formatting
+- Run `git commit -F <temp-file>` and remove the temp file afterward
+- If the commit fails, report the error and do not claim success
 
 ## Output and clarification rules
 
-- Output only the commit message wrapped in an md fenced code block (```md)
-- Do not include any additional text outside the code block
-- If type, scope, or change summary is missing, ask a concise clarifying question and do not
-  output a code block
+- Do not output the commit message in a code block
+- After committing, respond with a brief confirmation including the subject and commit hash
+- If type, scope, or change summary is missing, ask a concise clarifying question and do not commit
 
 ## Example
 
@@ -44,7 +70,8 @@ refactor(members): simplify otp purpose validation logic in requestOtp
 - Kept validation inline to avoid introducing an extra function
 ```
 
-## Special rule for file processing
+## Input completeness
 
-- When processing shell scripts, code files, or configuration files, read the entire file before
-  commenting on or modifying it.
+- Full-file reads are not required for commit message generation
+- Base the message on staged diff, scope tree, and staged (index) version content
+- Only read full files if the diff/context is insufficient to describe the change accurately
