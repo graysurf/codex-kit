@@ -1,0 +1,11 @@
+auth.json
+sessions/
+history.jsonl
+version.json
+.venv/
+tools/**/.env
+tools/**/.env.*
+.DS_Store
+*.log
+log/
+skills/.system/
