@@ -13,7 +13,7 @@ are intentionally excluded via `.gitignore`.
 ├── config.toml                             # default model and runtime settings
 ├── prompts/                                # prompt templates
 ├── skills/                                 # custom skills
-└── tools -> ../.config/zsh/.private/tools  # private Zsh tool wrappers
+└── tools -> ../zsh/.private/tools          # private Zsh tool wrappers
 ```
 
 ## 🧑‍💻 How I Use It
@@ -30,5 +30,5 @@ inside Codex sessions.
 
 ## 📜 Notes
 
-- `tools/` is a relative symlink; it assumes `~/.codex` lives under the home directory.
+- This repo lives at `~/.config/codex-kit`; `~/.codex` is a symlink here and is the configured Codex home.
 - Secret `.env` files live under `tools/**/.env` and are ignored by git.
