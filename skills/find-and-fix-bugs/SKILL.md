@@ -54,6 +54,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 - Use `gh pr create` and write the body in English using `references/PR_TEMPLATE.md`.
 - Set the PR title to the primary issue or a short summary of the fix. Do not reuse the commit subject. Capitalize the first word.
+- Replace the first H1 line in `references/PR_TEMPLATE.md` with the same PR title.
 - The PR must include:
   - Issues found (including those not fixed)
   - Fix approach
@@ -63,4 +64,8 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 ## Output
 
-- Summarize the fix, issues list, and testing results for the user.
+- Use `references/OUTPUT_TEMPLATE.md` as the response format.
+- The response must include, in order:
+  1. Issues list
+  2. `git-scope` output
+  3. PR link

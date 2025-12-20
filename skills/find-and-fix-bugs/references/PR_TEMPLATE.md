@@ -1,5 +1,4 @@
-## PR Title
-<capitalize the first word; do not reuse the commit subject; describe the primary issue or fix summary>
+# <capitalize the first word; do not reuse the commit subject; describe the primary issue or fix summary>
 
 ## Summary
 <one paragraph summary of the fix and scope>
