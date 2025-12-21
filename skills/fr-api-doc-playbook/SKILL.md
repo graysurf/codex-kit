@@ -1,6 +1,6 @@
 ---
 name: fr-api-doc-playbook
-description: Test FinanceReport GraphQL APIs and produce API docs with real responses. Use when asked to run or validate FinanceReport GraphQL queries/mutations, obtain JWTs, verify data with frpsql, or draft API documentation from actual API responses.
+description: Test FinanceReport GraphQL APIs and produce API docs with real responses. Use when asked to run or validate FinanceReport GraphQL queries/mutations, obtain JWTs, verify data with fr-psql, or draft API documentation from actual API responses.
 ---
 
 # FinanceReport API Doc Playbook

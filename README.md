@@ -16,28 +16,40 @@ are intentionally excluded via `.gitignore`.
 └── tools -> ../zsh/.private/tools          # private Zsh tool wrappers
 ```
 
-## 🧑‍💻 How I Use It
+## 🧰 Prompts
 
-### Prompt presets
+### Common
 
 | Prompt | Description | Usage |
 | --- | --- | --- |
-| frpsql | Run frpsql with args or SQL | `/prompts:frpsql <args>` |
-| qbmysql | Run qbmysql with args or SQL | `/prompts:qbmysql <args>` |
 | openspec-apply | Implement an approved OpenSpec change | `/prompts:openspec-apply <id>` |
 | openspec-archive | Archive an OpenSpec change and update specs | `/prompts:openspec-archive <id>` |
 | openspec-proposal | Scaffold a new OpenSpec change | `/prompts:openspec-proposal <request>` |
 
-### Skills
+### Project-specific
+
+| Prompt | Description | Usage |
+| --- | --- | --- |
+| fr-psql | Run fr-psql with args or SQL | `/prompts:fr-psql <args>` |
+| qb-mysql | Run qb-mysql with args or SQL | `/prompts:qb-mysql <args>` |
+
+## 🛠️ Skills
+
+### Common
 
 | Skill | Description |
 | --- | --- |
 | commit-message | Generate Semantic Commit messages from staged changes |
 | find-and-fix-bugs | Find, triage, and fix bugs; open a PR with gh |
 | release-workflow | Execute project release workflows by following RELEASE_GUIDE.md |
+
+### Project-specific
+
+| Skill | Description |
+| --- | --- |
 | fr-api-doc-playbook | Test FinanceReport GraphQL APIs and draft docs |
-| frpsql | Run PostgreSQL queries via the frpsql wrapper |
-| qbmysql | Run MySQL queries via the qbmysql wrapper |
+| fr-psql | Run PostgreSQL queries via the fr-psql wrapper |
+| qb-mysql | Run MySQL queries via the qb-mysql wrapper |
 
 ## 📜 Notes
 
