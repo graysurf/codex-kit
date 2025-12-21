@@ -39,40 +39,12 @@ fr-psql -c "SELECT current_database();"
 
 If the function is missing, source the script again. If the connection fails, verify that all `FR_PG*` values exist in `~/.codex/tools/fr-psql/.env`.
 
-## Common Tasks
-
-List tables:
-
-```
-fr-psql -c '\dt'
-```
-
-Describe table columns:
-
-```
-fr-psql -c '\d+ companies'
-```
-
-Portable column listing:
-
-```
-fr-psql -c "SELECT column_name FROM information_schema.columns WHERE table_name = 'companies' ORDER BY ordinal_position;"
-```
-
-Count distinct values:
-
-```
-fr-psql -c "SELECT COUNT(DISTINCT name) AS company_count FROM companies;"
-```
-
-Export CSV:
-
-```
-fr-psql -c '\copy (SELECT * FROM companies LIMIT 10) TO STDOUT WITH CSV HEADER'
-```
-
 ## Safety Rules
 
 Ask before running `UPDATE`, `DELETE`, `INSERT`, `TRUNCATE`, or schema changes.
 If a column or table name is unknown, inspect schema first with `information_schema` or `\d+`.
 Do not print secrets from `.env` or echo `FR_PGPASSWORD`.
+
+## Output and clarification rules
+
+- Follow the shared template at `skills/_templates/sql-output.md`.

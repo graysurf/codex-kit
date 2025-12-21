@@ -39,40 +39,12 @@ qb-mysql -e "SELECT DATABASE();"
 
 If the function is missing, source the script again. If the connection fails, verify that all `QB_MYSQL_*` values exist in `~/.codex/tools/qb-mysql/.env`.
 
-## Common Tasks
-
-List tables:
-
-```
-qb-mysql -e "SHOW TABLES;"
-```
-
-Describe table columns:
-
-```
-qb-mysql -e "DESCRIBE companies;"
-```
-
-Portable column listing:
-
-```
-qb-mysql -e "SELECT column_name FROM information_schema.columns WHERE table_name = 'companies' ORDER BY ordinal_position;"
-```
-
-Count distinct values:
-
-```
-qb-mysql -e "SELECT COUNT(DISTINCT name) AS company_count FROM companies;"
-```
-
-Export CSV:
-
-```
-qb-mysql --batch --raw -e "SELECT * FROM companies LIMIT 10;"
-```
-
 ## Safety Rules
 
 Ask before running `UPDATE`, `DELETE`, `INSERT`, `TRUNCATE`, or schema changes.
 If a column or table name is unknown, inspect schema first with `information_schema` or `DESCRIBE`.
 Do not print secrets from `.env` or echo `QB_MYSQL_PASSWORD`.
+
+## Output and clarification rules
+
+- Follow the shared template at `skills/_templates/sql-output.md`.

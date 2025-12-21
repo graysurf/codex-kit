@@ -39,34 +39,12 @@ tun-mssql -Q "SELECT DB_NAME();"
 
 If the function is missing, source the script again. If the connection fails, verify that all `TUN_MSSQL_*` values exist in `~/.codex/tools/tun-mssql/.env`.
 
-## Common Tasks
-
-List tables:
-
-```
-tun-mssql -Q "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_SCHEMA, TABLE_NAME;"
-```
-
-Describe table columns:
-
-```
-tun-mssql -Q "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'companies' ORDER BY ORDINAL_POSITION;"
-```
-
-Count distinct values:
-
-```
-tun-mssql -Q "SELECT COUNT(DISTINCT name) AS company_count FROM dbo.companies;"
-```
-
-Export CSV:
-
-```
-tun-mssql -s "," -W -Q "SET NOCOUNT ON; SELECT TOP 10 * FROM dbo.companies;"
-```
-
 ## Safety Rules
 
 Ask before running `UPDATE`, `DELETE`, `INSERT`, `MERGE`, `TRUNCATE`, or schema changes.
 If a schema, table, or column name is unknown, inspect `INFORMATION_SCHEMA` first.
 Do not print secrets from `.env` or echo `TUN_MSSQL_PASSWORD`.
+
+## Output and clarification rules
+
+- Follow the shared template at `skills/_templates/sql-output.md`.

@@ -1,11 +1,21 @@
+# OS metadata
+.DS_Store
+
+# Auth/session/history
 auth.json
-sessions/
 history.jsonl
+sessions/
 version.json
+
+# Env/virtualenv
 .venv/
 tools/**/.env
 tools/**/.env.*
-.DS_Store
+
+# Logs/output
 *.log
 log/
+output/
+
+# Generated system skills
 skills/.system/
