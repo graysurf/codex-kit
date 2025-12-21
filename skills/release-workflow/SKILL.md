@@ -13,6 +13,13 @@ description: Execute project release workflows by locating and following project
    - If multiple guides are found, ask which one to follow.
 3. Read the entire guide before running any commands; do not infer missing steps.
 4. Execute steps in order, using the exact commands and tooling specified (scripts, Makefile, CI tasks, etc.).
-5. Pause and ask for confirmation before irreversible actions (publishing, pushing tags, uploading artifacts) unless the guide explicitly instructs to proceed without confirmation.
+5. Follow the release guide exactly; if anything is unclear, stop and ask rather than making assumptions.
 6. If a step fails, stop and either follow the guide's recovery instructions or ask for user direction.
 7. If no `RELEASE_GUIDE.md` exists, ask the user for the correct release documentation location.
+
+## Output
+
+The response must include, in order:
+
+1. This release's content (output using the template provided in each project's release guide)
+2. Release link
