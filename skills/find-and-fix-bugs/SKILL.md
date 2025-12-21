@@ -93,7 +93,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Include the issues list in the PR body.
 - Use `scripts/render_issues_pr.sh --pr` (or `--issues`) to generate templates quickly.
 
-## Output
+## Output and clarification rules
 
 - Use `references/OUTPUT_TEMPLATE.md` as the response format.
 - The response must include, in order:

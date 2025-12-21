@@ -56,11 +56,11 @@ Rules:
 - Capture the exit status in `rc` or `exit_code` (do not use `status`)
 - If the commit fails, report the error and do not claim success
 
-## Output and clarification rules
+## Input completeness
 
-- After a successful commit, run `git-scope commit HEAD --no-color`
-- Print the `git-scope` output in a code block
-- If type, scope, or change summary is missing, ask a concise clarifying question and do not commit
+- Full-file reads are not required for commit message generation
+- Base the message on staged diff, scope tree, and staged (index) version content
+- Only read full files if the diff/context is insufficient to describe the change accurately
 
 ## Example
 
@@ -71,8 +71,8 @@ refactor(members): simplify otp purpose validation logic in requestOtp
 - Reordered conditional logic for better readability
 ```
 
-## Input completeness
+## Output and clarification rules
 
-- Full-file reads are not required for commit message generation
-- Base the message on staged diff, scope tree, and staged (index) version content
-- Only read full files if the diff/context is insufficient to describe the change accurately
+- If type, scope, or change summary is missing, ask a concise clarifying question and do not commit
+- After a successful commit, run `git-scope commit HEAD --no-color`
+- The response must include the `git-scope` output in a code block

@@ -17,9 +17,8 @@ description: Execute project release workflows by locating and following project
 6. If a step fails, stop and either follow the guide's recovery instructions or ask for user direction.
 7. If no `RELEASE_GUIDE.md` exists, ask the user for the correct release documentation location.
 
-## Output
+## Output and clarification rules
 
-The response must include, in order:
-
-1. This release's content (output using the template provided in each project's release guide)
-2. Release link
+- The response must include, in order:
+  1. Release content (use the template provided in each project's release guide)
+  2. Release link
