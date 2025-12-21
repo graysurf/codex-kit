@@ -1,6 +1,6 @@
 ---
 name: frpsql
-description: Run PostgreSQL queries through the frpsql wrapper in ~/.codex/tools/frpsql/frpsql.sh. Use when the user asks to query the FR Postgres database, inspect schemas/tables/columns, or execute SQL via frpsql/psql using the FR_PG* environment.
+description: Run PostgreSQL queries through the frpsql wrapper in ~/.codex/tools/frpsql/frpsql.zsh. Use when the user asks to query the FR Postgres database, inspect schemas/tables/columns, or execute SQL via frpsql/psql using the FR_PG* environment.
 ---
 
 # Frpsql
@@ -14,7 +14,7 @@ Use frpsql to run psql against the FR database using the values in `~/.codex/too
 1) Ensure the function is available.
 
 ```
-source ~/.codex/tools/frpsql/frpsql.sh
+source ~/.codex/tools/frpsql/frpsql.zsh
 ```
 
 2) Run a query.

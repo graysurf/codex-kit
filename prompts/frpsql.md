@@ -4,7 +4,7 @@ argument-hint: psql args or SQL
 ---
 
 If frpsql is not already available, source it first:
-source ~/.codex/tools/frpsql/frpsql.sh
+source ~/.codex/tools/frpsql/frpsql.zsh
 
 Then run:
 frpsql $ARGUMENTS

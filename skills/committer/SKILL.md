@@ -20,9 +20,9 @@ Rules:
 
 ## Setup (if command missing)
 
-- `git-commit-context` is defined in `~/.config/zsh/scripts/git/git-tools.sh`
-- Load it with `source ~/.codex/tools/codex-tools.sh`
-- If that is unavailable, run `source ~/.config/zsh/scripts/git/git-tools.sh`
+- `git-commit-context` is defined in `~/.config/zsh/scripts/git/git-tools.zsh`
+- Load it with `source ~/.codex/tools/codex-tools.zsh`
+- If that is unavailable, run `source ~/.config/zsh/scripts/git/git-tools.zsh`
 
 ## Follow Semantic Commit format
 

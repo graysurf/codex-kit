@@ -1,6 +1,6 @@
 ---
 name: qbmysql
-description: Run MySQL queries through the qbmysql wrapper in ~/.codex/tools/qbmysql/qbmysql.sh. Use when the user asks to query the QB MySQL database, inspect schemas/tables/columns, or execute SQL via qbmysql/mysql using the QB_MYSQL_* environment.
+description: Run MySQL queries through the qbmysql wrapper in ~/.codex/tools/qbmysql/qbmysql.zsh. Use when the user asks to query the QB MySQL database, inspect schemas/tables/columns, or execute SQL via qbmysql/mysql using the QB_MYSQL_* environment.
 ---
 
 # Qbmysql
@@ -14,7 +14,7 @@ Use qbmysql to run mysql against the QB database using the values in `~/.codex/t
 1) Ensure the function is available.
 
 ```
-source ~/.codex/tools/qbmysql/qbmysql.sh
+source ~/.codex/tools/qbmysql/qbmysql.zsh
 ```
 
 2) Run a query.
