@@ -42,25 +42,7 @@
 
 ## 可用指令（全域工具）
 
-- `~/.codex/tools/` 為 symlink，指向 `~/.config/zsh/.private/tools/`（相對連結）。
-- 這些工具以 `zsh` 寫成，提供「可 source 後使用的 function-based commands」。
-- 建議載入方式（一次載入常用工具）：
-  - `source ~/.codex/tools/codex-tools.sh`
-- 單一工具載入方式：
-  - `source ~/.codex/tools/frpsql/frpsql.sh` 後使用 `frpsql ...`
-  - `source ~/.codex/tools/qbmysql/qbmysql.sh` 後使用 `qbmysql ...`
-- `codex-tools.sh` 目前包含（分層載入，缺檔會自動略過）：
-  - Core（每次載入）：
-    - `~/.config/zsh/bootstrap/00-preload.sh`
-    - `~/.config/zsh/scripts/git/{git,git-tools,git-magic,git-summary,git-scope,git-lock}.sh`
-    - `~/.codex/tools/{frpsql/frpsql.sh,qbmysql/qbmysql.sh}`
-  - Extra（互動式 shell 或 `CODEX_TOOLS_EXTRA=1` 才載入）：
-    - `~/.config/zsh/scripts/{env,eza,shell-utils,fzf-tools,macos}.sh`
-    - `~/.config/zsh/.private/{infra,language,local,rytass,development}.sh`
-    - `~/.config/zsh/.private/deamon/ttyd-ssh.sh`
-  - 互動式 shell 才載入：
-    - `~/.config/zsh/scripts/{interactive,hotkeys,completion.zsh}`
-
-## Skills
-
-- committer：Semantic Commit 訊息產生器，參考 `skills/committer/SKILL.md`
+- 工具入口：`~/.codex/tools`（指向 `~/.config/zsh/.private/tools`）。
+- 建議載入：`source ~/.codex/tools/codex-tools.sh`。
+- 單一工具：`source ~/.codex/tools/<tool>/<tool>.sh` 後使用對應指令。
+- 細節與載入範圍以工具腳本本身為準。
