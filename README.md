@@ -32,9 +32,9 @@ are intentionally excluded via `.gitignore`.
 
 | Skill | Description |
 | --- | --- |
-| committer | Generate Semantic Commit messages from staged changes |
+| commit-message | Generate Semantic Commit messages from staged changes |
 | find-and-fix-bugs | Find, triage, and fix bugs; open a PR with gh |
-| release | Execute project release workflows by following RELEASE_GUIDE.md |
+| release-workflow | Execute project release workflows by following RELEASE_GUIDE.md |
 | fr-api-doc-playbook | Test FinanceReport GraphQL APIs and draft docs |
 | frpsql | Run PostgreSQL queries via the frpsql wrapper |
 | qbmysql | Run MySQL queries via the qbmysql wrapper |

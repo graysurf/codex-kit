@@ -1,6 +1,6 @@
 ---
 name: find-and-fix-bugs
-description: Find, triage, and fix bugs with or without user input. Autonomously scan codebases, produce an issues list, implement a fix, create a fix branch, commit via committer, and open a PR with gh.
+description: Find, triage, and fix bugs with or without user input. Autonomously scan codebases, produce an issues list, implement a fix, create a fix branch, commit via commit-message, and open a PR with gh.
 ---
 
 # Find and Fix Bugs
@@ -78,7 +78,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 ## Commit
 
-- Use the `committer` skill to generate a Semantic Commit message.
+- Use the `commit-message` skill to generate a Semantic Commit message.
 - Prefer a single commit unless there is a clear reason to split.
 
 ## PR

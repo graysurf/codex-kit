@@ -1,9 +1,9 @@
 ---
-name: release
+name: release-workflow
 description: Execute project release workflows by locating and following project-specific RELEASE_GUIDE.md in the repository root or docs/. Use when asked to perform a release, publish a release, cut a tag, run release steps, or when a user references RELEASE_GUIDE.md.
 ---
 
-# Release
+# Release Workflow
 
 ## Workflow
 

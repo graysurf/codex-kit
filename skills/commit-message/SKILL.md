@@ -1,9 +1,9 @@
 ---
-name: committer
+name: commit-message
 description: Generate Git commit messages in Semantic Commit format. Use when asked to write commit messages, format Semantic Commits, or summarize changes/diffs into a commit.
 ---
 
-# Committer
+# Commit Message
 
 ## Use staged context only
 
