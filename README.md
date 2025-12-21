@@ -33,6 +33,7 @@ are intentionally excluded via `.gitignore`.
 | Skill | Description |
 | --- | --- |
 | commit-message | Generate Semantic Commit messages from staged changes |
+| create-feature-pr | Create feature branches and open PRs with a standard template |
 | find-and-fix-bugs | Find, triage, and fix bugs; open a PR with gh |
 | release-workflow | Execute project release workflows by following RELEASE_GUIDE.md |
 
