@@ -38,8 +38,10 @@ Use this skill to turn a feature request or the latest commit into a clean featu
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the PR title.
 - Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
+- Use `scripts/render_feature_pr.sh --pr` to generate the PR template quickly.
 
 ## Output
 
 - Use `references/OUTPUT_TEMPLATE.md` as the response format.
 - Include `git-scope` output after commit using `git-scope commit HEAD --no-color`.
+- Use `scripts/render_feature_pr.sh --output` to generate the output template quickly.
