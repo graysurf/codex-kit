@@ -1,7 +1,6 @@
 # codex-kit
 
-codex-kit tracks my Codex CLI setup so I can keep a consistent workflow across machines.
-It contains prompt presets, custom skills, and local tooling wrappers. Secrets and session data
+codex-kit tracks Codex CLI setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling wrappers. Secrets and session data
 are intentionally excluded via `.gitignore`.
 
 ## 🗂️ Project Structure
@@ -51,4 +50,3 @@ are intentionally excluded via `.gitignore`.
 ## 📜 Notes
 
 - This repo lives at `~/.config/codex-kit`; `~/.codex` is a symlink here and is the configured Codex home.
-- Secret `.env` files live under `tools/**/.env` and are ignored by git.
