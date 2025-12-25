@@ -9,21 +9,31 @@ set -euo pipefail
 #   - profile : persistent profile (--user-data-dir)
 #   - connect : attach to an existing Chrome/Arc (--autoConnect | --browser-url)
 #
-# Supported browsers (set CHROME_DEVTOOLS_BROWSER_KIND in .env):
-#   - chrome | arc
+# Supported browser: chrome
 # Or provide a full executable path via CHROME_DEVTOOLS_BROWSER
 # ------------------------------------------------------------------------------
 
 # Default app paths
 CHROME_APP_PATH_DEFAULT="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-ARC_APP_PATH_DEFAULT="/Applications/Arc.app/Contents/MacOS/Arc"
 # Default remote debugging ports (connect mode)
 CHROME_REMOTE_DEBUG_PORT_DEFAULT="${CHROME_REMOTE_DEBUG_PORT_DEFAULT:-19222}"
-ARC_REMOTE_DEBUG_PORT_DEFAULT="${ARC_REMOTE_DEBUG_PORT_DEFAULT:-19223}"
 
 USER_DATA_DIR_BASE="${CHROME_DEVTOOLS_USER_DATA_BASE:-$HOME/.codex/.cache/chrome-devtools-mcp}"
 
 die() { echo "error: $*" >&2; exit 1; }
+
+preflight_browser_url() {
+  local browser_url="$1"
+  local enabled="${CHROME_DEVTOOLS_PREFLIGHT:-false}"
+  [[ "$enabled" == "true" ]] || return 0
+  [[ "${CHROME_DEVTOOLS_DRY_RUN:-false}" == "true" ]] && return 0
+
+  local timeout_sec="${CHROME_DEVTOOLS_PREFLIGHT_TIMEOUT_SEC:-2}"
+  local version_url="${browser_url%/}/json/version"
+  echo "preflight: GET $version_url (timeout ${timeout_sec}s)" >&2
+  curl -fsS --max-time "$timeout_sec" "$version_url" >/dev/null \
+    || die "preflight failed: cannot reach Chrome DevTools at $version_url (set CHROME_DEVTOOLS_PREFLIGHT=false to skip)"
+}
 
 resolve_user_data_dir() {
   local dir="${CHROME_DEVTOOLS_USER_DATA_DIR:-}"
@@ -46,17 +56,13 @@ resolve_browser_url() {
 
   local port="${CHROME_DEVTOOLS_BROWSER_PORT:-}"
   if [[ -z "$port" ]]; then
-    case "$BROWSER_KIND" in
-      chrome) port="${CHROME_DEVTOOLS_CHROME_PORT:-$CHROME_REMOTE_DEBUG_PORT_DEFAULT}" ;;
-      arc)    port="${CHROME_DEVTOOLS_ARC_PORT:-$ARC_REMOTE_DEBUG_PORT_DEFAULT}" ;;
-      *)      port="$CHROME_REMOTE_DEBUG_PORT_DEFAULT" ;;
-    esac
+    port="${CHROME_DEVTOOLS_CHROME_PORT:-$CHROME_REMOTE_DEBUG_PORT_DEFAULT}"
   fi
   printf 'http://127.0.0.1:%s' "$port"
 }
 
-# 1) Load .env (default: ./.env) into environment
-ENV_FILE="${ENV_FILE:-.env}"
+# 1) Load .env (default: ~/.codex/.env) into environment
+ENV_FILE="${ENV_FILE:-$HOME/.codex/.env}"
 if [[ -f "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1090
@@ -65,18 +71,21 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 # 2) Defaults
-MODE="${CHROME_DEVTOOLS_MODE:-clean}"                   # clean|profile|connect
-BROWSER_KIND="${CHROME_DEVTOOLS_BROWSER_KIND:-chrome}"  # chrome|arc
+MODE="${CHROME_DEVTOOLS_MODE:-clean}"  # clean|profile|connect
+
+# Log setup (default to ~/.codex/output)
+# IMPORTANT: Do not redirect stdout; MCP uses stdout for the protocol.
+LOG_DIR="${CHROME_DEVTOOLS_LOG_DIR:-$HOME/.codex/output}"
+LOG_SUBDIR="${CHROME_DEVTOOLS_LOG_SUBDIR:-chrome-devtools-mcp}"
+LOG_FILE="${CHROME_DEVTOOLS_LOG_FILE:-$LOG_DIR/$LOG_SUBDIR/$(date +%Y%m%d-%H%M%S).log}"
+mkdir -p "$(dirname "$LOG_FILE")"
+exec 2>>"$LOG_FILE"
 
 # 3) Resolve browser executable
 if [[ -n "${CHROME_DEVTOOLS_BROWSER:-}" ]]; then
   BROWSER_EXE="${CHROME_DEVTOOLS_BROWSER}"
 else
-  case "$BROWSER_KIND" in
-    chrome) BROWSER_EXE="$CHROME_APP_PATH_DEFAULT" ;;
-    arc)    BROWSER_EXE="$ARC_APP_PATH_DEFAULT" ;;
-    *) die "unknown CHROME_DEVTOOLS_BROWSER_KIND: $BROWSER_KIND (use chrome|arc)" ;;
-  esac
+  BROWSER_EXE="$CHROME_APP_PATH_DEFAULT"
 fi
 
 # 4) Build command args (use array to preserve spaces safely)
@@ -99,8 +108,8 @@ case "$MODE" in
       cmd+=(--autoConnect=true)
     else
       # Otherwise connect to a manually exposed remote debugging port
-      # Default port can vary by CHROME_DEVTOOLS_BROWSER_KIND
       BROWSER_URL="$(resolve_browser_url)"
+      preflight_browser_url "$BROWSER_URL"
       cmd+=(--browser-url "$BROWSER_URL")
     fi
     ;;
@@ -134,5 +143,10 @@ if [[ "${CHROME_DEVTOOLS_DRY_RUN:-false}" == "true" ]]; then
   printf '%q ' "${cmd[@]}"; echo
   exit 0
 fi
+
+echo "log: $LOG_FILE" >&2
+echo "chrome-devtools-mcp command:" >&2
+printf '%q ' "${cmd[@]}" >&2; echo >&2
+echo "env: CHROME_DEVTOOLS_MODE=${CHROME_DEVTOOLS_MODE:-} CHROME_DEVTOOLS_USER_DATA_DIR=${CHROME_DEVTOOLS_USER_DATA_DIR:-}" >&2
 
 exec "${cmd[@]}"

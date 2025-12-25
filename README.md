@@ -32,6 +32,7 @@ are intentionally excluded via `.gitignore`.
 
 | Skill | Description |
 | --- | --- |
+| chrome-devtools-site-search | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
 | commit-message | Generate Semantic Commit messages from staged changes |
 | create-feature-pr | Create feature branches and open PRs with a standard template |
 | find-and-fix-bugs | Find, triage, and fix bugs; open a PR with gh |
