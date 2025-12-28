@@ -7,7 +7,7 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 
 ## Setup
 
-- Load commands with `source ~/.codex/tools/codex-tools.zsh`
+- Load commands with `source ~/.codex/tools/_codex-tools.zsh`
 
 ## Use staged context only
 
