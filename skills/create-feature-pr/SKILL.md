@@ -37,8 +37,7 @@ description: Create a new feature branch, implement feature work, commit with co
 - Title: capitalize the first word; reflect the feature outcome; do not reuse the commit subject verbatim.
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the PR title.
 - Progress: include a link to the related progress file under `docs/progress/` (and update to `docs/progress/archived/` when DONE).
-  - Use a full GitHub URL (e.g. `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/...`) because PR bodies
-    resolve relative links under `/pull/`.
+  - Use a full GitHub URL (e.g. `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/...`) because PR bodies resolve relative links under `/pull/`.
 - Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
 - Use `scripts/render_feature_pr.sh --pr` to generate the PR template quickly.
