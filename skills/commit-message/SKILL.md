@@ -7,21 +7,23 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 
 ## Setup
 
-- Load commands with `source ~/.codex/tools/_codex-tools.zsh`
+- Run inside the target git repo
+- Prefer using the scripts below; they will try to load Codex git helpers automatically
 
-## Use staged context only
+## Scripts (only entrypoints)
+
+- Get staged context (stdout): `~/.codex/skills/commit-message/scripts/staged_context.sh`
+- Commit with a prepared message, then print a commit summary (stdout): `~/.codex/skills/commit-message/scripts/commit_with_message.sh`
+  - Prefer piping the full multi-line message via stdin
+- Do not call other helper commands directly; treat these scripts as the stable interface
+
+## Workflow
 
 Rules:
 
-- Prefer staged changes as input via `git-tools commit context --stdout --no-color`
 - **Never** run `git add` on your own; **do not** stage files the user has not explicitly staged
-- If `git-tools` is not available, collect fallback inputs:
-  - `git diff --staged --no-color` for the diff
-  - `git-scope staged --no-color` for the scope tree (fallback: `git diff --staged --name-only`)
-  - For each staged file, include its staged version via `git show :<path>`
-  - If a file is deleted and has no index version, note it as deleted
-- Do not infer from unstaged changes or untracked files
-- If staged diff is empty, ask for staged changes or a change summary
+- Use staged changes only; do not infer from unstaged/untracked files
+- If `staged_context.sh` fails, report its error output and do not proceed to committing
 
 ## Follow Semantic Commit format
 
@@ -49,16 +51,15 @@ Rules:
 
 ## Commit execution
 
-- Generate the full commit message from staged context
-- Write the message to a temporary file to preserve formatting
-- Run `git commit -F <temp-file>` and remove the temp file afterward
+- Generate the full commit message from `staged_context.sh` output
+- Commit by piping the full message into `commit_with_message.sh` (it preserves formatting)
 - Capture the exit status in `rc` or `exit_code` (do not use `status`)
 - If the commit fails, report the error and do not claim success
 
 ## Input completeness
 
 - Full-file reads are not required for commit message generation
-- Base the message on staged diff, scope tree, and staged (index) version content
+- Base the message on staged context only
 - Only read full files if the diff/context is insufficient to describe the change accurately
 
 ## Example
@@ -73,5 +74,6 @@ refactor(members): simplify otp purpose validation logic in requestOtp
 ## Output and clarification rules
 
 - If type, scope, or change summary is missing, ask a concise clarifying question and do not commit
-- After a successful commit, run `git-scope commit HEAD --no-color`
-- The response must include the `git-scope` output in a code block
+- Always run `commit_with_message.sh` for committing (it will print the commit summary on success)
+- On script failure: include exit code + stderr in the response, and do not claim success
+- On success: include the script stdout (commit summary) in a code block
