@@ -209,16 +209,28 @@ with open(path, "r", encoding="utf-8") as f:
 patched_status = False
 patched_pr = False
 
-for i, line in enumerate(lines):
-  m = re.match(r"^\\|\\s*(DRAFT|IN PROGRESS|DONE)\\s*\\|\\s*([0-9]{4}-[0-9]{2}-[0-9]{2})\\s*\\|\\s*([0-9]{4}-[0-9]{2}-[0-9]{2})\\s*\\|\\s*$", line)
+new_lines = []
+
+for line in lines:
+  m = re.match(r"^\|\s*(DRAFT|IN PROGRESS|DONE)\s*\|\s*([0-9]{4}-[0-9]{2}-[0-9]{2})\s*\|\s*([0-9]{4}-[0-9]{2}-[0-9]{2})\s*\|\s*$", line)
   if m and not patched_status:
     created = m.group(2)
-    lines[i] = f"| DONE | {created} | {today} |\\n"
+    new_lines.append(f"| DONE | {created} | {today} |\n")
     patched_status = True
     continue
-  if line.startswith("- PR:"):
-    lines[i] = f"- PR: {pr_url}\\n"
+
+  if line.startswith("- PR:") and not patched_pr:
+    expanded = line.replace("\\n", "\n")
+    expanded_lines = expanded.splitlines(keepends=True)
+    new_lines.append(f"- PR: {pr_url}\n")
+    if len(expanded_lines) > 1:
+      new_lines.extend(expanded_lines[1:])
     patched_pr = True
+    continue
+
+  new_lines.append(line)
+
+lines = new_lines
 
 with open(path, "w", encoding="utf-8") as f:
   f.writelines(lines)
@@ -311,7 +323,7 @@ def row_cells(row_line):
   return [p.strip() for p in row_line.strip().strip("|").split("|")]
 
 def render_row(feature_cell):
-  return f"| {date_iso} | {feature_cell} | {pr_cell} |\\n"
+  return f"| {date_iso} | {feature_cell} | {pr_cell} |\n"
 
 def normalize_feature_cell(cell):
   cell = cell.replace(f"(docs/progress/{filename})", f"(docs/progress/archived/{filename})")
