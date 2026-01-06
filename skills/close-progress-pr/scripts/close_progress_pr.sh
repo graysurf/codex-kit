@@ -387,7 +387,11 @@ if [[ "$merge_pr" == "1" ]]; then
     gh pr ready "$pr_number"
   fi
 
-  gh pr merge "$pr_number" --merge --delete-branch --yes
+  merge_args=("$pr_number" --merge --delete-branch)
+  if gh pr merge --help 2>/dev/null | rg -q -- "--yes"; then
+    merge_args+=(--yes)
+  fi
+  gh pr merge "${merge_args[@]}"
 
   progress_url="${repo_origin}/${repo_full}/blob/${base_branch}/${progress_file}"
 
