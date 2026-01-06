@@ -85,10 +85,32 @@ fi
 pr_url="$(gh pr view "$pr_number" --json url -q .url)"
 base_branch="$(gh pr view "$pr_number" --json baseRefName -q .baseRefName)"
 head_branch="$(gh pr view "$pr_number" --json headRefName -q .headRefName)"
-repo_full="$(gh pr view "$pr_number" --json baseRepository -q .baseRepository.nameWithOwner)"
 pr_state="$(gh pr view "$pr_number" --json state -q .state)"
 
-if [[ -z "$repo_full" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" ]]; then
+repo_origin="$(python3 - "$pr_url" <<'PY'
+from urllib.parse import urlparse
+import sys
+
+u = urlparse(sys.argv[1])
+if not u.scheme or not u.netloc:
+  raise SystemExit(1)
+print(f"{u.scheme}://{u.netloc}")
+PY
+)"
+
+repo_full="$(python3 - "$pr_url" <<'PY'
+from urllib.parse import urlparse
+import sys
+
+path = urlparse(sys.argv[1]).path.strip("/")
+parts = path.split("/")
+if len(parts) < 4 or parts[2] != "pull":
+  raise SystemExit(1)
+print(parts[0] + "/" + parts[1])
+PY
+)"
+
+if [[ -z "$repo_full" || -z "$repo_origin" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" ]]; then
   echo "error: failed to resolve PR metadata via gh" >&2
   exit 1
 fi
@@ -355,7 +377,7 @@ if [[ "$merge_pr" == "1" ]]; then
 
   gh pr merge "$pr_number" --merge --delete-branch --yes
 
-  progress_url="https://github.com/${repo_full}/blob/${base_branch}/${progress_file}"
+  progress_url="${repo_origin}/${repo_full}/blob/${base_branch}/${progress_file}"
 
   tmp_file="$(mktemp)"
   gh pr view "$pr_number" --json body -q .body >"$tmp_file"
@@ -402,7 +424,7 @@ PY
   gh pr edit "$pr_number" --body-file "$tmp_file"
   rm -f "$tmp_file"
 
-  echo "merged: https://github.com/${repo_full}/pull/${pr_number}" >&2
+  echo "merged: ${pr_url}" >&2
   echo "progress: ${progress_url}" >&2
 else
   echo "progress: ${progress_file}" >&2
