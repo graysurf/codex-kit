@@ -1,0 +1,443 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  close_progress_pr.sh [--pr <number>] [--progress-file <path>] [--no-merge]
+
+What it does:
+  - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to rg by PR URL)
+  - Sets progress Status to DONE and updates the Updated date
+  - Sets the progress "Links -> PR" to the PR URL
+  - Moves the progress file to docs/progress/archived/
+  - Best-effort updates docs/progress/README.md index
+  - Commits + pushes the changes on the PR head branch
+  - Merges the PR (merge commit) and deletes the head branch (unless --no-merge)
+  - Patches the PR body "## Progress" link to point to the base branch
+
+Notes:
+  - Requires: gh, git, python3, rg
+  - Run inside the target git repo, ideally already on the PR head branch
+USAGE
+}
+
+pr_number=""
+progress_file=""
+merge_pr="1"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --pr)
+      pr_number="${2:-}"
+      shift 2
+      ;;
+    --progress-file)
+      progress_file="${2:-}"
+      shift 2
+      ;;
+    --no-merge)
+      merge_pr="0"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+for cmd in gh git python3 rg; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "error: $cmd is required" >&2
+    exit 1
+  fi
+done
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+  echo "error: must run inside a git work tree" >&2
+  exit 1
+}
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+if [[ -z "$pr_number" ]]; then
+  pr_number="$(gh pr view --json number -q .number 2>/dev/null || true)"
+fi
+
+if [[ -z "$pr_number" ]]; then
+  echo "error: PR number is required (use --pr <number> or run on a branch with an open PR)" >&2
+  exit 1
+fi
+
+if [[ -n "$(git status --porcelain=v1)" ]]; then
+  echo "error: working tree is not clean; commit/stash first" >&2
+  git status --porcelain=v1 >&2 || true
+  exit 1
+fi
+
+pr_url="$(gh pr view "$pr_number" --json url -q .url)"
+base_branch="$(gh pr view "$pr_number" --json baseRefName -q .baseRefName)"
+head_branch="$(gh pr view "$pr_number" --json headRefName -q .headRefName)"
+pr_state="$(gh pr view "$pr_number" --json state -q .state)"
+
+repo_origin="$(python3 - "$pr_url" <<'PY'
+from urllib.parse import urlparse
+import sys
+
+u = urlparse(sys.argv[1])
+if not u.scheme or not u.netloc:
+  raise SystemExit(1)
+print(f"{u.scheme}://{u.netloc}")
+PY
+)"
+
+repo_full="$(python3 - "$pr_url" <<'PY'
+from urllib.parse import urlparse
+import sys
+
+path = urlparse(sys.argv[1]).path.strip("/")
+parts = path.split("/")
+if len(parts) < 4 or parts[2] != "pull":
+  raise SystemExit(1)
+print(parts[0] + "/" + parts[1])
+PY
+)"
+
+if [[ -z "$repo_full" || -z "$repo_origin" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" ]]; then
+  echo "error: failed to resolve PR metadata via gh" >&2
+  exit 1
+fi
+
+if [[ "$pr_state" != "OPEN" ]]; then
+  echo "error: PR is not OPEN (state=$pr_state); this script is intended to run before merge" >&2
+  exit 1
+fi
+
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$current_branch" != "$head_branch" ]]; then
+  echo "error: current branch ($current_branch) != PR head branch ($head_branch)" >&2
+  echo "hint: run: gh pr checkout $pr_number" >&2
+  exit 1
+fi
+
+resolve_progress_from_body() {
+  local body="$1"
+  python3 - "$body" <<'PY'
+import re
+import sys
+
+body = sys.argv[1]
+matches = re.findall(r"docs/progress/(?:archived/)?\d{8}_[A-Za-z0-9_-]+\.md", body)
+
+unique = []
+for m in matches:
+  if m not in unique:
+    unique.append(m)
+
+if not unique:
+  raise SystemExit(1)
+
+if len(unique) > 1:
+  print("error: multiple progress files found in PR body; use --progress-file to choose one:", file=sys.stderr)
+  for m in unique:
+    print(f"  - {m}", file=sys.stderr)
+  raise SystemExit(2)
+
+print(unique[0])
+PY
+}
+
+if [[ -z "$progress_file" ]]; then
+  pr_body="$(gh pr view "$pr_number" --json body -q .body)"
+  set +e
+  progress_from_body="$(resolve_progress_from_body "$pr_body")"
+  rc=$?
+  set -e
+  if [[ "$rc" == "0" ]]; then
+    progress_file="$progress_from_body"
+  elif [[ "$rc" == "2" ]]; then
+    exit 2
+  fi
+fi
+
+if [[ -z "$progress_file" && -d "docs/progress" ]]; then
+  progress_file="$(rg -l --fixed-string "$pr_url" docs/progress 2>/dev/null | head -n 1 || true)"
+fi
+
+if [[ -z "$progress_file" ]]; then
+  echo "error: cannot resolve progress file for PR $pr_number" >&2
+  echo "hint: ensure PR body contains a docs/progress link under '## Progress', or pass --progress-file" >&2
+  echo "hint: or ensure the progress file contains the PR URL under Links -> PR" >&2
+  exit 1
+fi
+
+progress_file="${progress_file#./}"
+
+if [[ ! -f "$progress_file" ]]; then
+  filename="$(basename "$progress_file")"
+  if [[ -f "docs/progress/${filename}" ]]; then
+    progress_file="docs/progress/${filename}"
+  elif [[ -f "docs/progress/archived/${filename}" ]]; then
+    progress_file="docs/progress/archived/${filename}"
+  else
+    echo "error: progress file does not exist in repo: $progress_file" >&2
+    exit 1
+  fi
+fi
+
+filename="$(basename "$progress_file")"
+archived_path="docs/progress/archived/${filename}"
+
+today="$(date +%Y-%m-%d)"
+
+python3 - "$progress_file" "$today" "$pr_url" <<'PY'
+import re
+import sys
+
+path, today, pr_url = sys.argv[1], sys.argv[2], sys.argv[3]
+
+with open(path, "r", encoding="utf-8") as f:
+  lines = f.readlines()
+
+patched_status = False
+patched_pr = False
+
+new_lines = []
+
+for line in lines:
+  m = re.match(r"^\|\s*(DRAFT|IN PROGRESS|DONE)\s*\|\s*([0-9]{4}-[0-9]{2}-[0-9]{2})\s*\|\s*([0-9]{4}-[0-9]{2}-[0-9]{2})\s*\|\s*$", line)
+  if m and not patched_status:
+    created = m.group(2)
+    new_lines.append(f"| DONE | {created} | {today} |\n")
+    patched_status = True
+    continue
+
+  if line.startswith("- PR:") and not patched_pr:
+    expanded = line.replace("\\n", "\n")
+    expanded_lines = expanded.splitlines(keepends=True)
+    new_lines.append(f"- PR: {pr_url}\n")
+    if len(expanded_lines) > 1:
+      new_lines.extend(expanded_lines[1:])
+    patched_pr = True
+    continue
+
+  new_lines.append(line)
+
+lines = new_lines
+
+with open(path, "w", encoding="utf-8") as f:
+  f.writelines(lines)
+
+if not patched_status:
+  raise SystemExit(f"error: cannot patch Status table row in {path}")
+if not patched_pr:
+  raise SystemExit(f"error: cannot patch Links -> PR line in {path}")
+PY
+
+if [[ "$progress_file" == docs/progress/*.md && "$progress_file" != docs/progress/archived/* ]]; then
+  mkdir -p "docs/progress/archived"
+  if git ls-files --error-unmatch "$progress_file" >/dev/null 2>&1; then
+    git mv "$progress_file" "$archived_path"
+  else
+    mv "$progress_file" "$archived_path"
+  fi
+  progress_file="$archived_path"
+fi
+
+extract_title() {
+  python3 - "$1" <<'PY'
+import sys
+
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+  for line in f:
+    line = line.rstrip("\n")
+    if line.startswith("# "):
+      h1 = line[2:].strip()
+      if ": " in h1:
+        return_title = h1.split(": ", 1)[1].strip()
+      else:
+        return_title = h1
+      print(return_title)
+      raise SystemExit(0)
+
+print("Progress", file=sys.stderr)
+raise SystemExit(0)
+PY
+}
+
+title="$(extract_title "$progress_file")"
+
+if [[ -f "docs/progress/README.md" ]]; then
+  python3 - "docs/progress/README.md" "$filename" "$title" "$pr_url" "$pr_number" <<'PY'
+import datetime
+import sys
+
+index_path, filename, title, pr_url, pr_number = sys.argv[1:]
+
+yyyymmdd = filename.split("_", 1)[0]
+try:
+  date_iso = datetime.datetime.strptime(yyyymmdd, "%Y%m%d").date().isoformat()
+except ValueError:
+  date_iso = "TBD"
+
+pr_cell = f"[#{pr_number}]({pr_url})"
+
+with open(index_path, "r", encoding="utf-8") as f:
+  lines = f.readlines()
+
+in_progress_start = None
+archived_start = None
+
+for i, line in enumerate(lines):
+  if line.strip() == "### In progress":
+    in_progress_start = i
+  if line.strip() == "### Archived":
+    archived_start = i
+
+if in_progress_start is None or archived_start is None:
+  print("warning: cannot find '### In progress' / '### Archived' sections in docs/progress/README.md; skipping index update", file=sys.stderr)
+  raise SystemExit(0)
+
+def find_table_sep(start, end):
+  for i in range(start, end):
+    if lines[i].startswith("| ---"):
+      return i
+  return None
+
+in_sep = find_table_sep(in_progress_start, archived_start)
+arch_sep = find_table_sep(archived_start, len(lines))
+
+if in_sep is None or arch_sep is None:
+  print("warning: cannot find progress index table headers; skipping index update", file=sys.stderr)
+  raise SystemExit(0)
+
+def row_cells(row_line):
+  return [p.strip() for p in row_line.strip().strip("|").split("|")]
+
+def render_row(feature_cell):
+  return f"| {date_iso} | {feature_cell} | {pr_cell} |\n"
+
+def normalize_feature_cell(cell):
+  cell = cell.replace(f"(docs/progress/{filename})", f"(docs/progress/archived/{filename})")
+  cell = cell.replace(f"({filename})", f"(archived/{filename})")
+  return cell
+
+# Try to find an existing row (prefer In progress, then Archived) that mentions the filename.
+in_row_idx = None
+in_row_line = None
+for i in range(in_sep + 1, archived_start):
+  if lines[i].startswith("|") and filename in lines[i]:
+    in_row_idx = i
+    in_row_line = lines[i]
+    break
+
+arch_row_idx = None
+arch_row_line = None
+for i in range(arch_sep + 1, len(lines)):
+  if lines[i].startswith("|") and filename in lines[i]:
+    arch_row_idx = i
+    arch_row_line = lines[i]
+    break
+
+feature_cell = title
+
+if in_row_line:
+  cells = row_cells(in_row_line)
+  if len(cells) >= 2 and cells[1]:
+    feature_cell = cells[1]
+  feature_cell = normalize_feature_cell(feature_cell)
+  lines.pop(in_row_idx)
+
+if arch_row_line:
+  cells = row_cells(arch_row_line)
+  if len(cells) >= 2 and cells[1]:
+    feature_cell = cells[1]
+  feature_cell = normalize_feature_cell(feature_cell)
+  lines[arch_row_idx] = render_row(feature_cell)
+else:
+  feature_cell = f"[{title}](archived/{filename})"
+  insert_at = arch_sep + 1
+  lines.insert(insert_at, render_row(feature_cell))
+
+with open(index_path, "w", encoding="utf-8") as f:
+  f.writelines(lines)
+PY
+fi
+
+if [[ -n "$(git status --porcelain=v1)" ]]; then
+  git add "$progress_file"
+  if [[ -f "docs/progress/README.md" ]]; then
+    git add "docs/progress/README.md"
+  fi
+  git commit -m "docs(progress): archive ${filename%.md}"
+  git push
+fi
+
+if [[ "$merge_pr" == "1" ]]; then
+  is_draft="$(gh pr view "$pr_number" --json isDraft -q .isDraft)"
+  if [[ "$is_draft" == "true" ]]; then
+    gh pr ready "$pr_number"
+  fi
+
+  gh pr merge "$pr_number" --merge --delete-branch --yes
+
+  progress_url="${repo_origin}/${repo_full}/blob/${base_branch}/${progress_file}"
+
+  tmp_file="$(mktemp)"
+  gh pr view "$pr_number" --json body -q .body >"$tmp_file"
+
+  python3 - "$tmp_file" "$progress_file" "$progress_url" <<'PY'
+import sys
+
+body_path, progress_path, progress_url = sys.argv[1], sys.argv[2], sys.argv[3]
+
+with open(body_path, "r", encoding="utf-8") as f:
+  body = f.read()
+
+lines = body.splitlines()
+
+def render_progress_section():
+  return [
+    "## Progress",
+    f"- [{progress_path}]({progress_url})",
+    "",
+  ]
+
+start = None
+end = None
+
+for i, line in enumerate(lines):
+  if line.strip() == "## Progress":
+    start = i
+    break
+
+if start is not None:
+  end = len(lines)
+  for j in range(start + 1, len(lines)):
+    if lines[j].startswith("## "):
+      end = j
+      break
+  new_lines = lines[:start] + render_progress_section() + lines[end:]
+else:
+  new_lines = render_progress_section() + lines
+
+with open(body_path, "w", encoding="utf-8") as f:
+  f.write("\n".join(new_lines).rstrip() + "\n")
+PY
+
+  gh pr edit "$pr_number" --body-file "$tmp_file"
+  rm -f "$tmp_file"
+
+  echo "merged: ${pr_url}" >&2
+  echo "progress: ${progress_url}" >&2
+else
+  echo "progress: ${progress_file}" >&2
+fi

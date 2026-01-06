@@ -1,0 +1,1 @@
+../../skills/create-progress-pr/references/PROGRESS_TEMPLATE.md

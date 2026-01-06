@@ -45,5 +45,4 @@ description: Create a new feature branch, implement feature work, commit with co
 ## Output
 
 - Use `references/OUTPUT_TEMPLATE.md` as the response format.
-- Include `git-scope` output after commit using `git-scope commit HEAD --no-color`.
 - Use `scripts/render_feature_pr.sh --output` to generate the output template quickly.
