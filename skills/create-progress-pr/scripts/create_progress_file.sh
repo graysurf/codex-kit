@@ -215,10 +215,17 @@ if not missing:
 PY
 
 if [[ "$skip_index" == "0" && -f "docs/progress/README.md" ]]; then
-  python3 - "docs/progress/README.md" "$date_iso" "$title" <<'PY'
+  python3 - "docs/progress/README.md" "$date_iso" "$title" "$output_path" <<'PY'
 import sys
 
-index_path, date_iso, title = sys.argv[1], sys.argv[2], sys.argv[3]
+index_path, date_iso, title, output_path = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+
+if not output_path.startswith("docs/progress/"):
+  print(f"warning: output is not under docs/progress/: {output_path}; skipping index update", file=sys.stderr)
+  raise SystemExit(0)
+
+link_target = output_path[len("docs/progress/"):]
+feature_cell = f"[{title}]({link_target})"
 
 with open(index_path, "r", encoding="utf-8") as f:
   lines = f.readlines()
@@ -243,7 +250,7 @@ if table_sep is None:
   print("warning: cannot find In progress table header separator in docs/progress/README.md; skipping index update", file=sys.stderr)
   raise SystemExit(0)
 
-row = f"| {date_iso} | {title} | TBD |\n"
+row = f"| {date_iso} | {feature_cell} | TBD |\n"
 
 if row in lines:
   print("warning: index row already exists; skipping", file=sys.stderr)

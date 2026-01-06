@@ -348,6 +348,11 @@ if [[ -n "$(git status --porcelain=v1)" ]]; then
 fi
 
 if [[ "$merge_pr" == "1" ]]; then
+  is_draft="$(gh pr view "$pr_number" --json isDraft -q .isDraft)"
+  if [[ "$is_draft" == "true" ]]; then
+    gh pr ready "$pr_number"
+  fi
+
   gh pr merge "$pr_number" --merge --delete-branch --yes
 
   progress_url="https://github.com/${repo_full}/blob/${base_branch}/${progress_file}"

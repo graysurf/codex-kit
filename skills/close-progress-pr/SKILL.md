@@ -1,6 +1,10 @@
 ---
 name: close-progress-pr
-description: Finalize and archive a progress file for a GitHub PR: locate the related docs/progress file (prefer PR body Progress link), set Status to DONE, move it to docs/progress/archived/, update docs/progress/README.md, merge the PR with gh, and patch the PR body Progress link to point to the base branch so it survives branch deletion. Use when a feature PR is ready to be closed and its progress tracking should be marked DONE.
+description: >
+  Finalize and archive a progress file for a GitHub PR: locate the related docs/progress file (prefer PR body Progress link),
+  set Status to DONE, move it to docs/progress/archived/, update docs/progress/README.md, merge the PR with gh, and patch the
+  PR body Progress link to point to the base branch so it survives branch deletion. Use when a feature PR is ready to be closed
+  and its progress tracking should be marked DONE.
 ---
 
 # Close Progress PR
