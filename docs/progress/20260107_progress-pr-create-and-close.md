@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: TBD
-- Docs: TBD
+- PR: https://github.com/graysurf/codex-kit/pull/5
+- Docs: `README.md`
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
 ## Goal
