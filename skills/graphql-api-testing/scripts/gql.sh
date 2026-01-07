@@ -13,6 +13,21 @@ trim() {
 	printf "%s" "$s"
 }
 
+to_lower() {
+	printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+to_upper() {
+	printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
+}
+
+to_env_key() {
+	local s="$1"
+	s="$(to_upper "$s")"
+	s="$(printf "%s" "$s" | sed -E 's/[^A-Z0-9]+/_/g; s/^_+//; s/_+$//; s/_+/_/g')"
+	printf "%s" "$s"
+}
+
 usage() {
 	cat >&2 <<'EOF'
 Usage:
@@ -98,46 +113,8 @@ done
 operation_file="${1:-}"
 variables_file="${2:-}"
 
-declare -A endpoint_map=()
 gql_env_default=""
-declare -A jwt_map=()
 gql_jwt_name_default=""
-
-parse_endpoints_file() {
-	local file="$1"
-	[[ -f "$file" ]] || return 0
-
-		while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
-			raw_line="${raw_line%$'\r'}"
-			local line
-			line="$(trim "$raw_line")"
-			[[ -z "$line" ]] && continue
-			[[ "$line" == \#* ]] && continue
-
-			if [[ "$line" =~ ^(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
-				local key="${BASH_REMATCH[2]}"
-				local value
-				value="$(trim "${BASH_REMATCH[3]}")"
-
-				if [[ "$value" =~ ^\"(.*)\"$ ]]; then
-					value="${BASH_REMATCH[1]}"
-				elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
-				value="${BASH_REMATCH[1]}"
-			fi
-
-			case "$key" in
-				GQL_ENV_DEFAULT)
-					gql_env_default="$value"
-					;;
-				GQL_URL_*)
-					local env_key="${key#GQL_URL_}"
-					env_key="${env_key,,}"
-					endpoint_map["$env_key"]="$value"
-					;;
-			esac
-		fi
-	done < "$file"
-}
 
 list_available_envs() {
 	local file="$1"
@@ -148,44 +125,8 @@ list_available_envs() {
 		local line
 		line="$(trim "$raw_line")"
 		[[ "$line" =~ ^(export[[:space:]]+)?GQL_URL_([A-Za-z0-9_]+)[[:space:]]*= ]] || continue
-		printf "%s\n" "${BASH_REMATCH[2],,}"
+		printf "%s\n" "$(to_lower "${BASH_REMATCH[2]}")"
 	done < "$file" | sort -u
-}
-
-parse_jwts_file() {
-	local file="$1"
-	[[ -f "$file" ]] || return 0
-
-	while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
-		raw_line="${raw_line%$'\r'}"
-		local line
-		line="$(trim "$raw_line")"
-		[[ -z "$line" ]] && continue
-		[[ "$line" == \#* ]] && continue
-
-		if [[ "$line" =~ ^(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
-			local key="${BASH_REMATCH[2]}"
-			local value
-			value="$(trim "${BASH_REMATCH[3]}")"
-
-			if [[ "$value" =~ ^\"(.*)\"$ ]]; then
-				value="${BASH_REMATCH[1]}"
-			elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
-				value="${BASH_REMATCH[1]}"
-			fi
-
-			case "$key" in
-				GQL_JWT_NAME)
-					gql_jwt_name_default="$value"
-					;;
-				GQL_JWT_*)
-					local jwt_key="${key#GQL_JWT_}"
-					jwt_key="${jwt_key,,}"
-					jwt_map["$jwt_key"]="$value"
-					;;
-			esac
-		fi
-	done < "$file"
 }
 
 list_available_jwts() {
@@ -197,10 +138,49 @@ list_available_jwts() {
 		local line
 		line="$(trim "$raw_line")"
 		[[ "$line" =~ ^(export[[:space:]]+)?GQL_JWT_([A-Za-z0-9_]+)[[:space:]]*= ]] || continue
-		local jwt_name="${BASH_REMATCH[2],,}"
+		local jwt_name
+		jwt_name="$(to_lower "${BASH_REMATCH[2]}")"
 		[[ "$jwt_name" == "name" ]] && continue
 		printf "%s\n" "$jwt_name"
 	done < "$file" | sort -u
+}
+
+read_env_var_from_files() {
+	local key="$1"
+	shift
+
+	local value=""
+	local file
+	for file in "$@"; do
+		[[ -f "$file" ]] || continue
+
+		while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+			raw_line="${raw_line%$'\r'}"
+			local line
+			line="$(trim "$raw_line")"
+			[[ -z "$line" ]] && continue
+			[[ "$line" == \#* ]] && continue
+
+			if [[ "$line" =~ ^(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
+				local found_key="${BASH_REMATCH[2]}"
+				[[ "$found_key" == "$key" ]] || continue
+
+				local found_value
+				found_value="$(trim "${BASH_REMATCH[3]}")"
+
+				if [[ "$found_value" =~ ^\"(.*)\"$ ]]; then
+					found_value="${BASH_REMATCH[1]}"
+				elif [[ "$found_value" =~ ^\'(.*)\'$ ]]; then
+					found_value="${BASH_REMATCH[1]}"
+				fi
+
+				value="$found_value"
+			fi
+		done < "$file"
+	done
+
+	[[ -n "$value" ]] || return 1
+	printf "%s" "$value"
 }
 
 find_upwards_for_file() {
@@ -299,7 +279,11 @@ fi
 
 if [[ "$list_envs" == "true" ]]; then
 	[[ -n "$endpoints_file" ]] || die "endpoints.env not found (expected under setup/graphql/)"
-	list_available_envs "$endpoints_file"
+	{
+		list_available_envs "$endpoints_file"
+		[[ -f "$endpoints_local_file" ]] && list_available_envs "$endpoints_local_file"
+		true
+	} | sort -u
 	exit 0
 fi
 
@@ -327,10 +311,7 @@ if [[ -n "$variables_file" && ! -f "$variables_file" ]]; then
 fi
 
 if [[ -n "$endpoints_file" ]]; then
-	parse_endpoints_file "$endpoints_file"
-	if [[ -f "$endpoints_local_file" ]]; then
-		parse_endpoints_file "$endpoints_local_file"
-	fi
+	gql_env_default="$(read_env_var_from_files "GQL_ENV_DEFAULT" "$endpoints_file" "$endpoints_local_file" 2>/dev/null || true)"
 fi
 
 gql_url=""
@@ -340,28 +321,32 @@ if [[ -n "$explicit_url" ]]; then
 elif [[ "$env_name" =~ ^https?:// ]]; then
 	gql_url="$env_name"
 elif [[ -n "$env_name" ]]; then
-	env_key="${env_name,,}"
-	gql_url="${endpoint_map[$env_key]:-}"
+	[[ -n "$endpoints_file" ]] || die "endpoints.env not found (expected under setup/graphql/)"
+	env_key="$(to_env_key "$env_name")"
+	gql_url="$(read_env_var_from_files "GQL_URL_${env_key}" "$endpoints_file" "$endpoints_local_file" 2>/dev/null || true)"
 	if [[ -z "$gql_url" ]]; then
-		available_envs="$(list_available_envs "${endpoints_file:-/dev/null}" | tr '\n' ' ')"
+		available_envs="$(
+			{
+				list_available_envs "${endpoints_file:-/dev/null}"
+				[[ -f "$endpoints_local_file" ]] && list_available_envs "$endpoints_local_file"
+				true
+			} | tr '\n' ' '
+		)"
 		available_envs="$(trim "$available_envs")"
 		die "Unknown --env '$env_name' (available: ${available_envs:-none})"
 	fi
 elif [[ -n "${GQL_URL:-}" ]]; then
 	gql_url="$GQL_URL"
 elif [[ -n "$gql_env_default" ]]; then
-	env_key="${gql_env_default,,}"
-	gql_url="${endpoint_map[$env_key]:-}"
+	env_key="$(to_env_key "$gql_env_default")"
+	gql_url="$(read_env_var_from_files "GQL_URL_${env_key}" "$endpoints_file" "$endpoints_local_file" 2>/dev/null || true)"
 	[[ -n "$gql_url" ]] || die "GQL_ENV_DEFAULT is '$gql_env_default' but no matching GQL_URL_* was found."
 else
 	gql_url="http://localhost:6700/graphql"
 fi
 
 if [[ -n "$jwts_file" ]]; then
-	parse_jwts_file "$jwts_file"
-fi
-if [[ -n "$jwts_local_file" && -f "$jwts_local_file" ]]; then
-	parse_jwts_file "$jwts_local_file"
+	gql_jwt_name_default="$(read_env_var_from_files "GQL_JWT_NAME" "$jwts_file" "$jwts_local_file" 2>/dev/null || true)"
 fi
 
 jwt_name_env="$(trim "${GQL_JWT_NAME:-}")"
@@ -376,13 +361,14 @@ elif [[ -n "$jwt_name_file" ]]; then
 fi
 
 jwt_name="${jwt_name_arg:-${jwt_name_env:-${jwt_name_file:-default}}}"
-jwt_name="${jwt_name,,}"
+jwt_name="$(to_lower "$jwt_name")"
 
 access_token=""
 if [[ "$jwt_profile_selected" == "false" && -n "${ACCESS_TOKEN:-}" ]]; then
 	access_token="$ACCESS_TOKEN"
 else
-	access_token="${jwt_map[$jwt_name]:-}"
+	jwt_key="$(to_env_key "$jwt_name")"
+	access_token="$(read_env_var_from_files "GQL_JWT_${jwt_key}" "$jwts_file" "$jwts_local_file" 2>/dev/null || true)"
 fi
 
 detect_client() {
@@ -536,7 +522,20 @@ maybe_auto_login() {
 
 	token="$(
 		printf "%s" "$response" |
-			jq -r --arg field "$root_field" '(.data[$field].accessToken // .data[$field].token // .data[$field] // empty) | select(type=="string" and length>0)'
+			jq -r --arg field "$root_field" '
+        def token_string:
+          select(type=="string" and length>0);
+        def find_token:
+          .. | objects | (.accessToken? // .token? // empty) | token_string;
+
+        (.data[$field] // empty) as $root
+        | if ($root | type) == "string" then
+            $root | token_string
+          else
+            ($root | find_token)
+          end
+        | limit(1; .)
+      '
 	)"
 
 	[[ -n "$token" ]] || die "Failed to extract JWT from login response (field: $root_field)."
