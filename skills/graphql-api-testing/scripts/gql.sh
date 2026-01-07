@@ -264,6 +264,7 @@ Options:
       --config-dir <dir> GraphQL setup dir (searches upward for endpoints.env/jwts.env; default: operation dir or ./setup/graphql)
       --list-envs         Print available env names from endpoints.env, then exit
       --list-jwts         Print available JWT profile names from jwts(.local).env, then exit
+      --no-history        Disable writing to .gql_history for this run
 
 Environment variables:
   GQL_URL        Explicit GraphQL endpoint URL (overridden by --env/--url)
@@ -324,6 +325,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		--list-jwts)
 			list_jwts=true
+			shift
+			;;
+		--no-history)
+			GQL_HISTORY=0
 			shift
 			;;
 		--)

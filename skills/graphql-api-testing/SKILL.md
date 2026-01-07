@@ -88,10 +88,17 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
 
 `gql.sh` appends a replayable snippet to `setup/graphql/.gql_history` by default (gitignored).
 
+- One-off disable: add `--no-history` to the `gql.sh` invocation.
 - Disable: `GQL_HISTORY=0`
 - Omit URL in history entries: `GQL_HISTORY_LOG_URL=0`
 - Override history file path: `GQL_HISTORY_FILE=<path>` (relative paths resolve under `setup/graphql/`)
 - Size/rotation: `GQL_HISTORY_MAX_MB=10` (default), `GQL_HISTORY_ROTATE_COUNT=5`
+
+Extract the last entry for replay:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh --command-only
+```
 
 ## Manual token export (optional)
 

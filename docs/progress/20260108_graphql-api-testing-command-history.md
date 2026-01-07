@@ -130,16 +130,16 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - [x] History file is appended on both success and failure with a recorded exit code (confirmed).
     - [x] Docs include a TL;DR snippet showing where history lives and how to disable it.
     - [x] Reports include `## Command` by default and can omit URL value with `--no-command-url` / `GQL_REPORT_COMMAND_LOG_URL=0`.
-- [ ] Step 2: Expansion / integration
+- [x] Step 2: Expansion / integration
   - Work Items:
     - [x] If rotating, support keeping N rotated files (and document the policy).
-    - [ ] Consider a CLI switch (`--no-history`) for one-off runs (optional; keep env as primary control).
-    - [ ] Consider a helper to replay or extract the last entry (optional; follow-up).
+    - [x] Add a CLI switch (`--no-history`) for one-off runs (keep env as the primary control surface).
+    - [x] Add a helper to extract recent entries: `skills/graphql-api-testing/scripts/gql-history.sh`.
   - Artifacts:
     - Notes and design decisions recorded in docs
   - Exit Criteria:
-    - [ ] Common branches are covered (disable/override path/rotation/error handling).
-    - [ ] No behavior regression for existing usage (stdout/stderr and exit codes unchanged).
+    - [x] Common branches are covered (disable/override path/rotation/error handling) via local smoke tests; full real-endpoint validation remains Step 3.
+    - [x] No behavior regression for existing usage (stdout/stderr and exit codes unchanged) confirmed via `bash -n` + `--help` checks.
 - [ ] Step 3: Validation / testing
   - Work Items:
     - [ ] Validate in a real project repo with an existing `setup/graphql/` and endpoint presets.
@@ -164,6 +164,7 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 ## Modules
 
 - `skills/graphql-api-testing/scripts/gql.sh`: Record a canonical, replayable history entry for each invocation (no secrets).
+- `skills/graphql-api-testing/scripts/gql-history.sh`: Extract recent history entries for copy/paste replay.
 - `skills/graphql-api-testing/template/setup/graphql/.gitignore`: Keep the history file out of git by default.
 - `skills/graphql-api-testing/SKILL.md`: Document history behavior, location, and env toggles.
 - `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`: (Optional) Mention history in the project-local guide template.

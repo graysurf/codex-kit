@@ -184,5 +184,7 @@ By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet i
 ## Notes for stability
 
 - Prefer “files + template command” (or `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
+- `gql.sh` keeps a local history file at `setup/graphql/.gql_history` by default; extract the last entry for replay with:
+  - `$CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh --command-only`
 - Make test inputs deterministic when possible (avoid time-dependent filters unless explicitly testing them).
 - Do not paste tokens/PII into reports; redact sensitive fields before committing.
