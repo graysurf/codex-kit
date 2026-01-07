@@ -361,13 +361,13 @@ in_progress_start = None
 archived_start = None
 
 for i, line in enumerate(lines):
-  if line.strip() == "### In progress":
+  if line.strip() == "## In progress":
     in_progress_start = i
-  if line.strip() == "### Archived":
+  if line.strip() == "## Archived":
     archived_start = i
 
 if in_progress_start is None or archived_start is None:
-  print("warning: cannot find '### In progress' / '### Archived' sections in docs/progress/README.md; skipping index update", file=sys.stderr)
+  print("warning: cannot find '## In progress' / '## Archived' sections in docs/progress/README.md; skipping index update", file=sys.stderr)
   raise SystemExit(0)
 
 def find_table_sep(start, end):

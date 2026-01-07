@@ -1,18 +1,11 @@
 # Progress Files
 
-## Index
-
-PR column format:
-
-- `TBD` (before PR creation)
-- `[#<number>](https://github.com/<owner>/<repo>/pull/<number>)` (after PR creation)
-
-### In progress
+## In progress
 
 | Date | Feature | PR |
 | --- | --- | --- |
 
-### Archived
+## Archived
 
 | Date | Feature | PR |
 | --- | --- | --- |

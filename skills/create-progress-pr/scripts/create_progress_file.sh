@@ -233,12 +233,12 @@ with open(index_path, "r", encoding="utf-8") as f:
 
 in_progress_start = None
 for i, line in enumerate(lines):
-  if line.strip() == "### In progress":
+  if line.strip() == "## In progress":
     in_progress_start = i
     break
 
 if in_progress_start is None:
-  print("warning: cannot find '### In progress' section in docs/progress/README.md; skipping index update", file=sys.stderr)
+  print("warning: cannot find '## In progress' section in docs/progress/README.md; skipping index update", file=sys.stderr)
   raise SystemExit(0)
 
 table_sep = None

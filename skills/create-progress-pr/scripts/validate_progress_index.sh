@@ -88,13 +88,13 @@ def iter_table_rows(sep_line_idx: int, end: int):
 
 errors = []
 
-in_progress_idx = find_heading("### In progress")
-archived_idx = find_heading("### Archived")
+in_progress_idx = find_heading("## In progress")
+archived_idx = find_heading("## Archived")
 
 if in_progress_idx is None:
-  errors.append("missing heading: ### In progress")
+  errors.append("missing heading: ## In progress")
 if archived_idx is None:
-  errors.append("missing heading: ### Archived")
+  errors.append("missing heading: ## Archived")
 
 if errors:
   for e in errors:
@@ -105,9 +105,9 @@ in_sep = find_table_sep(in_progress_idx, archived_idx)
 arch_sep = find_table_sep(archived_idx, len(lines))
 
 if in_sep is None:
-  errors.append("cannot find table separator under ### In progress")
+  errors.append("cannot find table separator under ## In progress")
 if arch_sep is None:
-  errors.append("cannot find table separator under ### Archived")
+  errors.append("cannot find table separator under ## Archived")
 
 if errors:
   for e in errors:
