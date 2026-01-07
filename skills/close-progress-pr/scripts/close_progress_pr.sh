@@ -8,7 +8,7 @@ Usage:
 
 What it does:
   - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to rg by PR URL)
-  - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" lacks a Reason
+  - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" lacks a Reason (excluding Step 4 “Release / wrap-up”)
   - Sets progress Status to DONE and updates the Updated date
   - Sets the progress "Links -> PR" to the PR URL
   - Moves the progress file to docs/progress/archived/
@@ -222,8 +222,13 @@ for i in range(start, len(lines)):
     break
 
 checkbox_re = re.compile(r"^(\s*)-\s*\[(?P<mark>[ xX])\]\s+.+$")
+step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*Step\s+(?P<num>\d+):")
 missing = []
 in_code_block = False
+current_step = None
+
+# Step 4 ("Release / wrap-up") is intentionally excluded from Reason checks because it includes post-merge tasks.
+exempt_step_min = 4
 
 for i in range(start, end):
   line = lines[i]
@@ -232,8 +237,18 @@ for i in range(start, end):
     continue
   if in_code_block:
     continue
+
+  m_step = step_re.match(line)
+  if m_step:
+    try:
+      current_step = int(m_step.group("num"))
+    except ValueError:
+      current_step = None
+
   m = checkbox_re.match(line)
   if not m or m.group("mark") != " ":
+    continue
+  if current_step is not None and current_step >= exempt_step_min:
     continue
   if "reason:" in line.lower():
     continue
