@@ -157,7 +157,7 @@ Example structure:
 - `setup/graphql/operations/login.graphql`
 - `setup/graphql/operations/login.variables.json`
 
-For list queries, prefer a reasonable page size to avoid “too little data” reports. By default, `gql.sh` / `gql-report.sh` normalize a top-level `limit` variable to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
+For list queries, prefer a reasonable page size to avoid “too little data” reports. By default, `gql.sh` / `gql-report.sh` normalize any numeric `limit` fields (including nested pagination inputs) to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 
 6) Call GraphQL operations (recommended: Codex skill script)
 
@@ -262,7 +262,7 @@ By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet i
   - Omit URL in history entries: `GQL_HISTORY_LOG_URL=0`
   - Size/rotation: `GQL_HISTORY_MAX_MB=10` (default), `GQL_HISTORY_ROTATE_COUNT=5`
 - Variables defaults and controls:
-  - If variables JSON contains `limit` (number), scripts bump it to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
+  - If variables JSON contains numeric `limit` fields (including nested pagination inputs), scripts bump them to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 - Reports default to redacting common secrets (tokens/password fields). Use `gql-report.sh --no-redact` only when explicitly needed.
 - Make test inputs deterministic when possible (avoid time-dependent filters unless explicitly testing them).
 - Do not paste tokens/PII into reports; redact sensitive fields before committing.

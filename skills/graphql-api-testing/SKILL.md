@@ -65,7 +65,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/
 
 - History is on by default: `setup/graphql/.gql_history` (gitignored); one-off disable with `--no-history` (or `GQL_HISTORY=0`).
 - Reports include `## Command` by default; disable with `--no-command` (or `GQL_REPORT_INCLUDE_COMMAND=0`).
-- Variables: top-level `limit` is normalized to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
+- Variables: any numeric `limit` fields (including nested pagination inputs) are normalized to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 - Prefer `--config-dir setup/graphql` in automation for deterministic discovery.
 
 ## References

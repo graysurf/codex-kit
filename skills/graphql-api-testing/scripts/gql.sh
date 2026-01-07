@@ -90,11 +90,7 @@ write_vars_with_min_limit() {
 
 	if command -v jq >/dev/null 2>&1; then
 		jq --argjson min "$min_limit" '
-      if (has("limit") and (.limit | type) == "number" and (.limit < $min)) then
-        .limit = $min
-      else
-        .
-      end
+      (.. | objects | select(has("limit") and (.limit | type) == "number" and (.limit < $min)) | .limit) |= $min
     ' "$in_file" >"$out_file"
 		return $?
 	fi
@@ -107,9 +103,21 @@ import sys
 in_file, out_file, min_limit = sys.argv[1], sys.argv[2], int(sys.argv[3])
 with open(in_file, "r", encoding="utf-8") as f:
     data = json.load(f)
-if isinstance(data, dict) and "limit" in data and isinstance(data["limit"], (int, float)):
-    if data["limit"] < min_limit:
-        data["limit"] = min_limit
+
+def bump_limits(value):
+    if isinstance(value, dict):
+        for k, v in list(value.items()):
+            if k == "limit" and isinstance(v, (int, float)) and not isinstance(v, bool):
+                if v < min_limit:
+                    value[k] = min_limit
+            bump_limits(value.get(k))
+        return
+    if isinstance(value, list):
+        for item in value:
+            bump_limits(item)
+        return
+
+bump_limits(data)
 with open(out_file, "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False)
 PY
@@ -307,7 +315,7 @@ Environment variables:
   GQL_URL        Explicit GraphQL endpoint URL (overridden by --env/--url)
   ACCESS_TOKEN   If set (and no JWT profile is selected), sends Authorization: Bearer <token>
   GQL_JWT_NAME   JWT profile name (same as --jwt)
-  GQL_VARS_MIN_LIMIT        If variables JSON contains `limit` (number), bump it to at least N (default: 5; 0 disables)
+  GQL_VARS_MIN_LIMIT        If variables JSON contains numeric `limit` fields (including nested pagination inputs), bump them to at least N (default: 5; 0 disables)
   GQL_HISTORY              Enable/disable local command history (default: 1)
   GQL_HISTORY_FILE         Override history file path (default: <setup_dir>/.gql_history)
   GQL_HISTORY_LOG_URL      Include URL in history entries (default: 1)

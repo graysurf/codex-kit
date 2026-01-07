@@ -100,7 +100,7 @@ Environment variables:
                           If relative, it is resolved against <project root>.
                           Default: <project root>/docs
   GQL_ALLOW_EMPTY         Same as --allow-empty (1/true/yes).
-  GQL_VARS_MIN_LIMIT      If variables JSON contains `limit` (number), bump it to at least N (default: 5; 0 disables)
+  GQL_VARS_MIN_LIMIT      If variables JSON contains numeric `limit` fields (including nested pagination inputs), bump them to at least N (default: 5; 0 disables)
   GQL_REPORT_INCLUDE_COMMAND Include the `gql.sh` command snippet in the report (default: 1)
   GQL_REPORT_COMMAND_LOG_URL Include URL value in the command snippet when --url is used (default: 1)
 
@@ -328,18 +328,19 @@ if [[ -n "$variables_file" ]]; then
 	vars_min_limit="$(parse_int_default "${GQL_VARS_MIN_LIMIT:-}" "5" "0")"
 
 	if [[ "$vars_min_limit" -gt 0 ]]; then
-		original_limit="$(jq -r '.limit // empty' "$variables_file" 2>/dev/null || true)"
-		if [[ "$original_limit" =~ ^[0-9]+$ && "$original_limit" -lt "$vars_min_limit" ]]; then
-			variables_note="> NOTE: variables normalized: limit bumped from ${original_limit} to ${vars_min_limit} (GQL_VARS_MIN_LIMIT)."
+		bump_count="$(
+			jq --argjson min "$vars_min_limit" '
+        [ .. | objects | .limit? | select(type == "number" and (. < $min)) ] | length
+      ' "$variables_file" 2>/dev/null || printf "0"
+		)"
+		bump_count="$(parse_int_default "$bump_count" "0" "0")"
+		if [[ "$bump_count" -gt 0 ]]; then
+			variables_note="> NOTE: variables normalized: bumped ${bump_count} limit field(s) to at least ${vars_min_limit} (GQL_VARS_MIN_LIMIT)."
 		fi
 
 		variables_json="$(
 			jq --argjson min "$vars_min_limit" '
-        if (has("limit") and (.limit | type) == "number" and (.limit < $min)) then
-          .limit = $min
-        else
-          .
-        end
+        (.. | objects | select(has("limit") and (.limit | type) == "number" and (.limit < $min)) | .limit) |= $min
       ' "$variables_file" | format_json_stdin
 		)"
 	else
