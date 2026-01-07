@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-08 | [GraphQL API testing: command history](20260108_graphql-api-testing-command-history.md) | TBD |
 
 ## Archived
 
