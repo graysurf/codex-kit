@@ -30,6 +30,21 @@ If credentials/tokens must be private, use local-only files (gitignored):
 - `setup/graphql/endpoints.local.env` (endpoint overrides)
 - `setup/graphql/jwts.local.env` (real JWTs)
 
+## Bootstrap template (recommended)
+
+To initialize `setup/graphql/` in a new repo, copy the bundled template:
+
+```bash
+mkdir -p setup
+cp -R "$CODEX_HOME/skills/graphql-api-testing/template/setup/graphql" setup/
+```
+
+Then:
+
+- Edit `setup/graphql/endpoints.env` for your project.
+- Copy `setup/graphql/jwts.local.env.example` to `setup/graphql/jwts.local.env` and fill real tokens (do not commit).
+- (Optional) Copy `setup/graphql/operations/login.variables.local.json.example` to `setup/graphql/operations/login.variables.local.json` and fill credentials (do not commit).
+
 ## Project guide (optional)
 
 If a repo wants a project-local markdown guide under `docs/`, copy the template and edit it:

@@ -308,6 +308,7 @@ if [[ "$list_jwts" == "true" ]]; then
 	{
 		[[ -n "$jwts_file" && -f "$jwts_file" ]] && list_available_jwts "$jwts_file"
 		[[ -n "$jwts_local_file" && -f "$jwts_local_file" ]] && list_available_jwts "$jwts_local_file"
+		true
 	} | sort -u
 	exit 0
 fi

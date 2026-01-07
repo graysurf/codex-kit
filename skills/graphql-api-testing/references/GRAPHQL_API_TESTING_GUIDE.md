@@ -38,6 +38,22 @@ Optional local-only overrides:
 - `setup/graphql/jwts.local.env` (do not commit; real JWTs)
 - `setup/graphql/operations/*.local.json` (do not commit; recommended to gitignore)
 
+### Bootstrap (copy template)
+
+To initialize `setup/graphql/` in a repo for the first time, copy the bundled template from Codex:
+
+```bash
+mkdir -p setup
+cp -R "$CODEX_HOME/skills/graphql-api-testing/template/setup/graphql" setup/
+```
+
+Then fill local-only files (do not commit):
+
+```bash
+cp setup/graphql/jwts.local.env.example setup/graphql/jwts.local.env
+cp setup/graphql/operations/login.variables.local.json.example setup/graphql/operations/login.variables.local.json
+```
+
 ## Steps
 
 1) Start the API server (project-specific)
