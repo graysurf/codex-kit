@@ -158,16 +158,18 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
       - Disable case (`--no-history` leaves `.gql_history` unchanged):
         - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh" --no-history --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
     - [x] Traceable evidence exists (sample excerpt, logs, or report links) with secrets redacted.
-- [ ] Step 4: Release / wrap-up
+- [x] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] After merge, validate the feature in at least one repo and document any adoption notes.
-    - [ ] Set progress Status to `DONE` and archive under `docs/progress/archived/`.
+    - [x] After merge, validate the feature in at least one repo and document any adoption notes.
+      - Post-merge report: `output/graphql-api-testing/financereport/20260108-0534-financereport-companyreports-post-merge-api-test-report.md`
+      - Adoption note: existing repos should add `setup/graphql/.gitignore` (or equivalent) to ignore `.gql_history*` and `*.local.env` / `*.local.json` (template already includes it).
+    - [x] Set progress Status to `DONE` and archive under `docs/progress/archived/`.
   - Artifacts:
     - `docs/progress/archived/20260108_graphql-api-testing-command-history.md`
   - Exit Criteria:
-    - [ ] Progress file is archived and index updated (`docs/progress/README.md`).
-    - [ ] Documentation entry points updated if needed (README / docs index links).
-    - [ ] Cleanup completed (remove temporary flags/files; confirm defaults).
+    - [x] Progress file is archived and index updated (`docs/progress/README.md`).
+    - [x] Documentation entry points updated if needed (README / docs index links).
+    - [x] Cleanup completed (remove temporary flags/files; confirm defaults).
 
 ## Modules
 
