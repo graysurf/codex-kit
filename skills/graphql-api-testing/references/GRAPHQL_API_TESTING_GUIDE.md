@@ -29,6 +29,8 @@ Store project-specific, non-secret templates under `setup/graphql/`:
 
 - `setup/graphql/endpoints.env` (commit this)
 - `setup/graphql/jwts.env` (commit this; placeholders only)
+- `setup/graphql/schema.env` (commit this; points to the schema SDL file)
+- `setup/graphql/schema.gql` (commit this; schema SDL, recommended)
 - `setup/graphql/operations/*.graphql` operations (commit these)
 - `setup/graphql/operations/*.json` variables (commit these, but keep secrets out)
 
@@ -36,6 +38,8 @@ Optional local-only overrides:
 
 - `setup/graphql/endpoints.local.env` (do not commit; recommended to gitignore)
 - `setup/graphql/jwts.local.env` (do not commit; real JWTs)
+- `setup/graphql/schema.local.env` (do not commit; schema path override)
+- `setup/graphql/gql.local.env` (do not commit; runtime toggles for history/report)
 - `setup/graphql/operations/*.local.json` (do not commit; recommended to gitignore)
 - `setup/graphql/.gql_history` (do not commit; command history)
 
@@ -52,6 +56,7 @@ Then fill local-only files (do not commit):
 
 ```bash
 cp setup/graphql/jwts.local.env.example setup/graphql/jwts.local.env
+cp setup/graphql/gql.local.env.example setup/graphql/gql.local.env
 cp setup/graphql/operations/login.variables.local.json.example setup/graphql/operations/login.variables.local.json
 ```
 
@@ -87,14 +92,34 @@ GQL_JWT_ADMIN="<admin token>"
 
 Select a profile with `--jwt <name>` (or `GQL_JWT_NAME=<name>`; you can also put `GQL_JWT_NAME=<name>` in `jwts.local.env`). If the selected JWT is missing/empty, `gql.sh` falls back to calling `setup/graphql/operations/login.graphql` to fetch one (requires `jq`).
 
-4) Prepare operation and variables files
+4) (Recommended) Configure schema (SDL)
+
+If the repo commits its GraphQL schema SDL, LLMs can generate operations/variables even without separate API docs.
+
+- Keep the schema file committed (recommended path: `setup/graphql/schema.gql`).
+- Set the canonical path in `setup/graphql/schema.env` via `GQL_SCHEMA_FILE=...`.
+  - If your repo keeps schema at repo root (e.g. `./schema.gql`): `GQL_SCHEMA_FILE=../../schema.gql`
+
+Resolve the schema file path:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql
+```
+
+Print the schema contents:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql --cat
+```
+
+5) Prepare operation and variables files
 
 Example structure:
 
 - `setup/graphql/operations/login.graphql`
 - `setup/graphql/operations/login.variables.json`
 
-5) Call GraphQL operations (recommended: Codex skill script)
+6) Call GraphQL operations (recommended: Codex skill script)
 
 List envs:
 
@@ -151,7 +176,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
 | jq .
 ```
 
-6) Generate a test report under `docs/`
+7) Generate a test report under `docs/`
 
 Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the query/variables (filters, time range, IDs) and re-run before writing the report.
 
