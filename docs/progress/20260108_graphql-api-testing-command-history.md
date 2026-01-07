@@ -140,16 +140,24 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
   - Exit Criteria:
     - [x] Common branches are covered (disable/override path/rotation/error handling) via local smoke tests; full real-endpoint validation remains Step 3.
     - [x] No behavior regression for existing usage (stdout/stderr and exit codes unchanged) confirmed via `bash -n` + `--help` checks.
-- [ ] Step 3: Validation / testing
+- [x] Step 3: Validation / testing
   - Work Items:
-    - [ ] Validate in a real project repo with an existing `setup/graphql/` and endpoint presets.
-    - [ ] Verify history content is replayable and does not include secrets.
+    - [x] Validate in a real project repo with an existing `setup/graphql/` and endpoint presets.
+    - [x] Verify history content is replayable and does not include secrets.
   - Artifacts:
-    - A redacted sample history excerpt under `output/graphql-api-testing/<project>/` (optional evidence)
-    - Command transcripts recorded in the PR description or progress file
+    - Report evidence: `output/graphql-api-testing/financereport/20260108-0506-financereport-companyreports-local-api-test-report.md` (includes `## Command`).
+    - History evidence: `/Users/terry/Project/rytass/FinanceReport/setup/graphql/.gql_history`.
+    - Command transcripts recorded in this progress file (see Exit Criteria).
   - Exit Criteria:
-    - [ ] Validation commands executed with results recorded (happy path + failure case + disable case).
-    - [ ] Traceable evidence exists (sample excerpt, logs, or report links) with secrets redacted.
+    - [x] Validation commands executed with results recorded (happy path + failure case + disable case).
+      - Happy path (report + history):
+        - `cd /Users/terry/Project/rytass/FinanceReport && GQL_REPORT_DIR="$CODEX_HOME/output/graphql-api-testing/financereport" "$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh" --case "FinanceReport companyReports (local)" --op setup/graphql/operations/company-reports.graphql --vars setup/graphql/operations/company-reports.variables.json --config-dir setup/graphql --env local --jwt default --run`
+        - History check: `"$CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh" --config-dir /Users/terry/Project/rytass/FinanceReport/setup/graphql --last`
+      - Failure case (history logs non-zero exit):
+        - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh" --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
+      - Disable case (`--no-history` leaves `.gql_history` unchanged):
+        - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh" --no-history --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
+    - [x] Traceable evidence exists (sample excerpt, logs, or report links) with secrets redacted.
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [ ] After merge, validate the feature in at least one repo and document any adoption notes.
