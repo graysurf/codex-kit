@@ -19,9 +19,10 @@ Links:
 ## Acceptance Criteria
 
 - Running `skills/graphql-api-testing/scripts/gql.sh ...` appends a replayable shell snippet to the history file when history is enabled (default).
-- Default history location is under the resolved config dir: `<config_dir>/.gql_history` (name TBD; see Risks / Uncertainties).
+- Default history location is under resolved `setup_dir`: `<setup_dir>/.gql_history`.
 - Each entry includes a timestamp and exit code, plus resolved context (`config_dir`, `--env` or URL, `--jwt` name), and entries are separated by a blank line.
 - History logging can be disabled via env toggle (proposed: `GQL_HISTORY=0`) without changing `gql.sh` stdout/stderr behavior.
+- URL is logged by default; can be omitted via env (proposed: `GQL_HISTORY_LOG_URL=0`).
 - No secrets are written: token values (`ACCESS_TOKEN`, resolved `GQL_JWT_*`) are never logged.
 - Template `.gitignore` ignores the history file by default and docs mention how to add it to existing repos.
 
@@ -51,7 +52,8 @@ Links:
 - History controls (proposed):
   - `GQL_HISTORY=0|1` (default: enabled)
   - `GQL_HISTORY_FILE=<path>` (optional override; default under `setup_dir`)
-  - `GQL_HISTORY_MAX_BYTES=<n>` (optional; default TBD)
+  - `GQL_HISTORY_LOG_URL=0|1` (default: `1`)
+  - `GQL_HISTORY_MAX_MB=<n>` (default: `10`; `0` disables the size limit)
 
 ### Output
 
@@ -74,10 +76,9 @@ Links:
 
 ### Risks / Uncertainties
 
-- History filename: `setup/graphql/.history` vs `setup/graphql/.gql_history` (prefer a namespaced filename to avoid collisions).
 - Command reconstruction: logging a canonical snippet may differ from the exact user-typed command; ensure it is replayable and handles quoting safely.
-- URLs can embed secrets (query params); decide whether to log the resolved URL as-is or redact parts by default.
-- File growth and performance: decide max size / rotation strategy to avoid unbounded growth.
+- URLs can embed secrets (query params); default is to log URL, but allow omitting via `GQL_HISTORY_LOG_URL=0` (optional future: redact query string).
+- File growth and performance: enforce a default max size (10 MB) and decide truncate vs rotate strategy.
 - Concurrency: parallel invocations could interleave writes; decide whether to add locking.
 - Existing repos already using `setup/graphql/`: template `.gitignore` updates do not apply retroactively; docs should include a short “add this line” note.
 
@@ -87,10 +88,10 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 
 - [ ] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Decide history filename and default location relative to resolved `setup_dir`.
-    - [ ] Define the env interface (enable/disable + optional override path + optional limits).
+    - [x] Decide history filename and default location: `<setup_dir>/.gql_history`.
+    - [ ] Define the env interface (enable/disable + optional override path + URL logging toggle + size limit/behavior).
     - [ ] Define the entry format (metadata + canonical multi-line command + blank line separator).
-    - [ ] Define a redaction policy (tokens never logged; consider URL redaction).
+    - [x] Define a redaction policy baseline: tokens never logged; URL logged by default with an env toggle to omit.
   - Artifacts:
     - `docs/progress/20260108_graphql-api-testing-command-history.md` (this file)
     - Notes and examples captured under Exit Criteria
@@ -103,6 +104,8 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
   - Work Items:
     - [ ] Implement history append in `skills/graphql-api-testing/scripts/gql.sh` (enabled by default; env toggle to disable).
     - [ ] Add `GQL_HISTORY_FILE` override and default path under resolved `setup_dir`.
+    - [ ] Add size limit enforcement (default: 10 MB) and pick behavior (truncate vs rotate).
+    - [ ] Add URL logging toggle (default on; `GQL_HISTORY_LOG_URL=0` omits URL).
     - [ ] Update `skills/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
     - [ ] Update docs: `skills/graphql-api-testing/SKILL.md` (and optionally `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`).
   - Artifacts:
@@ -115,7 +118,7 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - [ ] Docs include a TL;DR snippet showing where history lives and how to disable it.
 - [ ] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Add optional max size / rotation (proposed: `GQL_HISTORY_MAX_BYTES`).
+    - [ ] If rotating, support keeping N rotated files (and document the policy).
     - [ ] Consider a CLI switch (`--no-history`) for one-off runs (optional; keep env as primary control).
     - [ ] Consider a helper to replay or extract the last entry (optional; follow-up).
   - Artifacts:
