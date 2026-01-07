@@ -39,6 +39,7 @@ are intentionally excluded via `.gitignore`.
 | create-progress-pr | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |
 | close-progress-pr | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
 | find-and-fix-bugs | Find, triage, and fix bugs; open a PR with gh |
+| graphql-api-testing | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
 | release-workflow | Execute project release workflows by following RELEASE_GUIDE.md |
 
 ### Project-specific

@@ -1,0 +1,4 @@
+# Local-only overrides (do not commit)
+*.local.env
+*.local.json
+
