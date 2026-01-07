@@ -217,6 +217,8 @@ PY
 
 if [[ "$skip_index" == "0" && -f "docs/progress/README.md" ]]; then
   python3 - "docs/progress/README.md" "$date_iso" "$title" "$output_path" <<'PY'
+import datetime
+import re
 import sys
 
 index_path, date_iso, title, output_path = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
@@ -258,6 +260,44 @@ if row in lines:
   raise SystemExit(0)
 
 lines.insert(table_sep + 1, row)
+
+def row_cells(row_line):
+  return [p.strip() for p in row_line.strip().strip("|").split("|")]
+
+def sort_in_progress_rows(sep_idx: int):
+  row_start = sep_idx + 1
+  row_end = row_start
+  rows = []
+
+  while row_end < len(lines) and lines[row_end].startswith("|"):
+    if lines[row_end].startswith("| ---"):
+      row_end += 1
+      continue
+    rows.append(lines[row_end])
+    row_end += 1
+
+  if not rows:
+    return
+
+  def sort_key(row_line: str):
+    cells = row_cells(row_line)
+    date_cell = cells[0].strip() if len(cells) >= 1 else ""
+    pr_cell = cells[2].strip() if len(cells) >= 3 else ""
+
+    try:
+      date_ord = datetime.date.fromisoformat(date_cell).toordinal()
+    except ValueError:
+      date_ord = -1
+
+    m = re.search(r"#(?P<num>\\d+)", pr_cell)
+    pr_num = int(m.group("num")) if m else -1
+
+    return (date_ord, pr_num, row_line)
+
+  rows_sorted = sorted(rows, key=sort_key, reverse=True)
+  lines[row_start:row_end] = rows_sorted
+
+sort_in_progress_rows(table_sep)
 
 with open(index_path, "w", encoding="utf-8") as f:
   f.writelines(lines)

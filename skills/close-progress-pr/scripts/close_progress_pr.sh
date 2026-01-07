@@ -261,17 +261,77 @@ validate_checklist "$progress_file"
 
 today="$(date +%Y-%m-%d)"
 
-python3 - "$progress_file" "$today" "$pr_url" <<'PY'
+python3 - "$progress_file" "$today" "$pr_url" "$archived_path" <<'PY'
+import os
 import re
 import sys
 
-path, today, pr_url = sys.argv[1], sys.argv[2], sys.argv[3]
+path, today, pr_url, archived_path = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
 with open(path, "r", encoding="utf-8") as f:
   lines = f.readlines()
 
 patched_status = False
 patched_pr = False
+patched_docs = False
+patched_glossary = False
+
+repo_root = os.getcwd()
+
+final_dir = os.path.dirname(archived_path)
+final_dir_abs = os.path.normpath(os.path.join(repo_root, final_dir))
+
+md_link_re = re.compile(r"^\[(?P<text>[^\]]+)\]\((?P<href>[^)]+)\)$")
+backtick_re = re.compile(r"^`(?P<path>[^`]+)`$")
+
+
+def is_url(value: str) -> bool:
+  return value.startswith("http://") or value.startswith("https://")
+
+
+def normalize_link_value(raw_value: str, label: str) -> str:
+  raw_value = raw_value.strip()
+  if raw_value in ("None", "TBD"):
+    return raw_value
+
+  m = md_link_re.match(raw_value)
+  if m:
+    text = m.group("text").strip()
+    href = m.group("href").strip()
+    if is_url(href):
+      return f"[{text}]({href})"
+
+    if href.startswith("../") or href.startswith("./"):
+      target_abs = os.path.normpath(os.path.join(final_dir_abs, href))
+      rel = href
+    else:
+      target_abs = os.path.normpath(os.path.join(repo_root, href))
+      rel = os.path.relpath(target_abs, start=final_dir_abs).replace(os.sep, "/")
+
+    if not os.path.exists(target_abs):
+      raise SystemExit(f"error: cannot resolve Links -> {label} target path: {href}")
+
+    display = text or href
+    return f"[{display}]({rel})"
+
+  m = backtick_re.match(raw_value)
+  if m:
+    raw_value = m.group("path").strip()
+
+  if is_url(raw_value):
+    return f"[{raw_value}]({raw_value})"
+
+  if raw_value.startswith("../") or raw_value.startswith("./"):
+    target_abs = os.path.normpath(os.path.join(final_dir_abs, raw_value))
+    rel = raw_value
+  else:
+    target_abs = os.path.normpath(os.path.join(repo_root, raw_value))
+    rel = os.path.relpath(target_abs, start=final_dir_abs).replace(os.sep, "/")
+
+  if not os.path.exists(target_abs):
+    raise SystemExit(f"error: cannot resolve Links -> {label} target path: {raw_value}")
+
+  return f"[{raw_value}]({rel})"
 
 new_lines = []
 
@@ -292,6 +352,20 @@ for line in lines:
     patched_pr = True
     continue
 
+  if line.startswith("- Docs:") and not patched_docs:
+    value = line.split(":", 1)[1].strip()
+    normalized = normalize_link_value(value, "Docs")
+    new_lines.append(f"- Docs: {normalized}\n")
+    patched_docs = True
+    continue
+
+  if line.startswith("- Glossary:") and not patched_glossary:
+    value = line.split(":", 1)[1].strip()
+    normalized = normalize_link_value(value, "Glossary")
+    new_lines.append(f"- Glossary: {normalized}\n")
+    patched_glossary = True
+    continue
+
   new_lines.append(line)
 
 lines = new_lines
@@ -303,6 +377,10 @@ if not patched_status:
   raise SystemExit(f"error: cannot patch Status table row in {path}")
 if not patched_pr:
   raise SystemExit(f"error: cannot patch Links -> PR line in {path}")
+if not patched_docs:
+  raise SystemExit(f"error: cannot patch Links -> Docs line in {path}")
+if not patched_glossary:
+  raise SystemExit(f"error: cannot patch Links -> Glossary line in {path}")
 PY
 
 if [[ "$progress_file" == docs/progress/*.md && "$progress_file" != docs/progress/archived/* ]]; then
@@ -342,6 +420,7 @@ title="$(extract_title "$progress_file")"
 if [[ -f "docs/progress/README.md" ]]; then
   python3 - "docs/progress/README.md" "$filename" "$title" "$pr_url" "$pr_number" <<'PY'
 import datetime
+import re
 import sys
 
 index_path, filename, title, pr_url, pr_number = sys.argv[1:]
@@ -394,6 +473,39 @@ def normalize_feature_cell(cell):
   cell = cell.replace(f"({filename})", f"(archived/{filename})")
   return cell
 
+def sort_table_rows(sep_idx: int):
+  row_start = sep_idx + 1
+  row_end = row_start
+  rows = []
+
+  while row_end < len(lines) and lines[row_end].startswith("|"):
+    if lines[row_end].startswith("| ---"):
+      row_end += 1
+      continue
+    rows.append(lines[row_end])
+    row_end += 1
+
+  if not rows:
+    return
+
+  def sort_key(row_line: str):
+    cells = row_cells(row_line)
+    date_cell = cells[0].strip() if len(cells) >= 1 else ""
+    pr_cell = cells[2].strip() if len(cells) >= 3 else ""
+
+    try:
+      date_ord = datetime.date.fromisoformat(date_cell).toordinal()
+    except ValueError:
+      date_ord = -1
+
+    m = re.search(r"#(?P<num>\\d+)", pr_cell)
+    pr_num = int(m.group("num")) if m else -1
+
+    return (date_ord, pr_num, row_line)
+
+  rows_sorted = sorted(rows, key=sort_key, reverse=True)
+  lines[row_start:row_end] = rows_sorted
+
 # Try to find an existing row (prefer In progress, then Archived) that mentions the filename.
 in_row_idx = None
 in_row_line = None
@@ -430,6 +542,9 @@ else:
   feature_cell = f"[{title}](archived/{filename})"
   insert_at = arch_sep + 1
   lines.insert(insert_at, render_row(feature_cell))
+
+sort_table_rows(in_sep)
+sort_table_rows(arch_sep)
 
 with open(index_path, "w", encoding="utf-8") as f:
   f.writelines(lines)

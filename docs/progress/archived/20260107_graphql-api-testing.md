@@ -7,8 +7,8 @@
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/6
-- Docs: `skills/graphql-api-testing/SKILL.md`
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Docs: [skills/graphql-api-testing/SKILL.md](../../../skills/graphql-api-testing/SKILL.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -143,16 +143,16 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - [x] Report file generated with redaction verified:
       - `GQL_REPORT_DIR=output/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "MegabankTourism Articles (local)" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --env local --jwt force-login --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --run`
       - `GQL_REPORT_DIR=output/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "graphql-api-testing redaction smoke test" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --response output/graphql-api-testing/megabanktourism/dummy-redaction.response.json`
-- [ ] Step 4: Release / wrap-up `Reason: closure tasks are tracked by the work items below and executed during close-progress-pr.`
+- [x] Step 4: Release / wrap-up
   - Work Items:
     - [x] Add the skill to the top-level `README.md` skills list.
-    - [ ] After merge + validation, set Status to `DONE` and archive the progress file. `Reason: pending merge/validation.`
+    - [x] After merge + validation, set Status to `DONE` and archive the progress file.
   - Artifacts:
     - `README.md`
     - `docs/progress/archived/20260107_graphql-api-testing.md`
   - Exit Criteria:
     - [x] README entry exists and points to the skill name.
-    - [ ] Progress file is archived and index updated. `Reason: pending.`
+    - [x] Progress file is archived and index updated.
 
 ## Modules
 
