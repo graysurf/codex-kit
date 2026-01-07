@@ -29,6 +29,7 @@ Options:
   --out <path>           Output report path (default: <repo>/docs/<YYYYMMDD-HHMM>-<case>-api-test-report.md)
   -e, --env <name>       Endpoint preset (requires project setup/graphql/endpoints.env)
   -u, --url <url>        Explicit GraphQL endpoint URL
+      --jwt <name>       JWT profile name (passed through to gql.sh)
       --run              Execute the request via gql.sh and embed the response
       --response <file>  Use response from a file (use "-" for stdin); formatted with jq
       --no-redact        Do not redact token/password fields in variables/response
@@ -53,6 +54,7 @@ response_file=""
 out_file=""
 env_name=""
 explicit_url=""
+jwt_name=""
 run_request=false
 redact=true
 project_root=""
@@ -88,14 +90,18 @@ while [[ $# -gt 0 ]]; do
 			env_name="${2:-}"
 			shift 2
 			;;
-		-u|--url)
-			explicit_url="${2:-}"
-			shift 2
-			;;
-		--run)
-			run_request=true
-			shift
-			;;
+			-u|--url)
+				explicit_url="${2:-}"
+				shift 2
+				;;
+			--jwt)
+				jwt_name="${2:-}"
+				shift 2
+				;;
+			--run)
+				run_request=true
+				shift
+				;;
 		--no-redact)
 			redact=false
 			shift
@@ -200,14 +206,15 @@ if [[ "$run_request" == "true" ]]; then
 	gql_sh="$script_dir/gql.sh"
 	[[ -x "$gql_sh" ]] || die "gql.sh not found or not executable: $gql_sh"
 
-	cmd=("$gql_sh")
-	[[ -n "$config_dir" ]] && cmd+=(--config-dir "$config_dir")
-	[[ -n "$explicit_url" ]] && cmd+=(--url "$explicit_url")
-	[[ -n "$env_name" ]] && [[ -z "$explicit_url" ]] && cmd+=(--env "$env_name")
-	cmd+=("$operation_file")
-	[[ -n "$variables_file" ]] && cmd+=("$variables_file")
+		cmd=("$gql_sh")
+		[[ -n "$config_dir" ]] && cmd+=(--config-dir "$config_dir")
+		[[ -n "$explicit_url" ]] && cmd+=(--url "$explicit_url")
+		[[ -n "$env_name" ]] && [[ -z "$explicit_url" ]] && cmd+=(--env "$env_name")
+		[[ -n "$jwt_name" ]] && cmd+=(--jwt "$jwt_name")
+		cmd+=("$operation_file")
+		[[ -n "$variables_file" ]] && cmd+=("$variables_file")
 
-	response_raw="$("${cmd[@]}")"
+		response_raw="$("${cmd[@]}")"
 
 	if printf "%s" "$response_raw" | jq -e . >/dev/null 2>&1; then
 		response_body="$(printf "%s" "$response_raw" | format_json_stdin)"

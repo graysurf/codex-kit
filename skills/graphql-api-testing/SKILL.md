@@ -12,6 +12,7 @@ Make GraphQL API calls reproducible (for humans and LLMs) by standardizing:
 - Operation files: `setup/graphql/*.graphql`
 - Variables files: `setup/graphql/*.json`
 - Endpoint presets: `setup/graphql/endpoints.env` (+ optional `endpoints.local.env` overrides)
+- JWT presets: `setup/graphql/jwts.env` (+ optional `jwts.local.env` with real tokens)
 - A single caller: `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh`
 
 ## Project conventions (per repo)
@@ -21,8 +22,13 @@ In each project, keep non-secret templates under `setup/graphql/` (commit these)
 - `setup/graphql/login.graphql`
 - `setup/graphql/login.variables.json`
 - `setup/graphql/endpoints.env`
+- `setup/graphql/jwts.env`
 
-If credentials/tokens must be private, put them in `.env` (gitignored) or use a local-only variables file (recommended pattern: `setup/graphql/*.local.json`).
+If credentials/tokens must be private, use local-only files (gitignored):
+
+- `setup/graphql/*.local.json` (variables)
+- `setup/graphql/endpoints.local.env` (endpoint overrides)
+- `setup/graphql/jwts.local.env` (real JWTs)
 
 ## Project guide (optional)
 
@@ -42,7 +48,29 @@ cp "$CODEX_HOME/skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.
 - You can still override with `--url <url>` or `GQL_URL=<url>`.
 - You can list presets with: `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh --list-envs`
 
-2) Run an unauthenticated operation (e.g. login) to get a JWT.
+2) (Optional) Configure JWT profiles under `setup/graphql/`.
+
+- Put non-secret placeholders in `setup/graphql/jwts.env` (commit this).
+- Put real tokens in `setup/graphql/jwts.local.env` (gitignored).
+- Select a profile with `--jwt <name>` or `GQL_JWT_NAME=<name>`.
+- List profiles with: `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh --list-jwts`
+
+If no JWT is found for the selected profile, `gql.sh` falls back to calling `setup/graphql/login.graphql` to fetch one (requires `jq`).
+
+3) Run an operation.
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
+  --env local \
+  --jwt default \
+  setup/graphql/<operation>.graphql \
+  setup/graphql/<variables>.json \
+| jq .
+```
+
+## Manual token export (optional)
+
+If you prefer manual control, you can still call login and export `ACCESS_TOKEN`:
 
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
@@ -52,7 +80,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
 | jq .
 ```
 
-3) Extract and reuse `accessToken` for subsequent calls.
+Extract and reuse `accessToken` for subsequent calls:
 
 ```bash
 export ACCESS_TOKEN="$(
@@ -64,7 +92,7 @@ export ACCESS_TOKEN="$(
 )"
 ```
 
-4) Authenticated call pattern.
+Authenticated call pattern:
 
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
@@ -90,6 +118,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
   --op setup/graphql/<operation>.graphql \
   --vars setup/graphql/<variables>.json \
   --env <local|staging|dev> \
+  --jwt <default|admin|...> \
   --run
 ```
 

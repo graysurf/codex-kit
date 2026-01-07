@@ -16,20 +16,26 @@ trim() {
 usage() {
 	cat >&2 <<'EOF'
 Usage:
-  gql.sh [--env <name> | --url <url>] <operation.graphql> [variables.json]
+  gql.sh [--env <name> | --url <url>] [--jwt <name>] <operation.graphql> [variables.json]
 
 Options:
   -e, --env <name>       Use endpoint preset from endpoints.env (e.g. local/staging/dev)
   -u, --url <url>        Use an explicit GraphQL endpoint URL
+      --jwt <name>        Select JWT profile name (default: "default")
       --config-dir <dir> Directory that contains endpoints.env (defaults to operation file's directory)
       --list-envs         Print available env names from endpoints.env, then exit
+      --list-jwts         Print available JWT profile names from jwts(.local).env, then exit
 
 Environment variables:
   GQL_URL        Explicit GraphQL endpoint URL (overridden by --env/--url)
-  ACCESS_TOKEN   If set, sends Authorization: Bearer <token>
+  ACCESS_TOKEN   If set (and no JWT profile is selected), sends Authorization: Bearer <token>
+  GQL_JWT_NAME   JWT profile name (same as --jwt)
 
 Notes:
   - Project presets live under: setup/graphql/endpoints.env (+ optional endpoints.local.env overrides).
+  - JWT presets live under: setup/graphql/jwts.env (+ optional jwts.local.env with real tokens).
+  - If the selected JWT is missing/empty, gql.sh falls back to running setup/graphql/login.graphql
+    (and setup/graphql/login.variables(.local).json if present) to fetch a token.
   - Prefers xh or HTTPie if available; falls back to curl (requires jq).
   - Prints response body only.
 EOF
@@ -37,8 +43,10 @@ EOF
 
 env_name=""
 explicit_url=""
+jwt_name_arg=""
 config_dir=""
 list_envs=false
+list_jwts=false
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -56,6 +64,11 @@ while [[ $# -gt 0 ]]; do
 			[[ -n "$explicit_url" ]] || die "Missing value for --url"
 			shift 2
 			;;
+		--jwt)
+			jwt_name_arg="${2:-}"
+			[[ -n "$jwt_name_arg" ]] || die "Missing value for --jwt"
+			shift 2
+			;;
 		--config-dir)
 			config_dir="${2:-}"
 			[[ -n "$config_dir" ]] || die "Missing value for --config-dir"
@@ -63,6 +76,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		--list-envs)
 			list_envs=true
+			shift
+			;;
+		--list-jwts)
+			list_jwts=true
 			shift
 			;;
 		--)
@@ -83,6 +100,7 @@ variables_file="${2:-}"
 
 declare -A endpoint_map=()
 gql_env_default=""
+declare -A jwt_map=()
 
 parse_endpoints_file() {
 	local file="$1"
@@ -133,6 +151,52 @@ list_available_envs() {
 	done < "$file" | sort -u
 }
 
+parse_jwts_file() {
+	local file="$1"
+	[[ -f "$file" ]] || return 0
+
+	while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+		raw_line="${raw_line%$'\r'}"
+		local line
+		line="$(trim "$raw_line")"
+		[[ -z "$line" ]] && continue
+		[[ "$line" == \#* ]] && continue
+
+		if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+			local key="${BASH_REMATCH[1]}"
+			local value
+			value="$(trim "${BASH_REMATCH[2]}")"
+
+			if [[ "$value" =~ ^\"(.*)\"$ ]]; then
+				value="${BASH_REMATCH[1]}"
+			elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
+				value="${BASH_REMATCH[1]}"
+			fi
+
+			case "$key" in
+				GQL_JWT_*)
+					local jwt_key="${key#GQL_JWT_}"
+					jwt_key="${jwt_key,,}"
+					jwt_map["$jwt_key"]="$value"
+					;;
+			esac
+		fi
+	done < "$file"
+}
+
+list_available_jwts() {
+	local file="$1"
+	[[ -f "$file" ]] || return 0
+
+	while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+		raw_line="${raw_line%$'\r'}"
+		local line
+		line="$(trim "$raw_line")"
+		[[ "$line" =~ ^GQL_JWT_([A-Za-z0-9_]+)= ]] || continue
+		printf "%s\n" "${BASH_REMATCH[1],,}"
+	done < "$file" | sort -u
+}
+
 resolve_endpoints_dir() {
 	if [[ -n "$config_dir" ]]; then
 		printf "%s" "$config_dir"
@@ -167,9 +231,41 @@ elif [[ -f "setup/graphql/endpoints.env" ]]; then
 	endpoints_local_file="setup/graphql/endpoints.local.env"
 fi
 
+setup_dir=""
+if [[ -n "$endpoints_dir" && -d "$endpoints_dir" ]]; then
+	setup_dir="$endpoints_dir"
+elif [[ -d "setup/graphql" ]]; then
+	setup_dir="setup/graphql"
+fi
+
+if [[ -n "$setup_dir" && -d "$setup_dir" ]]; then
+	setup_dir="$(cd "$setup_dir" 2>/dev/null && pwd -P || echo "$setup_dir")"
+fi
+
+jwts_file=""
+jwts_local_file=""
+if [[ -n "$setup_dir" ]]; then
+	jwts_file="$setup_dir/jwts.env"
+	jwts_local_file="$setup_dir/jwts.local.env"
+elif [[ -f "setup/graphql/jwts.env" || -f "setup/graphql/jwts.local.env" ]]; then
+	jwts_file="setup/graphql/jwts.env"
+	jwts_local_file="setup/graphql/jwts.local.env"
+fi
+
 if [[ "$list_envs" == "true" ]]; then
 	[[ -n "$endpoints_file" ]] || die "endpoints.env not found (expected under setup/graphql/)"
 	list_available_envs "$endpoints_file"
+	exit 0
+fi
+
+if [[ "$list_jwts" == "true" ]]; then
+	[[ -n "$jwts_file" || -n "$jwts_local_file" ]] || die "jwts(.local).env not found (expected under setup/graphql/)"
+	if [[ -n "$jwts_file" ]]; then
+		list_available_jwts "$jwts_file"
+	fi
+	if [[ -n "$jwts_local_file" && -f "$jwts_local_file" ]]; then
+		list_available_jwts "$jwts_local_file"
+	fi
 	exit 0
 fi
 
@@ -193,7 +289,6 @@ if [[ -n "$endpoints_file" ]]; then
 	fi
 fi
 
-access_token="${ACCESS_TOKEN:-}"
 gql_url=""
 
 if [[ -n "$explicit_url" ]]; then
@@ -218,61 +313,177 @@ else
 	gql_url="http://localhost:6700/graphql"
 fi
 
-if command -v xh >/dev/null 2>&1; then
-	args=(--check-status --pretty=none --print=b --json POST "$gql_url")
-
-	if [[ -n "$access_token" ]]; then
-		args+=("Authorization:Bearer $access_token")
-	fi
-
-	args+=("query=@$operation_file")
-
-	if [[ -n "$variables_file" ]]; then
-		args+=("variables:=@$variables_file")
-	fi
-
-	xh "${args[@]}"
-	exit 0
+if [[ -n "$jwts_file" ]]; then
+	parse_jwts_file "$jwts_file"
+fi
+if [[ -n "$jwts_local_file" && -f "$jwts_local_file" ]]; then
+	parse_jwts_file "$jwts_local_file"
 fi
 
-if command -v http >/dev/null 2>&1; then
-	args=(--check-status --pretty=none --print=b --json POST "$gql_url")
-
-	if [[ -n "$access_token" ]]; then
-		args+=("Authorization:Bearer $access_token")
-	fi
-
-	args+=("query=@$operation_file")
-
-	if [[ -n "$variables_file" ]]; then
-		args+=("variables:=@$variables_file")
-	fi
-
-	http "${args[@]}"
-	exit 0
+jwt_name_env="$(trim "${GQL_JWT_NAME:-}")"
+jwt_profile_selected=false
+if [[ -n "$jwt_name_arg" ]]; then
+	jwt_profile_selected=true
+elif [[ -n "$jwt_name_env" ]]; then
+	jwt_profile_selected=true
 fi
 
-if ! command -v curl >/dev/null 2>&1; then
-	echo "Missing HTTP client: xh, http, or curl is required." >&2
-	exit 1
-fi
+jwt_name="${jwt_name_arg:-${jwt_name_env:-default}}"
+jwt_name="${jwt_name,,}"
 
-if ! command -v jq >/dev/null 2>&1; then
-	echo "curl fallback requires jq." >&2
-	exit 1
-fi
-
-query="$(cat "$operation_file")"
-
-if [[ -n "$variables_file" ]]; then
-	payload="$(jq -n --arg query "$query" --argjson variables "$(cat "$variables_file")" '{query:$query,variables:$variables}')"
+access_token=""
+if [[ "$jwt_profile_selected" == "false" && -n "${ACCESS_TOKEN:-}" ]]; then
+	access_token="$ACCESS_TOKEN"
 else
-	payload="$(jq -n --arg query "$query" '{query:$query}')"
+	access_token="${jwt_map[$jwt_name]:-}"
 fi
 
-curl_args=(-sS -H "Content-Type: application/json")
-if [[ -n "$access_token" ]]; then
-	curl_args+=(-H "Authorization: Bearer $access_token")
-fi
+detect_client() {
+	if command -v xh >/dev/null 2>&1; then
+		printf "%s" "xh"
+		return 0
+	fi
+	if command -v http >/dev/null 2>&1; then
+		printf "%s" "http"
+		return 0
+	fi
+	if command -v curl >/dev/null 2>&1; then
+		printf "%s" "curl"
+		return 0
+	fi
+	return 1
+}
 
-curl "${curl_args[@]}" -d "$payload" "$gql_url"
+client="$(detect_client 2>/dev/null || true)"
+[[ -n "$client" ]] || die "Missing HTTP client: xh, http, or curl is required."
+
+abs_path() {
+	local p="$1"
+	local dir base
+	dir="$(cd "$(dirname "$p")" 2>/dev/null && pwd -P)" || return 1
+	base="$(basename "$p")"
+	printf "%s/%s" "$dir" "$base"
+}
+
+extract_root_field_name() {
+	local file="$1"
+	awk '
+		BEGIN { in_sel = 0 }
+		{
+			line = $0
+			sub(/\r$/, "", line)
+			sub(/^[[:space:]]+/, "", line)
+			if (line ~ /^#/) next
+			if (!in_sel) {
+				if (index(line, "{") > 0) {
+					in_sel = 1
+				}
+				next
+			}
+			if (line ~ /^$/) next
+			if (line ~ /^}/) next
+			if (match(line, /^[_A-Za-z][_0-9A-Za-z]*/)) {
+				print substr(line, RSTART, RLENGTH)
+				exit
+			}
+		}
+	' "$file"
+}
+
+graphql_request() {
+	local url="$1"
+	local token="${2:-}"
+	local op_file="$3"
+	local vars_file="${4:-}"
+
+	case "$client" in
+		xh)
+			local -a args
+			args=(--check-status --pretty=none --print=b --json POST "$url")
+			[[ -n "$token" ]] && args+=("Authorization:Bearer $token")
+			args+=("query=@$op_file")
+			[[ -n "$vars_file" ]] && args+=("variables:=@$vars_file")
+			xh "${args[@]}"
+			;;
+		http)
+			local -a args
+			args=(--check-status --pretty=none --print=b --json POST "$url")
+			[[ -n "$token" ]] && args+=("Authorization:Bearer $token")
+			args+=("query=@$op_file")
+			[[ -n "$vars_file" ]] && args+=("variables:=@$vars_file")
+			http "${args[@]}"
+			;;
+		curl)
+			command -v jq >/dev/null 2>&1 || die "curl fallback requires jq."
+			local query payload
+			query="$(cat "$op_file")"
+
+			if [[ -n "$vars_file" ]]; then
+				payload="$(jq -n --arg query "$query" --argjson variables "$(cat "$vars_file")" '{query:$query,variables:$variables}')"
+			else
+				payload="$(jq -n --arg query "$query" '{query:$query}')"
+			fi
+
+			local -a curl_args
+			curl_args=(-sS -H "Content-Type: application/json")
+			[[ -n "$token" ]] && curl_args+=(-H "Authorization: Bearer $token")
+			curl "${curl_args[@]}" -d "$payload" "$url"
+			;;
+		*)
+			die "Unknown HTTP client: $client"
+			;;
+	esac
+}
+
+maybe_auto_login() {
+	[[ -n "$setup_dir" ]] || return 1
+
+	local profile="$1"
+	local login_op=""
+	local login_vars=""
+
+	if [[ -f "$setup_dir/login.${profile}.graphql" ]]; then
+		login_op="$setup_dir/login.${profile}.graphql"
+	elif [[ -f "$setup_dir/login.graphql" ]]; then
+		login_op="$setup_dir/login.graphql"
+	else
+		return 1
+	fi
+
+	if [[ -f "$setup_dir/login.${profile}.variables.local.json" ]]; then
+		login_vars="$setup_dir/login.${profile}.variables.local.json"
+	elif [[ -f "$setup_dir/login.${profile}.variables.json" ]]; then
+		login_vars="$setup_dir/login.${profile}.variables.json"
+	elif [[ -f "$setup_dir/login.variables.local.json" ]]; then
+		login_vars="$setup_dir/login.variables.local.json"
+	elif [[ -f "$setup_dir/login.variables.json" ]]; then
+		login_vars="$setup_dir/login.variables.json"
+	fi
+
+	local op_abs login_abs
+	op_abs="$(abs_path "$operation_file" 2>/dev/null || true)"
+	login_abs="$(abs_path "$login_op" 2>/dev/null || true)"
+	if [[ -n "$op_abs" && -n "$login_abs" && "$op_abs" == "$login_abs" ]]; then
+		return 1
+	fi
+
+	command -v jq >/dev/null 2>&1 || die "Auto-login requires jq."
+
+	local response root_field token
+	response="$(graphql_request "$gql_url" "" "$login_op" "$login_vars")"
+	root_field="$(extract_root_field_name "$login_op")"
+	[[ -n "$root_field" ]] || die "Failed to determine login root field from: $login_op"
+
+	token="$(
+		printf "%s" "$response" |
+			jq -r --arg field "$root_field" '(.data[$field].accessToken // .data[$field].token // .data[$field] // empty) | select(type=="string" and length>0)'
+	)"
+
+	[[ -n "$token" ]] || die "Failed to extract JWT from login response (field: $root_field)."
+	printf "%s" "$token"
+}
+
+if [[ -z "$access_token" ]]; then
+	access_token="$(maybe_auto_login "$jwt_name" 2>/dev/null || true)"
+fi
+graphql_request "$gql_url" "$access_token" "$operation_file" "$variables_file"
