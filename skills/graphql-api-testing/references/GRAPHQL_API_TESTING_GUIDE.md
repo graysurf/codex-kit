@@ -179,7 +179,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
 
 If you intentionally expect an empty/no-data result (or want a draft without running yet), pass `--allow-empty`.
 
-By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`.
+By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL=0`.
 
 ## Notes for stability
 

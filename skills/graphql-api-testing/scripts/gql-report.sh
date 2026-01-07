@@ -67,6 +67,7 @@ Options:
       --allow-empty      Allow generating a report with an empty/no-data response (or as a draft without --run/--response)
       --no-redact        Do not redact token/password fields in variables/response
       --no-command       Do not include the `gql.sh` command snippet in the report
+      --no-command-url   When using --url, omit the URL value in the command snippet
       --project-root <p> Override project root (default: git root or current dir)
       --config-dir <dir> Passed through to gql.sh (GraphQL setup dir containing endpoints.env/jwts.env)
 
@@ -76,6 +77,7 @@ Environment variables:
                           Default: <project root>/docs
   GQL_ALLOW_EMPTY         Same as --allow-empty (1/true/yes).
   GQL_REPORT_INCLUDE_COMMAND Include the `gql.sh` command snippet in the report (default: 1)
+  GQL_REPORT_COMMAND_LOG_URL Include URL value in the command snippet when --url is used (default: 1)
 
 Notes:
   - Requires jq for JSON formatting.
@@ -95,6 +97,7 @@ run_request=false
 redact=true
 allow_empty=false
 include_command=true
+include_command_url=true
 project_root=""
 config_dir=""
 
@@ -152,6 +155,10 @@ while [[ $# -gt 0 ]]; do
 			include_command=false
 			shift
 			;;
+		--no-command-url)
+			include_command_url=false
+			shift
+			;;
 		--redact)
 			redact=true
 			shift
@@ -196,6 +203,10 @@ fi
 
 if is_falsy "${GQL_REPORT_INCLUDE_COMMAND:-1}"; then
 	include_command=false
+fi
+
+if is_falsy "${GQL_REPORT_COMMAND_LOG_URL:-1}"; then
+	include_command_url=false
 fi
 
 if [[ -z "$out_file" ]]; then
@@ -376,7 +387,13 @@ if [[ "$include_command" == "true" ]]; then
 		{
 			printf "%s \\\n" "\"\$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh\""
 			[[ -n "$config_arg" ]] && printf "  --config-dir %q \\\n" "$config_arg"
-			[[ -n "$explicit_url" ]] && printf "  --url %q \\\n" "$explicit_url"
+			if [[ -n "$explicit_url" ]]; then
+				if [[ "$include_command_url" == "true" ]]; then
+					printf "  --url %q \\\n" "$explicit_url"
+				else
+					printf "  --url %q \\\n" "<omitted>"
+				fi
+			fi
 			[[ -n "$env_name" && -z "$explicit_url" ]] && printf "  --env %q \\\n" "$env_name"
 			[[ -n "$jwt_name" ]] && printf "  --jwt %q \\\n" "$jwt_name"
 			printf "  %q" "$op_arg"

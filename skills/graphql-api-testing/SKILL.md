@@ -154,6 +154,7 @@ Notes:
 - `gql-report.sh` redacts `accessToken` / `refreshToken` / `password` by default; use `--no-redact` only if explicitly requested.
 - `gql-report.sh` refuses to write a report when the response has no data, unless you pass `--allow-empty` (only when an empty/no-data result is the intent or correct behavior).
 - `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet by default; disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`.
+- When the command snippet uses `--url`, the URL value is included by default; omit it with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL=0`.
 - Default report output dir is `<project root>/docs`; override with `GQL_REPORT_DIR` (relative paths are resolved from `<project root>`).
 
 ## Safety rules
