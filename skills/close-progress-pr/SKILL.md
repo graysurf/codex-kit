@@ -36,7 +36,7 @@ Patch the PR body `## Progress` link to point to the base branch (usually `main`
      - `rg -n --fixed-string "$pr_url" docs/progress -S`
 4. Finalize progress
    - Update the progress file:
-     - Fail-fast if any unchecked checklist item under `## Steps (Checklist)` lacks a `Reason:`
+     - Fail-fast if any unchecked checklist item under `## Steps (Checklist)` lacks a `Reason:` (excluding Step 4 “Release / wrap-up”)
      - Set Status to `DONE`
      - Update the `Updated` date to today
      - Set `Links -> PR` to the PR URL

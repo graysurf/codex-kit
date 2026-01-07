@@ -56,7 +56,7 @@ Links:
 
 ## Steps (Checklist)
 
-Note: Any unchecked checkbox in this section must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete.
+Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 
 - [ ] Step 0: [[Alignment / prerequisites]]
   - Work Items:

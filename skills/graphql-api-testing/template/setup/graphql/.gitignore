@@ -2,3 +2,5 @@
 *.local.env
 *.local.json
 
+# Local-only history (do not commit)
+.gql_history*

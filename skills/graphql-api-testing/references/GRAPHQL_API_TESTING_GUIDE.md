@@ -37,6 +37,7 @@ Optional local-only overrides:
 - `setup/graphql/endpoints.local.env` (do not commit; recommended to gitignore)
 - `setup/graphql/jwts.local.env` (do not commit; real JWTs)
 - `setup/graphql/operations/*.local.json` (do not commit; recommended to gitignore)
+- `setup/graphql/.gql_history` (do not commit; command history)
 
 ### Bootstrap (copy template)
 
@@ -178,8 +179,12 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
 
 If you intentionally expect an empty/no-data result (or want a draft without running yet), pass `--allow-empty`.
 
+By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL=0`.
+
 ## Notes for stability
 
 - Prefer “files + template command” (or `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
+- `gql.sh` keeps a local history file at `setup/graphql/.gql_history` by default; extract the last entry for replay with:
+  - `$CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh --command-only`
 - Make test inputs deterministic when possible (avoid time-dependent filters unless explicitly testing them).
 - Do not paste tokens/PII into reports; redact sensitive fields before committing.

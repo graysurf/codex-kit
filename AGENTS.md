@@ -82,6 +82,10 @@
   —— [可信度: 中] [推理強度: 推論]
   ```
 
+## Commit 原則
+
+- 每個 commit 都必須使用 `$commit-message` skill 來完成，不得直接使用 `git commit`。
+
 ## 可用指令（全域工具）
 
 - 工具入口：`$CODEX_TOOLS_PATH`。

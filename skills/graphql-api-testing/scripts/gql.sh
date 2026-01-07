@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+gql_action="call"
+invocation_dir="$(pwd -P 2>/dev/null || pwd)"
+
 die() {
 	echo "$1" >&2
 	exit 1
@@ -28,6 +31,227 @@ to_env_key() {
 	printf "%s" "$s"
 }
 
+is_falsy() {
+	local s
+	s="$(to_lower "$(trim "${1:-}")")"
+	case "$s" in
+		0|false|no|off|n)
+			return 0
+			;;
+	esac
+	return 1
+}
+
+parse_int_default() {
+	local raw="${1:-}"
+	local default_value="${2:-0}"
+	local min_value="${3:-}"
+
+	raw="$(trim "$raw")"
+	if [[ -z "$raw" ]]; then
+		printf "%s" "$default_value"
+		return 0
+	fi
+
+	if ! [[ "$raw" =~ ^[0-9]+$ ]]; then
+		printf "%s" "$default_value"
+		return 0
+	fi
+
+	if [[ -n "$min_value" && "$raw" -lt "$min_value" ]]; then
+		printf "%s" "$min_value"
+		return 0
+	fi
+
+	printf "%s" "$raw"
+}
+
+maybe_relpath() {
+	local path="$1"
+	local base="$2"
+
+	if [[ "$path" == "$base" ]]; then
+		printf "%s" "."
+		return 0
+	fi
+
+	if [[ "$path" == "$base/"* ]]; then
+		printf "%s" "${path#"$base"/}"
+		return 0
+	fi
+
+	printf "%s" "$path"
+}
+
+rotate_file_keep_n() {
+	local file="$1"
+	local keep="${2:-5}"
+
+	[[ -f "$file" ]] || return 0
+	keep="$(parse_int_default "$keep" "5" "1")"
+
+	local i
+	for ((i=keep; i>=1; i--)); do
+		local src dst
+		dst="${file}.${i}"
+		if [[ "$i" -eq 1 ]]; then
+			src="$file"
+		else
+			src="${file}.$((i - 1))"
+		fi
+
+		[[ -e "$src" ]] || continue
+		mv -f "$src" "$dst" 2>/dev/null || true
+	done
+}
+
+append_gql_history() {
+	local exit_code="$1"
+
+	[[ "${gql_action:-call}" == "call" ]] || return 0
+
+	if is_falsy "${GQL_HISTORY:-1}"; then
+		return 0
+	fi
+
+	local op_raw="${operation_file:-}"
+	[[ -n "$op_raw" ]] || return 0
+
+	local setup="${setup_dir:-}"
+	[[ -n "$setup" && -d "$setup" ]] || return 0
+
+	local history_file="${GQL_HISTORY_FILE:-}"
+	if [[ -z "$history_file" ]]; then
+		history_file="$setup/.gql_history"
+	elif [[ "$history_file" != /* ]]; then
+		history_file="$setup/$history_file"
+	fi
+
+	local history_dir
+	history_dir="$(dirname "$history_file")"
+	mkdir -p "$history_dir" 2>/dev/null || true
+
+	local lock_dir="${history_file}.lock"
+	if ! mkdir "$lock_dir" 2>/dev/null; then
+		return 0
+	fi
+
+	local max_mb rotate_keep
+	max_mb="$(parse_int_default "${GQL_HISTORY_MAX_MB:-}" "10" "0")"
+	rotate_keep="$(parse_int_default "${GQL_HISTORY_ROTATE_COUNT:-}" "5" "1")"
+
+	if [[ "$max_mb" -gt 0 && -f "$history_file" ]]; then
+		local bytes max_bytes
+		bytes="$(wc -c <"$history_file" 2>/dev/null || printf "0")"
+		bytes="$(parse_int_default "$bytes" "0" "0")"
+		max_bytes=$((max_mb * 1024 * 1024))
+		if [[ "$bytes" -ge "$max_bytes" ]]; then
+			rotate_file_keep_n "$history_file" "$rotate_keep"
+		fi
+	fi
+
+	local log_url=true
+	if is_falsy "${GQL_HISTORY_LOG_URL:-1}"; then
+		log_url=false
+	fi
+
+	local stamp
+	stamp="$(date +%Y-%m-%dT%H:%M:%S%z 2>/dev/null || date)"
+
+	local setup_rel
+	setup_rel="$(maybe_relpath "$setup" "$invocation_dir")"
+
+	local endpoint_label=""
+	local endpoint_value=""
+	if [[ -n "${explicit_url:-}" ]]; then
+		endpoint_label="url"
+		endpoint_value="$explicit_url"
+	elif [[ "${env_name:-}" =~ ^https?:// ]]; then
+		endpoint_label="url"
+		endpoint_value="$env_name"
+	elif [[ -n "${env_name:-}" ]]; then
+		endpoint_label="env"
+		endpoint_value="$env_name"
+	elif [[ -n "${gql_env_default:-}" ]]; then
+		endpoint_label="env"
+		endpoint_value="$gql_env_default"
+	else
+		endpoint_label="url"
+		endpoint_value="${gql_url:-}"
+	fi
+
+	local auth_label="none"
+	local jwt_for_log=""
+	if [[ "${jwt_profile_selected:-false}" == "false" && -n "${ACCESS_TOKEN:-}" ]]; then
+		auth_label="access_token"
+	elif [[ -n "${jwts_file:-}" && -f "${jwts_file:-}" || -n "${jwts_local_file:-}" && -f "${jwts_local_file:-}" || -n "${jwt_name_arg:-}" || -n "${GQL_JWT_NAME:-}" || -n "${gql_jwt_name_default:-}" ]]; then
+		auth_label="jwt"
+		jwt_for_log="${jwt_name:-}"
+	fi
+
+	local script_abs script_cmd
+	script_abs="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd -P)/$(basename "${BASH_SOURCE[0]}")"
+	script_cmd="$script_abs"
+	if [[ -n "${CODEX_HOME:-}" && "$script_abs" == "${CODEX_HOME%/}/"* ]]; then
+		script_cmd="\$CODEX_HOME/${script_abs#${CODEX_HOME%/}/}"
+	fi
+
+	local config_arg op_arg vars_arg
+	config_arg="$setup"
+	op_arg="$op_raw"
+	vars_arg="${variables_file:-}"
+
+	{
+		printf "# %s exit=%s setup_dir=%s" "$stamp" "$exit_code" "$setup_rel"
+		if [[ -n "$endpoint_label" ]]; then
+			if [[ "$endpoint_label" == "url" && "$log_url" == "false" ]]; then
+				printf " url=<omitted>"
+			else
+				printf " %s=%s" "$endpoint_label" "$endpoint_value"
+			fi
+		fi
+		if [[ "$auth_label" == "jwt" && -n "$jwt_for_log" ]]; then
+			printf " jwt=%s" "$jwt_for_log"
+		elif [[ "$auth_label" == "access_token" ]]; then
+			printf " auth=ACCESS_TOKEN"
+		fi
+		printf "\n"
+
+		printf '%s \\\n' "$script_cmd"
+		printf '  --config-dir %q \\\n' "$config_arg"
+
+		if [[ "$endpoint_label" == "env" && -n "$endpoint_value" ]]; then
+			printf '  --env %q \\\n' "$endpoint_value"
+		elif [[ "$endpoint_label" == "url" && -n "$endpoint_value" && "$log_url" == "true" ]]; then
+			printf '  --url %q \\\n' "$endpoint_value"
+		fi
+
+		if [[ "$auth_label" == "jwt" && -n "$jwt_for_log" ]]; then
+			printf '  --jwt %q \\\n' "$jwt_for_log"
+		fi
+
+		printf '  %q' "$op_arg"
+		if [[ -n "$vars_arg" ]]; then
+			printf ' \\\n  %q \\\n' "$vars_arg"
+			printf '| jq .\n'
+		else
+			printf ' \\\n| jq .\n'
+		fi
+		printf "\n"
+	} >>"$history_file"
+
+	rmdir "$lock_dir" 2>/dev/null || true
+}
+
+on_exit() {
+	local exit_code=$?
+	set +e
+	set +u
+	append_gql_history "$exit_code" || true
+}
+
+trap 'on_exit' EXIT
+
 usage() {
 	cat >&2 <<'EOF'
 Usage:
@@ -40,11 +264,17 @@ Options:
       --config-dir <dir> GraphQL setup dir (searches upward for endpoints.env/jwts.env; default: operation dir or ./setup/graphql)
       --list-envs         Print available env names from endpoints.env, then exit
       --list-jwts         Print available JWT profile names from jwts(.local).env, then exit
+      --no-history        Disable writing to .gql_history for this run
 
 Environment variables:
   GQL_URL        Explicit GraphQL endpoint URL (overridden by --env/--url)
   ACCESS_TOKEN   If set (and no JWT profile is selected), sends Authorization: Bearer <token>
   GQL_JWT_NAME   JWT profile name (same as --jwt)
+  GQL_HISTORY              Enable/disable local command history (default: 1)
+  GQL_HISTORY_FILE         Override history file path (default: <setup_dir>/.gql_history)
+  GQL_HISTORY_LOG_URL      Include URL in history entries (default: 1)
+  GQL_HISTORY_MAX_MB       Rotate when file exceeds size in MB (default: 10; 0 disables)
+  GQL_HISTORY_ROTATE_COUNT Number of rotated files to keep (default: 5)
 
 Notes:
   - Project presets live under: setup/graphql/endpoints.env (+ optional endpoints.local.env overrides).
@@ -95,6 +325,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		--list-jwts)
 			list_jwts=true
+			shift
+			;;
+		--no-history)
+			GQL_HISTORY=0
 			shift
 			;;
 		--)
@@ -278,6 +512,7 @@ elif [[ -f "setup/graphql/jwts.env" || -f "setup/graphql/jwts.local.env" ]]; the
 fi
 
 if [[ "$list_envs" == "true" ]]; then
+	gql_action="list_envs"
 	[[ -n "$endpoints_file" ]] || die "endpoints.env not found (expected under setup/graphql/)"
 	{
 		list_available_envs "$endpoints_file"
@@ -288,6 +523,7 @@ if [[ "$list_envs" == "true" ]]; then
 fi
 
 if [[ "$list_jwts" == "true" ]]; then
+	gql_action="list_jwts"
 	[[ -n "$jwts_file" && -f "$jwts_file" || -n "$jwts_local_file" && -f "$jwts_local_file" ]] || die "jwts(.local).env not found (expected under setup/graphql/)"
 	{
 		[[ -n "$jwts_file" && -f "$jwts_file" ]] && list_available_jwts "$jwts_file"

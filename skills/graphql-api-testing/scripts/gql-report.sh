@@ -13,6 +13,38 @@ trim() {
 	printf "%s" "$s"
 }
 
+to_lower() {
+	printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+is_falsy() {
+	local s
+	s="$(to_lower "$(trim "${1:-}")")"
+	case "$s" in
+		0|false|no|off|n)
+			return 0
+			;;
+	esac
+	return 1
+}
+
+maybe_relpath() {
+	local path="$1"
+	local base="$2"
+
+	if [[ "$path" == "$base" ]]; then
+		printf "%s" "."
+		return 0
+	fi
+
+	if [[ "$path" == "$base/"* ]]; then
+		printf "%s" "${path#"$base"/}"
+		return 0
+	fi
+
+	printf "%s" "$path"
+}
+
 slugify() {
 	local s="$1"
 	s="$(printf "%s" "$s" | tr '[:upper:]' '[:lower:]')"
@@ -34,6 +66,8 @@ Options:
       --response <file>  Use response from a file (use "-" for stdin); formatted with jq
       --allow-empty      Allow generating a report with an empty/no-data response (or as a draft without --run/--response)
       --no-redact        Do not redact token/password fields in variables/response
+      --no-command       Do not include the `gql.sh` command snippet in the report
+      --no-command-url   When using --url, omit the URL value in the command snippet
       --project-root <p> Override project root (default: git root or current dir)
       --config-dir <dir> Passed through to gql.sh (GraphQL setup dir containing endpoints.env/jwts.env)
 
@@ -42,6 +76,8 @@ Environment variables:
                           If relative, it is resolved against <project root>.
                           Default: <project root>/docs
   GQL_ALLOW_EMPTY         Same as --allow-empty (1/true/yes).
+  GQL_REPORT_INCLUDE_COMMAND Include the `gql.sh` command snippet in the report (default: 1)
+  GQL_REPORT_COMMAND_LOG_URL Include URL value in the command snippet when --url is used (default: 1)
 
 Notes:
   - Requires jq for JSON formatting.
@@ -60,6 +96,8 @@ jwt_name=""
 run_request=false
 redact=true
 allow_empty=false
+include_command=true
+include_command_url=true
 project_root=""
 config_dir=""
 
@@ -113,6 +151,14 @@ while [[ $# -gt 0 ]]; do
 			redact=false
 			shift
 			;;
+		--no-command)
+			include_command=false
+			shift
+			;;
+		--no-command-url)
+			include_command_url=false
+			shift
+			;;
 		--redact)
 			redact=true
 			shift
@@ -153,6 +199,14 @@ fi
 
 if [[ -z "$project_root" ]]; then
 	project_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
+fi
+
+if is_falsy "${GQL_REPORT_INCLUDE_COMMAND:-1}"; then
+	include_command=false
+fi
+
+if is_falsy "${GQL_REPORT_COMMAND_LOG_URL:-1}"; then
+	include_command_url=false
 fi
 
 if [[ -z "$out_file" ]]; then
@@ -312,9 +366,54 @@ fi
 
 operation_content="$(cat "$operation_file")"
 
+command_snippet=""
+if [[ "$include_command" == "true" ]]; then
+	op_arg="$operation_file"
+	vars_arg="$variables_file"
+
+	if [[ "$op_arg" == /* ]]; then
+		op_arg="$(maybe_relpath "$op_arg" "$project_root")"
+	fi
+	if [[ -n "$vars_arg" && "$vars_arg" == /* ]]; then
+		vars_arg="$(maybe_relpath "$vars_arg" "$project_root")"
+	fi
+
+	config_arg="$config_dir"
+	if [[ -n "$config_arg" && "$config_arg" == /* ]]; then
+		config_arg="$(maybe_relpath "$config_arg" "$project_root")"
+	fi
+
+	command_snippet="$(
+		{
+			printf '%s \\\n' '"$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh"'
+			[[ -n "$config_arg" ]] && printf '  --config-dir %q \\\n' "$config_arg"
+			if [[ -n "$explicit_url" ]]; then
+				if [[ "$include_command_url" == "true" ]]; then
+					printf '  --url %q \\\n' "$explicit_url"
+				else
+					printf '  --url %q \\\n' "<omitted>"
+				fi
+			fi
+			[[ -n "$env_name" && -z "$explicit_url" ]] && printf '  --env %q \\\n' "$env_name"
+			[[ -n "$jwt_name" ]] && printf '  --jwt %q \\\n' "$jwt_name"
+			printf '  %q' "$op_arg"
+			if [[ -n "$vars_arg" ]]; then
+				printf ' \\\n  %q \\\n' "$vars_arg"
+				printf '| jq .\n'
+			else
+				printf ' \\\n| jq .\n'
+			fi
+		} | cat
+	)"
+fi
+
 	{
 		printf "# API Test Report (%s)\n\n" "$report_date"
 		printf "## Test Case: %s\n\n" "$case_name"
+		if [[ -n "$command_snippet" ]]; then
+			printf "## Command\n\n"
+			printf '```bash\n%s\n```\n\n' "$command_snippet"
+		fi
 		printf "Generated at: %s\n\n" "$generated_at"
 
 		printf "### GraphQL Operation\n\n"
