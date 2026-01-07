@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN PROGRESS | 2026-01-07 | 2026-01-07 |
+| IN PROGRESS | 2026-01-07 | 2026-01-08 |
 
 Links:
 
@@ -121,16 +121,28 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
   - Exit Criteria:
     - [x] `bash -n skills/graphql-api-testing/scripts/gql-report.sh` passes.
     - [x] `skills/graphql-api-testing/scripts/gql-report.sh --help` prints usage.
-- [ ] Step 3: Validation / testing
+- [x] Step 3: Validation / testing
   - Work Items:
-    - [ ] Validate `gql.sh` against a real public GraphQL endpoint (unauthenticated) to cover the request path. `Reason: not yet recorded in a stable, repeatable command.`
-    - [ ] Validate report generation (`--response` replay and `--run`) with at least one non-empty response. `Reason: pending a representative endpoint/operation.`
+    - [x] Validate `gql.sh` against a real GraphQL endpoint using an existing project `setup/graphql/`:
+      - Project: `MegabankTourism`
+      - Config: `/Users/terry/Project/rytass/MegabankTourism/setup/graphql`
+      - Operation: `/Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql`
+      - Variables: `/Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json`
+      - Verified summary (non-empty): `{"hasErrors":false,"total":38,"items":5}`
+    - [x] Validate report generation:
+      - [x] Real run (`--run`) report generated (non-empty response)
+      - [x] Redaction smoke test (`--response`) verified (`accessToken` / `refreshToken` / `password` -> `<REDACTED>`)
   - Artifacts:
-    - `docs/<timestamp>-<case>-api-test-report.md` (example report)
-    - Command transcripts in PR comments or progress file updates
+    - `output/graphql-api-testing/megabanktourism/20260108-0119-megabanktourism-articles-local-api-test-report.md`
+    - `output/graphql-api-testing/megabanktourism/20260108-0119-graphql-api-testing-redaction-smoke-test-api-test-report.md`
+    - Command transcripts recorded under Exit Criteria
   - Exit Criteria:
-    - [ ] End-to-end call works and returns a non-empty `.data` response. `Reason: pending.`
-    - [ ] Report file generated with redaction verified. `Reason: pending.`
+    - [x] End-to-end call works and returns a non-empty `.data` response:
+      - `skills/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
+      - `skills/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local --jwt force-login /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
+    - [x] Report file generated with redaction verified:
+      - `GQL_REPORT_DIR=output/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "MegabankTourism Articles (local)" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --env local --jwt force-login --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --run`
+      - `GQL_REPORT_DIR=output/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "graphql-api-testing redaction smoke test" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --response output/graphql-api-testing/megabanktourism/dummy-redaction.response.json`
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [x] Add the skill to the top-level `README.md` skills list.
