@@ -4,7 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-08 | [REST API testing skill](20260108_rest-api-testing-skill.md) | TBD |
+| 2026-01-08 | [REST API testing skill](20260108_rest-api-testing-skill.md) | [#9](https://github.com/graysurf/codex-kit/pull/9) |
 
 ## Archived
 
