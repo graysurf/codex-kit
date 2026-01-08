@@ -61,4 +61,6 @@ $CODEX_HOME/skills/rest-api-testing/scripts/rest-report.sh \
 
 ## References
 
+- Full guide (project template): `skills/rest-api-testing/references/REST_API_TESTING_GUIDE.md`
+- Report template: `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
 - Progress plan: `docs/progress/20260108_rest-api-testing-skill.md`

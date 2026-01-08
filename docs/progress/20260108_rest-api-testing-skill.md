@@ -7,8 +7,8 @@
 Links:
 
 - PR: [#9](https://github.com/graysurf/codex-kit/pull/9)
-- Docs: TBD
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Docs: [`skills/rest-api-testing/SKILL.md`](../../skills/rest-api-testing/SKILL.md)
+- Glossary: [`docs/templates/PROGRESS_GLOSSARY.md`](../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -112,22 +112,25 @@ Links:
 
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
     - [x] Finalize naming + layout (`skills/rest-api-testing`, `setup/rest/`, env var prefixes, history file name).
     - [x] Lock the `*.request.json` schema (method/path/query/headers/body/expect).
-    - [ ] Add at least one canonical `*.request.json` example (used for docs and CI verification).
-    - [ ] Decide report output contract (new template under `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`).
-    - [ ] Define how to run E2E in CI (script/docs + required env vars + secrets handling).
+    - [x] Add at least one canonical `*.request.json` example (used for docs and CI verification).
+    - [x] Decide report output contract (template under `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`).
+    - [x] Define how to run E2E in CI (documented; exit code is the contract when `expect` is present).
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
-    - `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md` (TBD)
-    - `skills/rest-api-testing/` (TBD)
+    - `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
+    - `skills/rest-api-testing/SKILL.md`
+    - `skills/rest-api-testing/references/REST_API_TESTING_GUIDE.md`
+    - `skills/rest-api-testing/template/setup/rest/requests/health.request.json`
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned: TBD
-    - [ ] Data flow and I/O contract are defined: request schema + `expect` semantics documented + examples exist
-    - [ ] Risks and out-of-scope items are explicitly recorded: yes (this file)
-    - [ ] Minimal reproducible verification data and commands are defined: TBD (pick a real repo + endpoint)
+    - [x] Requirements, scope, and acceptance criteria are aligned (JSON-only, Bearer token, `expect.status` + `expect.jq`).
+    - [x] Data flow and I/O contract are defined (request schema + `expect` semantics documented + canonical example exists).
+    - [x] Risks and out-of-scope items are explicitly recorded (this file).
+    - [x] Minimal reproducible verification commands are defined (to execute in Step 3):
+      - `REST_URL=<baseUrl> ACCESS_TOKEN=<token> $CODEX_HOME/skills/rest-api-testing/scripts/rest.sh --url "$REST_URL" setup/rest/requests/health.request.json`
 - [ ] Step 1: Minimum viable output (MVP)
   - Work Items:
     - [ ] Implement `skills/rest-api-testing/scripts/rest.sh` (endpoint + auth presets, execute request, history).

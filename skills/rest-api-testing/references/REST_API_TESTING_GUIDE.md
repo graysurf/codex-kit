@@ -120,6 +120,46 @@ Add `expect` to the request file:
 
 Then run the request; the script should exit non-zero on assertion failure.
 
+6) Generate a test report under `docs/`
+
+Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the request (path/query/body) and re-run before writing the report.
+
+```bash
+export REST_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
+
+$CODEX_HOME/skills/rest-api-testing/scripts/rest-report.sh \
+  --case "<test case name>" \
+  --request setup/rest/requests/<request>.request.json \
+  --env <local|staging|dev> \
+  --token <default|admin|member|...> \
+  --run
+```
+
+Report output contract template (recommended):
+
+- `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
+
+7) CI / E2E usage (recommended pattern)
+
+If a request file includes `expect`, `rest.sh` should exit non-zero on assertion failure. This makes it suitable for CI.
+
+Minimal pattern:
+
+- Start the API server (job/service).
+- Export `REST_URL` and (if needed) `ACCESS_TOKEN` from CI secrets.
+- Run one or more `setup/rest/requests/*.request.json` that include `expect`.
+
+Example (single request):
+
+```bash
+REST_URL="https://<host>" \
+ACCESS_TOKEN="${ACCESS_TOKEN:-}" \
+$CODEX_HOME/skills/rest-api-testing/scripts/rest.sh \
+  --url "$REST_URL" \
+  --config-dir setup/rest \
+  setup/rest/requests/health.request.json
+```
+
 ## Notes for stability
 
 - Prefer “files + script” over ad-hoc one-liners: it reduces drift and quoting mistakes.
