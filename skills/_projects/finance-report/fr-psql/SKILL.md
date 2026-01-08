@@ -1,20 +1,20 @@
 ---
 name: fr-psql
-description: Run PostgreSQL queries through the fr-psql wrapper in $CODEX_TOOLS_PATH/fr-psql/fr-psql.zsh. Use when the user asks to query the FR Postgres database, inspect schemas/tables/columns, or execute SQL via fr-psql/psql using the FR_PG* environment.
+description: Run PostgreSQL queries through the fr-psql wrapper in $CODEX_TOOLS_PATH/project/fr-psql/fr-psql.zsh. Use when the user asks to query the FR Postgres database, inspect schemas/tables/columns, or execute SQL via fr-psql/psql using the FR_PG* environment.
 ---
 
 # Fr-psql
 
 ## Overview
 
-Use fr-psql to run psql against the FR database using the values in `$CODEX_TOOLS_PATH/fr-psql/.env`. Favor read-only queries unless the user explicitly requests data changes.
+Use fr-psql to run psql against the FR database using the values in `$CODEX_TOOLS_PATH/project/fr-psql/.env`. Favor read-only queries unless the user explicitly requests data changes.
 
 ## Quick Start
 
 1) Ensure the function is available.
 
 ```
-source $CODEX_TOOLS_PATH/fr-psql/fr-psql.zsh
+source $CODEX_TOOLS_PATH/project/fr-psql/fr-psql.zsh
 ```
 
 2) Run a query.
@@ -37,7 +37,7 @@ Run a lightweight query to confirm connectivity and basic output.
 fr-psql -c "SELECT current_database();"
 ```
 
-If the function is missing, source the script again. If the connection fails, verify that all `FR_PG*` values exist in `$CODEX_TOOLS_PATH/fr-psql/.env`.
+If the function is missing, source the script again. If the connection fails, verify that all `FR_PG*` values exist in `$CODEX_TOOLS_PATH/project/fr-psql/.env`.
 
 ## Safety Rules
 
