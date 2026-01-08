@@ -209,4 +209,5 @@ Exit codes:
 
 ## References
 
-- Progress plan: `docs/progress/20260109_ci-api-test-runner.md`
+- Guide: `skills/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
+- Progress plan: `docs/progress/archived/20260109_ci-api-test-runner.md`
