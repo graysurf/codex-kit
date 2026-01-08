@@ -2,14 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-09 | 2026-01-09 |
+| DONE | 2026-01-09 | 2026-01-09 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/12
 - Planning PR: https://github.com/graysurf/codex-kit/pull/11
-- Docs: [skills/api-test-runner/SKILL.md](../../skills/api-test-runner/SKILL.md)
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Docs: [skills/api-test-runner/SKILL.md](../../../skills/api-test-runner/SKILL.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
