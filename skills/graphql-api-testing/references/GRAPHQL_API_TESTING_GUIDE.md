@@ -248,6 +248,27 @@ If you intentionally expect an empty/no-data result (or want a draft without run
 
 By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL=0`.
 
+8) CI / E2E (optional)
+
+In CI, use `gql.sh` as the runner and `jq -e` as assertions (exit code is the contract):
+
+```bash
+set -euo pipefail
+
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
+  --config-dir setup/graphql \
+  --env <local|staging|dev> \
+  --jwt <default|admin|...> \
+  setup/graphql/operations/<operation>.graphql \
+  setup/graphql/operations/<variables>.json \
+| jq -e '(.errors? | length // 0) == 0 and .data != null' >/dev/null
+```
+
+Notes:
+
+- Many GraphQL servers return HTTP 200 even when `.errors` is present, so assert it explicitly.
+- If you don’t want CI jobs to write history, add `--no-history` (or set `GQL_HISTORY=0`).
+
 ## Notes for stability
 
 - Prefer “files + template command” (or `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh`) over ad-hoc one-liners: it reduces drift and quoting mistakes.

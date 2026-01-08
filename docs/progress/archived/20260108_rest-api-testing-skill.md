@@ -160,7 +160,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Work Items:
     - [x] Add optional URL omission controls for history/report command snippets (privacy / sharing).
     - [x] Add better error printing (include response body on non-2xx when safe).
-    - [ ] (Optional) Add request normalization knobs (e.g., bump numeric `limit` in query/body) if it proves useful. Reason: REST pagination conventions vary widely (`limit`/`pageSize`/`take`/etc), and auto-normalizing could add load or introduce CI drift; keep out until a concrete project need emerges.
+    - [x] (Optional) Decide on request normalization knobs (e.g., bump numeric `limit` in query/body). Decision: deferred. Reason: REST pagination conventions vary widely (`limit`/`pageSize`/`take`/etc), and auto-normalizing could add load or introduce CI drift; keep out until a concrete project need emerges.
   - Artifacts:
     - None
   - Exit Criteria:
@@ -178,19 +178,21 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Validation and test commands executed with results recorded: `output/rest-api-testing/smoke-*/`.
     - [x] Run with real data or representative samples (including failure + rerun after fix): local stub server + scripted smoke runs.
     - [x] Traceable evidence exists (logs, reports, command transcripts): `output/rest-api-testing/smoke-*/`.
-- [ ] Step 4: Release / wrap-up
+- [x] Step 4: Release / wrap-up
   - Work Items:
     - [x] Add the skill to the top-level `README.md` skills list.
-    - [ ] After merge + validation, set Status to `DONE` and archive the progress file under `docs/progress/archived/`.
-    - [ ] Follow-up: add CI usage guidance for `graphql-api-testing` (documented CI pattern + example assertions).
+    - [x] After merge + validation, set Status to `DONE` and archive the progress file under `docs/progress/archived/`.
+    - [x] Follow-up: add CI usage guidance for `graphql-api-testing` (documented CI pattern + example assertions): `skills/graphql-api-testing/SKILL.md` + `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`.
   - Artifacts:
     - `README.md`
-    - `docs/progress/archived/20260108_rest-api-testing-skill.md` (TBD)
+    - `docs/progress/archived/20260108_rest-api-testing-skill.md`
+    - `skills/graphql-api-testing/SKILL.md`
+    - `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`
   - Exit Criteria:
-    - [ ] Versioning and changes recorded: None
-    - [ ] Release actions completed: None
-    - [ ] Documentation completed and entry points updated (README / docs index links): `README.md` (TBD)
-    - [ ] Cleanup completed (archive progress, update index, mark DONE): `docs/progress/README.md` + archived file (TBD)
+    - [x] Versioning and changes recorded: none required.
+    - [x] Release actions completed: none required.
+    - [x] Documentation completed and entry points updated (README / docs index links): `README.md`.
+    - [x] Cleanup completed (archive progress, update index, mark DONE): `docs/progress/README.md` + archived file.
 
 ## Modules
 
