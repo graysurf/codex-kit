@@ -75,7 +75,7 @@ fi
 export GIT_PAGER=cat
 export PAGER=cat
 
-codex_tools="${HOME}/.codex/tools/_codex-tools.zsh"
+codex_tools="$CODEX_TOOLS_PATH/_codex-tools.zsh"
 if [[ -f "$codex_tools" ]]; then
   source "$codex_tools" >/dev/null 2>&1 || {
     echo "warning: failed to source ${codex_tools}; git-scope output may be unavailable" >&2
