@@ -64,6 +64,7 @@ Links:
   - API key header auth profiles. (TODO)
   - OpenAPI/Swagger schema tooling, codegen, typed clients. (TODO)
   - Auto-login / token fetching flows. (TODO / project-specific)
+  - Updating `graphql-api-testing` for CI usage. (Planned follow-up after REST MVP)
   - Multi-step scenario runner (extract values from response and feed into subsequent requests). (TODO)
   - Non-JSON request payloads (XML, protobuf, etc). (TODO)
 
@@ -113,8 +114,9 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 
 - [ ] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Finalize naming + layout (`skills/rest-api-testing`, `setup/rest/`, env var prefixes, history file name).
-    - [ ] Lock the `*.request.json` schema (method/path/query/headers/body/expect) and provide at least one canonical example.
+    - [x] Finalize naming + layout (`skills/rest-api-testing`, `setup/rest/`, env var prefixes, history file name).
+    - [x] Lock the `*.request.json` schema (method/path/query/headers/body/expect).
+    - [ ] Add at least one canonical `*.request.json` example (used for docs and CI verification).
     - [ ] Decide report output contract (new template under `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`).
     - [ ] Define how to run E2E in CI (script/docs + required env vars + secrets handling).
   - Artifacts:
@@ -169,6 +171,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Work Items:
     - [ ] Add the skill to the top-level `README.md` skills list.
     - [ ] After merge + validation, set Status to `DONE` and archive the progress file under `docs/progress/archived/`.
+    - [ ] Follow-up: add CI usage guidance for `graphql-api-testing` (documented CI pattern + example assertions).
   - Artifacts:
     - `README.md`
     - `docs/progress/archived/20260108_rest-api-testing-skill.md` (TBD)
