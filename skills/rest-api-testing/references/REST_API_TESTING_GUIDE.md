@@ -133,6 +133,11 @@ Then run the request; the script should exit non-zero on assertion failure.
 
 Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the request (path/query/body) and re-run before writing the report.
 
+Notes:
+
+- Reports redact common secret-like fields by default (e.g. `Authorization`, `Cookie`, `accessToken`); use `--no-redact` only when necessary.
+- If the request includes `expect`, the report will include an `### Assertions` section.
+
 ```bash
 export REST_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
 

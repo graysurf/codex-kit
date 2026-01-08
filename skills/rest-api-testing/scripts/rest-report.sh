@@ -222,6 +222,12 @@ redact_jq='
   | (.. | objects | select(has("password")) | .password) |= "<REDACTED>"
   | (.. | objects | select(has("token")) | .token) |= "<REDACTED>"
   | (.. | objects | select(has("apiKey")) | .apiKey) |= "<REDACTED>"
+  | (.. | objects | select(has("authorization")) | .authorization) |= "<REDACTED>"
+  | (.. | objects | select(has("Authorization")) | .Authorization) |= "<REDACTED>"
+  | (.. | objects | select(has("cookie")) | .cookie) |= "<REDACTED>"
+  | (.. | objects | select(has("Cookie")) | .Cookie) |= "<REDACTED>"
+  | (.. | objects | select(has("set-cookie")) | .["set-cookie"]) |= "<REDACTED>"
+  | (.. | objects | select(has("Set-Cookie")) | .["Set-Cookie"]) |= "<REDACTED>"
 '
 
 format_json_file() {
@@ -243,6 +249,17 @@ format_json_stdin() {
 
 request_json="$(format_json_file "$request_file")"
 
+expect_present="$(jq -r 'has("expect")' "$request_file")"
+expect_status="$(jq -r '.expect.status? // empty' "$request_file")"
+expect_status="$(trim "$expect_status")"
+expect_jq_expr="$(jq -r '.expect.jq? // empty' "$request_file")"
+expect_jq_expr="$(trim "$expect_jq_expr")"
+
+if [[ "$expect_present" == "true" ]]; then
+	[[ -n "$expect_status" ]] || die "Request includes expect but is missing expect.status"
+	[[ "$expect_status" =~ ^[0-9]+$ ]] || die "Invalid expect.status (must be an integer): $expect_status"
+fi
+
 endpoint_note=""
 if [[ -n "$explicit_url" ]]; then
 	endpoint_note="Endpoint: --url ${explicit_url}"
@@ -256,10 +273,12 @@ response_lang="json"
 response_body=""
 run_exit_code="0"
 stderr_note=""
+run_mode=""
 
 rest_sh="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd -P)/rest.sh"
 
 if [[ "$run_request" == "true" ]]; then
+	run_mode="run"
 	stderr_file="$(mktemp 2>/dev/null || mktemp -t rest.stderr.txt)"
 	set +e
 	{
@@ -287,6 +306,7 @@ if [[ "$run_request" == "true" ]]; then
 		response_body="$response_raw"
 	fi
 elif [[ -n "$response_file" ]]; then
+	run_mode="response"
 	if [[ "$response_file" == "-" ]]; then
 		response_raw="$(cat)"
 	else
@@ -316,12 +336,12 @@ if [[ "$include_command" == "true" ]]; then
 		config_arg="$(maybe_relpath "$config_arg" "$project_root")"
 	fi
 
-		command_snippet="$(
-			{
-				printf '%s \\\n' "\"\$CODEX_HOME/skills/rest-api-testing/scripts/rest.sh\""
-				[[ -n "$config_arg" ]] && printf '  --config-dir %q \\\n' "$config_arg"
-				if [[ -n "$explicit_url" ]]; then
-					if [[ "$include_command_url" == "true" ]]; then
+	command_snippet="$(
+		{
+			printf '%s \\\n' "\"\$CODEX_HOME/skills/rest-api-testing/scripts/rest.sh\""
+			[[ -n "$config_arg" ]] && printf '  --config-dir %q \\\n' "$config_arg"
+			if [[ -n "$explicit_url" ]]; then
+				if [[ "$include_command_url" == "true" ]]; then
 					printf '  --url %q \\\n' "$explicit_url"
 				else
 					printf '  --url %q \\\n' "<omitted>"
@@ -335,9 +355,41 @@ if [[ "$include_command" == "true" ]]; then
 	)"
 fi
 
-result_note="Result: PASS"
-if [[ "$run_exit_code" != "0" ]]; then
-	result_note="Result: FAIL (rest.sh exit=$run_exit_code)"
+result_note="Result: (not executed)"
+if [[ "$run_mode" == "run" ]]; then
+	result_note="Result: PASS"
+	if [[ "$run_exit_code" != "0" ]]; then
+		result_note="Result: FAIL (rest.sh exit=$run_exit_code)"
+	fi
+elif [[ "$run_mode" == "response" ]]; then
+	result_note="Result: (response provided; request not executed)"
+fi
+
+assert_status_state=""
+assert_jq_state=""
+if [[ "$expect_present" == "true" ]]; then
+	if [[ "$run_mode" == "run" ]]; then
+		if [[ "$run_exit_code" == "0" ]]; then
+			assert_status_state="PASS"
+			[[ -n "$expect_jq_expr" ]] && assert_jq_state="PASS"
+		else
+			assert_status_state="FAIL"
+			[[ -n "$expect_jq_expr" ]] && assert_jq_state="FAIL"
+		fi
+	else
+		assert_status_state="NOT_EVALUATED"
+		if [[ -n "$expect_jq_expr" ]]; then
+			if [[ "$response_lang" == "json" ]]; then
+				if printf "%s" "$response_raw" | jq -e "$expect_jq_expr" >/dev/null 2>&1; then
+					assert_jq_state="PASS"
+				else
+					assert_jq_state="FAIL"
+				fi
+			else
+				assert_jq_state="NOT_EVALUATED"
+			fi
+		fi
+	fi
 fi
 
 {
@@ -350,6 +402,15 @@ fi
 	printf "Generated at: %s\n\n" "$generated_at"
 	printf "%s\n\n" "$endpoint_note"
 	printf "%s\n\n" "$result_note"
+
+	if [[ "$expect_present" == "true" ]]; then
+		printf "### Assertions\n\n"
+		printf -- "- expect.status: %s (%s)\n" "$expect_status" "${assert_status_state:-NOT_EVALUATED}"
+		if [[ -n "$expect_jq_expr" ]]; then
+			printf -- "- expect.jq: %s (%s)\n" "$expect_jq_expr" "${assert_jq_state:-NOT_EVALUATED}"
+		fi
+		printf "\n"
+	fi
 
 	printf "### Request\n\n"
 	printf "\`\`\`json\n%s\n\`\`\`\n\n" "$request_json"
