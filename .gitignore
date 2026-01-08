@@ -22,3 +22,6 @@ output/
 
 # Generated system skills
 skills/.system/
+
+# Local per-repo API testing setup (dev-only)
+setup/

@@ -40,6 +40,7 @@ are intentionally excluded via `.gitignore`.
 | close-progress-pr | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
 | find-and-fix-bugs | Find, triage, and fix bugs; open a PR with a standard template |
 | graphql-api-testing | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
+| rest-api-testing | Test REST APIs with repeatable, file-based requests and generate API test reports |
 | release-workflow | Execute project release workflows by following RELEASE_GUIDE.md |
 
 ### Project-specific
