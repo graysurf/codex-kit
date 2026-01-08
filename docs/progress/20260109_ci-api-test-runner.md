@@ -6,6 +6,7 @@
 
 Links:
 
+- PR: https://github.com/graysurf/codex-kit/pull/12
 - Planning PR: https://github.com/graysurf/codex-kit/pull/11
 - Docs: [skills/api-test-runner/SKILL.md](../../skills/api-test-runner/SKILL.md)
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`

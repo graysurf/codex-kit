@@ -4,7 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-09 | [CI API test runner (REST + GraphQL)](20260109_ci-api-test-runner.md) | [#11](https://github.com/graysurf/codex-kit/pull/11) |
+| 2026-01-09 | [CI API test runner (REST + GraphQL)](20260109_ci-api-test-runner.md) | [#12](https://github.com/graysurf/codex-kit/pull/12) |
 
 ## Archived
 
