@@ -87,6 +87,8 @@
 ## Commit 原則
 
 - 每個 commit 都必須使用 `$commit-message` skill 來完成，不得直接使用 `git commit`。
+- `$commit-message`: `$CODEX_TOOLS_PATH/skills/commit-message/SKILL.md`。
+- 完成 commit 後依照 `$commit-message` 的輸出格式回應。
 
 ## 可用指令（全域工具）
 
