@@ -155,17 +155,17 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] At least one happy path runs end-to-end (CLI/script/API): Verified via local stub server (`output/rest-api-testing/smoke-*`).
     - [x] Primary outputs are verifiable (files/reports/history): Verified `setup/rest/.rest_history` + a generated report (`output/rest-api-testing/smoke-*`).
     - [x] Usage docs skeleton exists (TL;DR + common commands + I/O contract): `skills/rest-api-testing/SKILL.md`.
-- [ ] Step 2: Expansion / integration
+- [x] Step 2: Expansion / integration
   - Work Items:
     - [x] Add optional URL omission controls for history/report command snippets (privacy / sharing).
     - [x] Add better error printing (include response body on non-2xx when safe).
-    - [ ] (Optional) Add request normalization knobs (e.g., bump numeric `limit` in query/body) if it proves useful.
+    - [ ] (Optional) Add request normalization knobs (e.g., bump numeric `limit` in query/body) if it proves useful. Reason: REST pagination conventions vary widely (`limit`/`pageSize`/`take`/etc), and auto-normalizing could add load or introduce CI drift; keep out until a concrete project need emerges.
   - Artifacts:
     - None
   - Exit Criteria:
-    - [ ] Common branches are covered (e.g. missing env/token, 4xx/5xx, `--no-history`, replay): TBD
-    - [ ] Compatible with existing project workflows (same `setup/*` conventions as other skills): TBD
-    - [ ] Required migrations / backfill scripts and documentation exist: None
+    - [x] Common branches are covered (e.g. missing env/token, 4xx/5xx, `--no-history`, replay): verified via stub-server smoke scripts + documented behavior in `skills/rest-api-testing/SKILL.md`.
+    - [x] Compatible with existing project workflows (same `setup/*` conventions as other skills): uses `setup/rest/*`, `*.local.env` overrides, and `--config-dir`/upward discovery (aligned with `graphql-api-testing` patterns).
+    - [x] Required migrations / backfill scripts and documentation exist: none required.
 - [x] Step 3: Validation / testing
   - Work Items:
     - [x] Validate `rest.sh` against a real REST endpoint using an existing project’s `setup/rest/` (or create one for validation).
