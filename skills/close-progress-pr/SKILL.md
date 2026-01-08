@@ -1,6 +1,6 @@
 ---
 name: close-progress-pr
-description: "Finalize and archive a progress file for a GitHub PR: locate the related docs/progress file (prefer PR body Progress link), set Status to DONE, move it to docs/progress/archived/, update docs/progress/README.md, merge the PR with gh, and patch the PR body Progress link to point to the base branch so it survives branch deletion. Use when a feature PR is ready to be closed and its progress tracking should be marked DONE."
+description: "Finalize and archive a progress file for a GitHub PR: locate the related docs/progress file (prefer PR body Progress link), set Status to DONE, move it to docs/progress/archived/, update docs/progress/README.md, merge the PR with gh, patch the PR body Progress link to point to the base branch so it survives branch deletion, and (when present) patch the planning PR body to include an Implementation PR link. Use when a feature PR is ready to be closed and its progress tracking should be marked DONE."
 ---
 
 # Close Progress PR
@@ -21,6 +21,10 @@ will break.
 Patch the PR body `## Progress` link to point to the base branch (usually `main`) after merge:
 
 - `https://github.com/<owner>/<repo>/blob/<base-branch>/docs/progress/archived/<file>.md`
+
+## Key rule: Planning PRs should link to the implementation PR
+
+If the progress file includes a `Links -> Planning PR` entry, ensure that planning PR body includes an `## Implementation` section linking to the implementation PR (this PR).
 
 ## Workflow
 
@@ -52,8 +56,13 @@ Patch the PR body `## Progress` link to point to the base branch (usually `main`
    - Get base branch: `gh pr view <pr> --json baseRefName -q .baseRefName`
    - Update `## Progress` to:
      - `https://github.com/<owner>/<repo>/blob/<baseRefName>/docs/progress/archived/<file>.md`
+8. Post-merge: patch planning PR (when present)
+   - Extract planning PR from the progress file `Links -> Planning PR`
+   - Ensure the planning PR body contains:
+     - `## Implementation`
+       - `- [PR #<feature_pr_number>: <feature_pr_title>](<feature_pr_url>)`
 
 ## Optional helper script
 
-- Use `scripts/close_progress_pr.sh` in this skill folder to run a deterministic version of steps 3–7.
+- Use `scripts/close_progress_pr.sh` in this skill folder to run a deterministic version of steps 3–8.
 - If `scripts/close_progress_pr.sh` fails, attempt to fix the underlying cause (prefer fixing the script when it's a script bug, otherwise fix the documented prerequisites/workflow), re-run it, and explicitly report whether the fix succeeded.

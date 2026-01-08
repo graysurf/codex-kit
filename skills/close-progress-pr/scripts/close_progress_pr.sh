@@ -16,6 +16,7 @@ What it does:
   - Commits + pushes the changes on the PR head branch
   - Merges the PR (merge commit) and deletes the head branch (unless --no-merge)
   - Patches the PR body "## Progress" link to point to the base branch
+  - If the progress file has "Links -> Planning PR", patches that PR body to include an "## Implementation" section linking to this PR
 
 Notes:
   - Requires: gh, git, python3, rg
@@ -84,6 +85,7 @@ if [[ -n "$(git status --porcelain=v1)" ]]; then
 fi
 
 pr_url="$(gh pr view "$pr_number" --json url -q .url)"
+pr_title="$(gh pr view "$pr_number" --json title -q .title)"
 base_branch="$(gh pr view "$pr_number" --json baseRefName -q .baseRefName)"
 head_branch="$(gh pr view "$pr_number" --json headRefName -q .headRefName)"
 pr_state="$(gh pr view "$pr_number" --json state -q .state)"
@@ -633,6 +635,109 @@ PY
 
   gh pr edit "$pr_number" --body-file "$tmp_file"
   rm -f "$tmp_file"
+
+  set +e
+  planning_pr_number="$(python3 - "$progress_file" <<'PY'
+import re
+import sys
+from urllib.parse import urlparse
+
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+  text = f.read()
+
+m = re.search(r"^\\s*-\\s*Planning PR:\\s*(?P<value>.+?)\\s*$", text, re.M)
+if not m:
+  raise SystemExit(1)
+
+value = m.group("value").strip()
+u = re.search(r"https?://[^ )]+", value)
+if not u:
+  raise SystemExit(2)
+
+pr_path = urlparse(u.group(0)).path
+m_num = re.search(r"/pull/(?P<num>\\d+)", pr_path)
+if not m_num:
+  raise SystemExit(2)
+
+print(m_num.group("num"))
+PY
+)"
+  rc=$?
+  set -e
+
+  if [[ "$rc" == "2" ]]; then
+    echo "error: cannot parse 'Links -> Planning PR' from ${progress_file}" >&2
+    exit 1
+  fi
+
+  if [[ "$rc" == "0" && -n "$planning_pr_number" && "$planning_pr_number" != "$pr_number" ]]; then
+    planning_tmp_file="$(mktemp)"
+    gh pr view "$planning_pr_number" --json body -q .body >"$planning_tmp_file"
+
+    python3 - "$planning_tmp_file" "$progress_file" "$progress_url" "$pr_number" "$pr_title" "$pr_url" <<'PY'
+import sys
+
+body_path, progress_path, progress_url, impl_num, impl_title, impl_url = sys.argv[1:]
+
+with open(body_path, "r", encoding="utf-8") as f:
+  body = f.read()
+
+lines = [line.rstrip("\r") for line in body.splitlines()]
+
+def find_section(heading: str):
+  start = None
+  for i, line in enumerate(lines):
+    if line.strip() == heading:
+      start = i
+      break
+  if start is None:
+    return (None, None)
+  end = len(lines)
+  for j in range(start + 1, len(lines)):
+    if lines[j].startswith("## "):
+      end = j
+      break
+  return (start, end)
+
+def render_progress_section():
+  return [
+    "## Progress",
+    f"- [{progress_path}]({progress_url})",
+    "",
+  ]
+
+def render_implementation_section():
+  return [
+    "## Implementation",
+    f"- [PR #{impl_num}: {impl_title}]({impl_url})",
+    "",
+  ]
+
+progress_section = render_progress_section()
+impl_section = render_implementation_section()
+
+start, end = find_section("## Progress")
+if start is None:
+  lines = progress_section + lines
+  progress_end = len(progress_section)
+else:
+  lines = lines[:start] + progress_section + lines[end:]
+  progress_end = start + len(progress_section)
+
+start, end = find_section("## Implementation")
+if start is None:
+  lines = lines[:progress_end] + impl_section + lines[progress_end:]
+else:
+  lines = lines[:start] + impl_section + lines[end:]
+
+with open(body_path, "w", encoding="utf-8") as f:
+  f.write("\n".join(lines).rstrip() + "\n")
+PY
+
+    gh pr edit "$planning_pr_number" --body-file "$planning_tmp_file"
+    rm -f "$planning_tmp_file"
+  fi
 
   echo "merged: ${pr_url}" >&2
   echo "progress: ${progress_url}" >&2
