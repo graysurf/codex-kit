@@ -57,7 +57,12 @@ Schema:
 
 - `method` (required; HTTP method, e.g. `GET`, `POST`)
 - `path` (required; relative path only, starts with `/`, does not include scheme/host)
-- `query` (optional; JSON object; encoded into URL query params)
+- `query` (optional; JSON object; strict encoding rules):
+  - Keys are sorted (stable output)
+  - `null` drops the key
+  - Scalar values encode as `k=v`
+  - Arrays encode as repeated `k=v1&k=v2` pairs (null elements are dropped)
+  - Objects are rejected (put them in `body` instead)
 - `headers` (optional; JSON object; Authorization is managed by CLI/token profiles)
 - `body` (optional; JSON value; sent as request body)
 - `expect` (optional; CI/E2E assertions):
@@ -101,10 +106,14 @@ Tip: if you are not running from the repo root, add `--config-dir setup/rest` to
 ```bash
 $CODEX_HOME/skills/rest-api-testing/scripts/rest.sh \
   --env local \
-  --token default \
   setup/rest/requests/<request>.request.json \
 | jq .
 ```
+
+If the endpoint requires auth:
+
+- Use a token profile (requires `REST_TOKEN_<NAME>` to be non-empty in `setup/rest/tokens.local.env`): add `--token <name>`
+- Or use a one-off token via env (useful for CI): export `ACCESS_TOKEN`
 
 5) (Optional) Use built-in assertions for CI/E2E
 
@@ -131,7 +140,6 @@ $CODEX_HOME/skills/rest-api-testing/scripts/rest-report.sh \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env <local|staging|dev> \
-  --token <default|admin|member|...> \
   --run
 ```
 

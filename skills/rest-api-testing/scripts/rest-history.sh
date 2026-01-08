@@ -133,6 +133,33 @@ find_upwards_for_file() {
   return 1
 }
 
+find_upwards_for_setup_subdir() {
+  local start_dir="$1"
+  local rel_subdir="$2"
+  local dir="$start_dir"
+
+  if [[ "$dir" == /* ]]; then
+    dir="/${dir##/}"
+  fi
+
+  while [[ -n "$dir" ]]; do
+    if [[ -d "$dir/$rel_subdir" ]]; then
+      printf "%s" "$dir/$rel_subdir"
+      return 0
+    fi
+
+    local parent
+    parent="$(cd "$dir" 2>/dev/null && cd .. && pwd -P)" || break
+    if [[ "$parent" == /* ]]; then
+      parent="/${parent##/}"
+    fi
+    [[ "$parent" == "$dir" ]] && break
+    dir="$parent"
+  done
+
+  return 1
+}
+
 resolve_setup_dir() {
   local seed="."
   local config_dir_explicit="0"
@@ -163,13 +190,15 @@ resolve_setup_dir() {
     return 0
   fi
 
-  if [[ "$config_dir_explicit" == "1" ]]; then
-    printf "%s" "$seed_abs"
+  local found_setup=""
+  found_setup="$(find_upwards_for_setup_subdir "$seed_abs" "setup/rest" 2>/dev/null || true)"
+  if [[ -n "$found_setup" ]]; then
+    printf "%s" "$found_setup"
     return 0
   fi
 
-  if [[ -d "setup/rest" ]]; then
-    (cd "setup/rest" 2>/dev/null && pwd -P) || true
+  if [[ "$config_dir_explicit" == "1" ]]; then
+    printf "%s" "$seed_abs"
     return 0
   fi
 

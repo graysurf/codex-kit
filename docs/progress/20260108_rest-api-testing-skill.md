@@ -27,7 +27,13 @@ Links:
   - Request file schema (finalized):
     - `method` (required; HTTP method, e.g. `GET`, `POST`)
     - `path` (required; relative path only, starts with `/`, does not include scheme/host)
-    - `query` (optional; JSON object; encoded into `?k=v` pairs; arrays allowed; null drops the key) (TBD: exact encoding rules)
+    - `query` (optional; JSON object; strict encoding rules):
+      - Keys are sorted (stable output)
+      - `null` drops the key
+      - Scalar values encode as `k=v`
+      - Arrays encode as repeated `k=v1&k=v2` pairs (null elements are dropped)
+      - Objects are rejected (put them in `body` instead)
+      - Keys/values are percent-encoded via `jq @uri` (RFC 3986 style; spaces as `%20`)
     - `headers` (optional; JSON object; merged with generated headers; `Authorization` is managed by CLI/profiles)
     - `body` (optional; JSON value; sent as request body when present; JSON only)
     - `expect` (optional; when present, used for E2E assertions):
@@ -103,7 +109,7 @@ Links:
 ### Risks / Uncertainties
 
 - `expect.jq` assumes JSON responses (and requires `jq`); non-JSON responses may need a separate assertion mode later. Mitigation: keep JSON-only as MVP constraint; add `expect.text`/`expect.regex` later if needed. (TODO)
-- Query encoding edge cases (arrays, booleans, spaces) can cause drift across clients. Mitigation: document and test deterministic encoding rules; keep xh/http/curl consistent. (TBD)
+- Query encoding edge cases (arrays, booleans, spaces) can cause drift across clients. Mitigation: strict, deterministic encoding rules are documented above; keep request files JSON-only and avoid objects in `query`.
 - “Meaningful data” detection for REST responses is not standardized (vs GraphQL’s `.data`). Mitigation: start without strict no-data blocking in MVP (or make it opt-in), document expected behaviors, and iterate based on real endpoint shapes.
 - Redaction heuristics may miss project-specific secret fields. Mitigation: add configurable redaction keys/patterns (TODO) and keep `--no-redact` discouraged.
 - Some projects require cookies, mTLS, or non-Bearer auth. Mitigation: explicitly out-of-scope for MVP; track follow-ups as separate progress items.
@@ -131,13 +137,13 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Risks and out-of-scope items are explicitly recorded (this file).
     - [x] Minimal reproducible verification commands are defined (to execute in Step 3):
       - `REST_URL=<baseUrl> ACCESS_TOKEN=<token> $CODEX_HOME/skills/rest-api-testing/scripts/rest.sh --url "$REST_URL" setup/rest/requests/health.request.json`
-- [ ] Step 1: Minimum viable output (MVP)
+- [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [ ] Implement `skills/rest-api-testing/scripts/rest.sh` (endpoint + auth presets, execute request, history).
-    - [ ] Implement `skills/rest-api-testing/scripts/rest-history.sh` (replay last command; tail N).
-    - [ ] Implement `skills/rest-api-testing/scripts/rest-report.sh` (generate Markdown report with redaction).
-    - [ ] Add bootstrap template under `skills/rest-api-testing/template/setup/rest`.
-    - [ ] Add skill instructions under `skills/rest-api-testing/SKILL.md`.
+    - [x] Implement `skills/rest-api-testing/scripts/rest.sh` (endpoint + auth presets, execute request, history).
+    - [x] Implement `skills/rest-api-testing/scripts/rest-history.sh` (replay last command; tail N).
+    - [x] Implement `skills/rest-api-testing/scripts/rest-report.sh` (generate Markdown report with redaction).
+    - [x] Add bootstrap template under `skills/rest-api-testing/template/setup/rest`.
+    - [x] Add skill instructions under `skills/rest-api-testing/SKILL.md`.
   - Artifacts:
     - `skills/rest-api-testing/scripts/rest.sh`
     - `skills/rest-api-testing/scripts/rest-history.sh`
@@ -146,12 +152,12 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `skills/rest-api-testing/SKILL.md`
     - `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
   - Exit Criteria:
-    - [ ] At least one happy path runs end-to-end (CLI/script/API): TBD
-    - [ ] Primary outputs are verifiable (files/reports/history): `setup/rest/.rest_history` + report file path (TBD)
-    - [ ] Usage docs skeleton exists (TL;DR + common commands + I/O contract): `skills/rest-api-testing/SKILL.md` (TBD)
+    - [x] At least one happy path runs end-to-end (CLI/script/API): Verified via local stub server (`output/rest-api-testing/smoke-*`).
+    - [x] Primary outputs are verifiable (files/reports/history): Verified `setup/rest/.rest_history` + a generated report (`output/rest-api-testing/smoke-*`).
+    - [x] Usage docs skeleton exists (TL;DR + common commands + I/O contract): `skills/rest-api-testing/SKILL.md`.
 - [ ] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Add optional URL omission controls for history/report command snippets (privacy / sharing).
+    - [x] Add optional URL omission controls for history/report command snippets (privacy / sharing).
     - [ ] Add better error printing (include response body on non-2xx when safe).
     - [ ] (Optional) Add request normalization knobs (e.g., bump numeric `limit` in query/body) if it proves useful.
   - Artifacts:

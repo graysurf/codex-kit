@@ -21,9 +21,19 @@ Call an existing request (JSON only):
 ```bash
 $CODEX_HOME/skills/rest-api-testing/scripts/rest.sh \
   --env local \
-  --token default \
   setup/rest/requests/<request>.request.json \
 | jq .
+```
+
+If the endpoint requires auth, pass a token profile (from `setup/rest/tokens.local.env`) or use `ACCESS_TOKEN`:
+
+```bash
+# Token profile (requires REST_TOKEN_<NAME> to be non-empty in setup/rest/tokens.local.env)
+$CODEX_HOME/skills/rest-api-testing/scripts/rest.sh --env local --token default setup/rest/requests/<request>.request.json | jq .
+
+# Or: one-off token (useful for CI)
+REST_URL="https://<host>" ACCESS_TOKEN="<token>" \
+  $CODEX_HOME/skills/rest-api-testing/scripts/rest.sh --url "$REST_URL" setup/rest/requests/<request>.request.json | jq .
 ```
 
 Replay the last run (history):
@@ -39,7 +49,6 @@ $CODEX_HOME/skills/rest-api-testing/scripts/rest-report.sh \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env local \
-  --token default \
   --run
 ```
 
