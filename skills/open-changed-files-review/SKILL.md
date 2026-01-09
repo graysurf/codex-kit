@@ -1,6 +1,6 @@
 ---
 name: open-changed-files-review
-description: Open files edited by Codex in VSCode after making changes, using open-changed-files (silent no-op when unavailable).
+description: Open files edited by Codex in VSCode after making changes, using the bundled open-changed-files script (silent no-op when unavailable).
 ---
 
 # Open Changed Files Review
@@ -18,13 +18,11 @@ Use this skill when Codex has edited files and you want to immediately open the 
    - Default: `CODEX_OPEN_CHANGED_FILES_MAX_FILES=50`
    - If there are more files than the cap: open the first N and mention that it was truncated.
 3. Prefer running:
-   - `open-changed-files --max-files "$max" --workspace-mode pwd -- <files...>`
-4. If `open-changed-files` is not available, fall back to:
-   - `${ZDOTDIR:-$HOME/.config/zsh}/tools/open-changed-files.zsh --max-files "$max" --workspace-mode pwd -- <files...>`
-5. If VSCode CLI `code` (or the tool) is unavailable: silent no-op (exit `0`, no errors), but still print a paste-ready manual command plus the file list for the user.
+   - `$CODEX_HOME/skills/open-changed-files-review/scripts/open-changed-files.zsh --max-files "$max" --workspace-mode pwd -- <files...>`
+4. If VSCode CLI `code` (or the tool) is unavailable: silent no-op (exit `0`, no errors), but still print a paste-ready manual command plus the file list for the user.
 
 ## Paste-ready command template
 
 ```zsh
-open-changed-files --max-files "${CODEX_OPEN_CHANGED_FILES_MAX_FILES:-50}" --workspace-mode pwd -- <files...>
+$CODEX_HOME/skills/open-changed-files-review/scripts/open-changed-files.zsh --max-files "${CODEX_OPEN_CHANGED_FILES_MAX_FILES:-50}" --workspace-mode pwd -- <files...>
 ```
