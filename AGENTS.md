@@ -41,7 +41,7 @@
     - 若環境沒有 VSCode CLI `code` 或上述工具不可用：必須 silent no-op（不要報錯、不要阻斷任務）；但仍需在回覆中列出「本回合變動檔案清單」。
   - 若需產生檔案（報告/輸出/暫存）：
     - 專案文件（需留存/交付）→ 依該專案慣例寫入專案目錄下的對應路徑。
-    - debug／測試用且原本應寫入 `/tmp` 的暫存產物（如 `lighthouse-performance.json`）→ 改寫入 `$CODEX_HOME/output/`，並在回覆中引用該路徑。
+    - debug／測試用且原本應寫入 `/tmp` 的暫存產物（如 `lighthouse-performance.json`）→ 改寫入 `$CODEX_HOME/out/`，並在回覆中引用該路徑。
 
 ## 輸出模板（Output Template）
 

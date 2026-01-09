@@ -53,14 +53,14 @@ Links:
   - Machine-readable JSON (structured results; schema defined in this plan)
 - Runner stderr:
   - Human-readable summary (stable enough for logs)
-- Optional result file via `--out <path>` (recommended for CI artifacts), defaulting under `output/api-test-runner/`
+- Optional result file via `--out <path>` (recommended for CI artifacts), defaulting under `out/api-test-runner/`
 - Exit code:
   - `0` when all selected cases pass
   - non-zero when any case fails or when inputs are invalid (exact codes defined in Step 0)
 
 ### Intermediate Artifacts
 
-- Temporary response files (per case) for assertions and optional debugging (default location under `output/api-test-runner/<run-id>/`).
+- Temporary response files (per case) for assertions and optional debugging (default location under `out/api-test-runner/<run-id>/`).
 
 ### Suite Manifest (proposed schema v1)
 
@@ -205,7 +205,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `README.md` (skills list entry)
   - Exit Criteria:
     - [x] At least one happy path runs end-to-end (suite runner): `api-test.sh --suite <suite>`.
-    - [x] Primary outputs are verifiable (results JSON and optional saved responses) under `output/api-test-runner/`.
+    - [x] Primary outputs are verifiable (results JSON and optional saved responses) under `out/api-test-runner/`.
     - [x] Usage docs skeleton exists (TL;DR + suite schema + CI example): `skills/api-test-runner/SKILL.md`.
 - [ ] Step 2: Expansion / integration
   - Reason: Timeouts/retries/parallel are deferred to a follow-up PR; this PR focuses on the core suite runner and JSON/JUnit contracts.
@@ -220,7 +220,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - Optional: `skills/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
   - Exit Criteria:
     - [x] Common branches are covered (missing files, invalid schema, assertion fail, skip/only, underlying runner error).
-    - [x] Compatible with existing naming conventions (`setup/rest`, `setup/graphql`, `*.local.env`, `output/`).
+    - [x] Compatible with existing naming conventions (`setup/rest`, `setup/graphql`, `*.local.env`, `out/`).
     - [x] Required migrations / backfill scripts and documentation exist: none required.
 - [x] Step 3: Validation / testing
   - Work Items:
@@ -229,20 +229,20 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
       - GraphQL: `https://countries.trevorblades.com/`
     - [x] Validate failure behavior (intentional failing assertion and non-zero exit code).
   - Artifacts:
-    - `output/api-test-runner/` (run logs + results JSON)
+    - `out/api-test-runner/` (run logs + results JSON)
   - Exit Criteria:
     - [x] Validation commands executed with results recorded (happy path + failure case).
     - [x] Run with real data or representative samples (public endpoints; no secrets).
-    - [x] Traceable evidence exists (results JSON files under `output/api-test-runner/`).
+    - [x] Traceable evidence exists (results JSON files under `out/api-test-runner/`).
 
-Validation evidence (local runs; artifacts are gitignored under `output/`):
+Validation evidence (local runs; artifacts are gitignored under `out/`):
 
 ```bash
 # Happy path
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
   --suite public-smoke \
-  --out output/api-test-runner/public-smoke.results.json \
-  --junit output/api-test-runner/public-smoke.junit.xml
+  --out out/api-test-runner/public-smoke.results.json \
+  --junit out/api-test-runner/public-smoke.junit.xml
 
 # Selection example (filters are deterministic; unselected cases become skipped)
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --only rest.httpbin.get
@@ -250,8 +250,8 @@ $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --on
 # Failure path (intentional failing expect.jq; exits 2)
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
   --suite public-fail \
-  --out output/api-test-runner/public-fail.results.json \
-  --junit output/api-test-runner/public-fail.junit.xml
+  --out out/api-test-runner/public-fail.results.json \
+  --junit out/api-test-runner/public-fail.junit.xml
 ```
 
 Observed summaries:

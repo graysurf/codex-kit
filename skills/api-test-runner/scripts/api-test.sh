@@ -34,7 +34,7 @@ Usage:
   api-test.sh (--suite <name> | --suite-file <path>) [options]
 
 Options:
-  --suite <name>           Resolve suite under setup/api/suites/<name>.suite.json
+  --suite <name>           Resolve suite under tests/api/suites/<name>.suite.json (fallback: setup/api/suites)
   --suite-file <path>      Explicit suite file path (overrides canonical path)
   --out <path>             Write JSON results to a file (stdout always emits JSON)
   --junit <path>           Write JUnit XML to a file (optional)
@@ -48,7 +48,10 @@ Options:
 
 Environment:
   API_TEST_ALLOW_WRITES=1  Same as --allow-writes
-  API_TEST_OUTPUT_DIR      Base output dir (default: <repo>/output/api-test-runner)
+  API_TEST_OUTPUT_DIR      Base output dir (default: <repo>/out/api-test-runner)
+  API_TEST_REST_URL        Default REST URL when suite/case omits url
+  API_TEST_GQL_URL         Default GraphQL URL when suite/case omits url
+  API_TEST_SUITES_DIR      Override suites dir for --suite (e.g. tests/api/suites)
 
 Notes:
   - Requires: git, jq, python3
@@ -139,8 +142,14 @@ cd "$repo_root"
 [[ -z "$suite_name" || -z "$suite_file" ]] || die "Use only one of --suite or --suite-file"
 [[ -n "$suite_name" || -n "$suite_file" ]] || die "Missing suite (use --suite or --suite-file)"
 
-rest_runner_abs="${repo_root%/}/skills/rest-api-testing/scripts/rest.sh"
-gql_runner_abs="${repo_root%/}/skills/graphql-api-testing/scripts/gql.sh"
+rest_runner_abs="${repo_root%/}/tests/tools/rest-api-testing/scripts/rest.sh"
+gql_runner_abs="${repo_root%/}/tests/tools/graphql-api-testing/scripts/gql.sh"
+if [[ ! -f "$rest_runner_abs" ]]; then
+  rest_runner_abs="${repo_root%/}/skills/rest-api-testing/scripts/rest.sh"
+fi
+if [[ ! -f "$gql_runner_abs" ]]; then
+  gql_runner_abs="${repo_root%/}/skills/graphql-api-testing/scripts/gql.sh"
+fi
 [[ -f "$rest_runner_abs" ]] || die "Missing REST runner: ${rest_runner_abs#"$repo_root"/}"
 [[ -f "$gql_runner_abs" ]] || die "Missing GraphQL runner: ${gql_runner_abs#"$repo_root"/}"
 
@@ -161,13 +170,23 @@ else
   suite_key="$(trim "$suite_key")"
   suite_key="${suite_key%.suite.json}"
   suite_key="${suite_key%.json}"
-  suite_path="${repo_root%/}/setup/api/suites/${suite_key}.suite.json"
+
+  suite_dir_override="$(trim "${API_TEST_SUITES_DIR:-}")"
+  if [[ -n "$suite_dir_override" ]]; then
+    suite_dir_override_abs="$(resolve_path "$suite_dir_override")"
+    suite_path="${suite_dir_override_abs%/}/${suite_key}.suite.json"
+  else
+    suite_path="${repo_root%/}/tests/api/suites/${suite_key}.suite.json"
+    if [[ ! -f "$suite_path" ]]; then
+      suite_path="${repo_root%/}/setup/api/suites/${suite_key}.suite.json"
+    fi
+  fi
 fi
 
 [[ -f "$suite_path" ]] || die "Suite file not found: ${suite_path#"$repo_root"/}"
 
 run_id="$(date -u +%Y%m%d-%H%M%SZ 2>/dev/null || date +%Y%m%d-%H%M%S)"
-out_dir_base="${API_TEST_OUTPUT_DIR:-${repo_root%/}/output/api-test-runner}"
+out_dir_base="${API_TEST_OUTPUT_DIR:-${repo_root%/}/out/api-test-runner}"
 run_dir="${out_dir_base%/}/${run_id}"
 mkdir -p "$run_dir"
 
@@ -198,6 +217,9 @@ default_rest_url="$(jq -r '.defaults.rest.url? // empty' "$suite_path")"
 
 default_graphql_jwt="$(jq -r '.defaults.graphql.jwt? // empty' "$suite_path")"
 default_graphql_url="$(jq -r '.defaults.graphql.url? // empty' "$suite_path")"
+
+env_rest_url="$(trim "${API_TEST_REST_URL:-}")"
+env_gql_url="$(trim "${API_TEST_GQL_URL:-}")"
 
 split_csv() {
   local csv="$1"
@@ -395,6 +417,9 @@ for ((i=0; i<case_count; i++)); do
       rest_url="$(jq -r ".cases[$i].url? // empty" "$suite_path")"
       rest_url="$(trim "$rest_url")"
       rest_url="${rest_url:-$default_rest_url}"
+      if [[ -z "$rest_url" && -n "$env_rest_url" ]]; then
+        rest_url="$env_rest_url"
+      fi
 
       method="$(jq -r '.method // empty' "$request_abs")"
       method="$(trim "$method")"
@@ -490,6 +515,9 @@ for ((i=0; i<case_count; i++)); do
       rest_url="$(jq -r ".cases[$i].url? // empty" "$suite_path")"
       rest_url="$(trim "$rest_url")"
       rest_url="${rest_url:-$default_rest_url}"
+      if [[ -z "$rest_url" && -n "$env_rest_url" ]]; then
+        rest_url="$env_rest_url"
+      fi
 
       login_method="$(jq -r '.method // empty' "$login_request_abs")"
       login_method="$(trim "$login_method")"
@@ -633,6 +661,9 @@ for ((i=0; i<case_count; i++)); do
       gql_url="$(jq -r ".cases[$i].url? // empty" "$suite_path")"
       gql_url="$(trim "$gql_url")"
       gql_url="${gql_url:-$default_graphql_url}"
+      if [[ -z "$gql_url" && -n "$env_gql_url" ]]; then
+        gql_url="$env_gql_url"
+      fi
 
       expect_jq="$(jq -r ".cases[$i].expect.jq? // empty" "$suite_path")"
       expect_jq="$(trim "$expect_jq")"

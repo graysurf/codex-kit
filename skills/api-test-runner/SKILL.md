@@ -36,13 +36,13 @@ cp -R "$CODEX_HOME/skills/api-test-runner/template/setup" .
 Run a canonical suite:
 
 ```bash
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --out output/api-test-runner/results.json
+$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --out out/api-test-runner/results.json
 ```
 
 Emit JUnit for CI reporters:
 
 ```bash
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --junit output/api-test-runner/junit.xml
+$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --junit out/api-test-runner/junit.xml
 ```
 
 ## Suite Manifests
@@ -158,8 +158,8 @@ Generic shell (write JSON + JUnit as CI artifacts):
 ```bash
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
   --suite smoke \
-  --out output/api-test-runner/results.json \
-  --junit output/api-test-runner/junit.xml
+  --out out/api-test-runner/results.json \
+  --junit out/api-test-runner/junit.xml
 ```
 
 GitHub Actions (runs the bundled public smoke suite using the template bootstrap):
@@ -170,7 +170,7 @@ If you want to run your own suite in CI, replace the bootstrap step with your re
 
 Notes:
 
-- Keep `output/api-test-runner/results.json` as the primary machine-readable artifact.
+- Keep `out/api-test-runner/results.json` as the primary machine-readable artifact.
 - Only upload per-case response files as artifacts if they are known to be non-sensitive.
 
 ## Safety defaults
@@ -213,7 +213,7 @@ Per-case fields:
 - `command` (replayable snippet; no secrets)
 - `message` (reason for fail/skip; stable-ish tokens)
 - `assertions` (GraphQL only; includes `defaultNoErrors` and optional `jq`)
-- `stdoutFile` / `stderrFile` (paths under `output/api-test-runner/<runId>/` when executed)
+- `stdoutFile` / `stderrFile` (paths under `out/api-test-runner/<runId>/` when executed)
 
 Exit codes:
 

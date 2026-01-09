@@ -73,9 +73,9 @@ fi
 # 2) Defaults
 MODE="${CHROME_DEVTOOLS_MODE:-clean}"  # clean|profile|connect
 
-# Log setup (default to $CODEX_HOME/output)
+# Log setup (default to $CODEX_HOME/out)
 # IMPORTANT: Do not redirect stdout; MCP uses stdout for the protocol.
-LOG_DIR="${CHROME_DEVTOOLS_LOG_DIR:-$HOME/.codex/output}"
+LOG_DIR="${CHROME_DEVTOOLS_LOG_DIR:-$HOME/.codex/out}"
 LOG_SUBDIR="${CHROME_DEVTOOLS_LOG_SUBDIR:-chrome-devtools-mcp}"
 LOG_FILE="${CHROME_DEVTOOLS_LOG_FILE:-$LOG_DIR/$LOG_SUBDIR/$(date +%Y%m%d-%H%M%S).log}"
 mkdir -p "$(dirname "$LOG_FILE")"

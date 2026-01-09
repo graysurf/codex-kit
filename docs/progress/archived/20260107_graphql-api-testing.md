@@ -133,16 +133,16 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
       - [x] Real run (`--run`) report generated (non-empty response)
       - [x] Redaction smoke test (`--response`) verified (`accessToken` / `refreshToken` / `password` -> `<REDACTED>`)
   - Artifacts:
-    - `output/graphql-api-testing/megabanktourism/20260108-0119-megabanktourism-articles-local-api-test-report.md`
-    - `output/graphql-api-testing/megabanktourism/20260108-0119-graphql-api-testing-redaction-smoke-test-api-test-report.md`
+    - `out/graphql-api-testing/megabanktourism/20260108-0119-megabanktourism-articles-local-api-test-report.md`
+    - `out/graphql-api-testing/megabanktourism/20260108-0119-graphql-api-testing-redaction-smoke-test-api-test-report.md`
     - Command transcripts recorded under Exit Criteria
   - Exit Criteria:
     - [x] End-to-end call works and returns a non-empty `.data` response:
       - `skills/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
       - `skills/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local --jwt force-login /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
     - [x] Report file generated with redaction verified:
-      - `GQL_REPORT_DIR=output/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "MegabankTourism Articles (local)" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --env local --jwt force-login --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --run`
-      - `GQL_REPORT_DIR=output/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "graphql-api-testing redaction smoke test" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --response output/graphql-api-testing/megabanktourism/dummy-redaction.response.json`
+      - `GQL_REPORT_DIR=out/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "MegabankTourism Articles (local)" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --env local --jwt force-login --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --run`
+      - `GQL_REPORT_DIR=out/graphql-api-testing/megabanktourism skills/graphql-api-testing/scripts/gql-report.sh --case "graphql-api-testing redaction smoke test" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --response out/graphql-api-testing/megabanktourism/dummy-redaction.response.json`
 - [x] Step 4: Release / wrap-up
   - Work Items:
     - [x] Add the skill to the top-level `README.md` skills list.

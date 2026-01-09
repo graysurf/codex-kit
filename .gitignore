@@ -18,7 +18,7 @@ tools/**/.env.*
 # Logs/output
 *.log
 log/
-output/
+out/
 
 # Generated system skills
 skills/.system/

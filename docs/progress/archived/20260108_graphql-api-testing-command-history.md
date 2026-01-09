@@ -145,13 +145,13 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - [x] Validate in a real project repo with an existing `setup/graphql/` and endpoint presets.
     - [x] Verify history content is replayable and does not include secrets.
   - Artifacts:
-    - Report evidence: `output/graphql-api-testing/financereport/20260108-0506-financereport-companyreports-local-api-test-report.md` (includes `## Command`).
+    - Report evidence: `out/graphql-api-testing/financereport/20260108-0506-financereport-companyreports-local-api-test-report.md` (includes `## Command`).
     - History evidence: `/Users/terry/Project/rytass/FinanceReport/setup/graphql/.gql_history`.
     - Command transcripts recorded in this progress file (see Exit Criteria).
   - Exit Criteria:
     - [x] Validation commands executed with results recorded (happy path + failure case + disable case).
       - Happy path (report + history):
-        - `cd /Users/terry/Project/rytass/FinanceReport && GQL_REPORT_DIR="$CODEX_HOME/output/graphql-api-testing/financereport" "$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh" --case "FinanceReport companyReports (local)" --op setup/graphql/operations/company-reports.graphql --vars setup/graphql/operations/company-reports.variables.json --config-dir setup/graphql --env local --jwt default --run`
+        - `cd /Users/terry/Project/rytass/FinanceReport && GQL_REPORT_DIR="$CODEX_HOME/out/graphql-api-testing/financereport" "$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh" --case "FinanceReport companyReports (local)" --op setup/graphql/operations/company-reports.graphql --vars setup/graphql/operations/company-reports.variables.json --config-dir setup/graphql --env local --jwt default --run`
         - History check: `"$CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh" --config-dir /Users/terry/Project/rytass/FinanceReport/setup/graphql --last`
       - Failure case (history logs non-zero exit):
         - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh" --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
@@ -161,7 +161,7 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 - [x] Step 4: Release / wrap-up
   - Work Items:
     - [x] After merge, validate the feature in at least one repo and document any adoption notes.
-      - Post-merge report: `output/graphql-api-testing/financereport/20260108-0534-financereport-companyreports-post-merge-api-test-report.md`
+      - Post-merge report: `out/graphql-api-testing/financereport/20260108-0534-financereport-companyreports-post-merge-api-test-report.md`
       - Adoption note: existing repos should add `setup/graphql/.gitignore` (or equivalent) to ignore `.gql_history*` and `*.local.env` / `*.local.json` (template already includes it).
     - [x] Set progress Status to `DONE` and archive under `docs/progress/archived/`.
   - Artifacts:

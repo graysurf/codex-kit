@@ -153,8 +153,8 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `skills/rest-api-testing/SKILL.md`
     - `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
   - Exit Criteria:
-    - [x] At least one happy path runs end-to-end (CLI/script/API): Verified via local stub server (`output/rest-api-testing/smoke-*`).
-    - [x] Primary outputs are verifiable (files/reports/history): Verified `setup/rest/.rest_history` + a generated report (`output/rest-api-testing/smoke-*`).
+    - [x] At least one happy path runs end-to-end (CLI/script/API): Verified via local stub server (`out/rest-api-testing/smoke-*`).
+    - [x] Primary outputs are verifiable (files/reports/history): Verified `setup/rest/.rest_history` + a generated report (`out/rest-api-testing/smoke-*`).
     - [x] Usage docs skeleton exists (TL;DR + common commands + I/O contract): `skills/rest-api-testing/SKILL.md`.
 - [x] Step 2: Expansion / integration
   - Work Items:
@@ -172,12 +172,12 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Validate `rest.sh` against a real REST endpoint using an existing project’s `setup/rest/` (or create one for validation).
     - [x] Validate report generation and default redaction behavior.
   - Artifacts:
-    - `output/rest-api-testing/smoke-20260108-234244/`
-    - `output/rest-api-testing/smoke-assert-20260108-235902/`
+    - `out/rest-api-testing/smoke-20260108-234244/`
+    - `out/rest-api-testing/smoke-assert-20260108-235902/`
   - Exit Criteria:
-    - [x] Validation and test commands executed with results recorded: `output/rest-api-testing/smoke-*/`.
+    - [x] Validation and test commands executed with results recorded: `out/rest-api-testing/smoke-*/`.
     - [x] Run with real data or representative samples (including failure + rerun after fix): local stub server + scripted smoke runs.
-    - [x] Traceable evidence exists (logs, reports, command transcripts): `output/rest-api-testing/smoke-*/`.
+    - [x] Traceable evidence exists (logs, reports, command transcripts): `out/rest-api-testing/smoke-*/`.
 - [x] Step 4: Release / wrap-up
   - Work Items:
     - [x] Add the skill to the top-level `README.md` skills list.

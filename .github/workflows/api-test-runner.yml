@@ -31,8 +31,8 @@ jobs:
         run: |
           skills/api-test-runner/scripts/api-test.sh \
             --suite public-smoke \
-            --out output/api-test-runner/results.json \
-            --junit output/api-test-runner/junit.xml \
+            --out out/api-test-runner/results.json \
+            --junit out/api-test-runner/junit.xml \
           | jq .
 
       - name: Upload artifacts
@@ -41,9 +41,9 @@ jobs:
         with:
           name: api-test-runner
           path: |
-            output/api-test-runner/results.json
-            output/api-test-runner/junit.xml
-            output/api-test-runner/**/*
+            out/api-test-runner/results.json
+            out/api-test-runner/junit.xml
+            out/api-test-runner/**/*
 
   public-auth-demo:
     runs-on: ubuntu-latest
@@ -70,8 +70,8 @@ jobs:
         run: |
           skills/api-test-runner/scripts/api-test.sh \
             --suite public-auth-demo \
-            --out output/api-test-runner/public-auth-demo.results.json \
-            --junit output/api-test-runner/public-auth-demo.junit.xml \
+            --out out/api-test-runner/public-auth-demo.results.json \
+            --junit out/api-test-runner/public-auth-demo.junit.xml \
           | jq .
 
       - name: Upload artifacts
@@ -80,6 +80,6 @@ jobs:
         with:
           name: api-test-runner-public-auth-demo
           path: |
-            output/api-test-runner/public-auth-demo.results.json
-            output/api-test-runner/public-auth-demo.junit.xml
-            output/api-test-runner/**/*
+            out/api-test-runner/public-auth-demo.results.json
+            out/api-test-runner/public-auth-demo.junit.xml
+            out/api-test-runner/**/*

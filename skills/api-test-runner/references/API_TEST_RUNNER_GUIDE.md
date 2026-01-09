@@ -36,8 +36,8 @@ Run:
 ```bash
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
   --suite smoke \
-  --out output/api-test-runner/results.json \
-  --junit output/api-test-runner/junit.xml
+  --out out/api-test-runner/results.json \
+  --junit out/api-test-runner/junit.xml
 ```
 
 ### Option B: put everything under `tests/`
@@ -101,8 +101,8 @@ Run:
 ```bash
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
   --suite-file tests/api/suites/smoke.suite.json \
-  --out output/api-test-runner/results.json \
-  --junit output/api-test-runner/junit.xml
+  --out out/api-test-runner/results.json \
+  --junit out/api-test-runner/junit.xml
 ```
 
 #### CI note (URLs/tokens)
@@ -126,4 +126,3 @@ If you want to run a committed `tests/` layout instead:
 
 - Remove the “Bootstrap public suite” step
 - Change the run command to use `--suite-file tests/api/suites/<suite>.suite.json`
-

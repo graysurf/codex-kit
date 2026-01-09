@@ -11,7 +11,7 @@ References:
 ## Language Policy
 
 - All headings, labels, and narrative content: English.
-- Paths / commands / identifiers: keep as-is and format as code (e.g. `output/...`, `ruff check .`).
+- Paths / commands / identifiers: keep as-is and format as code (e.g. `out/...`, `ruff check .`).
 
 ## Terms
 
