@@ -36,10 +36,9 @@
   - 編輯後檢視（VSCode）
     - 若本回合有修改/新增任何檔案，且使用者未明確要求不要開啟：回合結尾應自動開啟「本回合變動過的檔案」供使用者 review。
     - 以「本回合變動檔案清單」為資料來源（不要求專案使用 git）。
-    - 優先使用 `$open-changed-files-review` skill（若可用）；否則直接執行：
+    - 使用 `$open-changed-files-review` skill：
       - `open-changed-files --max-files "${CODEX_OPEN_CHANGED_FILES_MAX_FILES:-50}" --workspace-mode pwd -- <files...>`
-      - 若 `open-changed-files` 不存在，嘗試 `${ZDOTDIR:-$HOME/.config/zsh}/tools/open-changed-files.zsh ...`
-    - 若環境沒有 VSCode CLI `code` 或上述工具不可用：必須 silent no-op（不要報錯、不要阻斷任務）；但仍需在回覆中列出「本回合變動檔案清單」與可複製的手動指令（若可行）。
+    - 若環境沒有 VSCode CLI `code` 或上述工具不可用：必須 silent no-op（不要報錯、不要阻斷任務）；但仍需在回覆中列出「本回合變動檔案清單」。
   - 若需產生檔案（報告/輸出/暫存）：
     - 專案文件（需留存/交付）→ 依該專案慣例寫入專案目錄下的對應路徑。
     - debug／測試用且原本應寫入 `/tmp` 的暫存產物（如 `lighthouse-performance.json`）→ 改寫入 `$CODEX_HOME/output/`，並在回覆中引用該路徑。
