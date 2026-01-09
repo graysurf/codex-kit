@@ -87,6 +87,19 @@ Notes:
       "request": "setup/rest/requests/health.request.json"
     },
     {
+      "id": "rest.auth.login_then_me",
+      "type": "rest-flow",
+      "tags": ["smoke"],
+      "env": "",
+      "noHistory": true,
+      "allowWrite": true,
+      "configDir": "",
+      "url": "",
+      "loginRequest": "setup/rest/requests/login.request.json",
+      "tokenJq": ".accessToken",
+      "request": "setup/rest/requests/me.request.json"
+    },
+    {
       "id": "graphql.countries",
       "type": "graphql",
       "tags": ["smoke"],
@@ -110,6 +123,7 @@ Notes:
 - `defaults.noHistory` (and case `noHistory`) map to `--no-history` on underlying `rest.sh` / `gql.sh`.
 - `defaults.rest.configDir` / `defaults.graphql.configDir` default to `setup/rest` / `setup/graphql`.
 - For REST and GraphQL endpoint selection, prefer `url` for CI determinism (avoids env preset drift).
+- `rest-flow` runs `loginRequest` first, extracts a token (via `tokenJq`), then runs `request` with `ACCESS_TOKEN=<token>` (token is not printed in command snippets).
 
 ## Assertions
 
