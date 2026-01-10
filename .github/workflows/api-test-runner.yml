@@ -101,29 +101,46 @@ jobs:
 
   auth-secrets-demo:
     # Requires a repo secret named API_TEST_AUTH_JSON (single JSON string).
-    # Skipped automatically when the secret is missing (e.g. forks).
-    if: ${{ secrets.API_TEST_AUTH_JSON != '' }}
+    # Note: `jobs.<job_id>.if` cannot use `secrets` context, so we gate steps via env instead.
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
 
     steps:
+      - name: Skip (missing API_TEST_AUTH_JSON)
+        if: ${{ env.API_TEST_AUTH_JSON == '' }}
+        run: |
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            {
+              echo "## API test summary: auth-secrets-demo"
+              echo ""
+              echo "_Skipped: missing repo secret `API_TEST_AUTH_JSON`._"
+              echo ""
+            } >>"$GITHUB_STEP_SUMMARY"
+          fi
+          echo "Skipping auth-secrets-demo: missing repo secret API_TEST_AUTH_JSON."
+
       - name: Checkout
+        if: ${{ env.API_TEST_AUTH_JSON != '' }}
         uses: actions/checkout@v4
 
       - name: Install jq
+        if: ${{ env.API_TEST_AUTH_JSON != '' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
       - name: Bootstrap public suite (gitignored setup/)
+        if: ${{ env.API_TEST_AUTH_JSON != '' }}
         run: |
           rm -rf setup
           cp -R skills/api-test-runner/template/setup ./setup
 
       - name: Run suite (auth via GitHub Secrets)
+        if: ${{ env.API_TEST_AUTH_JSON != '' }}
         env:
           CODEX_HOME: ${{ github.workspace }}
-          API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
         run: |
           skills/api-test-runner/scripts/api-test.sh \
             --suite auth-secrets-demo \
@@ -131,7 +148,7 @@ jobs:
             --junit out/api-test-runner/auth-secrets-demo.junit.xml
 
       - name: Summarize results
-        if: always()
+        if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         run: |
           skills/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/auth-secrets-demo.results.json \
@@ -139,7 +156,7 @@ jobs:
             --slow 5
 
       - name: Upload artifacts
-        if: always()
+        if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: api-test-runner-auth-secrets-demo
