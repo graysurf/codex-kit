@@ -4,12 +4,12 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-10 | [API test runner: CI auth via GitHub Secrets (JWT login)](20260110_api-test-runner-gh-secrets-auth.md) | [#14](https://github.com/graysurf/codex-kit/pull/14) |
 
 ## Archived
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-10 | [API test runner: CI auth via GitHub Secrets (JWT login)](archived/20260110_api-test-runner-gh-secrets-auth.md) | [#14](https://github.com/graysurf/codex-kit/pull/14) |
 | 2026-01-09 | [CI API test runner (REST + GraphQL)](archived/20260109_ci-api-test-runner.md) | [#12](https://github.com/graysurf/codex-kit/pull/12) |
 | 2026-01-08 | [REST API testing skill](archived/20260108_rest-api-testing-skill.md) | [#10](https://github.com/graysurf/codex-kit/pull/10) |
 | 2026-01-08 | [GraphQL API testing: command history](archived/20260108_graphql-api-testing-command-history.md) | [#8](https://github.com/graysurf/codex-kit/pull/8) |

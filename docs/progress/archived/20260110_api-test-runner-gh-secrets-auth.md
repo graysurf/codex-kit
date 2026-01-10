@@ -2,14 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN_PROGRESS | 2026-01-10 | 2026-01-10 |
+| DONE | 2026-01-10 | 2026-01-10 |
 
 Links:
 
-- Implementation PR: https://github.com/graysurf/codex-kit/pull/14
+- PR: https://github.com/graysurf/codex-kit/pull/14
 - Planning PR: https://github.com/graysurf/codex-kit/pull/13
-- Docs: [skills/api-test-runner/SKILL.md](../../skills/api-test-runner/SKILL.md)
-- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- Docs: [skills/api-test-runner/SKILL.md](../../../skills/api-test-runner/SKILL.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20879442172
 
 ## Goal
@@ -214,16 +214,16 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
       - `jq -r '..|strings|select(test(\"eyJ\"))' out/api-test-runner/auth.results.json` returns no output
       - `rg -n \"API_TEST_AUTH_JSON|Authorization: Bearer\" out/api-test-runner -S` returns no output
     - [x] Evidence exists (results JSON + CI logs) and is linked from the implementation PR (downstream: Rytass/TunGroup CI run).
-- [ ] Step 4: Release / wrap-up
+- [x] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Ship implementation PR(s); update this progress file status to `DONE`; move to `docs/progress/archived/` via `close-progress-pr`.
+    - [x] Ship implementation PR(s); update this progress file status to `DONE`; move to `docs/progress/archived/` via `close-progress-pr`.
   - Artifacts:
     - `docs/progress/archived/20260110_api-test-runner-gh-secrets-auth.md`
   - Exit Criteria:
-    - [ ] Versioning and changes recorded: `version.json`, `CHANGELOG` (if applicable).
-    - [ ] Release actions completed: None (repo-local tooling change; no tag required unless desired).
-    - [ ] Documentation completed and entry points updated: `skills/api-test-runner/SKILL.md`, `docs/progress/README.md`.
-    - [ ] Cleanup completed: progress status `DONE`, archived file moved, follow-ups captured.
+    - [x] Versioning and changes recorded: None (no tracked `version.json` / `CHANGELOG` in this repo).
+    - [x] Release actions completed: None (repo-local tooling change; no tag required unless desired).
+    - [x] Documentation completed and entry points updated: `skills/api-test-runner/SKILL.md`, `docs/progress/README.md`.
+    - [x] Cleanup completed: progress status `DONE`, archived file moved, follow-ups captured.
 
 ## Modules
 
