@@ -2,13 +2,13 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN_PROGRESS | 2026-01-10 | 2026-01-10 |
+| IN PROGRESS | 2026-01-10 | 2026-01-10 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/15
-- Docs: [skills/api-test-runner/SKILL.md](skills/api-test-runner/SKILL.md)
-- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](docs/templates/PROGRESS_GLOSSARY.md)
+- Docs: [skills/api-test-runner/SKILL.md](../../../skills/api-test-runner/SKILL.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20880992440
 
 ## Goal
