@@ -32,8 +32,15 @@ jobs:
           skills/api-test-runner/scripts/api-test.sh \
             --suite smoke-demo \
             --out out/api-test-runner/results.json \
-            --junit out/api-test-runner/junit.xml \
-          | jq .
+            --junit out/api-test-runner/junit.xml
+
+      - name: Summarize results
+        if: always()
+        run: |
+          skills/api-test-runner/scripts/api-test-summary.sh \
+            --in out/api-test-runner/results.json \
+            --out out/api-test-runner/summary.md \
+            --slow 5
 
       - name: Upload artifacts
         if: always()
@@ -43,6 +50,7 @@ jobs:
           path: |
             out/api-test-runner/results.json
             out/api-test-runner/junit.xml
+            out/api-test-runner/summary.md
 
   public-auth-demo:
     runs-on: ubuntu-latest
@@ -70,8 +78,15 @@ jobs:
           skills/api-test-runner/scripts/api-test.sh \
             --suite public-auth-demo \
             --out out/api-test-runner/public-auth-demo.results.json \
-            --junit out/api-test-runner/public-auth-demo.junit.xml \
-          | jq .
+            --junit out/api-test-runner/public-auth-demo.junit.xml
+
+      - name: Summarize results
+        if: always()
+        run: |
+          skills/api-test-runner/scripts/api-test-summary.sh \
+            --in out/api-test-runner/public-auth-demo.results.json \
+            --out out/api-test-runner/public-auth-demo.summary.md \
+            --slow 5
 
       - name: Upload artifacts
         if: always()
@@ -81,6 +96,7 @@ jobs:
           path: |
             out/api-test-runner/public-auth-demo.results.json
             out/api-test-runner/public-auth-demo.junit.xml
+            out/api-test-runner/public-auth-demo.summary.md
 
   auth-secrets-demo:
     # Requires a repo secret named API_TEST_AUTH_JSON (single JSON string).
@@ -111,8 +127,15 @@ jobs:
           skills/api-test-runner/scripts/api-test.sh \
             --suite auth-secrets-demo \
             --out out/api-test-runner/auth-secrets-demo.results.json \
-            --junit out/api-test-runner/auth-secrets-demo.junit.xml \
-          | jq .
+            --junit out/api-test-runner/auth-secrets-demo.junit.xml
+
+      - name: Summarize results
+        if: always()
+        run: |
+          skills/api-test-runner/scripts/api-test-summary.sh \
+            --in out/api-test-runner/auth-secrets-demo.results.json \
+            --out out/api-test-runner/auth-secrets-demo.summary.md \
+            --slow 5
 
       - name: Upload artifacts
         if: always()
@@ -122,3 +145,4 @@ jobs:
           path: |
             out/api-test-runner/auth-secrets-demo.results.json
             out/api-test-runner/auth-secrets-demo.junit.xml
+            out/api-test-runner/auth-secrets-demo.summary.md

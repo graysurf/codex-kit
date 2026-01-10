@@ -128,6 +128,12 @@ The repo ships a working example workflow using the bundled public suite:
 
 - `.github/workflows/api-test-runner.yml`
 
+To make CI runs easier to scan (especially for non-engineers), generate a small human-friendly summary from the results JSON:
+
+- It prints to the job log
+- It appends to `$GITHUB_STEP_SUMMARY` (Actions UI)
+- It can write a `*.summary.md` file to upload as an artifact
+
 If you want to run a committed `tests/` layout instead:
 
 - Remove the “Bootstrap public suite” step
@@ -162,6 +168,14 @@ steps:
         --tag "shard:${{ matrix.shard }}" \
         --out "out/api-test-runner/results.shard-${{ matrix.shard }}.json" \
         --junit "out/api-test-runner/junit.shard-${{ matrix.shard }}.xml"
+
+  - name: Summarize shard results
+    if: always()
+    run: |
+      skills/api-test-runner/scripts/api-test-summary.sh \
+        --in "out/api-test-runner/results.shard-${{ matrix.shard }}.json" \
+        --out "out/api-test-runner/summary.shard-${{ matrix.shard }}.md" \
+        --slow 5
 ```
 
 Notes:

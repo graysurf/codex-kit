@@ -45,6 +45,23 @@ Emit JUnit for CI reporters:
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite smoke-demo --junit out/api-test-runner/junit.xml
 ```
 
+Generate a human-friendly summary (CI logs + `$GITHUB_STEP_SUMMARY`), based on the results JSON:
+
+```bash
+$CODEX_HOME/skills/api-test-runner/scripts/api-test-summary.sh \
+  --in out/api-test-runner/results.json \
+  --out out/api-test-runner/summary.md \
+  --slow 5
+```
+
+Include skipped cases (optional):
+
+```bash
+$CODEX_HOME/skills/api-test-runner/scripts/api-test-summary.sh \
+  --in out/api-test-runner/results.json \
+  --show-skipped
+```
+
 ## Suite Manifests
 
 Canonical location (committed):

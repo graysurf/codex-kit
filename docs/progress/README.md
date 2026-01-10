@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-10 | [API test runner: CI summary report (GitHub Actions)](20260110_api-test-summary-gh-actions.md) | TBD |
 
 ## Archived
 
