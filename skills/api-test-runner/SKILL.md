@@ -158,7 +158,7 @@ Suite example (REST provider):
     "required": true,
     "rest": {
       "loginRequestTemplate": "setup/rest/requests/login.request.json",
-      "credentialsJq": ".profiles[$profile] | { username, password }",
+      "credentialsJq": ".profiles[$profile] | select(.) | { username, password }",
       "tokenJq": ".accessToken"
     }
   },
@@ -187,7 +187,7 @@ Suite example (GraphQL provider):
     "graphql": {
       "loginOp": "setup/graphql/operations/login.ci.graphql",
       "loginVarsTemplate": "setup/graphql/operations/login.ci.variables.json",
-      "credentialsJq": ".profiles[$profile] | { email, password }",
+      "credentialsJq": ".profiles[$profile] | select(.) | { email, password }",
       "tokenJq": ".. | objects | (.accessToken? // .access_token? // .token? // .jwt? // empty) | select(type==\"string\" and length>0) | ."
     }
   }

@@ -100,13 +100,13 @@ Example (illustrative; exact fields to be finalized in Step 0):
     "provider": "rest",
     "rest": {
       "loginRequestTemplate": "setup/rest/requests/login.request.json",
-      "credentialsJq": ".profiles[$profile] | { username, password }",
+      "credentialsJq": ".profiles[$profile] | select(.) | { username, password }",
       "tokenJq": ".accessToken // .token // .jwt"
     },
     "graphql": {
       "loginOp": "setup/graphql/operations/login.graphql",
       "loginVarsTemplate": "setup/graphql/operations/login.variables.json",
-      "credentialsJq": ".profiles[$profile] | { email, password }",
+      "credentialsJq": ".profiles[$profile] | select(.) | { email, password }",
       "tokenJq": ".data.login.accessToken // .data.login.token // .. | .accessToken? // .token? // empty"
     }
   },
@@ -185,15 +185,15 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Reason: Optional follow-ups; core goal is validated in a downstream real project and can be shipped as-is.
   - Work Items:
     - [x] Implement the decided default: `auth` configured + secret missing -> fail fast with a clear error.
-    - [ ] (Optional follow-up) Add a mode to skip auth-required cases when secret is missing. Reason: prefer explicit workflow gating; keep fail-fast default.
+    - [ ] ~~(Optional follow-up) Add a mode to skip auth-required cases when secret is missing.~~ Reason: prefer explicit workflow gating; keep fail-fast default.
     - [x] Improve error messages for `credentialsJq` / `tokenJq` failures (include provider+profile context; never echo secret values).
-    - [ ] Add deterministic ordering for pre-login (stable by profile name) and explicit caching semantics. Reason: case order is already deterministic; caching is per-profile per-run.
+    - [ ] ~~Add deterministic ordering for pre-login (stable by profile name) and explicit caching semantics.~~ Reason: case order is already deterministic; caching is per-profile per-run.
     - [x] Add docs/examples for matrix runs (split suite by `--tag` for parallelism).
   - Artifacts:
     - `skills/api-test-runner/scripts/api-test.sh`
     - `skills/api-test-runner/SKILL.md`
   - Exit Criteria:
-    - [ ] Common branches are covered: missing secret, missing profile, login fail, token extraction fail, selection filters. Reason: follow-up.
+    - [x] Common branches are covered: missing secret, missing profile, login fail, token extraction fail, selection filters.
     - [x] Compatible with existing runner behavior (no `auth` block unchanged).
     - [x] Required migrations/backfills: None.
 - [x] Step 3: Validation / testing
