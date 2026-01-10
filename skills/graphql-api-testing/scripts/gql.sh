@@ -228,7 +228,7 @@ append_gql_history() {
 	local jwt_for_log=""
 	if [[ "${jwt_profile_selected:-false}" == "false" && -n "${ACCESS_TOKEN:-}" ]]; then
 		auth_label="access_token"
-	elif [[ -n "${jwts_file:-}" && -f "${jwts_file:-}" || -n "${jwts_local_file:-}" && -f "${jwts_local_file:-}" || -n "${jwt_name_arg:-}" || -n "${GQL_JWT_NAME:-}" || -n "${gql_jwt_name_default:-}" ]]; then
+	elif [[ "${jwt_profile_selected:-false}" == "true" ]]; then
 		auth_label="jwt"
 		jwt_for_log="${jwt_name:-}"
 	fi
@@ -305,7 +305,7 @@ Usage:
 Options:
   -e, --env <name>       Use endpoint preset from endpoints.env (e.g. local/staging/dev)
   -u, --url <url>        Use an explicit GraphQL endpoint URL
-      --jwt <name>        Select JWT profile name (default: "default")
+      --jwt <name>        Select JWT profile name (default: from GQL_JWT_NAME; otherwise none)
       --config-dir <dir> GraphQL setup dir (searches upward for endpoints.env/jwts.env; default: operation dir or ./setup/graphql)
       --list-envs         Print available env names from endpoints.env, then exit
       --list-jwts         Print available JWT profile names from jwts(.local).env, then exit
@@ -642,12 +642,17 @@ elif [[ -n "$jwt_name_file" ]]; then
 	jwt_profile_selected=true
 fi
 
-jwt_name="${jwt_name_arg:-${jwt_name_env:-${jwt_name_file:-default}}}"
-jwt_name="$(to_lower "$jwt_name")"
+jwt_name=""
+if [[ "$jwt_profile_selected" == "true" ]]; then
+	jwt_name="${jwt_name_arg:-${jwt_name_env:-${jwt_name_file:-default}}}"
+	jwt_name="$(to_lower "$jwt_name")"
+fi
 
 access_token=""
-if [[ "$jwt_profile_selected" == "false" && -n "${ACCESS_TOKEN:-}" ]]; then
-	access_token="$ACCESS_TOKEN"
+if [[ "$jwt_profile_selected" == "false" ]]; then
+	if [[ -n "${ACCESS_TOKEN:-}" ]]; then
+		access_token="$ACCESS_TOKEN"
+	fi
 else
 	jwt_key="$(to_env_key "$jwt_name")"
 	access_token="$(read_env_var_from_files "GQL_JWT_${jwt_key}" "$jwts_file" "$jwts_local_file" 2>/dev/null || true)"
@@ -847,9 +852,11 @@ maybe_auto_login() {
 	printf "%s" "$token"
 }
 
-if [[ -z "$access_token" ]]; then
-	access_token="$(maybe_auto_login "$jwt_name" 2>/dev/null || true)"
-fi
+	if [[ "$jwt_profile_selected" == "true" && -z "$access_token" ]]; then
+		if ! access_token="$(maybe_auto_login "$jwt_name")"; then
+			die "JWT profile '$jwt_name' is selected but no token was found and auto-login is not configured."
+		fi
+	fi
 
 variables_file_request="$variables_file"
 vars_min_limit="$(parse_int_default "${GQL_VARS_MIN_LIMIT:-}" "5" "0")"

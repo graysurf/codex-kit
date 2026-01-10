@@ -41,6 +41,7 @@ If the progress file includes a `Links -> Planning PR` entry, ensure that planni
 4. Finalize progress
    - Update the progress file:
      - Fail-fast if any unchecked checklist item under `## Steps (Checklist)` lacks a `Reason:` (excluding Step 4 “Release / wrap-up”)
+     - For intentionally deferred / not-do items (Steps 0–3), prefer marking the item text with Markdown strikethrough (`~~like this~~`) while keeping the checkbox unchecked, and include an explicit `Reason:`
      - Set Status to `DONE`
      - Update the `Updated` date to today
      - Set `Links -> PR` to the PR URL

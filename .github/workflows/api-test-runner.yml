@@ -43,7 +43,6 @@ jobs:
           path: |
             out/api-test-runner/results.json
             out/api-test-runner/junit.xml
-            out/api-test-runner/**/*
 
   public-auth-demo:
     runs-on: ubuntu-latest
@@ -82,4 +81,44 @@ jobs:
           path: |
             out/api-test-runner/public-auth-demo.results.json
             out/api-test-runner/public-auth-demo.junit.xml
-            out/api-test-runner/**/*
+
+  auth-secrets-demo:
+    # Requires a repo secret named API_TEST_AUTH_JSON (single JSON string).
+    # Skipped automatically when the secret is missing (e.g. forks).
+    if: ${{ secrets.API_TEST_AUTH_JSON != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Bootstrap public suite (gitignored setup/)
+        run: |
+          rm -rf setup
+          cp -R skills/api-test-runner/template/setup ./setup
+
+      - name: Run suite (auth via GitHub Secrets)
+        env:
+          CODEX_HOME: ${{ github.workspace }}
+          API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
+        run: |
+          skills/api-test-runner/scripts/api-test.sh \
+            --suite auth-secrets-demo \
+            --out out/api-test-runner/auth-secrets-demo.results.json \
+            --junit out/api-test-runner/auth-secrets-demo.junit.xml \
+          | jq .
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-runner-auth-secrets-demo
+          path: |
+            out/api-test-runner/auth-secrets-demo.results.json
+            out/api-test-runner/auth-secrets-demo.junit.xml
