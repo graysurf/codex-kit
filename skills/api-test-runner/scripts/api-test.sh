@@ -393,6 +393,99 @@ if [[ -n "$auth_type" ]]; then
 fi
 
 declare -A auth_tokens=()
+declare -A access_token_rest_config_dir_cache=()
+declare -A access_token_graphql_config_dir_cache=()
+
+slug_for_cache_dir() {
+  python3 - "$1" <<'PY'
+import hashlib
+import re
+import sys
+
+s = sys.argv[1]
+slug = re.sub(r"[^A-Za-z0-9._-]+", "-", s)
+slug = re.sub(r"-{2,}", "-", slug).strip("-") or "dir"
+h = hashlib.sha1(s.encode("utf-8")).hexdigest()[:8]
+print(f"{slug}-{h}")
+PY
+}
+
+path_relative_to_repo_root() {
+  local abs="$1"
+  if [[ "$abs" == "$repo_root/"* ]]; then
+    printf "%s" "${abs#"$repo_root"/}"
+  else
+    printf "%s" "$abs"
+  fi
+}
+
+ensure_access_token_rest_config_dir() {
+  local source_dir_raw="$1"
+  source_dir_raw="$(trim "$source_dir_raw")"
+  [[ -n "$source_dir_raw" ]] || die "Internal error: empty REST configDir"
+
+  local source_abs key
+  source_abs="$(resolve_path "$source_dir_raw")"
+  key="$source_abs"
+
+  if [[ -n "${access_token_rest_config_dir_cache[$key]:-}" ]]; then
+    printf "%s" "${access_token_rest_config_dir_cache[$key]}"
+    return 0
+  fi
+
+  local slug dest_abs dest_rel
+  slug="$(slug_for_cache_dir "rest:${source_dir_raw}")"
+  dest_abs="${run_dir%/}/auth-config/rest/${slug}"
+  mkdir -p "$dest_abs" || die "Failed to create auth config dir: ${dest_abs#"$repo_root"/}"
+
+  # Copy endpoint presets (safe to commit) if present, but intentionally do NOT copy tokens.env.
+  if [[ -f "$source_abs/endpoints.env" ]]; then
+    cp "$source_abs/endpoints.env" "$dest_abs/endpoints.env" || die "Failed to copy endpoints.env for auth config dir"
+  else
+    : >"$dest_abs/endpoints.env" || die "Failed to create endpoints.env for auth config dir"
+  fi
+  if [[ -f "$source_abs/endpoints.local.env" ]]; then
+    cp "$source_abs/endpoints.local.env" "$dest_abs/endpoints.local.env" || die "Failed to copy endpoints.local.env for auth config dir"
+  fi
+
+  dest_rel="$(path_relative_to_repo_root "$dest_abs")"
+  access_token_rest_config_dir_cache[$key]="$dest_rel"
+  printf "%s" "$dest_rel"
+}
+
+ensure_access_token_graphql_config_dir() {
+  local source_dir_raw="$1"
+  source_dir_raw="$(trim "$source_dir_raw")"
+  [[ -n "$source_dir_raw" ]] || die "Internal error: empty GraphQL configDir"
+
+  local source_abs key
+  source_abs="$(resolve_path "$source_dir_raw")"
+  key="$source_abs"
+
+  if [[ -n "${access_token_graphql_config_dir_cache[$key]:-}" ]]; then
+    printf "%s" "${access_token_graphql_config_dir_cache[$key]}"
+    return 0
+  fi
+
+  local slug dest_abs dest_rel
+  slug="$(slug_for_cache_dir "graphql:${source_dir_raw}")"
+  dest_abs="${run_dir%/}/auth-config/graphql/${slug}"
+  mkdir -p "$dest_abs" || die "Failed to create auth config dir: ${dest_abs#"$repo_root"/}"
+
+  # Copy endpoint presets if present, but intentionally do NOT copy jwts.env.
+  if [[ -f "$source_abs/endpoints.env" ]]; then
+    cp "$source_abs/endpoints.env" "$dest_abs/endpoints.env" || die "Failed to copy endpoints.env for auth config dir"
+  else
+    : >"$dest_abs/endpoints.env" || die "Failed to create endpoints.env for auth config dir"
+  fi
+  if [[ -f "$source_abs/endpoints.local.env" ]]; then
+    cp "$source_abs/endpoints.local.env" "$dest_abs/endpoints.local.env" || die "Failed to copy endpoints.local.env for auth config dir"
+  fi
+
+  dest_rel="$(path_relative_to_repo_root "$dest_abs")"
+  access_token_graphql_config_dir_cache[$key]="$dest_rel"
+  printf "%s" "$dest_rel"
+}
 
 auth_render_credentials() {
   local profile="$1"
@@ -434,6 +527,7 @@ auth_login_rest() {
   local profile="$1"
 
   local template_abs credentials_json request_file_tmp response_tmp stderr_tmp rc token auth_login_url auth_env
+  local auth_config_dir=""
   local -a cmd=()
   template_abs="$(resolve_path "$auth_rest_login_request_template")"
   [[ -f "$template_abs" ]] || return 1
@@ -460,7 +554,9 @@ auth_login_rest() {
     auth_login_url="$(trim "$env_rest_url")"
   fi
 
-  cmd=("$rest_runner_abs" "--config-dir" "$auth_rest_config_dir" "--no-history")
+  auth_config_dir="$(ensure_access_token_rest_config_dir "$auth_rest_config_dir")"
+
+  cmd=("$rest_runner_abs" "--config-dir" "$auth_config_dir" "--no-history")
   if [[ -n "$auth_login_url" ]]; then
     cmd+=("--url" "$auth_login_url")
   else
@@ -493,6 +589,7 @@ auth_login_graphql() {
   local profile="$1"
 
   local op_abs vars_template_abs credentials_json vars_tmp response_tmp stderr_tmp rc token auth_login_url auth_env
+  local auth_config_dir=""
   local -a cmd=()
   op_abs="$(resolve_path "$auth_gql_login_op")"
   [[ -f "$op_abs" ]] || return 1
@@ -522,7 +619,9 @@ auth_login_graphql() {
     auth_login_url="$(trim "$env_gql_url")"
   fi
 
-  cmd=("$gql_runner_abs" "--config-dir" "$auth_gql_config_dir" "--no-history")
+  auth_config_dir="$(ensure_access_token_graphql_config_dir "$auth_gql_config_dir")"
+
+  cmd=("$gql_runner_abs" "--config-dir" "$auth_config_dir" "--no-history")
   if [[ -n "$auth_login_url" ]]; then
     cmd+=("--url" "$auth_login_url")
   else
@@ -814,7 +913,12 @@ for ((i=0; i<case_count; i++)); do
         stdout_file="$run_dir/${safe_id}.response.json"
         stderr_file="$run_dir/${safe_id}.stderr.log"
 
-        cmd=("$rest_runner_abs" "--config-dir" "$rest_config_dir")
+        effective_rest_config_dir="$rest_config_dir"
+        if [[ -n "$access_token_for_case" ]]; then
+          effective_rest_config_dir="$(ensure_access_token_rest_config_dir "$rest_config_dir")"
+        fi
+
+        cmd=("$rest_runner_abs" "--config-dir" "$effective_rest_config_dir")
         if [[ "$effective_no_history" == "true" ]]; then
           cmd+=("--no-history")
         fi
@@ -900,6 +1004,9 @@ for ((i=0; i<case_count; i++)); do
       rest_config_dir="$(jq -r ".cases[$i].configDir? // empty" "$suite_path")"
       rest_config_dir="$(trim "$rest_config_dir")"
       rest_config_dir="${rest_config_dir:-$default_rest_config_dir}"
+
+      # Avoid token profile defaults in tokens.env when using ACCESS_TOKEN flow.
+      rest_config_dir="$(ensure_access_token_rest_config_dir "$rest_config_dir")"
 
       rest_url="$(jq -r ".cases[$i].url? // empty" "$suite_path")"
       rest_url="$(trim "$rest_url")"
@@ -1099,7 +1206,12 @@ for ((i=0; i<case_count; i++)); do
         stdout_file="$run_dir/${safe_id}.response.json"
         stderr_file="$run_dir/${safe_id}.stderr.log"
 
-        cmd=("$gql_runner_abs" "--config-dir" "$gql_config_dir")
+        effective_gql_config_dir="$gql_config_dir"
+        if [[ -n "$access_token_for_case" ]]; then
+          effective_gql_config_dir="$(ensure_access_token_graphql_config_dir "$gql_config_dir")"
+        fi
+
+        cmd=("$gql_runner_abs" "--config-dir" "$effective_gql_config_dir")
         if [[ "$effective_no_history" == "true" ]]; then
           cmd+=("--no-history")
         fi
