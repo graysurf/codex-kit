@@ -43,7 +43,6 @@ jobs:
           path: |
             out/api-test-runner/results.json
             out/api-test-runner/junit.xml
-            out/api-test-runner/**/*
 
   public-auth-demo:
     runs-on: ubuntu-latest
@@ -82,7 +81,6 @@ jobs:
           path: |
             out/api-test-runner/public-auth-demo.results.json
             out/api-test-runner/public-auth-demo.junit.xml
-            out/api-test-runner/**/*
 
   auth-secrets-demo:
     # Requires a repo secret named API_TEST_AUTH_JSON (single JSON string).
@@ -124,4 +122,3 @@ jobs:
           path: |
             out/api-test-runner/auth-secrets-demo.results.json
             out/api-test-runner/auth-secrets-demo.junit.xml
-            out/api-test-runner/**/*
