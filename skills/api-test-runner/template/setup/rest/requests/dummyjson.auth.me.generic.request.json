@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "path": "/auth/me",
+  "expect": {
+    "status": 200,
+    "jq": "((.id | type) == \"number\") and ((.username | type) == \"string\") and ((.username | length) > 0)"
+  }
+}

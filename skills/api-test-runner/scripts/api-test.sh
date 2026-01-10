@@ -86,6 +86,7 @@ Options:
 Environment:
   API_TEST_ALLOW_WRITES=1  Same as --allow-writes
   API_TEST_OUTPUT_DIR      Base output dir (default: <repo>/out/api-test-runner)
+  API_TEST_AUTH_JSON       JSON credentials for suite auth (when .auth is configured; override via .auth.secretEnv)
   API_TEST_REST_URL        Default REST URL when suite/case omits url
   API_TEST_GQL_URL         Default GraphQL URL when suite/case omits url
   API_TEST_SUITES_DIR      Override suites dir for --suite (e.g. tests/api/suites)
@@ -257,6 +258,323 @@ default_graphql_url="$(jq -r '.defaults.graphql.url? // empty' "$suite_path")"
 
 env_rest_url="$(trim "${API_TEST_REST_URL:-}")"
 env_gql_url="$(trim "${API_TEST_GQL_URL:-}")"
+
+# ----------------------------
+# Optional CI auth via secrets
+# ----------------------------
+auth_enabled="0"
+auth_provider=""
+auth_required="true"
+auth_secret_env="API_TEST_AUTH_JSON"
+auth_secret_json=""
+
+auth_rest_login_request_template=""
+auth_rest_credentials_jq=""
+auth_rest_token_jq=""
+auth_rest_config_dir=""
+auth_rest_url=""
+auth_rest_env=""
+
+auth_gql_login_op=""
+auth_gql_login_vars_template=""
+auth_gql_credentials_jq=""
+auth_gql_token_jq=""
+auth_gql_config_dir=""
+auth_gql_url=""
+auth_gql_env=""
+
+auth_type="$(jq -r '(.auth // empty) | type' "$suite_path" 2>/dev/null || true)"
+auth_type="$(trim "$auth_type")"
+if [[ -n "$auth_type" ]]; then
+  [[ "$auth_type" == "object" ]] || die "Invalid suite auth block (expected object): .auth is $auth_type"
+  auth_enabled="1"
+
+  auth_secret_env="$(jq -r '.auth.secretEnv? // "API_TEST_AUTH_JSON"' "$suite_path")"
+  auth_secret_env="$(trim "$auth_secret_env")"
+  [[ -n "$auth_secret_env" ]] || die "Invalid suite auth block: .auth.secretEnv is empty"
+  [[ "$auth_secret_env" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || die "Invalid suite auth block: .auth.secretEnv must be a valid env var name"
+
+  auth_required="$(jq -r '.auth.required? // true' "$suite_path")"
+  auth_required="$(to_lower "$(trim "$auth_required")")"
+  if [[ "$auth_required" != "true" && "$auth_required" != "false" ]]; then
+    die "Invalid suite auth block: .auth.required must be boolean"
+  fi
+
+  auth_provider="$(jq -r '.auth.provider? // empty' "$suite_path")"
+  auth_provider="$(to_lower "$(trim "$auth_provider")")"
+  if [[ -z "$auth_provider" ]]; then
+    has_rest="$(jq -r '(.auth.rest // empty) | type' "$suite_path" 2>/dev/null || true)"
+    has_rest="$(trim "$has_rest")"
+    has_gql="$(jq -r '(.auth.graphql // empty) | type' "$suite_path" 2>/dev/null || true)"
+    has_gql="$(trim "$has_gql")"
+    if [[ -n "$has_rest" && -z "$has_gql" ]]; then
+      auth_provider="rest"
+    elif [[ -z "$has_rest" && -n "$has_gql" ]]; then
+      auth_provider="graphql"
+    else
+      die "Invalid suite auth block: .auth.provider is required when both .auth.rest and .auth.graphql are present"
+    fi
+  fi
+
+  if [[ "$auth_provider" != "rest" && "$auth_provider" != "graphql" && "$auth_provider" != "gql" ]]; then
+    die "Invalid suite auth block: .auth.provider must be one of: rest, graphql"
+  fi
+  if [[ "$auth_provider" == "gql" ]]; then
+    auth_provider="graphql"
+  fi
+
+  if [[ "$auth_provider" == "rest" ]]; then
+    auth_rest_login_request_template="$(jq -r '.auth.rest.loginRequestTemplate? // empty' "$suite_path")"
+    auth_rest_login_request_template="$(trim "$auth_rest_login_request_template")"
+    [[ -n "$auth_rest_login_request_template" ]] || die "Invalid suite auth.rest block: missing loginRequestTemplate"
+
+    auth_rest_credentials_jq="$(jq -r '.auth.rest.credentialsJq? // empty' "$suite_path")"
+    auth_rest_credentials_jq="$(trim "$auth_rest_credentials_jq")"
+    [[ -n "$auth_rest_credentials_jq" ]] || die "Invalid suite auth.rest block: missing credentialsJq"
+
+    auth_rest_token_jq="$(jq -r '.auth.rest.tokenJq? // empty' "$suite_path")"
+    auth_rest_token_jq="$(trim "$auth_rest_token_jq")"
+    if [[ -z "$auth_rest_token_jq" ]]; then
+      auth_rest_token_jq='.. | objects | (.accessToken? // .access_token? // .token? // .jwt? // empty) | select(type=="string" and length>0) | .'
+    fi
+
+    auth_rest_config_dir="$(jq -r '.auth.rest.configDir? // empty' "$suite_path")"
+    auth_rest_config_dir="$(trim "$auth_rest_config_dir")"
+    auth_rest_config_dir="${auth_rest_config_dir:-$default_rest_config_dir}"
+
+    auth_rest_url="$(jq -r '.auth.rest.url? // empty' "$suite_path")"
+    auth_rest_url="$(trim "$auth_rest_url")"
+    auth_rest_env="$(jq -r '.auth.rest.env? // empty' "$suite_path")"
+    auth_rest_env="$(trim "$auth_rest_env")"
+
+  else
+    auth_gql_login_op="$(jq -r '.auth.graphql.loginOp? // empty' "$suite_path")"
+    auth_gql_login_op="$(trim "$auth_gql_login_op")"
+    [[ -n "$auth_gql_login_op" ]] || die "Invalid suite auth.graphql block: missing loginOp"
+
+    auth_gql_login_vars_template="$(jq -r '.auth.graphql.loginVarsTemplate? // empty' "$suite_path")"
+    auth_gql_login_vars_template="$(trim "$auth_gql_login_vars_template")"
+    [[ -n "$auth_gql_login_vars_template" ]] || die "Invalid suite auth.graphql block: missing loginVarsTemplate"
+
+    auth_gql_credentials_jq="$(jq -r '.auth.graphql.credentialsJq? // empty' "$suite_path")"
+    auth_gql_credentials_jq="$(trim "$auth_gql_credentials_jq")"
+    [[ -n "$auth_gql_credentials_jq" ]] || die "Invalid suite auth.graphql block: missing credentialsJq"
+
+    auth_gql_token_jq="$(jq -r '.auth.graphql.tokenJq? // empty' "$suite_path")"
+    auth_gql_token_jq="$(trim "$auth_gql_token_jq")"
+    if [[ -z "$auth_gql_token_jq" ]]; then
+      auth_gql_token_jq='.. | objects | (.accessToken? // .access_token? // .token? // .jwt? // empty) | select(type=="string" and length>0) | .'
+    fi
+
+    auth_gql_config_dir="$(jq -r '.auth.graphql.configDir? // empty' "$suite_path")"
+    auth_gql_config_dir="$(trim "$auth_gql_config_dir")"
+    auth_gql_config_dir="${auth_gql_config_dir:-$default_graphql_config_dir}"
+
+    auth_gql_url="$(jq -r '.auth.graphql.url? // empty' "$suite_path")"
+    auth_gql_url="$(trim "$auth_gql_url")"
+    auth_gql_env="$(jq -r '.auth.graphql.env? // empty' "$suite_path")"
+    auth_gql_env="$(trim "$auth_gql_env")"
+  fi
+
+  # Read and validate secret JSON.
+  auth_secret_json="$(printenv "$auth_secret_env" 2>/dev/null || true)"
+  auth_secret_json="$(trim "$auth_secret_json")"
+  if [[ -z "$auth_secret_json" ]]; then
+    if [[ "$auth_required" == "false" ]]; then
+      auth_enabled="0"
+      auth_secret_json=""
+      printf "api-test-runner: auth disabled (missing %s and auth.required=false)\n" "$auth_secret_env" >&2
+    else
+      die "Missing auth secret env var for suite auth: ${auth_secret_env}"
+    fi
+  else
+    printf "%s" "$auth_secret_json" | jq -e . >/dev/null 2>&1 || die "Invalid JSON in ${auth_secret_env}"
+  fi
+fi
+
+declare -A auth_tokens=()
+
+auth_render_credentials() {
+  local profile="$1"
+  local expr="$2"
+  local out=""
+
+  [[ -n "$auth_secret_json" ]] || return 1
+
+  out="$(
+    printf "%s" "$auth_secret_json" |
+      jq -c --arg profile "$profile" "$expr" 2>/dev/null |
+      head -n 1
+  )"
+  out="$(trim "$out")"
+  [[ -n "$out" ]] || return 1
+  printf "%s" "$out" | jq -e 'type == "object"' >/dev/null 2>&1 || return 1
+  printf "%s" "$out"
+}
+
+auth_extract_token() {
+  local response_file="$1"
+  local token_expr="$2"
+  local token=""
+
+  token="$(
+    jq -r "$token_expr" "$response_file" 2>/dev/null |
+      head -n 1
+  )"
+  token="$(trim "$token")"
+
+  if [[ -z "$token" || "$token" == "null" ]]; then
+    return 1
+  fi
+
+  printf "%s" "$token"
+}
+
+auth_login_rest() {
+  local profile="$1"
+
+  local template_abs credentials_json request_file_tmp response_tmp stderr_tmp rc token auth_login_url auth_env
+  local -a cmd=()
+  template_abs="$(resolve_path "$auth_rest_login_request_template")"
+  [[ -f "$template_abs" ]] || return 1
+
+  credentials_json="$(auth_render_credentials "$profile" "$auth_rest_credentials_jq" 2>/dev/null || true)"
+  credentials_json="$(trim "$credentials_json")"
+  [[ -n "$credentials_json" ]] || return 1
+
+  request_file_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.rest.request.json)"
+  response_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.rest.response.json)"
+  stderr_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.rest.stderr.log)"
+  rc=0
+
+  if ! jq -c --argjson creds "$credentials_json" '.body = ((.body // {}) + $creds)' "$template_abs" >"$request_file_tmp"; then
+    rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+    return 1
+  fi
+
+  auth_login_url="$(trim "$auth_rest_url")"
+  if [[ -z "$auth_login_url" ]]; then
+    auth_login_url="$(trim "$default_rest_url")"
+  fi
+  if [[ -z "$auth_login_url" && -n "$env_rest_url" ]]; then
+    auth_login_url="$(trim "$env_rest_url")"
+  fi
+
+  cmd=("$rest_runner_abs" "--config-dir" "$auth_rest_config_dir" "--no-history")
+  if [[ -n "$auth_login_url" ]]; then
+    cmd+=("--url" "$auth_login_url")
+  else
+    auth_env="$(trim "${auth_rest_env:-$default_env}")"
+    auth_env="$(trim "$auth_env")"
+    [[ -n "$auth_env" ]] || { rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true; return 1; }
+    cmd+=("--env" "$auth_env")
+  fi
+  cmd+=("$request_file_tmp")
+
+  if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="" "${cmd[@]}" >"$response_tmp" 2>"$stderr_tmp"; then
+    rc=$?
+  fi
+
+  if [[ "$rc" != "0" ]]; then
+    rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+    return 1
+  fi
+
+  token="$(auth_extract_token "$response_tmp" "$auth_rest_token_jq" 2>/dev/null || true)"
+  token="$(trim "$token")"
+
+  rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+
+  [[ -n "$token" ]] || return 1
+  printf "%s" "$token"
+}
+
+auth_login_graphql() {
+  local profile="$1"
+
+  local op_abs vars_template_abs credentials_json vars_tmp response_tmp stderr_tmp rc token auth_login_url auth_env
+  local -a cmd=()
+  op_abs="$(resolve_path "$auth_gql_login_op")"
+  [[ -f "$op_abs" ]] || return 1
+
+  vars_template_abs="$(resolve_path "$auth_gql_login_vars_template")"
+  [[ -f "$vars_template_abs" ]] || return 1
+
+  credentials_json="$(auth_render_credentials "$profile" "$auth_gql_credentials_jq" 2>/dev/null || true)"
+  credentials_json="$(trim "$credentials_json")"
+  [[ -n "$credentials_json" ]] || return 1
+
+  vars_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.gql.vars.json)"
+  response_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.gql.response.json)"
+  stderr_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.gql.stderr.log)"
+  rc=0
+
+  if ! jq -c --argjson creds "$credentials_json" '. + $creds' "$vars_template_abs" >"$vars_tmp"; then
+    rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+    return 1
+  fi
+
+  auth_login_url="$(trim "$auth_gql_url")"
+  if [[ -z "$auth_login_url" ]]; then
+    auth_login_url="$(trim "$default_graphql_url")"
+  fi
+  if [[ -z "$auth_login_url" && -n "$env_gql_url" ]]; then
+    auth_login_url="$(trim "$env_gql_url")"
+  fi
+
+  cmd=("$gql_runner_abs" "--config-dir" "$auth_gql_config_dir" "--no-history")
+  if [[ -n "$auth_login_url" ]]; then
+    cmd+=("--url" "$auth_login_url")
+  else
+    auth_env="$(trim "${auth_gql_env:-$default_env}")"
+    auth_env="$(trim "$auth_env")"
+    [[ -n "$auth_env" ]] || { rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true; return 1; }
+    cmd+=("--env" "$auth_env")
+  fi
+  cmd+=("${op_abs#"$repo_root"/}")
+  cmd+=("$vars_tmp")
+
+  if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="" "${cmd[@]}" >"$response_tmp" 2>"$stderr_tmp"; then
+    rc=$?
+  fi
+
+  if [[ "$rc" != "0" ]]; then
+    rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+    return 1
+  fi
+
+  token="$(auth_extract_token "$response_tmp" "$auth_gql_token_jq" 2>/dev/null || true)"
+  token="$(trim "$token")"
+
+  rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+
+  [[ -n "$token" ]] || return 1
+  printf "%s" "$token"
+}
+
+ensure_auth_token() {
+  local profile="$1"
+
+  [[ -n "$profile" ]] || return 1
+  [[ "$auth_enabled" == "1" ]] || return 1
+
+  if [[ -n "${auth_tokens[$profile]:-}" ]]; then
+    printf "%s" "${auth_tokens[$profile]}"
+    return 0
+  fi
+
+  local token=""
+  if [[ "$auth_provider" == "rest" ]]; then
+    token="$(auth_login_rest "$profile" 2>/dev/null || true)"
+  else
+    token="$(auth_login_graphql "$profile" 2>/dev/null || true)"
+  fi
+  token="$(trim "$token")"
+  [[ -n "$token" ]] || return 1
+
+  auth_tokens["$profile"]="$token"
+  printf "%s" "$token"
+}
 
 split_csv() {
   local csv="$1"
@@ -477,6 +795,22 @@ for ((i=0; i<case_count; i++)); do
       fi
 
       if [[ "$execute_case" == "1" ]]; then
+        auth_profile=""
+        access_token_for_case=""
+        if [[ "$auth_enabled" == "1" && -n "$rest_token" ]]; then
+          auth_profile="$rest_token"
+          access_token_for_case="$(ensure_auth_token "$auth_profile" 2>/dev/null || true)"
+          access_token_for_case="$(trim "$access_token_for_case")"
+          if [[ -z "$access_token_for_case" ]]; then
+            status="failed"
+            message="auth_login_failed"
+            failed=$((failed + 1))
+            execute_case="0"
+          fi
+        fi
+      fi
+
+      if [[ "$execute_case" == "1" ]]; then
         stdout_file="$run_dir/${safe_id}.response.json"
         stderr_file="$run_dir/${safe_id}.stderr.log"
 
@@ -489,7 +823,7 @@ for ((i=0; i<case_count; i++)); do
         elif [[ -n "$effective_env" ]]; then
           cmd+=("--env" "$effective_env")
         fi
-        if [[ -n "$rest_token" ]]; then
+        if [[ -n "$rest_token" && -z "$access_token_for_case" ]]; then
           cmd+=("--token" "$rest_token")
         fi
         cmd+=("${request_abs#"$repo_root"/}")
@@ -505,15 +839,33 @@ for ((i=0; i<case_count; i++)); do
           fi
 
           args="$(mask_args_for_command_snippet "${cmd[@]:1}")"
+          env_prefix=""
+          if [[ -n "$access_token_for_case" ]]; then
+            env_prefix="ACCESS_TOKEN=REDACTED REST_TOKEN_NAME= GQL_JWT_NAME="
+          fi
           if [[ -n "$args" ]]; then
-            printf "%s %s" "$runner" "$args"
+            if [[ -n "$env_prefix" ]]; then
+              printf "%s %s %s" "$env_prefix" "$runner" "$args"
+            else
+              printf "%s %s" "$runner" "$args"
+            fi
           else
-            printf "%s" "$runner"
+            if [[ -n "$env_prefix" ]]; then
+              printf "%s %s" "$env_prefix" "$runner"
+            else
+              printf "%s" "$runner"
+            fi
           fi
         )"
 
-        if ! "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
-          rc=$?
+        if [[ -n "$access_token_for_case" ]]; then
+          if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$access_token_for_case" "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=$?
+          fi
+        else
+          if ! "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=$?
+          fi
         fi
 
         if [[ "$rc" == "0" ]]; then
@@ -728,6 +1080,22 @@ for ((i=0; i<case_count; i++)); do
       fi
 
       if [[ "$execute_case" == "1" ]]; then
+        auth_profile=""
+        access_token_for_case=""
+        if [[ "$auth_enabled" == "1" && -n "$gql_jwt" ]]; then
+          auth_profile="$gql_jwt"
+          access_token_for_case="$(ensure_auth_token "$auth_profile" 2>/dev/null || true)"
+          access_token_for_case="$(trim "$access_token_for_case")"
+          if [[ -z "$access_token_for_case" ]]; then
+            status="failed"
+            message="auth_login_failed"
+            failed=$((failed + 1))
+            execute_case="0"
+          fi
+        fi
+      fi
+
+      if [[ "$execute_case" == "1" ]]; then
         stdout_file="$run_dir/${safe_id}.response.json"
         stderr_file="$run_dir/${safe_id}.stderr.log"
 
@@ -740,7 +1108,7 @@ for ((i=0; i<case_count; i++)); do
         elif [[ -n "$effective_env" ]]; then
           cmd+=("--env" "$effective_env")
         fi
-        if [[ -n "$gql_jwt" ]]; then
+        if [[ -n "$gql_jwt" && -z "$access_token_for_case" ]]; then
           cmd+=("--jwt" "$gql_jwt")
         fi
         cmd+=("${op_abs#"$repo_root"/}")
@@ -759,15 +1127,33 @@ for ((i=0; i<case_count; i++)); do
           fi
 
           args="$(mask_args_for_command_snippet "${cmd[@]:1}")"
+          env_prefix=""
+          if [[ -n "$access_token_for_case" ]]; then
+            env_prefix="ACCESS_TOKEN=REDACTED REST_TOKEN_NAME= GQL_JWT_NAME="
+          fi
           if [[ -n "$args" ]]; then
-            printf "%s %s" "$runner" "$args"
+            if [[ -n "$env_prefix" ]]; then
+              printf "%s %s %s" "$env_prefix" "$runner" "$args"
+            else
+              printf "%s %s" "$runner" "$args"
+            fi
           else
-            printf "%s" "$runner"
+            if [[ -n "$env_prefix" ]]; then
+              printf "%s %s" "$env_prefix" "$runner"
+            else
+              printf "%s" "$runner"
+            fi
           fi
         )"
 
-        if ! "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
-          rc=$?
+        if [[ -n "$access_token_for_case" ]]; then
+          if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$access_token_for_case" "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=$?
+          fi
+        else
+          if ! "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=$?
+          fi
         fi
 
         default_no_errors="NOT_EVALUATED"

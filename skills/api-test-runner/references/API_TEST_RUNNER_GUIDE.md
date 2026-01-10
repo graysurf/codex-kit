@@ -107,14 +107,20 @@ $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
 
 #### CI note (URLs/tokens)
 
-In CI, prefer explicit env vars instead of committing real secrets into `tests/**/tokens.env` / `jwts.env`:
+In CI, prefer explicit env vars (and runtime login) instead of committing real secrets into `tests/**/tokens.env` / `jwts.env`:
 
 - REST:
   - URL: `--url ...` or `REST_URL=...`
-  - Auth: `ACCESS_TOKEN=...` (Bearer token)
+  - Auth (option A): `ACCESS_TOKEN=...` (Bearer token)
 - GraphQL:
   - URL: `--url ...` or `GQL_URL=...`
-  - Auth: `ACCESS_TOKEN=...` (Bearer token)
+  - Auth (option A): `ACCESS_TOKEN=...` (Bearer token)
+
+Option B (recommended when JWTs expire): runtime login via a single JSON secret + suite `auth` block:
+
+- Provide a GitHub Secret (default name): `API_TEST_AUTH_JSON`
+- Add `auth` to your suite manifest (`setup/api/suites/*.suite.json`)
+- The runner logs in once per profile and injects `ACCESS_TOKEN` per case (no token files needed in CI)
 
 ## GitHub Actions
 

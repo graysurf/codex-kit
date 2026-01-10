@@ -125,6 +125,80 @@ Notes:
 - For REST and GraphQL endpoint selection, prefer `url` for CI determinism (avoids env preset drift).
 - `rest-flow` runs `loginRequest` first, extracts a token (via `tokenJq`), then runs `request` with `ACCESS_TOKEN=<token>` (token is not printed in command snippets).
 
+## CI auth (GitHub Secrets / JWT login)
+
+If your JWT expires, prefer logging in at runtime in CI using a suite-level `auth` block + a single JSON GitHub Secret.
+
+How it works:
+
+- You provide credentials via a JSON env var (default: `API_TEST_AUTH_JSON`).
+- The runner logs in once per referenced profile (cached for the run) using either a REST or GraphQL login provider.
+- For cases that specify `token` (REST) or `jwt` (GraphQL), the runner injects `ACCESS_TOKEN` for that case and does not rely on `tokens(.local).env` / `jwts(.local).env`.
+
+Recommended secret schema (example):
+
+```json
+{
+  "profiles": {
+    "admin": { "username": "admin@example.com", "password": "..." },
+    "member": { "username": "member@example.com", "password": "..." }
+  }
+}
+```
+
+Suite example (REST provider):
+
+```json
+{
+  "version": 1,
+  "name": "auth-smoke",
+  "auth": {
+    "provider": "rest",
+    "secretEnv": "API_TEST_AUTH_JSON",
+    "required": true,
+    "rest": {
+      "loginRequestTemplate": "setup/rest/requests/login.request.json",
+      "credentialsJq": ".profiles[$profile] | { username, password }",
+      "tokenJq": ".accessToken"
+    }
+  },
+  "defaults": {
+    "noHistory": true,
+    "rest": { "url": "https://<host>", "token": "member" },
+    "graphql": { "url": "https://<host>/graphql", "jwt": "member" }
+  },
+  "cases": [
+    { "id": "rest.me.member", "type": "rest", "token": "member", "request": "setup/rest/requests/me.request.json" },
+    { "id": "graphql.me.admin", "type": "graphql", "jwt": "admin", "op": "setup/graphql/operations/me.graphql" }
+  ]
+}
+```
+
+Suite example (GraphQL provider):
+
+```json
+{
+  "version": 1,
+  "name": "auth-smoke",
+  "auth": {
+    "provider": "graphql",
+    "secretEnv": "API_TEST_AUTH_JSON",
+    "required": true,
+    "graphql": {
+      "loginOp": "setup/graphql/operations/login.ci.graphql",
+      "loginVarsTemplate": "setup/graphql/operations/login.ci.variables.json",
+      "credentialsJq": ".profiles[$profile] | { email, password }",
+      "tokenJq": ".. | objects | (.accessToken? // .access_token? // .token? // .jwt? // empty) | select(type==\"string\" and length>0) | ."
+    }
+  }
+}
+```
+
+Defaults:
+
+- Fail fast: if `auth` is configured but the secret env var is missing/empty, the runner exits `1` with a clear error.
+- Optional override: set `auth.required=false` to disable suite auth when the secret is missing (useful for forks / local runs).
+
 ## Assertions
 
 - REST: assertions live in the request file:
