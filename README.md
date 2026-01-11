@@ -31,6 +31,8 @@ are intentionally excluded via `.gitignore`.
 
 ## 🛠️ Skills
 
+All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `scripts/validate_skill_contracts.sh` and CI.
+
 ### Common
 
 | Skill | Description |

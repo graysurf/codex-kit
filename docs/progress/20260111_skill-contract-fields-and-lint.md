@@ -2,13 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-11 | 2026-01-11 |
+| IN PROGRESS | 2026-01-11 | 2026-01-11 |
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/16
+- PR: https://github.com/graysurf/codex-kit/pull/17
+- Planning PR: https://github.com/graysurf/codex-kit/pull/16
 - Docs: None
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -28,7 +29,7 @@ Links:
   - Docs-only edits to `skills/**/SKILL.md` to add the minimal `## Contract` section (no behavioral changes required).
   - Add `scripts/validate_skill_contracts.sh` (simple, deterministic, CI-friendly).
   - Wire the lint (and `shellcheck`) into GitHub Actions CI.
-  - Document the contract requirement for new skills (update `skills/.system/skill-creator/SKILL.md`).
+  - Document the contract requirement for new skills (README + CI lint).
 - Out-of-scope:
   - Adding rich semantics to contracts (e.g., deep schemas, examples for every field) beyond the 5 headings baseline.
   - Large refactors of existing skill scripts unrelated to contract standardization.
@@ -66,6 +67,7 @@ Links:
 - Non-applicable contract fields should be explicitly marked as `N/A` (e.g., docs-only skills or no runnable scripts).
 - Lint is `--check` only in the first iteration (no auto-fix and no `--dry-run`), to stay a stable guardrail (“don’t break”).
 - CI portability: implement the lint without requiring `rg` on GitHub runners (prefer `bash + python3` / `grep`).
+- Shellcheck severity: start with `shellcheck -S error` to avoid blocking on existing warnings/info.
 - Minimal smoke tests (beyond `shellcheck`):
   - Positive: `scripts/validate_skill_contracts.sh` passes against the repo.
   - Negative: lint fails (non-zero) and prints actionable output when a fixture SKILL doc is missing required headings.
