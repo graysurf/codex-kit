@@ -11,8 +11,8 @@ Prereqs:
 
 - `bash` available on `PATH`.
 - Notification backend:
-  - macOS: `terminal-notifier` (optional)
-  - Linux: `notify-send` (optional)
+  - macOS: `terminal-notifier`
+  - Linux: `notify-send`
 
 Inputs:
 
