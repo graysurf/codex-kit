@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-11 | [Skill contract fields and lint](20260111_skill-contract-fields-and-lint.md) | [#16](https://github.com/graysurf/codex-kit/pull/16) |
 
 ## Archived
 
