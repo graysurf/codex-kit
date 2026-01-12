@@ -37,7 +37,7 @@ RULES (must follow)
      - Explain **How to validate/refine** each assumption
      - End with clarifying questions under “❓ Open Questions”
    - If a baseline explanation would be misleading/unsafe, ask clarifying questions and STOP (no options, no recommendation).
-   - Ask at most 6 questions.
+   - Ask at most 5 questions.
    - Each question must be specific and decision-oriented (answerable in 1–2 lines).
 4) Once the question is sufficiently specified, provide **3–5 useful angles** (factors/lenses) to analyze it (not mutually exclusive “answers”).
 5) Prefer plain language first; introduce formal definitions only as needed and define every key term you introduce.
