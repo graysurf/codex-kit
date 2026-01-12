@@ -1235,6 +1235,15 @@ for ((i=0; i<case_count; i++)); do
       expect_jq="$(jq -r ".cases[$i].expect.jq? // empty" "$suite_path")"
       expect_jq="$(trim "$expect_jq")"
 
+      gql_allow_errors="$(jq -r ".cases[$i].allowErrors? // false" "$suite_path")"
+      gql_allow_errors="$(to_lower "$(trim "$gql_allow_errors")")"
+      if [[ "$gql_allow_errors" != "true" && "$gql_allow_errors" != "false" ]]; then
+        die "GraphQL case '$id' has invalid allowErrors (expected boolean)"
+      fi
+      if [[ "$gql_allow_errors" == "true" && -z "$expect_jq" ]]; then
+        die "GraphQL case '$id' with allowErrors=true must set expect.jq"
+      fi
+
       is_mutation_rc=1
       set +e
       graphql_op_is_mutation "$op_abs"
@@ -1374,7 +1383,7 @@ for ((i=0; i<case_count; i++)); do
           failed=$((failed + 1))
           message="graphql_runner_failed"
         else
-          if [[ "$default_no_errors" != "passed" ]]; then
+          if [[ "$default_no_errors" != "passed" && "$gql_allow_errors" != "true" ]]; then
             status="failed"
             failed=$((failed + 1))
             message="graphql_errors_present"

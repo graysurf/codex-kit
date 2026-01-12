@@ -155,6 +155,7 @@ Notes:
       "env": "",
       "noHistory": true,
       "allowWrite": false,
+      "allowErrors": false,
       "configDir": "",
       "url": "",
       "jwt": "",
@@ -253,7 +254,9 @@ Defaults:
 - REST: assertions live in the request file:
   - `expect.status` (required when `expect` is present)
   - `expect.jq` (optional; evaluated with `jq -e` against the JSON response)
-- GraphQL: the runner enforces `.errors` is empty by default, plus optional per-case `expect.jq`.
+- GraphQL:
+  - Default: the runner enforces `.errors` is empty, plus optional per-case `expect.jq`.
+  - `allowErrors: true`: skip the default no-errors check and rely on `expect.jq` (required) to assert the expected error(s), e.g. `.errors[0].extensions.code == "PHONE_VERIFICATION_INCOMPLETE"`.
 
 ## CLI flags
 
