@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN PROGRESS | 2026-01-13 | 2026-01-13 |
+| IN PROGRESS | 2026-01-13 | 2026-01-14 |
 
 Links:
 
@@ -81,18 +81,18 @@ Links:
 
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 
-- [ ] Step 0: Alignment and inventory
+- [x] Step 0: Alignment and inventory
   - Work Items:
     - [x] Confirm smoke tier definitions and CI contract (what runs by default vs optional).
-    - [ ] Generate the script inventory and classify each entrypoint (`help-only` / `spec-smoke` / `pytest-fixture`).
+    - [x] Generate the script inventory and classify each entrypoint (`help-only` / `spec-smoke` / `pytest-fixture`).
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - Script inventory table (see "Script Inventory" below)
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned: decisions recorded in this progress file.
-    - [ ] Data flow and I/O contract are defined: inputs/outputs/artifacts recorded above.
-    - [ ] Risks and mitigations are defined: risks recorded above.
-    - [ ] Verification commands are defined: `pytest -m script_regression` and `pytest -m script_smoke` (planned).
+    - [x] Requirements, scope, and acceptance criteria are aligned: decisions recorded in this progress file.
+    - [x] Data flow and I/O contract are defined: inputs/outputs/artifacts recorded above.
+    - [x] Risks and mitigations are defined: risks recorded above.
+    - [x] Verification commands are defined: `scripts/test.sh -m script_regression` and `scripts/test.sh -m script_smoke`.
 - [ ] Step 1: Minimum viable smoke suite
   - Work Items:
     - [ ] Add a new pytest marker for smoke (e.g. `script_smoke`) and a harness that can run "smoke cases".
