@@ -1,0 +1,24 @@
+{
+  "smoke": [
+    {
+      "name": "fixture-response",
+      "args": [
+        "--case",
+        "Ping",
+        "--request",
+        "tests/fixtures/rest/ping.request.json",
+        "--response",
+        "tests/fixtures/rest/ping.response.json",
+        "--out",
+        "out/tests/script-smoke/rest-report/ping.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^out/tests/script-smoke/rest-report/ping\\.md$"
+      },
+      "artifacts": ["out/tests/script-smoke/rest-report/ping.md"]
+    }
+  ]
+}
+

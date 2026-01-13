@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "Fixture suite",
+  "defaults": {
+    "noHistory": true,
+    "rest": {
+      "configDir": "tests/fixtures/rest",
+      "url": "https://example.test"
+    },
+    "graphql": {
+      "configDir": "tests/fixtures/graphql",
+      "url": "https://example.test/graphql"
+    }
+  },
+  "cases": [
+    {
+      "id": "rest-ping",
+      "type": "rest",
+      "request": "tests/fixtures/rest/ping.request.json"
+    },
+    {
+      "id": "gql-ping",
+      "type": "graphql",
+      "op": "tests/fixtures/graphql/ping.graphql"
+    }
+  ]
+}
+

@@ -1,0 +1,25 @@
+{
+  "smoke": [
+    {
+      "name": "fixture-ping",
+      "args": [
+        "--config-dir",
+        "tests/fixtures/graphql",
+        "--url",
+        "https://example.test/graphql",
+        "--no-history",
+        "tests/fixtures/graphql/ping.graphql"
+      ],
+      "env": {
+        "CODEX_XH_STUB_MODE": "1",
+        "CODEX_XH_STUB_BODY_FILE": "tests/fixtures/graphql/ping.response.json"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"data\""
+      }
+    }
+  ]
+}
+

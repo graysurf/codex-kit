@@ -1,0 +1,27 @@
+{
+  "smoke": [
+    {
+      "name": "fixture-suite",
+      "args": [
+        "--suite-file",
+        "tests/fixtures/api-test-runner/fixture.suite.json",
+        "--out",
+        "out/tests/script-smoke/api-test/results.json"
+      ],
+      "env": {
+        "CODEX_CURL_STUB_MODE": "1",
+        "CODEX_CURL_STUB_STATUS": "200",
+        "CODEX_CURL_STUB_BODY_FILE": "tests/fixtures/rest/ping.response.json",
+        "CODEX_XH_STUB_MODE": "1",
+        "CODEX_XH_STUB_BODY_FILE": "tests/fixtures/graphql/ping.response.json"
+      },
+      "timeout_sec": 20,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"passed\":2"
+      },
+      "artifacts": ["out/tests/script-smoke/api-test/results.json"]
+    }
+  ]
+}
+

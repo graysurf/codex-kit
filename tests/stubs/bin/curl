@@ -1,4 +1,76 @@
 #!/usr/bin/env bash
 set -euo pipefail
-echo "error: curl is blocked by script regression tests" >&2
-exit 90
+
+is_truthy() {
+  case "${1:-}" in
+    1|true|yes|on) return 0 ;;
+  esac
+  return 1
+}
+
+if ! is_truthy "${CODEX_CURL_STUB_MODE:-}"; then
+  echo "error: curl is blocked by script regression tests" >&2
+  exit 90
+fi
+
+log_dir="${CODEX_STUB_LOG_DIR:-}"
+if [[ -n "$log_dir" ]]; then
+  mkdir -p "$log_dir"
+  printf "%s\n" "curl $*" >>"${log_dir%/}/curl.calls.txt"
+fi
+
+status="${CODEX_CURL_STUB_STATUS:-200}"
+body_file="${CODEX_CURL_STUB_BODY_FILE:-}"
+body="${CODEX_CURL_STUB_BODY:-{\"ok\":true}}"
+
+out_file=""
+write_fmt=""
+url=""
+
+args=("$@")
+for ((i=0; i<${#args[@]}; i++)); do
+  a="${args[$i]}"
+  case "$a" in
+    -o)
+      out_file="${args[$((i + 1))]:-}"
+      i=$((i + 1))
+      ;;
+    -w)
+      write_fmt="${args[$((i + 1))]:-}"
+      i=$((i + 1))
+      ;;
+    -d|--data|--data-raw|--data-binary|--data-urlencode)
+      i=$((i + 1))
+      ;;
+    -H|--header|--max-time|--connect-timeout|--request)
+      i=$((i + 1))
+      ;;
+    -*)
+      ;;
+    *)
+      url="$a"
+      ;;
+  esac
+done
+
+content="$body"
+if [[ -n "$body_file" ]]; then
+  if [[ -f "$body_file" ]]; then
+    content="$(cat "$body_file")"
+  fi
+fi
+
+if [[ -n "$out_file" ]]; then
+  if [[ "$out_file" != "/dev/null" ]]; then
+    mkdir -p "$(dirname "$out_file")" 2>/dev/null || true
+    printf "%s" "$content" >"$out_file"
+  fi
+else
+  printf "%s" "$content"
+fi
+
+if [[ -n "$write_fmt" && "$write_fmt" == *"%{http_code}"* ]]; then
+  printf "%s" "$status"
+fi
+
+exit 0
