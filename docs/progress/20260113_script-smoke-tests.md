@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: TBD
+- PR: https://github.com/graysurf/codex-kit/pull/22
 - Planning PR: https://github.com/graysurf/codex-kit/pull/21
 - Docs: [docs/testing/script-regression.md](../testing/script-regression.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)

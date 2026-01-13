@@ -4,7 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-13 | [Script smoke tests expansion](20260113_script-smoke-tests.md) | TBD |
+| 2026-01-13 | [Script smoke tests expansion](20260113_script-smoke-tests.md) | [#22](https://github.com/graysurf/codex-kit/pull/22) |
 
 ## Archived
 
