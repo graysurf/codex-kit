@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.1 - 2026-01-13
+
+### Added
+- Pytest-based script regression suite and docs.
+- MIT license.
+
+### Changed
+- CI: run pytest in lint workflow.
+- PR workflows: standardize planning PR references and reduce `gh` calls.
+
+### Fixed
+- PR merge script now avoids unsupported `gh pr merge --yes` flag.
+
 ## v1.0.0 - 2026-01-13
 
 ### Added
