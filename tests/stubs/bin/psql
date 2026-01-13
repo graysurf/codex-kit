@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help|--version)
+      echo "psql stub (help)"
+      exit 0
+      ;;
+  esac
+done
+
+host=""
+port=""
+user=""
+db=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --host=*)
+      host="${1#*=}"
+      shift
+      ;;
+    --host)
+      host="${2-}"
+      shift 2
+      ;;
+    --port=*)
+      port="${1#*=}"
+      shift
+      ;;
+    --port)
+      port="${2-}"
+      shift 2
+      ;;
+    --username=*)
+      user="${1#*=}"
+      shift
+      ;;
+    --username)
+      user="${2-}"
+      shift 2
+      ;;
+    --dbname=*)
+      db="${1#*=}"
+      shift
+      ;;
+    --dbname)
+      db="${2-}"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$host" || -z "$port" || -z "$user" || -z "$db" ]]; then
+  echo "error: psql stub missing required connection flags (--host/--port/--username/--dbname)" >&2
+  exit 2
+fi
+
+if [[ -z "${PGPASSWORD-}" ]]; then
+  echo "error: psql stub missing PGPASSWORD" >&2
+  exit 2
+fi
+
+echo "psql stub ok"

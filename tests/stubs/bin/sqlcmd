@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help|-\?)
+      echo "sqlcmd stub (help)"
+      exit 0
+      ;;
+  esac
+done
+
+server=""
+user=""
+password=""
+db=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -S)
+      server="${2-}"
+      shift 2
+      ;;
+    -U)
+      user="${2-}"
+      shift 2
+      ;;
+    -P)
+      password="${2-}"
+      shift 2
+      ;;
+    -d)
+      db="${2-}"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$server" || -z "$user" || -z "$password" || -z "$db" ]]; then
+  echo "error: sqlcmd stub missing required flags (-S/-U/-P/-d)" >&2
+  exit 2
+fi
+
+echo "sqlcmd stub ok"
