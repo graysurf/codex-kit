@@ -1,0 +1,24 @@
+{
+  "smoke": [
+    {
+      "name": "stdout",
+      "args": ["--version", "v9.9.9", "--date", "2026-01-13"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^## v9\\.9\\.9 - 2026-01-13$"
+      }
+    },
+    {
+      "name": "output-file",
+      "args": ["--version", "v9.9.9", "--date", "2026-01-13", "--output", "out/tests/script-smoke/release-scaffold-entry/entry.md"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^out/tests/script-smoke/release-scaffold-entry/entry\\.md$"
+      },
+      "artifacts": ["out/tests/script-smoke/release-scaffold-entry/entry.md"]
+    }
+  ]
+}
+

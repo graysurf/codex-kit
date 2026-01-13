@@ -1,0 +1,14 @@
+{
+  "smoke": [
+    {
+      "name": "check",
+      "args": ["--check", "--no-skip-template", "--repo", ".", "--changelog", "CHANGELOG.md"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^ok: changelog audit passed:"
+      }
+    }
+  ]
+}
+
