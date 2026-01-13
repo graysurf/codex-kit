@@ -50,6 +50,8 @@ Smoke tests are a separate pytest marker intended for deeper, hermetic-ish execu
 - Evidence:
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`
+- Docs:
+  - `docs/testing/script-smoke.md`
 
 ## Per-script spec overrides
 

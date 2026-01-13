@@ -38,8 +38,8 @@ Links:
 
 - Script entrypoints: tracked files under `scripts/**` and `skills/**/scripts/**`.
 - Existing regression specs: `tests/script_specs/**/*.json`.
-- New smoke inputs (planned):
-  - Extend `tests/script_specs/**/*.json` schema to support smoke cases (in addition to regression `--help`).
+- New smoke inputs:
+  - `tests/script_specs/**/*.json` smoke cases (in addition to regression `--help`).
   - `tests/fixtures/**` (fixture repos/files used by pytest-driven smoke cases).
   - `tests/stubs/bin/**` (stub commands for hermetic execution).
 
@@ -47,7 +47,7 @@ Links:
 
 - Evidence under `out/tests/`:
   - Existing: `out/tests/script-regression/**`
-  - Planned: `out/tests/script-smoke/**` (logs + summary JSON)
+  - Existing: `out/tests/script-smoke/**` (logs + summary JSON)
 
 ### Intermediate Artifacts
 
@@ -93,20 +93,20 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Data flow and I/O contract are defined: inputs/outputs/artifacts recorded above.
     - [x] Risks and mitigations are defined: risks recorded above.
     - [x] Verification commands are defined: `scripts/test.sh -m script_regression` and `scripts/test.sh -m script_smoke`.
-- [ ] Step 1: Minimum viable smoke suite
+- [x] Step 1: Minimum viable smoke suite
   - Work Items:
-    - [ ] Add a new pytest marker for smoke (e.g. `script_smoke`) and a harness that can run "smoke cases".
-    - [ ] Extend the existing `tests/script_specs/**` JSON schema to support smoke cases (and implement loading logic).
-    - [ ] Add initial fixtures/stubs and smoke coverage for a small starter set (5–8 scripts).
+    - [x] Add a new pytest marker for smoke (e.g. `script_smoke`) and a harness that can run "smoke cases".
+    - [x] Extend the existing `tests/script_specs/**` JSON schema to support smoke cases (and implement loading logic).
+    - [x] Add initial fixtures/stubs and smoke coverage for a small starter set (5–8 scripts).
   - Artifacts:
-    - `tests/test_script_smoke.py` (planned)
-    - `tests/script_specs/**` (extended with smoke cases; planned)
-    - `tests/fixtures/**` (planned)
-    - `docs/testing/script-smoke.md` (planned)
+    - `tests/test_script_smoke.py`
+    - `tests/script_specs/**` (smoke cases)
+    - `tests/fixtures/**`
+    - `docs/testing/script-smoke.md`
   - Exit Criteria:
-    - [ ] At least one happy path runs end-to-end: `pytest -m script_smoke` (pass).
-    - [ ] Primary outputs are verifiable: `out/tests/script-smoke/summary.json` + per-script logs.
-    - [ ] Usage docs skeleton exists: `docs/testing/script-smoke.md` includes TL;DR + spec format.
+    - [x] At least one happy path runs end-to-end: `scripts/test.sh -m script_smoke` (pass).
+    - [x] Primary outputs are verifiable: `out/tests/script-smoke/summary.json` + per-script logs.
+    - [x] Usage docs skeleton exists: `docs/testing/script-smoke.md` includes TL;DR + spec format.
 - [ ] Step 2: Expand smoke coverage across scripts
   - Work Items:
     - [ ] Add smoke coverage for remaining scripts, guided by the inventory table (spec or pytest fixture as appropriate).
@@ -149,10 +149,10 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 - `tests/test_audit_scripts.py`: existing functional tests for selected scripts.
 - `tests/stubs/bin/**`: hermetic stubs (e.g. `curl`, `gh`, `wget`).
 - `docs/testing/script-regression.md`: current docs for regression suite.
-- Planned: `tests/test_script_smoke.py`: functional smoke suite (marker-based).
-- Planned: extend `tests/script_specs/**`: spec-driven smoke cases.
-- Planned: `tests/fixtures/**`: fixture repos/files for smoke.
-- Planned: `docs/testing/script-smoke.md`: smoke docs + authoring guide.
+- `tests/test_script_smoke.py`: functional smoke suite (marker-based).
+- `tests/script_specs/**`: spec-driven smoke cases.
+- `tests/fixtures/**`: fixture repos/files for smoke.
+- `docs/testing/script-smoke.md`: smoke docs + authoring guide.
 
 ## Script Inventory
 
