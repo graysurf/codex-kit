@@ -84,11 +84,8 @@ if [[ -n "$(git status --porcelain=v1)" ]]; then
   exit 1
 fi
 
-pr_url="$(gh pr view "$pr_number" --json url -q .url)"
-pr_title="$(gh pr view "$pr_number" --json title -q .title)"
-base_branch="$(gh pr view "$pr_number" --json baseRefName -q .baseRefName)"
-head_branch="$(gh pr view "$pr_number" --json headRefName -q .headRefName)"
-pr_state="$(gh pr view "$pr_number" --json state -q .state)"
+pr_meta="$(gh pr view "$pr_number" --json url,title,baseRefName,headRefName,state -q '[.url, .title, .baseRefName, .headRefName, .state] | @tsv')"
+IFS=$'\t' read -r pr_url pr_title base_branch head_branch pr_state <<<"$pr_meta"
 
 repo_origin="$(python3 - "$pr_url" <<'PY'
 from urllib.parse import urlparse

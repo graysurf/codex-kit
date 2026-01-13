@@ -89,11 +89,8 @@ if [[ -z "$pr_number" ]]; then
   exit 1
 fi
 
-pr_url="$(gh pr view "$pr_number" --json url -q .url)"
-pr_title="$(gh pr view "$pr_number" --json title -q .title)"
-base_branch="$(gh pr view "$pr_number" --json baseRefName -q .baseRefName)"
-head_branch="$(gh pr view "$pr_number" --json headRefName -q .headRefName)"
-pr_state="$(gh pr view "$pr_number" --json state -q .state)"
+pr_meta="$(gh pr view "$pr_number" --json url,baseRefName,headRefName,state -q '[.url, .baseRefName, .headRefName, .state] | @tsv')"
+IFS=$'\t' read -r pr_url base_branch head_branch pr_state <<<"$pr_meta"
 
 repo_full="$(python3 - "$pr_url" <<'PY'
 from urllib.parse import urlparse
