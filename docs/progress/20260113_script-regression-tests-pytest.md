@@ -84,6 +84,9 @@ Links:
 
 - Test runner: `pytest` (Python), local-only (no CI wiring in this workstream).
 - Coverage rule: every discovered script must have an executable test invocation (default `--help`, or explicit spec).
+- Scripts that require secrets/interactive input: graceful-fail is considered pass when the failure is expected and non-destructive (record expected error patterns in specs).
+- Per-script spec format + location: `tests/script_specs/<script_relpath>.json`.
+- `prompts/*.md` front matter: must be valid YAML and include `description` + `argument-hint` keys (additional keys allowed).
 - Hermetic default environment:
   - `CODEX_HOME` set to repo root
   - `HOME` and `XDG_CONFIG_HOME` redirected under `out/tests/script-regression/`
@@ -92,9 +95,7 @@ Links:
 
 ### Open Questions
 
-- What is the canonical definition of “full run” for scripts that require secrets/interactive input (stub vs skip with reason)? (owner: TBD, decision by: TBD)
-- What per-script spec format should we use (YAML vs JSON vs Python), and where should it live? (owner: TBD, decision by: TBD)
-- Which `prompts/*.md` YAML front matter keys are required and should be validated? (owner: TBD, decision by: TBD)
+- None.
 
 ## Steps (Checklist)
 
