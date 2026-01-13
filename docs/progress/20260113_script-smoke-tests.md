@@ -6,9 +6,9 @@
 
 Links:
 
-- PR: TBD
-- Docs: `docs/testing/script-regression.md`
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- PR: https://github.com/graysurf/codex-kit/pull/21
+- Docs: [docs/testing/script-regression.md](../testing/script-regression.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
