@@ -106,7 +106,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [ ] Inventory all script entrypoints to cover (and decide inclusion rules): `scripts/**`, `scripts/commands/**`, `skills/**/scripts/**`.
     - [ ] Define the default safe invocation contract (`--help` first) and the per-script spec format for overrides.
     - [ ] Define the hermetic environment contract (env vars, stubbed commands, working directory layout under `out/`).
-    - [ ] Decide what “full run” means for scripts that require secrets/interactive input (stub vs skip with reason).
+    - [ ] Specify "full run" semantics for secrets/interactive scripts (graceful-fail pass + expected error patterns).
   - Artifacts:
     - `docs/progress/20260113_script-regression-tests-pytest.md` (this file)
     - Notes: decisions recorded in this progress file
