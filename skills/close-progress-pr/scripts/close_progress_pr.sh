@@ -178,6 +178,7 @@ if [[ -z "$progress_file" ]]; then
   echo "error: cannot resolve progress file for PR $pr_number" >&2
   echo "hint: ensure PR body contains a docs/progress link under '## Progress', or pass --progress-file" >&2
   echo "hint: or ensure the progress file contains the PR URL under Links -> PR" >&2
+  echo "hint: if this PR is not progress-tracked (e.g. '## Progress' is 'None'), use close-feature-pr instead" >&2
   exit 1
 fi
 

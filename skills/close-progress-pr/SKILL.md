@@ -11,12 +11,12 @@ Prereqs:
 
 - Run inside the target git repo with a clean working tree.
 - `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
-- Target PR has a `## Progress` link in its body (preferred) or the progress file contains the PR URL.
+- Target PR body contains a `docs/progress/...` link under `## Progress` (preferred; not `None`), or you pass `--progress-file`, or the progress file contains the PR URL.
 
 Inputs:
 
 - PR number (or current-branch PR).
-- Progress file under `docs/progress/` referenced by the PR.
+- Optional: progress file under `docs/progress/` referenced by the PR (use `--progress-file` when PR body is missing/ambiguous).
 
 Outputs:
 
@@ -34,6 +34,7 @@ Failure modes:
 - Unchecked checklist items missing `Reason:` (fail-fast).
 - Progress file cannot be located or moved (path mismatch, conflicts).
 - PR merge blocked (draft/checks failing/permissions).
+- PR is not progress-tracked (`## Progress` is `None` or missing); use `close-feature-pr` instead.
 
 ## Setup
 
