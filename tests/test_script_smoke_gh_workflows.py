@@ -13,6 +13,10 @@ def git(cmd: list[str], *, cwd: Path) -> None:
     subprocess.run(["git", *cmd], cwd=str(cwd), check=True, text=True, capture_output=True)
 
 
+def gh_stub_log_dir(tmp_path: Path, name: str) -> Path:
+    return tmp_path / "stub-logs" / "gh" / name
+
+
 def init_fixture_repo(tmp_path: Path, *, default_branch: str = "main") -> tuple[Path, Path]:
     work_tree = tmp_path / "repo"
     origin = tmp_path / "origin.git"
@@ -42,7 +46,7 @@ def test_script_smoke_fixture_close_feature_pr(tmp_path: Path):
 
     repo = repo_root()
     script = "skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh"
-    log_dir = repo / "out" / "tests" / "script-smoke" / "stubs" / "gh" / "close-feature-pr"
+    log_dir = gh_stub_log_dir(tmp_path, "close-feature-pr")
     spec = {
         "args": ["--pr", "123", "--skip-checks", "--no-cleanup"],
         "timeout_sec": 15,
@@ -72,7 +76,7 @@ def test_script_smoke_fixture_handoff_progress_pr_patch_only(tmp_path: Path):
 
     repo = repo_root()
     script = "skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh"
-    log_dir = repo / "out" / "tests" / "script-smoke" / "stubs" / "gh" / "handoff-progress-pr"
+    log_dir = gh_stub_log_dir(tmp_path, "handoff-progress-pr")
     progress_file = "docs/progress/20260113_fixture.md"
 
     spec = {
@@ -168,6 +172,7 @@ def test_script_smoke_fixture_close_progress_pr_no_merge(tmp_path: Path):
 
     repo = repo_root()
     script = "skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-progress-pr")
     spec = {
         "args": [
             "--pr",
@@ -179,7 +184,7 @@ def test_script_smoke_fixture_close_progress_pr_no_merge(tmp_path: Path):
         "timeout_sec": 30,
         "env": {
             "CODEX_GH_STUB_MODE": "1",
-            "CODEX_STUB_LOG_DIR": str(repo / "out" / "tests" / "script-smoke" / "stubs" / "gh" / "close-progress-pr"),
+            "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "123",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/123",
             "CODEX_GH_STUB_TITLE": "Fixture progress close",
