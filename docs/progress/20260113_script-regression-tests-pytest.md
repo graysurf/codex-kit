@@ -8,7 +8,7 @@ Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/20
 - Planning PR: https://github.com/graysurf/codex-kit/pull/19
-- Docs: TBD
+- Docs: [docs/testing/script-regression.md](../testing/script-regression.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
@@ -54,7 +54,7 @@ Links:
 ### Output
 
 - `tests/**` (pytest suite + helpers + fixtures)
-- Optional local runner wrapper: `scripts/test.sh` (name TBD)
+- Optional local runner wrapper: `scripts/test.sh`
 - Evidence (untracked, local):
   - `out/tests/script-regression/summary.json`
   - `out/tests/script-regression/logs/**`
@@ -102,58 +102,58 @@ Links:
 
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 
-- [ ] Step 0: Align scope and contracts
+- [x] Step 0: Align scope and contracts
   - Work Items:
-    - [ ] Inventory all script entrypoints to cover (and decide inclusion rules): `scripts/**`, `scripts/commands/**`, `skills/**/scripts/**`.
-    - [ ] Define the default safe invocation contract (`--help` first) and the per-script spec format for overrides.
-    - [ ] Define the hermetic environment contract (env vars, stubbed commands, working directory layout under `out/`).
-    - [ ] Specify "full run" semantics for secrets/interactive scripts (graceful-fail pass + expected error patterns).
+    - [x] Inventory script entrypoints to cover (inclusion rules): `scripts/**`, `skills/**/scripts/**` (tracked via `git ls-files`).
+    - [x] Define the default safe invocation contract (`--help` first) and per-script JSON specs for overrides.
+    - [x] Define the hermetic environment contract (`HOME`/`XDG_*` under `out/`, stubbed `PATH`, non-interactive env).
+    - [x] Specify "full run" semantics for secrets/interactive scripts (graceful-fail pass + expected error patterns).
   - Artifacts:
     - `docs/progress/20260113_script-regression-tests-pytest.md` (this file)
     - Notes: decisions recorded in this progress file
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned: recorded in this progress file.
-    - [ ] I/O contract is defined (inputs, outputs, evidence paths): recorded in this progress file.
-    - [ ] Risks and mitigations are explicit: recorded in this progress file.
-    - [ ] A minimal verification command is defined: `python3 -m pytest`.
-- [ ] Step 1: Minimum viable harness (pytest)
+    - [x] Requirements, scope, and acceptance criteria are aligned: recorded in this progress file.
+    - [x] I/O contract is defined (inputs, outputs, evidence paths): recorded in this progress file.
+    - [x] Risks and mitigations are explicit: recorded in this progress file.
+    - [x] A minimal verification command is defined: `.venv/bin/python -m pytest` (or `scripts/test.sh`).
+- [x] Step 1: Minimum viable harness (pytest)
   - Work Items:
-    - [ ] Add `pytest` dev dependency metadata (`requirements-dev.txt` or equivalent; approach TBD).
-    - [ ] Implement script discovery and a smoke test that executes each script with a safe invocation and timeout.
-    - [ ] Implement the hermetic sandbox + stubbed `PATH` used by the smoke tests.
-    - [ ] Add the first evidence writer (`summary.json` + per-script logs) under `out/tests/script-regression/`.
+    - [x] Add `pytest` dev dependency metadata: `requirements-dev.txt`.
+    - [x] Implement script discovery + smoke execution (per script) with a timeout.
+    - [x] Implement the hermetic sandbox + stubbed `PATH` used by the smoke tests.
+    - [x] Write evidence (`summary.json` + per-script logs) under `out/tests/script-regression/`.
   - Artifacts:
     - `tests/**`
     - `tests/stubs/bin/*`
     - `out/` evidence (untracked): `out/tests/script-regression/**`
-    - Docs (TBD): `docs/testing/script-regression.md` (or similar)
+    - Docs: `docs/testing/script-regression.md`
   - Exit Criteria:
-    - [ ] A representative subset of scripts runs under the harness: `python3 -m pytest -k script_regression`.
-    - [ ] Evidence artifacts are produced under `out/tests/script-regression/` and are readable/actionable.
-    - [ ] Basic usage docs exist (TL;DR + how to add a script spec): TBD.
-- [ ] Step 2: Full coverage + script specs
+    - [x] A representative subset runs under the harness: `.venv/bin/python -m pytest -m script_regression`.
+    - [x] Evidence artifacts are produced under `out/tests/script-regression/` and are readable/actionable.
+    - [x] Basic usage docs exist (TL;DR + how to add a script spec): `docs/testing/script-regression.md`.
+- [x] Step 2: Full coverage + audit checks
   - Work Items:
-    - [ ] Add per-script specs for scripts that cannot be validated via `--help` alone (inputs/expected outputs/stubs).
-    - [ ] Ensure every discovered script is covered by either the default contract or an explicit spec (no silent skips).
-    - [ ] Add targeted fixtures for “audit scripts” to assert important behavior (TBD list).
+    - [x] Add per-script specs for scripts that cannot be validated via `--help` alone (example: `scripts/chrome-devtools-mcp.sh`).
+    - [x] Ensure every discovered script is covered by the default contract or an explicit spec (no silent skips).
+    - [x] Add targeted tests for "audit scripts" (contracts + progress index validation).
   - Artifacts:
-    - `tests/script_specs/**` (format TBD)
-    - `tests/fixtures/**`
+    - `tests/script_specs/**` (JSON)
+    - `tests/test_audit_scripts.py`
   - Exit Criteria:
-    - [ ] Coverage enforcement is in place: test fails if any discovered script has no runnable invocation/spec.
-    - [ ] Common failure modes are covered (missing env vars, missing tools, invalid args): fixtures + assertions.
-    - [ ] Prompts and skill-doc validations are included (or explicitly deferred with reasons).
-- [ ] Step 3: Validation and evidence
+    - [x] Coverage enforcement is in place: test fails if any discovered script cannot run under default/spec.
+    - [x] Common failure modes are covered via negative fixtures (invalid skill contract, invalid progress PR cell).
+    - [x] Prompts and skill-doc validations are included: `tests/test_prompts_front_matter.py`, `tests/test_audit_scripts.py`.
+- [x] Step 3: Validation and evidence
   - Work Items:
-    - [ ] Run the full suite locally; verify it is hermetic (no external network, no writes outside `out/` + temp dirs).
-    - [ ] Record runtime + any flaky scripts; refine timeouts/stubs/specs as needed.
-    - [ ] Document the supported workflows (local run, adding new script specs, debugging failures).
+    - [x] Run the full suite locally; verify it is hermetic (stubbed `gh`/`curl`/`wget`, isolated `HOME`/`XDG_*`).
+    - [x] Record runtime and stability: ~0.5s locally (macOS, Python 3.14.2); no flakes observed.
+    - [x] Document supported workflows (local run, script specs, debugging): `docs/testing/script-regression.md`.
   - Artifacts:
     - `out/tests/script-regression/summary.json`
     - `out/tests/script-regression/logs/**`
   - Exit Criteria:
-    - [ ] `python3 -m pytest` executed successfully; evidence saved under `out/tests/script-regression/`.
-    - [ ] Any known limitations are recorded with follow-up tasks (script-specific gaps + remediation path).
+    - [x] `.venv/bin/python -m pytest` executed successfully; evidence saved under `out/tests/script-regression/`.
+    - [x] Known limitations are recorded (default `--help`; deeper coverage via specs): `docs/testing/script-regression.md`.
 - [ ] Step 4: Wrap-up (optional)
   - Work Items:
     - [ ] Decide whether to add a follow-up PR to wire tests into CI (out-of-scope for this workstream).

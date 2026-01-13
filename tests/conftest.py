@@ -37,6 +37,44 @@ def repo_root() -> Path:
 def out_dir() -> Path:
     return repo_root() / "out" / "tests" / "script-regression"
 
+def default_env(repo: Path) -> dict[str, str]:
+    base = os.environ.copy()
+
+    out_base = out_dir()
+    home = out_base / "home"
+    xdg_config = out_base / "xdg" / "config"
+    xdg_cache = out_base / "xdg" / "cache"
+    xdg_data = out_base / "xdg" / "data"
+    xdg_state = out_base / "xdg" / "state"
+    tmp = out_base / "tmp"
+
+    for p in (home, xdg_config, xdg_cache, xdg_data, xdg_state, tmp):
+        p.mkdir(parents=True, exist_ok=True)
+
+    stub_bin = repo / "tests" / "stubs" / "bin"
+    base["PATH"] = os.pathsep.join([str(stub_bin), base.get("PATH", "")])
+
+    base.update(
+        {
+            "CODEX_HOME": str(repo),
+            "HOME": str(home),
+            "XDG_CONFIG_HOME": str(xdg_config),
+            "XDG_CACHE_HOME": str(xdg_cache),
+            "XDG_DATA_HOME": str(xdg_data),
+            "XDG_STATE_HOME": str(xdg_state),
+            "TMPDIR": str(tmp),
+            "NO_COLOR": "1",
+            "CLICOLOR": "0",
+            "CLICOLOR_FORCE": "0",
+            "FORCE_COLOR": "0",
+            "PY_COLORS": "0",
+            "GIT_PAGER": "cat",
+            "PAGER": "cat",
+        }
+    )
+
+    return base
+
 
 def _coerce_str_env(env: dict[str, Any]) -> dict[str, str]:
     out: dict[str, str] = {}

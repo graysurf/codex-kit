@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "error: gh is blocked by script regression tests" >&2
+exit 90
