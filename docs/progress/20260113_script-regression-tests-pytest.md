@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: TBD
+- PR: https://github.com/graysurf/codex-kit/pull/19
 - Docs: TBD
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 
