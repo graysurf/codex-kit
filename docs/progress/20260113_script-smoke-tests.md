@@ -65,13 +65,16 @@ Links:
 
 - Smoke specs live in `tests/script_specs/**` (schema extended for smoke cases), rather than a new `tests/script_smoke_specs/**` tree.
 - Any git-mutating scripts run only inside isolated temporary git repos (pytest fixtures); never in the real repo working tree.
+- CI contract (no nightly):
+  - `push` (non-`main`, including `develop`): run `script_regression` + `script_smoke_quick`
+  - `pull_request` -> `main` and `push` -> `main`: run `script_regression` + `script_smoke_full`
 
 ### Risks / Uncertainties
 
 - Runtime + maintenance cost: 42 scripts today, likely more over time; adding smoke coverage everywhere can bloat CI. Mitigation: tiering + timeouts + explicit allowlist progression.
 - Flakiness from environment coupling (PATH tools, OS differences, network). Mitigation: hermetic env (`tests/stubs/bin`, `HOME/XDG_*` redirection) + fixture repos + "dry-run" modes.
 - Some scripts may be inherently interactive or destructive (git history mutation, database connections). Mitigation: run those only in isolated temporary repos or keep them `help-only` with a documented reason.
-- CI contract for smoke: run full smoke on every PR vs scheduled/manual. Mitigation: start with an allowlist, then expand once runtime is measured.
+- CI contract split (quick vs full): quick on feature pushes may miss slower paths until PR/main. Mitigation: keep quick meaningful (not just `--help`) and keep full within CI timeouts.
 
 ## Steps (Checklist)
 
@@ -79,7 +82,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 
 - [ ] Step 0: Alignment and inventory
   - Work Items:
-    - [ ] Confirm smoke tier definitions and CI contract (what runs by default vs optional).
+    - [x] Confirm smoke tier definitions and CI contract (what runs by default vs optional).
     - [ ] Generate the script inventory and classify each entrypoint (`help-only` / `spec-smoke` / `pytest-fixture`).
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
@@ -146,7 +149,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 - `tests/stubs/bin/**`: hermetic stubs (e.g. `curl`, `gh`, `wget`).
 - `docs/testing/script-regression.md`: current docs for regression suite.
 - Planned: `tests/test_script_smoke.py`: functional smoke suite (marker-based).
-- Planned: `tests/script_smoke_specs/**`: spec-driven smoke cases.
+- Planned: extend `tests/script_specs/**`: spec-driven smoke cases.
 - Planned: `tests/fixtures/**`: fixture repos/files for smoke.
 - Planned: `docs/testing/script-smoke.md`: smoke docs + authoring guide.
 
