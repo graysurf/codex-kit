@@ -17,6 +17,20 @@ are intentionally excluded via `.gitignore`.
 └── setup/         # request templates / fixtures
 ```
 
+## ⚙️ Setup
+
+Set `CODEX_HOME` in `~/.zshenv`:
+
+```zsh
+export CODEX_HOME="$HOME/.codex"
+```
+
+Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools can treat that repo as the active project context:
+
+```zsh
+export PROJECT_PATH="$PWD"
+```
+
 ## 🧰 Prompts
 
 ### Common
@@ -70,8 +84,8 @@ Core skills are grouped under `skills/workflows/` and `skills/tools/`. Project-s
 | [tun-mssql](./skills/_projects/tun-group/tun-mssql/) | Run SQL Server queries via the tun-mssql wrapper |
 | [tun-psql](./skills/_projects/tun-group/tun-psql/) | Run PostgreSQL queries via the tun-psql wrapper |
 
-## 📜 Notes
+## 🪪 License
 
-- This repo lives at `~/.config/codex-kit`; `$CODEX_HOME` is a symlink here and is the configured Codex home.
-- Tools loader (single source of truth): `source $CODEX_HOME/scripts/codex-tools.sh`.
-- Desktop notifications: use `skills/tools/devex/desktop-notify/scripts/project-notify.sh` (project title) or `skills/tools/devex/desktop-notify/scripts/desktop-notify.sh` (custom title).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
