@@ -67,8 +67,8 @@ Links:
 - Smoke specs live in `tests/script_specs/**` (schema extended for smoke cases), rather than a new `tests/script_smoke_specs/**` tree.
 - Any git-mutating scripts run only inside isolated temporary git repos (pytest fixtures); never in the real repo working tree.
 - CI contract (no nightly):
-  - `push` (non-`main`, including `develop`): run `script_regression` + `script_smoke_quick`
-  - `pull_request` -> `main` and `push` -> `main`: run `script_regression` + `script_smoke_full`
+  - Keep a single `script_smoke` marker for now.
+  - Consider splitting `script_smoke_quick` / `script_smoke_full` later if runtime grows.
 
 ### Risks / Uncertainties
 
@@ -109,7 +109,8 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Usage docs skeleton exists: `docs/testing/script-smoke.md` includes TL;DR + spec format.
 - [ ] Step 2: Expand smoke coverage across scripts
   - Work Items:
-    - [ ] Add smoke coverage for remaining scripts, guided by the inventory table (spec or pytest fixture as appropriate).
+    - [x] Split Step 2 into multiple implementation PRs; scopes recorded in "Step 2 PR Plan".
+    - [ ] Add smoke coverage for remaining scripts, guided by the inventory table (spec-smoke first; defer pytest fixtures).
     - [ ] Extend `tests/stubs/bin` to cover required external tools (e.g. `psql`, `mysql`, `sqlcmd`).
     - [ ] Add negative tests for "placeholder left behind" failure modes where relevant.
   - Artifacts:
@@ -202,3 +203,26 @@ Tracked script entrypoints (via `git ls-files`):
 | `skills/workflows/release/release-workflow/scripts/release-audit.sh` | `bash` | regression (`--help`) | `pytest-fixture` | temp repo for tag checks + changelog fixtures |
 | `skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh` | `bash` | regression (`--help`) | `pytest-fixture` | changelog fixtures, verify extracted notes |
 | `skills/workflows/release/release-workflow/scripts/release-scaffold-entry.sh` | `bash` | regression (`--help`) | `spec-smoke` | output to `out/tests` and verify content |
+
+## Step 2 PR Plan
+
+Goal: Expand `script_smoke` coverage without making a single massive PR. Each PR should be reviewable and
+focused on one script family + its required stubs/fixtures.
+
+Defaults (selected):
+
+- Start from the baseline commit that lands Step 1 (`script_smoke` harness + initial cases).
+- Prefer `spec-smoke` cases first; defer `pytest-fixture` scripts unless the fixture setup is minimal.
+- Stubs should be strict validators by default (fail fast when argv/env wiring is wrong).
+- Keep a single `script_smoke` marker for now (no quick/full split yet).
+
+Planned PRs:
+
+| PR | Scope | Target scripts (primary) | Notes |
+| --- | --- | --- | --- |
+| TBD | DB client stubs (`psql`, `mysql`, `sqlcmd`) | `scripts/db-connect/*.zsh`, `skills/_projects/*/scripts/*` | Add strict stubs first; fixture-based coverage may follow in a later PR. |
+| TBD | Smoke specs: Chrome devtools + history tools | `scripts/chrome-devtools-mcp.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh` | Use dry-run + history fixtures under `tests/fixtures/`. |
+| TBD | Smoke specs: desktop notifications | `skills/tools/devex/desktop-notify/scripts/*.sh` | Add notifier stubs (`terminal-notifier` / `notify-send`) and validate wrapper behavior. |
+| TBD | Smoke specs: release workflow audits | `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |
+| TBD | Smoke specs: render-only workflow helpers | `skills/workflows/**/scripts/render_*.sh` | Validate templates render; no network required. |
+| TBD | Follow-ups (deferred): pytest-fixture scripts | `skills/tools/devex/semantic-commit/scripts/*`, `skills/workflows/pr/**/scripts/*`, `skills/tools/testing/*/scripts/*` | Requires temp git repos and/or stubs for `gh`/HTTP; split by workflow. |
