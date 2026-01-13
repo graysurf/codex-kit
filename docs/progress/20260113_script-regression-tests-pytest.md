@@ -90,6 +90,12 @@ Links:
   - `NO_COLOR=1` and non-interactive friendly env vars set
 - Evidence location: all test evidence written under `out/tests/script-regression/` (never `/tmp` for persisted artifacts).
 
+### Open Questions
+
+- What is the canonical definition of “full run” for scripts that require secrets/interactive input (stub vs skip with reason)? (owner: TBD, decision by: TBD)
+- What per-script spec format should we use (YAML vs JSON vs Python), and where should it live? (owner: TBD, decision by: TBD)
+- Which `prompts/*.md` YAML front matter keys are required and should be validated? (owner: TBD, decision by: TBD)
+
 ## Steps (Checklist)
 
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
