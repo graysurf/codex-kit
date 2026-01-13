@@ -30,6 +30,7 @@ branch=""
 version=""
 changelog="CHANGELOG.md"
 strict=0
+repo_template=""
 
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
@@ -78,6 +79,11 @@ if ! command -v git >/dev/null 2>&1; then
   die "git is required"
 fi
 
+if [[ -f "docs/templates/RELEASE_TEMPLATE.md" ]]; then
+  repo_template="docs/templates/RELEASE_TEMPLATE.md"
+  say_ok "repo template present: $repo_template"
+fi
+
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   die "not a git repository: $repo"
 fi
@@ -122,6 +128,23 @@ else
 fi
 
 if [[ -f "$changelog" ]]; then
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+  audit_changelog="${script_dir}/audit-changelog.zsh"
+  if [[ -x "$audit_changelog" ]]; then
+    if (( strict )); then
+      if "$audit_changelog" --repo . --changelog "$changelog" --check; then
+        say_ok "audit-changelog --check"
+      else
+        say_fail "audit-changelog --check failed"
+      fi
+    else
+      "$audit_changelog" --repo . --changelog "$changelog" || say_warn "audit-changelog errored"
+      say_ok "audit-changelog (non-strict)"
+    fi
+  else
+    say_warn "audit-changelog script not found; skipping"
+  fi
+
   if ! grep -qF "## ${version} - " "$changelog"; then
     say_fail "missing changelog heading: ## ${version} - YYYY-MM-DD"
   else
@@ -141,11 +164,13 @@ if [[ -f "$changelog" ]]; then
   if [[ -z "$notes" ]]; then
     say_fail "unable to extract notes for $version from $changelog"
   else
-    for section in "### Added" "### Changed" "### Fixed"; do
-      if [[ "$notes" != *$'\n'"$section"$'\n'* ]]; then
-        say_fail "missing required section: $section"
-      fi
-    done
+    if [[ -z "$repo_template" ]]; then
+      for section in "### Added" "### Changed" "### Fixed"; do
+        if [[ "$notes" != *$'\n'"$section"$'\n'* ]]; then
+          say_fail "missing required section: $section"
+        fi
+      done
+    fi
 
     if [[ "$notes" == *"- ..."* || "$notes" == *"..."* ]]; then
       if (( strict )); then
