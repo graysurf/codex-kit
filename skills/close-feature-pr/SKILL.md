@@ -42,6 +42,7 @@ Failure modes:
 ## When to use
 
 - The user asks to merge/close a PR and clean up the feature branch.
+- If the PR is tracked by a progress file (PR body links to `docs/progress/...`) and you want to finalize/archive that progress, use `close-progress-pr` instead.
 
 ## Workflow
 
