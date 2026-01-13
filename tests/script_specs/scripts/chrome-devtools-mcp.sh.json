@@ -1,4 +1,22 @@
 {
+  "smoke": [
+    {
+      "name": "dry-run",
+      "args": [],
+      "env": {
+        "CHROME_DEVTOOLS_DRY_RUN": "true",
+        "CHROME_DEVTOOLS_MODE": "clean",
+        "CHROME_DEVTOOLS_PREFLIGHT": "false",
+        "CHROME_DEVTOOLS_LOG_FILE": "out/tests/script-smoke/chrome-devtools-mcp/dry-run.log"
+      },
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "chrome-devtools-mcp@latest"
+      },
+      "artifacts": ["out/tests/script-smoke/chrome-devtools-mcp/dry-run.log"]
+    }
+  ],
   "args": [],
   "env": {
     "CHROME_DEVTOOLS_DRY_RUN": "true",
