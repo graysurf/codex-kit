@@ -136,3 +136,6 @@ jobs:
           path: |
             out/tests/script-regression/summary.json
             out/tests/script-regression/logs
+            out/tests/script-smoke/summary.json
+            out/tests/script-smoke/logs
+            out/tests/script-smoke/api-test-summary

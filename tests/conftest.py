@@ -20,9 +20,11 @@ class ScriptRunResult:
     stderr_path: str
     status: str  # pass|fail
     note: str | None = None
+    case: str | None = None
 
 
 SCRIPT_RUN_RESULTS: list[ScriptRunResult] = []
+SCRIPT_SMOKE_RUN_RESULTS: list[ScriptRunResult] = []
 
 
 def repo_root() -> Path:
@@ -36,6 +38,50 @@ def repo_root() -> Path:
 
 def out_dir() -> Path:
     return repo_root() / "out" / "tests" / "script-regression"
+
+
+def out_dir_smoke() -> Path:
+    return repo_root() / "out" / "tests" / "script-smoke"
+
+
+def default_smoke_env(repo: Path) -> dict[str, str]:
+    base = os.environ.copy()
+
+    out_base = out_dir_smoke()
+    home = out_base / "home"
+    xdg_config = out_base / "xdg" / "config"
+    xdg_cache = out_base / "xdg" / "cache"
+    xdg_data = out_base / "xdg" / "data"
+    xdg_state = out_base / "xdg" / "state"
+    tmp = out_base / "tmp"
+
+    for p in (home, xdg_config, xdg_cache, xdg_data, xdg_state, tmp):
+        p.mkdir(parents=True, exist_ok=True)
+
+    stub_bin = repo / "tests" / "stubs" / "bin"
+    base["PATH"] = os.pathsep.join([str(stub_bin), base.get("PATH", "")])
+
+    base.update(
+        {
+            "CODEX_HOME": str(repo),
+            "HOME": str(home),
+            "XDG_CONFIG_HOME": str(xdg_config),
+            "XDG_CACHE_HOME": str(xdg_cache),
+            "XDG_DATA_HOME": str(xdg_data),
+            "XDG_STATE_HOME": str(xdg_state),
+            "TMPDIR": str(tmp),
+            "NO_COLOR": "1",
+            "CLICOLOR": "0",
+            "CLICOLOR_FORCE": "0",
+            "FORCE_COLOR": "0",
+            "PY_COLORS": "0",
+            "GIT_PAGER": "cat",
+            "PAGER": "cat",
+        }
+    )
+
+    return base
+
 
 def default_env(repo: Path) -> dict[str, str]:
     base = os.environ.copy()
@@ -112,8 +158,8 @@ def discover_scripts() -> list[str]:
     return sorted(scripts)
 
 
-def write_summary_json(results: list[ScriptRunResult]) -> Path:
-    out_base = out_dir()
+def write_summary_json(results: list[ScriptRunResult], out_base: Path | None = None) -> Path:
+    out_base = out_base or out_dir()
     out_base.mkdir(parents=True, exist_ok=True)
     summary_path = out_base / "summary.json"
 
@@ -124,6 +170,7 @@ def write_summary_json(results: list[ScriptRunResult]) -> Path:
         "results": [
             {
                 "script": r.script,
+                "case": r.case,
                 "argv": r.argv,
                 "exit_code": r.exit_code,
                 "duration_ms": r.duration_ms,
@@ -141,6 +188,8 @@ def write_summary_json(results: list[ScriptRunResult]) -> Path:
 
 
 def pytest_sessionfinish(session, exitstatus):  # type: ignore[no-untyped-def]
-    summary_path = write_summary_json(SCRIPT_RUN_RESULTS)
+    summary_path = write_summary_json(SCRIPT_RUN_RESULTS, out_dir())
+    smoke_summary_path = write_summary_json(SCRIPT_SMOKE_RUN_RESULTS, out_dir_smoke())
     if hasattr(session.config, "stash"):
         session.config.stash["script_regression_summary_path"] = str(summary_path)
+        session.config.stash["script_smoke_summary_path"] = str(smoke_summary_path)
