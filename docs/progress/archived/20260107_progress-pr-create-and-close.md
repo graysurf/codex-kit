@@ -104,16 +104,16 @@ Links:
       - explicit rules for “write `None` when empty” sections
     - [x] Ensure the skill defaults to docs-only changes for the progress PR.
   - Artifacts:
-    - `skills/create-progress-pr/SKILL.md`
-    - `skills/create-progress-pr/references/PR_TEMPLATE.md`
-    - `skills/create-progress-pr/references/PROGRESS_TEMPLATE.md`
-    - `skills/create-progress-pr/references/PROGRESS_GLOSSARY.md`
-    - `skills/create-progress-pr/references/OUTPUT_TEMPLATE.md`
-    - `skills/create-progress-pr/scripts/create_progress_file.sh`
-    - `skills/create-progress-pr/scripts/render_progress_pr.sh`
+    - `skills/workflows/pr/progress/create-progress-pr/SKILL.md`
+    - `skills/workflows/pr/progress/create-progress-pr/references/PR_TEMPLATE.md`
+    - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_TEMPLATE.md`
+    - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_GLOSSARY.md`
+    - `skills/workflows/pr/progress/create-progress-pr/references/OUTPUT_TEMPLATE.md`
+    - `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`
+    - `skills/workflows/pr/progress/create-progress-pr/scripts/render_progress_pr.sh`
   - Exit Criteria:
-    - [x] `bash -n skills/create-progress-pr/scripts/*.sh` passes.
-    - [x] Create a progress file in this repo: `skills/create-progress-pr/scripts/create_progress_file.sh --title "X"`.
+    - [x] `bash -n skills/workflows/pr/progress/create-progress-pr/scripts/*.sh` passes.
+    - [x] Create a progress file in this repo: `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh --title "X"`.
     - [x] Placeholder check passes: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no output (after filling).
 - [x] Step 2: Expansion / integration
   - Work Items:
@@ -125,15 +125,15 @@ Links:
     - [x] Refactor `close-feature-pr` to match `create-feature-pr` (no progress handling).
     - [x] Update `create-feature-pr` output to be PR-focused (no `git-scope` section).
   - Artifacts:
-    - `skills/close-progress-pr/SKILL.md`
-    - `skills/close-progress-pr/scripts/close_progress_pr.sh`
-    - `skills/close-feature-pr/SKILL.md`
-    - `skills/close-feature-pr/scripts/close_feature_pr.sh`
-    - `skills/create-feature-pr/SKILL.md`
-    - `skills/create-feature-pr/references/OUTPUT_TEMPLATE.md`
+    - `skills/workflows/pr/progress/close-progress-pr/SKILL.md`
+    - `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
+    - `skills/workflows/pr/feature/close-feature-pr/SKILL.md`
+    - `skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`
+    - `skills/workflows/pr/feature/create-feature-pr/SKILL.md`
+    - `skills/workflows/pr/feature/create-feature-pr/references/OUTPUT_TEMPLATE.md`
     - `README.md`
   - Exit Criteria:
-    - [x] `bash -n skills/close-progress-pr/scripts/close_progress_pr.sh` passes.
+    - [x] `bash -n skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` passes.
     - [x] `close-feature-pr` no longer mentions or edits progress files.
     - [x] `create-feature-pr` output template contains only PR-related info.
 - [x] Step 3: Validation / testing
@@ -161,7 +161,7 @@ Links:
 
 ## Modules
 
-- `skills/create-progress-pr`: Create a docs-only progress planning PR (templates + scripts).
-- `skills/close-progress-pr`: Finalize/archive progress and patch PR links to base branch after merge.
-- `skills/create-feature-pr`: Create implementation PRs that reference a progress file.
-- `skills/close-feature-pr`: Close feature PRs after hygiene review (no progress handling).
+- `skills/workflows/pr/progress/create-progress-pr`: Create a docs-only progress planning PR (templates + scripts).
+- `skills/workflows/pr/progress/close-progress-pr`: Finalize/archive progress and patch PR links to base branch after merge.
+- `skills/workflows/pr/feature/create-feature-pr`: Create implementation PRs that reference a progress file.
+- `skills/workflows/pr/feature/close-feature-pr`: Close feature PRs after hygiene review (no progress handling).

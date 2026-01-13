@@ -1,1 +1,1 @@
-../../skills/create-progress-pr/references/PROGRESS_GLOSSARY.md
+../../skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_GLOSSARY.md

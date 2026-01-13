@@ -8,7 +8,7 @@ Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/12
 - Planning PR: https://github.com/graysurf/codex-kit/pull/11
-- Docs: [skills/api-test-runner/SKILL.md](../../../skills/api-test-runner/SKILL.md)
+- Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
@@ -19,7 +19,7 @@ Links:
 
 ## Acceptance Criteria
 
-- A new runner script exists (proposed: `skills/api-test-runner/scripts/api-test.sh`) that can run a suite manifest and exits non-zero when any case fails.
+- A new runner script exists (proposed: `skills/tools/testing/api-test-runner/scripts/api-test.sh`) that can run a suite manifest and exits non-zero when any case fails.
 - Suite manifests can include both REST and GraphQL cases and support shared defaults (environment name, auth profile names, history toggles).
 - Results are emitted in a machine-readable format (JSON to stdout and/or `--out <file>`), including per-case status, duration, and a replayable command snippet (without secrets).
 - GraphQL cases include a default assertion that `.errors` is empty, plus optional `expect.jq` assertions.
@@ -122,14 +122,14 @@ Example output (stdout and/or `--out` file):
       "type": "rest",
       "status": "passed",
       "durationMs": 120,
-      "command": "$CODEX_HOME/skills/rest-api-testing/scripts/rest.sh --config-dir setup/rest --env staging setup/rest/requests/health.request.json"
+      "command": "$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --config-dir setup/rest --env staging setup/rest/requests/health.request.json"
     },
     {
       "id": "graphql.countries",
       "type": "graphql",
       "status": "passed",
       "durationMs": 240,
-      "command": "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh --config-dir setup/graphql --env staging --jwt ci setup/graphql/operations/countries.graphql setup/graphql/operations/countries.variables.json | jq -e '...'",
+      "command": "$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir setup/graphql --env staging --jwt ci setup/graphql/operations/countries.graphql setup/graphql/operations/countries.variables.json | jq -e '...'",
       "assertions": {
         "defaultNoErrors": "passed",
         "jq": "passed"
@@ -143,7 +143,7 @@ Example output (stdout and/or `--out` file):
 
 ### Rationale
 
-- Reuse existing stable callers (`skills/rest-api-testing/scripts/rest.sh`, `skills/graphql-api-testing/scripts/gql.sh`) instead of re-implementing HTTP/auth logic.
+- Reuse existing stable callers (`skills/tools/testing/rest-api-testing/scripts/rest.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql.sh`) instead of re-implementing HTTP/auth logic.
 - Keep assertions simple and composable (`expect.*` for REST, `jq -e` for GraphQL), so the runner can be called from CI scripts or higher-level tools.
 - Prefer deterministic, machine-readable outputs over a “full test framework” feature set.
 
@@ -193,20 +193,20 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Minimal reproducible verification commands are defined (public endpoints for REST + GraphQL).
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [x] Create `skills/api-test-runner/` (docs + scripts + templates).
+    - [x] Create `skills/tools/testing/api-test-runner/` (docs + scripts + templates).
     - [x] Implement `api-test.sh` to run a suite manifest sequentially.
     - [x] Support case type `rest` by invoking `rest.sh` (respecting request `expect`).
     - [x] Support case type `graphql` by invoking `gql.sh` and applying default + optional `expect.jq` assertions.
     - [x] Emit machine-readable results (JSON) and meaningful exit codes.
   - Artifacts:
-    - `skills/api-test-runner/SKILL.md`
-    - `skills/api-test-runner/scripts/api-test.sh`
-    - `skills/api-test-runner/template/setup/api/` (suite manifest + sample cases)
+    - `skills/tools/testing/api-test-runner/SKILL.md`
+    - `skills/tools/testing/api-test-runner/scripts/api-test.sh`
+    - `skills/tools/testing/api-test-runner/template/setup/api/` (suite manifest + sample cases)
     - `README.md` (skills list entry)
   - Exit Criteria:
     - [x] At least one happy path runs end-to-end (suite runner): `api-test.sh --suite <suite>`.
     - [x] Primary outputs are verifiable (results JSON and optional saved responses) under `out/api-test-runner/`.
-    - [x] Usage docs skeleton exists (TL;DR + suite schema + CI example): `skills/api-test-runner/SKILL.md`.
+    - [x] Usage docs skeleton exists (TL;DR + suite schema + CI example): `skills/tools/testing/api-test-runner/SKILL.md`.
 - [ ] Step 2: Expansion / integration
   - Reason: Timeouts/retries/parallel are deferred to a follow-up PR; this PR focuses on the core suite runner and JSON/JUnit contracts.
   - Work Items:
@@ -216,8 +216,8 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
       - Reason: Deferred to a follow-up PR (timeouts/retries/parallel and richer reporting).
     - [x] Add CI example snippets (GitHub Actions / generic shell) for both REST and GraphQL suites.
   - Artifacts:
-    - `skills/api-test-runner/SKILL.md` (expanded)
-    - Optional: `skills/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
+    - `skills/tools/testing/api-test-runner/SKILL.md` (expanded)
+    - Optional: `skills/tools/testing/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
   - Exit Criteria:
     - [x] Common branches are covered (missing files, invalid schema, assertion fail, skip/only, underlying runner error).
     - [x] Compatible with existing naming conventions (`setup/rest`, `setup/graphql`, `*.local.env`, `out/`).
@@ -239,16 +239,16 @@ Validation evidence (local runs; artifacts are gitignored under `out/`):
 
 ```bash
 # Happy path
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
+$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
   --suite smoke-demo \
   --out out/api-test-runner/smoke-demo.results.json \
   --junit out/api-test-runner/smoke-demo.junit.xml
 
 # Selection example (filters are deterministic; unselected cases become skipped)
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite smoke-demo --only rest.httpbin.get
+$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --only rest.httpbin.get
 
 # Failure path (intentional failing expect.jq; exits 2)
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
+$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
   --suite public-fail \
   --out out/api-test-runner/public-fail.results.json \
   --junit out/api-test-runner/public-fail.junit.xml
@@ -274,6 +274,6 @@ Observed summaries:
 
 ## Modules
 
-- `skills/api-test-runner/scripts/api-test.sh`: Suite runner that executes REST/GraphQL cases and produces JSON results.
-- `skills/api-test-runner/SKILL.md`: End-user docs (suite schema, examples, CI usage, safety rules).
-- `skills/api-test-runner/template/setup/api`: Bootstrap template for committing `setup/api/` suite manifests in projects.
+- `skills/tools/testing/api-test-runner/scripts/api-test.sh`: Suite runner that executes REST/GraphQL cases and produces JSON results.
+- `skills/tools/testing/api-test-runner/SKILL.md`: End-user docs (suite schema, examples, CI usage, safety rules).
+- `skills/tools/testing/api-test-runner/template/setup/api`: Bootstrap template for committing `setup/api/` suite manifests in projects.

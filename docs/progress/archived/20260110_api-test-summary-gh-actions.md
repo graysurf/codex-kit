@@ -7,7 +7,7 @@
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/15
-- Docs: [skills/api-test-runner/SKILL.md](../../../skills/api-test-runner/SKILL.md)
+- Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20880992440
 
@@ -18,7 +18,7 @@ Links:
 
 ## Acceptance Criteria
 
-- Add `skills/api-test-runner/scripts/api-test-summary.sh`:
+- Add `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`:
   - Input: `results.json` file (or stdin)
   - Output: concise Markdown summary to stdout (CI logs) and optional `--out <path>`
   - Default: list only failed cases + slowest Top N; skipped cases are shown only with `--show-skipped`
@@ -85,9 +85,9 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Minimal verification commands are listed in Step 3.
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [x] Implement `skills/api-test-runner/scripts/api-test-summary.sh`
+    - [x] Implement `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`
   - Artifacts:
-    - `skills/api-test-runner/scripts/api-test-summary.sh`
+    - `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`
   - Exit Criteria:
     - [x] Generates a readable summary from a real `results.json` (see Step 3 commands).
 - [x] Step 2: Expansion / integration
@@ -96,8 +96,8 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Update docs and guide with usage + CI patterns
   - Artifacts:
     - `.github/workflows/api-test-runner.yml`
-    - `skills/api-test-runner/SKILL.md`
-    - `skills/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
+    - `skills/tools/testing/api-test-runner/SKILL.md`
+    - `skills/tools/testing/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
   - Exit Criteria:
     - [x] CI usage pattern is documented (always-run summary step; upload `*.summary.md`).
     - [x] Summary output is bounded (Top N / max list limits).
@@ -110,9 +110,9 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `out/api-test-runner/summary.md`
   - Exit Criteria:
     - [x] Commands executed with results recorded:
-      - `cp -R "$CODEX_HOME/skills/api-test-runner/template/setup" ./setup`
-      - `skills/api-test-runner/scripts/api-test.sh --suite smoke-demo --out out/api-test-runner/results.json`
-      - `skills/api-test-runner/scripts/api-test-summary.sh --in out/api-test-runner/results.json --out out/api-test-runner/summary.md --slow 5`
+      - `cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/template/setup" ./setup`
+      - `skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --out out/api-test-runner/results.json`
+      - `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh --in out/api-test-runner/results.json --out out/api-test-runner/summary.md --slow 5`
     - [x] Summary is readable and small (failed list + slow Top N; no skipped unless enabled).
     - [x] Failure modes are readable (missing file / invalid JSON).
 - [x] Step 4: Release / wrap-up
@@ -126,5 +126,5 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 
 ## Modules
 
-- `skills/api-test-runner/scripts/api-test-summary.sh`: turns results JSON into a small Markdown summary for CI + PMs.
+- `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`: turns results JSON into a small Markdown summary for CI + PMs.
 - `.github/workflows/api-test-runner.yml`: example usage (always-run summary, upload artifacts).

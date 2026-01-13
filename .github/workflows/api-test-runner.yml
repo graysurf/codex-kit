@@ -24,13 +24,13 @@ jobs:
       - name: Bootstrap public suite (gitignored setup/)
         run: |
           rm -rf setup
-          cp -R skills/api-test-runner/template/setup ./setup
+          cp -R skills/tools/testing/api-test-runner/template/setup ./setup
 
       - name: Run suite
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          skills/api-test-runner/scripts/api-test.sh \
+          skills/tools/testing/api-test-runner/scripts/api-test.sh \
             --suite smoke-demo \
             --out out/api-test-runner/results.json \
             --junit out/api-test-runner/junit.xml
@@ -38,7 +38,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          skills/api-test-runner/scripts/api-test-summary.sh \
+          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/results.json \
             --out out/api-test-runner/summary.md \
             --slow 5
@@ -69,14 +69,14 @@ jobs:
       - name: Bootstrap public suite (gitignored setup/)
         run: |
           rm -rf setup
-          cp -R skills/api-test-runner/template/setup ./setup
+          cp -R skills/tools/testing/api-test-runner/template/setup ./setup
 
       - name: Run suite (expected GraphQL failure demo)
         continue-on-error: true
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          skills/api-test-runner/scripts/api-test.sh \
+          skills/tools/testing/api-test-runner/scripts/api-test.sh \
             --suite public-auth-demo \
             --out out/api-test-runner/public-auth-demo.results.json \
             --junit out/api-test-runner/public-auth-demo.junit.xml
@@ -84,7 +84,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          skills/api-test-runner/scripts/api-test-summary.sh \
+          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/public-auth-demo.results.json \
             --out out/api-test-runner/public-auth-demo.summary.md \
             --slow 5
@@ -135,14 +135,14 @@ jobs:
         if: ${{ env.API_TEST_AUTH_JSON != '' }}
         run: |
           rm -rf setup
-          cp -R skills/api-test-runner/template/setup ./setup
+          cp -R skills/tools/testing/api-test-runner/template/setup ./setup
 
       - name: Run suite (auth via GitHub Secrets)
         if: ${{ env.API_TEST_AUTH_JSON != '' }}
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          skills/api-test-runner/scripts/api-test.sh \
+          skills/tools/testing/api-test-runner/scripts/api-test.sh \
             --suite auth-secrets-demo \
             --out out/api-test-runner/auth-secrets-demo.results.json \
             --junit out/api-test-runner/auth-secrets-demo.junit.xml
@@ -150,7 +150,7 @@ jobs:
       - name: Summarize results
         if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         run: |
-          skills/api-test-runner/scripts/api-test-summary.sh \
+          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/auth-secrets-demo.results.json \
             --out out/api-test-runner/auth-secrets-demo.summary.md \
             --slow 5

@@ -8,7 +8,7 @@ Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/8
 - Planning PR: https://github.com/graysurf/codex-kit/pull/7
-- Docs: [skills/graphql-api-testing/SKILL.md](../../../skills/graphql-api-testing/SKILL.md)
+- Docs: [skills/tools/testing/graphql-api-testing/SKILL.md](../../../skills/tools/testing/graphql-api-testing/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
@@ -20,7 +20,7 @@ Links:
 
 ## Acceptance Criteria
 
-- Running `skills/graphql-api-testing/scripts/gql.sh ...` appends a replayable shell snippet to the history file when history is enabled (default).
+- Running `skills/tools/testing/graphql-api-testing/scripts/gql.sh ...` appends a replayable shell snippet to the history file when history is enabled (default).
 - Default history location is under resolved `setup_dir`: `<setup_dir>/.gql_history` (typically `setup/graphql/.gql_history`).
 - Each entry includes a timestamp and exit code, plus resolved context (`config_dir`, `--env` or URL, `--jwt` name), and entries are separated by a blank line.
 - History logging can be disabled via env toggle (`GQL_HISTORY=0`) without changing `gql.sh` stdout/stderr behavior.
@@ -34,10 +34,10 @@ Links:
 ## Scope
 
 - In-scope:
-  - Add history logging to `skills/graphql-api-testing/scripts/gql.sh` (append-only file under resolved `setup_dir`).
+  - Add history logging to `skills/tools/testing/graphql-api-testing/scripts/gql.sh` (append-only file under resolved `setup_dir`).
   - Define env-based controls (enable/disable; optional override path; optional size limit/rotation).
-  - Update bootstrap template `skills/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
-  - Document the feature in `skills/graphql-api-testing/SKILL.md` (and optionally in the project guide template).
+  - Update bootstrap template `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
+  - Document the feature in `skills/tools/testing/graphql-api-testing/SKILL.md` (and optionally in the project guide template).
 - Out-of-scope:
   - Capturing full shell pipelines (e.g., `| jq .`) automatically.
   - Storing request/response payloads or variable file contents in history.
@@ -111,22 +111,22 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - [x] Minimal verification commands are defined (history file created/updated; no secrets logged).
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [x] Implement history append in `skills/graphql-api-testing/scripts/gql.sh` (enabled by default; env toggle to disable).
+    - [x] Implement history append in `skills/tools/testing/graphql-api-testing/scripts/gql.sh` (enabled by default; env toggle to disable).
     - [x] Add `GQL_HISTORY_FILE` override and default path under resolved `setup_dir`.
     - [x] Add size limit enforcement (default: 10 MB) and rotate keep old files (keep N by policy).
     - [x] Add URL logging toggle (default on; `GQL_HISTORY_LOG_URL=0` omits URL).
-    - [x] Update `skills/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
-    - [x] Add report `## Command` section in `skills/graphql-api-testing/scripts/gql-report.sh` (enabled by default; toggleable).
+    - [x] Update `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
+    - [x] Add report `## Command` section in `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` (enabled by default; toggleable).
     - [x] Add report URL omission toggle (`--no-command-url` / `GQL_REPORT_COMMAND_LOG_URL=0`).
-    - [x] Update docs: `skills/graphql-api-testing/SKILL.md` (and `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`).
+    - [x] Update docs: `skills/tools/testing/graphql-api-testing/SKILL.md` (and `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`).
   - Artifacts:
-    - `skills/graphql-api-testing/scripts/gql.sh`
-    - `skills/graphql-api-testing/scripts/gql-report.sh`
-    - `skills/graphql-api-testing/template/setup/graphql/.gitignore`
-    - `skills/graphql-api-testing/SKILL.md`
+    - `skills/tools/testing/graphql-api-testing/scripts/gql.sh`
+    - `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`
+    - `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore`
+    - `skills/tools/testing/graphql-api-testing/SKILL.md`
   - Exit Criteria:
-    - [x] `bash -n skills/graphql-api-testing/scripts/gql.sh` passes.
-    - [x] `bash -n skills/graphql-api-testing/scripts/gql-report.sh` passes.
+    - [x] `bash -n skills/tools/testing/graphql-api-testing/scripts/gql.sh` passes.
+    - [x] `bash -n skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` passes.
     - [x] History file is appended on both success and failure with a recorded exit code (confirmed).
     - [x] Docs include a TL;DR snippet showing where history lives and how to disable it.
     - [x] Reports include `## Command` by default and can omit URL value with `--no-command-url` / `GQL_REPORT_COMMAND_LOG_URL=0`.
@@ -134,7 +134,7 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
   - Work Items:
     - [x] If rotating, support keeping N rotated files (and document the policy).
     - [x] Add a CLI switch (`--no-history`) for one-off runs (keep env as the primary control surface).
-    - [x] Add a helper to extract recent entries: `skills/graphql-api-testing/scripts/gql-history.sh`.
+    - [x] Add a helper to extract recent entries: `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh`.
   - Artifacts:
     - Notes and design decisions recorded in docs
   - Exit Criteria:
@@ -151,12 +151,12 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
   - Exit Criteria:
     - [x] Validation commands executed with results recorded (happy path + failure case + disable case).
       - Happy path (report + history):
-        - `cd /Users/terry/Project/rytass/FinanceReport && GQL_REPORT_DIR="$CODEX_HOME/out/graphql-api-testing/financereport" "$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh" --case "FinanceReport companyReports (local)" --op setup/graphql/operations/company-reports.graphql --vars setup/graphql/operations/company-reports.variables.json --config-dir setup/graphql --env local --jwt default --run`
-        - History check: `"$CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh" --config-dir /Users/terry/Project/rytass/FinanceReport/setup/graphql --last`
+        - `cd /Users/terry/Project/rytass/FinanceReport && GQL_REPORT_DIR="$CODEX_HOME/out/graphql-api-testing/financereport" "$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh" --case "FinanceReport companyReports (local)" --op setup/graphql/operations/company-reports.graphql --vars setup/graphql/operations/company-reports.variables.json --config-dir setup/graphql --env local --jwt default --run`
+        - History check: `"$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-history.sh" --config-dir /Users/terry/Project/rytass/FinanceReport/setup/graphql --last`
       - Failure case (history logs non-zero exit):
-        - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh" --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
+        - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh" --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
       - Disable case (`--no-history` leaves `.gql_history` unchanged):
-        - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh" --no-history --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
+        - `cd /Users/terry/Project/rytass/FinanceReport && "$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh" --no-history --config-dir setup/graphql --env local --jwt default setup/graphql/operations/does-not-exist.graphql`
     - [x] Traceable evidence exists (sample excerpt, logs, or report links) with secrets redacted.
 - [x] Step 4: Release / wrap-up
   - Work Items:
@@ -173,8 +173,8 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 
 ## Modules
 
-- `skills/graphql-api-testing/scripts/gql.sh`: Record a canonical, replayable history entry for each invocation (no secrets).
-- `skills/graphql-api-testing/scripts/gql-history.sh`: Extract recent history entries for copy/paste replay.
-- `skills/graphql-api-testing/template/setup/graphql/.gitignore`: Keep the history file out of git by default.
-- `skills/graphql-api-testing/SKILL.md`: Document history behavior, location, and env toggles.
-- `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`: (Optional) Mention history in the project-local guide template.
+- `skills/tools/testing/graphql-api-testing/scripts/gql.sh`: Record a canonical, replayable history entry for each invocation (no secrets).
+- `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh`: Extract recent history entries for copy/paste replay.
+- `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore`: Keep the history file out of git by default.
+- `skills/tools/testing/graphql-api-testing/SKILL.md`: Document history behavior, location, and env toggles.
+- `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`: (Optional) Mention history in the project-local guide template.

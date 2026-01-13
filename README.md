@@ -12,7 +12,7 @@ are intentionally excluded via `.gitignore`.
 ├── config.toml
 ├── scripts/       # helpers (incl. codex-tools loader)
 ├── prompts/       # prompt templates
-├── skills/        # custom skills
+├── skills/        # custom skills (tools/, workflows/, _projects/, .system/)
 ├── docs/          # docs and progress tracking
 └── setup/         # request templates / fixtures
 ```
@@ -33,25 +33,32 @@ are intentionally excluded via `.gitignore`.
 
 All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `scripts/validate_skill_contracts.sh` and CI.
 
-### Common
+Core skills are grouped under `skills/workflows/` and `skills/tools/`. Project-specific skills live under `skills/_projects/`. Internal/meta skills live under `skills/.system/` (not listed below).
 
-| Skill | Description |
-| --- | --- |
-| [ask-questions-if-underspecified](./skills/ask-questions-if-underspecified/) | Clarify requirements with minimal must-have questions before starting work when a request is underspecified |
-| [chrome-devtools-site-search](./skills/chrome-devtools-site-search/) | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
-| [semantic-commit](./skills/semantic-commit/) | Commit staged changes using Semantic Commit format |
-| [create-feature-pr](./skills/create-feature-pr/) | Create feature branches and open a PR with a standard template |
-| [close-feature-pr](./skills/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
-| [create-progress-pr](./skills/create-progress-pr/) | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |
-| [handoff-progress-pr](./skills/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
-| [close-progress-pr](./skills/close-progress-pr/) | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
-| [find-and-fix-bugs](./skills/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
-| [open-changed-files-review](./skills/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
-| [desktop-notify](./skills/desktop-notify/) | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |
-| [api-test-runner](./skills/api-test-runner/) | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results |
-| [graphql-api-testing](./skills/graphql-api-testing/) | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
-| [rest-api-testing](./skills/rest-api-testing/) | Test REST APIs with repeatable, file-based requests and generate API test reports |
-| [release-workflow](./skills/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
+### Workflows
+
+| Area | Skill | Description |
+| --- | --- | --- |
+| Conversation | [ask-questions-if-underspecified](./skills/workflows/conversation/ask-questions-if-underspecified/) | Clarify requirements with minimal must-have questions before starting work when a request is underspecified |
+| PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
+| PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
+| PR / Progress | [create-progress-pr](./skills/workflows/pr/progress/create-progress-pr/) | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |
+| PR / Progress | [handoff-progress-pr](./skills/workflows/pr/progress/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
+| PR / Progress | [close-progress-pr](./skills/workflows/pr/progress/close-progress-pr/) | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
+| Maintenance | [find-and-fix-bugs](./skills/workflows/maintenance/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
+| Release | [release-workflow](./skills/workflows/release/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
+
+### Tools
+
+| Area | Skill | Description |
+| --- | --- | --- |
+| Browser | [chrome-devtools-site-search](./skills/tools/browser/chrome-devtools-site-search/) | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
+| DevEx | [semantic-commit](./skills/tools/devex/semantic-commit/) | Commit staged changes using Semantic Commit format |
+| DevEx | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
+| DevEx | [desktop-notify](./skills/tools/devex/desktop-notify/) | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |
+| Testing | [api-test-runner](./skills/tools/testing/api-test-runner/) | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results |
+| Testing | [graphql-api-testing](./skills/tools/testing/graphql-api-testing/) | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
+| Testing | [rest-api-testing](./skills/tools/testing/rest-api-testing/) | Test REST APIs with repeatable, file-based requests and generate API test reports |
 
 ### Project-specific
 
@@ -67,4 +74,4 @@ All tracked skills must include a minimal `## Contract` section (5 required head
 
 - This repo lives at `~/.config/codex-kit`; `$CODEX_HOME` is a symlink here and is the configured Codex home.
 - Tools loader (single source of truth): `source $CODEX_HOME/scripts/codex-tools.sh`.
-- Desktop notifications: use `skills/desktop-notify/scripts/project-notify.sh` (project title) or `skills/desktop-notify/scripts/desktop-notify.sh` (custom title).
+- Desktop notifications: use `skills/tools/devex/desktop-notify/scripts/project-notify.sh` (project title) or `skills/tools/devex/desktop-notify/scripts/desktop-notify.sh` (custom title).

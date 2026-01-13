@@ -53,7 +53,7 @@ Requirements (inside `## Contract`, in order):
 Usage:
 
 - Validate all tracked skills: `scripts/validate_skill_contracts.sh`
-- Validate a specific file: `scripts/validate_skill_contracts.sh --file skills/<skill>/SKILL.md`
+- Validate a specific file: `scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
 
 Exit codes:
 

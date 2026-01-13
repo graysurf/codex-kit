@@ -17,6 +17,6 @@ Use this template for the `graphql-api-testing` skill.
 ## Preferred report flow
 
 - Generate a report with a real response (prefer `--run`; or `--response <file>` for replay):
-  - `$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh`
+  - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`
 - Draft/empty reports are blocked unless explicitly allowed (`--allow-empty`).
 - Default output dir is `<project root>/docs`; override with `GQL_REPORT_DIR`.

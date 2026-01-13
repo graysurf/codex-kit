@@ -16,5 +16,5 @@ Use this template for the `rest-api-testing` skill.
 ## Preferred report flow
 
 - Generate a report with a real response (prefer `--run`; or `--response <file>` for replay):
-  - `$CODEX_HOME/skills/rest-api-testing/scripts/rest-report.sh`
+  - `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh`
 - Default output dir is `<project root>/docs`; override with `REST_REPORT_DIR`.
