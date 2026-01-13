@@ -1,0 +1,18 @@
+{
+  "smoke": [
+    {
+      "name": "qb-mysql",
+      "command": [
+        "zsh",
+        "-f",
+        "-c",
+        "codex_mysql_run() { emulate -L zsh; setopt localoptions nounset; local prefix=$1 env_file=$2; shift 2; print -r -- prefix=$prefix; print -r -- env_file=${env_file:t}; print -r -- args=$*; }; source skills/_projects/qburger/scripts/qb-mysql.zsh; qb-mysql --help"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "prefix=QB\\nenv_file=qb-mysql\\.env\\nargs=--help"
+      }
+    }
+  ]
+}
