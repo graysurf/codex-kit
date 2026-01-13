@@ -220,9 +220,11 @@ Planned PRs:
 
 | PR | Scope | Target scripts (primary) | Notes |
 | --- | --- | --- | --- |
-| TBD | DB client stubs (`psql`, `mysql`, `sqlcmd`) | `scripts/db-connect/*.zsh`, `skills/_projects/*/scripts/*` | Add strict stubs first; fixture-based coverage may follow in a later PR. |
-| TBD | Smoke specs: Chrome devtools + history tools | `scripts/chrome-devtools-mcp.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh` | Use dry-run + history fixtures under `tests/fixtures/`. |
-| TBD | Smoke specs: desktop notifications | `skills/tools/devex/desktop-notify/scripts/*.sh` | Add notifier stubs (`terminal-notifier` / `notify-send`) and validate wrapper behavior. |
-| TBD | Smoke specs: release workflow audits | `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |
-| TBD | Smoke specs: render-only workflow helpers | `skills/workflows/**/scripts/render_*.sh` | Validate templates render; no network required. |
-| TBD | Follow-ups (deferred): pytest-fixture scripts | `skills/tools/devex/semantic-commit/scripts/*`, `skills/workflows/pr/**/scripts/*`, `skills/tools/testing/*/scripts/*` | Requires temp git repos and/or stubs for `gh`/HTTP; split by workflow. |
+| #23 | DB client stubs (`psql`, `mysql`, `sqlcmd`) | `scripts/db-connect/*.zsh`, `skills/_projects/*/scripts/*` | Add strict stubs first; fixture-based coverage may follow in a later PR. |
+| #25 | Smoke specs: Chrome devtools + history tools | `scripts/chrome-devtools-mcp.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh` | Use dry-run + history fixtures under `tests/fixtures/`. |
+| #24 | Smoke specs: desktop notifications | `skills/tools/devex/desktop-notify/scripts/*.sh` | Add notifier stubs (`terminal-notifier` / `notify-send`) and validate wrapper behavior. |
+| #26 | Smoke specs: release workflow audits | `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |
+| #27 | Smoke specs: render-only workflow helpers | `skills/workflows/**/scripts/render_*.sh` | Validate templates render; no network required. |
+| #28 | Follow-ups: PR workflow fixtures | `skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`, `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`, `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` | Fixture-based smoke coverage with an opt-in stubbed `gh`. |
+| #29 | Follow-ups: semantic commit fixture | `skills/tools/devex/semantic-commit/scripts/commit_with_message.sh` | Fixture-based smoke coverage in a temp git repo. |
+| #30 | Follow-ups: API testing tool fixtures | `skills/tools/testing/rest-api-testing/scripts/rest.sh`, `.../rest-report.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql.sh`, `.../gql-report.sh`, `.../gql-schema.sh`, `skills/tools/testing/api-test-runner/scripts/api-test.sh` | Add opt-in `curl`/`xh` stubs, fixtures, and smoke specs. |
