@@ -10,6 +10,10 @@ Links:
 - Docs: [[url or path or TBD or None]]
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
+## Addendum
+
+- None
+
 ## Goal
 
 - [[goal 1]]

@@ -20,6 +20,7 @@ References:
 | Goal | The desired outcome state of the work. | Focus on outcomes; typically 2–5 bullets. |
 | Acceptance Criteria | Objective criteria used to consider the work “done”. | Must be verifiable; use `TBD` when unknown. |
 | Scope | What is included and excluded. | Use `In-scope` / `Out-of-scope` to define boundaries. |
+| Addendum | Post-DONE updates appended after completion. | Place `## Addendum` immediately after `Links:`; keep it append-only (use `- None` when unused). |
 | I/O Contract | The agreed inputs, outputs, and intermediate artifacts (paths, naming, DB schema/table, etc.). | Key to reproducibility and traceability. |
 | Step | A checkable phase of work (ideally ordered). | Use `Step 0..N`; titles should be short phrases. |
 | Work Items | Individually checkable tasks within a Step. | Prefer binary/observable items; avoid over-fragmentation. |

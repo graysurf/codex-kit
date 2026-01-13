@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-10 | 2026-01-11 |
+| DONE | 2026-01-10 | 2026-01-14 |
 
 Links:
 
@@ -10,6 +10,14 @@ Links:
 - Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20880992440
+
+## Addendum
+
+### 2026-01-14
+
+- `api-test-summary.sh`: show skipped cases by default; replace `--show-skipped` with `--hide-skipped` to suppress.
+- `api-test-summary.sh`: add skipped reason breakdown (counts + hints) to speed up diagnosing CI skips.
+- Links: None
 
 ## Goal
 
