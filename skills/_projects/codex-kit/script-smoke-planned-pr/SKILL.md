@@ -32,6 +32,19 @@ Outputs:
 - Branch synced to the latest base fixes (see "Rebase policy").
 - PR merged + closed via `close-feature-pr` (and remote branch deleted).
 
+Exit codes:
+
+- `0`: completed successfully (including "already closed" no-op)
+- non-zero: invalid input, missing/ambiguous scope in progress file, dirty working tree, rebase/test failures, or merge failure
+
+Failure modes:
+
+- `gh auth status` fails or `gh pr view` cannot read PR metadata.
+- PR is not `OPEN` (skill stops and reports status).
+- PR number not found in `docs/progress/20260113_script-smoke-tests.md` "Step 2 PR Plan" table.
+- Rebase conflicts or force-push rejected (requires manual resolution).
+- Tests or required checks fail; PR cannot be merged.
+
 Non-goals:
 
 - Do not expand scope beyond what the progress file assigns to that PR.
