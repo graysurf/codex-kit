@@ -2,11 +2,12 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-13 | 2026-01-13 |
+| IN PROGRESS | 2026-01-13 | 2026-01-13 |
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/21
+- PR: TBD
+- Planning PR: https://github.com/graysurf/codex-kit/pull/21
 - Docs: [docs/testing/script-regression.md](../testing/script-regression.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 

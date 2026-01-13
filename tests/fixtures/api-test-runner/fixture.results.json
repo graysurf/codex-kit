@@ -1,0 +1,32 @@
+{
+  "suite": "fixture",
+  "runId": "fixture-run",
+  "suiteFile": "setup/api-test-suites/fixture.yml",
+  "outputDir": "out/api-test-runner",
+  "startedAt": "2026-01-01T00:00:00Z",
+  "finishedAt": "2026-01-01T00:00:01Z",
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 1
+  },
+  "cases": [
+    {
+      "id": "rest:ping",
+      "type": "rest",
+      "status": "passed",
+      "durationMs": 10,
+      "message": "",
+      "stdoutFile": "out/tests/script-smoke/api-test-summary/rest-ping.stdout.txt",
+      "stderrFile": "out/tests/script-smoke/api-test-summary/rest-ping.stderr.txt"
+    },
+    {
+      "id": "graphql:skip",
+      "type": "graphql",
+      "status": "skipped",
+      "durationMs": 0,
+      "message": "skipped in fixture"
+    }
+  ]
+}
