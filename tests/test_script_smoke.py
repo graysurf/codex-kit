@@ -66,6 +66,13 @@ def run_smoke_script(
     if not isinstance(args, list) or not all(isinstance(x, str) for x in args):
         raise TypeError(f"spec.args must be a list of strings: {script} ({case})")
 
+    command = spec.get("command")
+    if command is not None:
+        if not isinstance(command, list) or not command or not all(isinstance(x, str) for x in command):
+            raise TypeError(f"spec.command must be a non-empty list of strings: {script} ({case})")
+        if args:
+            raise TypeError(f"spec.args must be empty when spec.command is set: {script} ({case})")
+
     timeout_sec = spec.get("timeout_sec", 10)
     if not isinstance(timeout_sec, (int, float)):
         raise TypeError(f"spec.timeout_sec must be a number: {script} ({case})")
@@ -81,11 +88,13 @@ def run_smoke_script(
             else:
                 env[str(key)] = str(value)
 
-    shebang = parse_shebang(script_path)
-    if not shebang:
-        raise ValueError(f"missing shebang: {script}")
-
-    argv = shebang + [str(script_path)] + list(args)
+    if command is not None:
+        argv = list(command)
+    else:
+        shebang = parse_shebang(script_path)
+        if not shebang:
+            raise ValueError(f"missing shebang: {script}")
+        argv = shebang + [str(script_path)] + list(args)
 
     expect = spec.get("expect", {})
     if expect and not isinstance(expect, dict):

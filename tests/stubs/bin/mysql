@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help|--version)
+      echo "mysql stub (help)"
+      exit 0
+      ;;
+  esac
+done
+
+protocol=""
+host=""
+port=""
+user=""
+db=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --protocol=*)
+      protocol="${1#*=}"
+      shift
+      ;;
+    --protocol)
+      protocol="${2-}"
+      shift 2
+      ;;
+    --host=*)
+      host="${1#*=}"
+      shift
+      ;;
+    --host)
+      host="${2-}"
+      shift 2
+      ;;
+    --port=*)
+      port="${1#*=}"
+      shift
+      ;;
+    --port)
+      port="${2-}"
+      shift 2
+      ;;
+    --user=*)
+      user="${1#*=}"
+      shift
+      ;;
+    --user)
+      user="${2-}"
+      shift 2
+      ;;
+    --*)
+      shift
+      ;;
+    -*)
+      shift
+      ;;
+    *)
+      if [[ -z "$db" ]]; then
+        db="$1"
+      fi
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$protocol" || "$protocol" != "tcp" ]]; then
+  echo "error: mysql stub expected --protocol=tcp" >&2
+  exit 2
+fi
+
+if [[ -z "$host" || -z "$port" || -z "$user" || -z "$db" ]]; then
+  echo "error: mysql stub missing required args (--host/--port/--user/<db>)" >&2
+  exit 2
+fi
+
+if [[ -z "${MYSQL_PWD-}" ]]; then
+  echo "error: mysql stub missing MYSQL_PWD" >&2
+  exit 2
+fi
+
+echo "mysql stub ok"
