@@ -4,7 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-13 | [Script regression tests (pytest)](20260113_script-regression-tests-pytest.md) | [#19](https://github.com/graysurf/codex-kit/pull/19) |
+| 2026-01-13 | [Script regression tests (pytest)](20260113_script-regression-tests-pytest.md) | [#20](https://github.com/graysurf/codex-kit/pull/20) |
 
 ## Archived
 
