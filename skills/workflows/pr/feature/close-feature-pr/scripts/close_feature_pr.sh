@@ -118,9 +118,13 @@ if [[ "$skip_checks" == "0" ]]; then
   gh pr checks "$pr_number"
 fi
 
-merge_args=(--merge --yes)
+merge_args=(--merge)
 if [[ "$keep_branch" == "0" ]]; then
   merge_args+=(--delete-branch)
+fi
+
+if gh pr merge --help 2>/dev/null | grep -q -- "--yes"; then
+  merge_args+=(--yes)
 fi
 
 gh pr merge "$pr_number" "${merge_args[@]}"
