@@ -1,0 +1,22 @@
+{
+  "smoke": [
+    {
+      "name": "fixture-last",
+      "args": ["--config-dir", "tests/fixtures/graphql", "--last"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^# 2026-01-13 gql\\.sh --operation User"
+      }
+    },
+    {
+      "name": "fixture-command-only",
+      "args": ["--config-dir", "tests/fixtures/graphql", "--last", "--command-only"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^gql\\.sh --operation User"
+      }
+    }
+  ]
+}

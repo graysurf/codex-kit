@@ -1,0 +1,23 @@
+{
+  "smoke": [
+    {
+      "name": "path",
+      "args": ["--config-dir", "tests/fixtures/graphql", "--file", "schema.gql"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "tests/fixtures/graphql/schema\\.gql$"
+      }
+    },
+    {
+      "name": "cat",
+      "args": ["--config-dir", "tests/fixtures/graphql", "--file", "schema.gql", "--cat"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^type Query"
+      }
+    }
+  ]
+}
+

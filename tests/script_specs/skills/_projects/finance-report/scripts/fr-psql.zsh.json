@@ -1,0 +1,18 @@
+{
+  "smoke": [
+    {
+      "name": "fr-psql",
+      "command": [
+        "zsh",
+        "-f",
+        "-c",
+        "codex_psql_run() { emulate -L zsh; setopt localoptions nounset; local prefix=$1 env_file=$2; shift 2; print -r -- prefix=$prefix; print -r -- env_file=${env_file:t}; print -r -- args=$*; }; source skills/_projects/finance-report/scripts/fr-psql.zsh; fr-psql --help"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "prefix=FR\\nenv_file=fr-psql\\.env\\nargs=--help"
+      }
+    }
+  ]
+}

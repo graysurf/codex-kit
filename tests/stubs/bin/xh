@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+is_truthy() {
+  case "${1:-}" in
+    1|true|yes|on) return 0 ;;
+  esac
+  return 1
+}
+
+if ! is_truthy "${CODEX_XH_STUB_MODE:-}"; then
+  echo "error: xh is blocked by script regression tests" >&2
+  exit 90
+fi
+
+log_dir="${CODEX_STUB_LOG_DIR:-}"
+if [[ -n "$log_dir" ]]; then
+  mkdir -p "$log_dir"
+  printf "%s\n" "xh $*" >>"${log_dir%/}/xh.calls.txt"
+fi
+
+body_file="${CODEX_XH_STUB_BODY_FILE:-}"
+body="${CODEX_XH_STUB_BODY:-{\"data\":{}}}"
+
+if [[ -n "$body_file" && -f "$body_file" ]]; then
+  cat "$body_file"
+else
+  printf "%s" "$body"
+fi
+
+exit 0
+

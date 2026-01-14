@@ -20,6 +20,12 @@ Or:
 scripts/test.sh
 ```
 
+3) Run only smoke (deeper coverage for a small subset):
+
+```bash
+scripts/test.sh -m script_smoke
+```
+
 ## What it does
 
 - Discovers tracked script entrypoints via `git ls-files`:
@@ -34,6 +40,18 @@ scripts/test.sh
 - Writes evidence (untracked) under:
   - `out/tests/script-regression/summary.json`
   - `out/tests/script-regression/logs/**`
+
+## Script smoke tests
+
+Smoke tests are a separate pytest marker intended for deeper, hermetic-ish execution of selected scripts.
+
+- Run:
+  - `scripts/test.sh -m script_smoke`
+- Evidence:
+  - `out/tests/script-smoke/summary.json`
+  - `out/tests/script-smoke/logs/**`
+- Docs:
+  - `docs/testing/script-smoke.md`
 
 ## Per-script spec overrides
 
@@ -51,6 +69,14 @@ Fields:
   - `stdout_regex`: optional regex (multiline)
   - `stderr_regex`: optional regex (multiline)
 
+### Smoke cases
+
+Specs can also include an optional `smoke` section (list of cases) which powers the `script_smoke` marker.
+
+Each smoke case supports the same fields as regression (`args`, `env`, `timeout_sec`, `expect`) plus:
+
+- `artifacts`: list of repo-relative paths that must exist after the case runs
+
 Example:
 
 `tests/script_specs/scripts/chrome-devtools-mcp.sh.json`
@@ -63,3 +89,4 @@ Example:
   - `out/tests/script-regression/logs/<script>.stderr.txt`
   - `out/tests/script-regression/logs/<script>.stdout.txt`
   - `out/tests/script-regression/summary.json`
+  - `out/tests/script-smoke/summary.json`

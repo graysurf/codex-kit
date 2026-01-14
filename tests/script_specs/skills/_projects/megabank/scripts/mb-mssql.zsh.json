@@ -1,0 +1,18 @@
+{
+  "smoke": [
+    {
+      "name": "mb-mssql",
+      "command": [
+        "zsh",
+        "-f",
+        "-c",
+        "codex_mssql_run() { emulate -L zsh; setopt localoptions nounset; local prefix=$1 env_file=$2; shift 2; print -r -- prefix=$prefix; print -r -- env_file=${env_file:t}; print -r -- args=$*; }; source skills/_projects/megabank/scripts/mb-mssql.zsh; mb-mssql --help"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "prefix=MB\\nenv_file=mb-mssql\\.env\\nargs=--help"
+      }
+    }
+  ]
+}

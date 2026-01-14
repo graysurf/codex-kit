@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Minimal `tree` stub for script smoke tests.
+# Supports: `tree --fromfile` (reads paths from stdin).
+
+while [[ $# -gt 0 ]]; do
+  case "${1:-}" in
+    --fromfile|-C)
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+cat
+

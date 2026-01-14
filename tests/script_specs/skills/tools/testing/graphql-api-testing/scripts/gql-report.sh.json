@@ -1,0 +1,24 @@
+{
+  "smoke": [
+    {
+      "name": "fixture-response",
+      "args": [
+        "--case",
+        "Ping",
+        "--op",
+        "tests/fixtures/graphql/ping.graphql",
+        "--response",
+        "tests/fixtures/graphql/ping.response.json",
+        "--out",
+        "out/tests/script-smoke/gql-report/ping.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "^out/tests/script-smoke/gql-report/ping\\.md$"
+      },
+      "artifacts": ["out/tests/script-smoke/gql-report/ping.md"]
+    }
+  ]
+}
+

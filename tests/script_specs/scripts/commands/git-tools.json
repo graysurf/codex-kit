@@ -1,0 +1,14 @@
+{
+  "smoke": [
+    {
+      "name": "utils-root",
+      "args": ["utils", "root"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "Jumped to Git root:"
+      }
+    }
+  ]
+}
+

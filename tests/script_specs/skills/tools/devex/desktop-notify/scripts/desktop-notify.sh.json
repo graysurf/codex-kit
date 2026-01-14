@@ -1,0 +1,17 @@
+{
+  "smoke": [
+    {
+      "name": "backend-invoked",
+      "args": ["--title", "codex", "--message", "smoke", "--level", "info"],
+      "env": {
+        "CODEX_STUB_LOG_DIR": "out/tests/script-smoke/stubs/desktop-notify/backend-invoked"
+      },
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0]
+      },
+      "artifacts": ["out/tests/script-smoke/stubs/desktop-notify/backend-invoked/backend.args.txt"]
+    }
+  ]
+}
+

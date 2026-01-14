@@ -1,4 +1,139 @@
 #!/usr/bin/env bash
 set -euo pipefail
-echo "error: gh is blocked by script regression tests" >&2
-exit 90
+
+is_truthy() {
+  case "${1:-}" in
+    1|true|yes|on) return 0 ;;
+  esac
+  return 1
+}
+
+if ! is_truthy "${CODEX_GH_STUB_MODE:-}"; then
+  echo "error: gh is blocked by script regression tests" >&2
+  exit 90
+fi
+
+log_dir="${CODEX_STUB_LOG_DIR:-}"
+if [[ -n "$log_dir" ]]; then
+  mkdir -p "$log_dir"
+  printf "%s\n" "gh $*" >>"${log_dir%/}/gh.calls.txt"
+fi
+
+die_unhandled() {
+  echo "error: gh stub unhandled args: $*" >&2
+  exit 91
+}
+
+render_pr_url() {
+  local pr_number="$1"
+  printf "%s" "${CODEX_GH_STUB_PR_URL:-https://github.com/example/repo/pull/${pr_number}}"
+}
+
+if [[ "${1-}" == "pr" && "${2-}" == "view" ]]; then
+  shift 2
+
+  pr_number=""
+  if [[ $# -gt 0 && "${1-}" != -* ]]; then
+    pr_number="$1"
+    shift
+  fi
+  pr_number="${pr_number:-${CODEX_GH_STUB_PR_NUMBER:-123}}"
+
+  json=""
+  while [[ $# -gt 0 ]]; do
+    case "${1-}" in
+      --json)
+        json="${2:-}"
+        shift 2
+        ;;
+      -q|--jq)
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  case "$json" in
+    number)
+      printf "%s\n" "${CODEX_GH_STUB_PR_NUMBER:-$pr_number}"
+      exit 0
+      ;;
+    body)
+      if [[ -n "${CODEX_GH_STUB_BODY_FILE:-}" ]]; then
+        cat "${CODEX_GH_STUB_BODY_FILE}"
+      else
+        printf "%s" "${CODEX_GH_STUB_BODY:-}"
+      fi
+      exit 0
+      ;;
+    isDraft)
+      printf "%s\n" "${CODEX_GH_STUB_IS_DRAFT:-false}"
+      exit 0
+      ;;
+    url,baseRefName,headRefName,state)
+      pr_url="$(render_pr_url "$pr_number")"
+      base_ref="${CODEX_GH_STUB_BASE_REF:-main}"
+      head_ref="${CODEX_GH_STUB_HEAD_REF:-feat/stub}"
+      state="${CODEX_GH_STUB_STATE:-OPEN}"
+      printf "%s\t%s\t%s\t%s\n" "$pr_url" "$base_ref" "$head_ref" "$state"
+      exit 0
+      ;;
+    url,title,baseRefName,headRefName,state)
+      pr_url="$(render_pr_url "$pr_number")"
+      title="${CODEX_GH_STUB_TITLE:-Fixture PR}"
+      base_ref="${CODEX_GH_STUB_BASE_REF:-main}"
+      head_ref="${CODEX_GH_STUB_HEAD_REF:-feat/stub}"
+      state="${CODEX_GH_STUB_STATE:-OPEN}"
+      printf "%s\t%s\t%s\t%s\t%s\n" "$pr_url" "$title" "$base_ref" "$head_ref" "$state"
+      exit 0
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+fi
+
+if [[ "${1-}" == "pr" && "${2-}" == "merge" ]]; then
+  if [[ "${3-}" == "--help" || "${3-}" == "-h" ]]; then
+    if is_truthy "${CODEX_GH_STUB_MERGE_HELP_HAS_YES:-1}"; then
+      printf "%s\n" "      --yes"
+    fi
+    exit 0
+  fi
+  exit 0
+fi
+
+if [[ "${1-}" == "pr" && "${2-}" == "edit" ]]; then
+  pr_number="${3:-${CODEX_GH_STUB_PR_NUMBER:-123}}"
+  shift 3 || true
+
+  body_file=""
+  while [[ $# -gt 0 ]]; do
+    case "${1-}" in
+      --body-file)
+        body_file="${2:-}"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  if [[ -n "$log_dir" && -n "$body_file" && -f "$body_file" ]]; then
+    cp "$body_file" "${log_dir%/}/gh.pr.${pr_number}.body.md" 2>/dev/null || true
+  fi
+  exit 0
+fi
+
+if [[ "${1-}" == "pr" && "${2-}" == "checks" ]]; then
+  exit 0
+fi
+
+if [[ "${1-}" == "pr" && "${2-}" == "ready" ]]; then
+  exit 0
+fi
+
+die_unhandled "$@"

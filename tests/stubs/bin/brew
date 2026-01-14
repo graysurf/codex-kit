@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "error: brew is blocked by script tests" >&2
+exit 90

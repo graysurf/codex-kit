@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "path": "/health",
+  "expect": {
+    "status": 200,
+    "jq": ".ok == true"
+  }
+}
+

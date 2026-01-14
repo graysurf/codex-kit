@@ -1,0 +1,25 @@
+{
+  "smoke": [
+    {
+      "name": "codex-psql-run",
+      "command": [
+        "zsh",
+        "-f",
+        "-c",
+        "source scripts/db-connect/psql.zsh; codex_psql_run TEST /dev/null --command 'select 1;'"
+      ],
+      "env": {
+        "TEST_PGHOST": "127.0.0.1",
+        "TEST_PGPORT": "5432",
+        "TEST_PGUSER": "user",
+        "TEST_PGPASSWORD": "password",
+        "TEST_PGDATABASE": "db"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "psql stub ok"
+      }
+    }
+  ]
+}

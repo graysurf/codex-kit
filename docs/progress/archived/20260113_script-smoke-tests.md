@@ -2,13 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-13 | 2026-01-13 |
+| DONE | 2026-01-13 | 2026-01-14 |
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/21
-- Docs: [docs/testing/script-regression.md](../testing/script-regression.md)
-- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- PR: https://github.com/graysurf/codex-kit/pull/22
+- Planning PR: https://github.com/graysurf/codex-kit/pull/21
+- Docs: [docs/testing/script-regression.md](../../testing/script-regression.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -37,8 +38,8 @@ Links:
 
 - Script entrypoints: tracked files under `scripts/**` and `skills/**/scripts/**`.
 - Existing regression specs: `tests/script_specs/**/*.json`.
-- New smoke inputs (planned):
-  - Extend `tests/script_specs/**/*.json` schema to support smoke cases (in addition to regression `--help`).
+- New smoke inputs:
+  - `tests/script_specs/**/*.json` smoke cases (in addition to regression `--help`).
   - `tests/fixtures/**` (fixture repos/files used by pytest-driven smoke cases).
   - `tests/stubs/bin/**` (stub commands for hermetic execution).
 
@@ -46,7 +47,7 @@ Links:
 
 - Evidence under `out/tests/`:
   - Existing: `out/tests/script-regression/**`
-  - Planned: `out/tests/script-smoke/**` (logs + summary JSON)
+  - Existing: `out/tests/script-smoke/**` (logs + summary JSON)
 
 ### Intermediate Artifacts
 
@@ -66,8 +67,8 @@ Links:
 - Smoke specs live in `tests/script_specs/**` (schema extended for smoke cases), rather than a new `tests/script_smoke_specs/**` tree.
 - Any git-mutating scripts run only inside isolated temporary git repos (pytest fixtures); never in the real repo working tree.
 - CI contract (no nightly):
-  - `push` (non-`main`, including `develop`): run `script_regression` + `script_smoke_quick`
-  - `pull_request` -> `main` and `push` -> `main`: run `script_regression` + `script_smoke_full`
+  - Keep a single `script_smoke` marker for now.
+  - Consider splitting `script_smoke_quick` / `script_smoke_full` later if runtime grows.
 
 ### Risks / Uncertainties
 
@@ -80,56 +81,69 @@ Links:
 
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 
-- [ ] Step 0: Alignment and inventory
+- [x] Step 0: Alignment and inventory
   - Work Items:
     - [x] Confirm smoke tier definitions and CI contract (what runs by default vs optional).
-    - [ ] Generate the script inventory and classify each entrypoint (`help-only` / `spec-smoke` / `pytest-fixture`).
+    - [x] Generate the script inventory and classify each entrypoint (`help-only` / `spec-smoke` / `pytest-fixture`).
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - Script inventory table (see "Script Inventory" below)
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned: decisions recorded in this progress file.
-    - [ ] Data flow and I/O contract are defined: inputs/outputs/artifacts recorded above.
-    - [ ] Risks and mitigations are defined: risks recorded above.
-    - [ ] Verification commands are defined: `pytest -m script_regression` and `pytest -m script_smoke` (planned).
-- [ ] Step 1: Minimum viable smoke suite
+    - [x] Requirements, scope, and acceptance criteria are aligned: decisions recorded in this progress file.
+    - [x] Data flow and I/O contract are defined: inputs/outputs/artifacts recorded above.
+    - [x] Risks and mitigations are defined: risks recorded above.
+    - [x] Verification commands are defined: `scripts/test.sh -m script_regression` and `scripts/test.sh -m script_smoke`.
+- [x] Step 1: Minimum viable smoke suite
   - Work Items:
-    - [ ] Add a new pytest marker for smoke (e.g. `script_smoke`) and a harness that can run "smoke cases".
-    - [ ] Extend the existing `tests/script_specs/**` JSON schema to support smoke cases (and implement loading logic).
-    - [ ] Add initial fixtures/stubs and smoke coverage for a small starter set (5–8 scripts).
+    - [x] Add a new pytest marker for smoke (e.g. `script_smoke`) and a harness that can run "smoke cases".
+    - [x] Extend the existing `tests/script_specs/**` JSON schema to support smoke cases (and implement loading logic).
+    - [x] Add initial fixtures/stubs and smoke coverage for a small starter set (5–8 scripts).
   - Artifacts:
-    - `tests/test_script_smoke.py` (planned)
-    - `tests/script_specs/**` (extended with smoke cases; planned)
-    - `tests/fixtures/**` (planned)
-    - `docs/testing/script-smoke.md` (planned)
+    - `tests/test_script_smoke.py`
+    - `tests/script_specs/**` (smoke cases)
+    - `tests/fixtures/**`
+    - `docs/testing/script-smoke.md`
   - Exit Criteria:
-    - [ ] At least one happy path runs end-to-end: `pytest -m script_smoke` (pass).
-    - [ ] Primary outputs are verifiable: `out/tests/script-smoke/summary.json` + per-script logs.
-    - [ ] Usage docs skeleton exists: `docs/testing/script-smoke.md` includes TL;DR + spec format.
-- [ ] Step 2: Expand smoke coverage across scripts
+    - [x] At least one happy path runs end-to-end: `scripts/test.sh -m script_smoke` (pass).
+    - [x] Primary outputs are verifiable: `out/tests/script-smoke/summary.json` + per-script logs.
+    - [x] Usage docs skeleton exists: `docs/testing/script-smoke.md` includes TL;DR + spec format.
+- [x] Step 2: Expand smoke coverage across scripts
   - Work Items:
-    - [ ] Add smoke coverage for remaining scripts, guided by the inventory table (spec or pytest fixture as appropriate).
-    - [ ] Extend `tests/stubs/bin` to cover required external tools (e.g. `psql`, `mysql`, `sqlcmd`).
-    - [ ] Add negative tests for "placeholder left behind" failure modes where relevant.
+    - [x] Split Step 2 into multiple implementation PRs; scopes recorded in "Step 2 PR Plan".
+    - [x] Add smoke coverage for remaining scripts, guided by the inventory table (spec-smoke first; defer pytest fixtures).
+    - [x] Extend `tests/stubs/bin` to cover required external tools (e.g. `psql`, `mysql`, `sqlcmd`).
+    - [x] Add negative tests for "placeholder left behind" failure modes where relevant.
   - Artifacts:
     - `tests/script_specs/**` (smoke cases expanded)
     - `tests/fixtures/**` (expanded)
     - `tests/stubs/bin/**` (expanded)
   - Exit Criteria:
-    - [ ] Common branches are covered per script: missing args, invalid env, dry-run, error codes (as applicable).
-    - [ ] Compatible with existing conventions: no dataflow breakage in CI or local workflows.
-    - [ ] Documentation exists for smoke authoring: spec schema + fixture conventions + stub guidelines.
-- [ ] Step 3: CI validation and evidence
+    - [x] Common branches are covered per script: missing args, invalid env, dry-run, error codes (as applicable).
+    - [x] Compatible with existing conventions: no dataflow breakage in CI or local workflows.
+    - [x] Documentation exists for smoke authoring: spec schema + fixture conventions + stub guidelines.
+  - Evidence:
+    - Step 2 PRs #23-#34 merged (see "Step 2 PR Plan" + PR history).
+    - Local `scripts/test.sh -m script_smoke` runs recorded in PR Testing sections.
+- [x] Step 3: CI validation and evidence
   - Work Items:
-    - [ ] Ensure CI runs smoke tests by default and fails on regressions.
-    - [ ] Track runtime and tune timeouts/spec selection to keep CI fast and stable.
+    - [x] Ensure CI runs smoke tests by default and fails on regressions.
+    - [x] Track runtime and tune timeouts/spec selection to keep CI fast and stable.
   - Artifacts:
     - CI logs (GitHub Actions)
     - `out/tests/script-smoke/**` evidence (local)
   - Exit Criteria:
-    - [ ] Validation commands executed with results recorded: `scripts/test.sh` (pass) + CI run (pass).
-    - [ ] Representative samples include failure + rerun after fix: at least one negative test per high-risk script family.
-    - [ ] Traceable evidence exists: smoke summary + logs + CI links.
+    - [x] Validation commands executed with results recorded: `scripts/test.sh` (pass) + CI run (pass).
+    - [x] Representative samples include failure + rerun after fix: at least one negative test per high-risk script family.
+    - [x] Traceable evidence exists: smoke summary + logs + CI links.
+  - Evidence:
+    - 2026-01-14T07:48:17+08:00 local: `scripts/test.sh` (97 passed in 4.41s) on `feat/script-smoke-tests` @ `1e38e21d`.
+    - Local artifacts: `out/tests/script-regression/summary.json`, `out/tests/script-regression/logs`, `out/tests/script-smoke/summary.json`, `out/tests/script-smoke/logs`.
+    - 2026-01-13T23:39:40Z CI: GitHub Actions `Lint` workflow_dispatch success (run `20976621777`, sha `1e38e21d`): https://github.com/graysurf/codex-kit/actions/runs/20976621777
+    - Negative samples (failure → fix) recorded under `out/tests/step3-evidence/`:
+      - `rest.sh`: curl blocked → stubbed curl success
+      - `gql.sh`: xh blocked → stubbed xh success
+      - `psql.zsh`: missing env → env set + stubbed psql success
+      - `gh`: blocked → stubbed gh success
 - [ ] Step 4: Release / wrap-up (optional)
   - Work Items:
     - [ ] Decide whether this warrants a version bump (likely `None` unless scripts/UX change).
@@ -148,10 +162,10 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 - `tests/test_audit_scripts.py`: existing functional tests for selected scripts.
 - `tests/stubs/bin/**`: hermetic stubs (e.g. `curl`, `gh`, `wget`).
 - `docs/testing/script-regression.md`: current docs for regression suite.
-- Planned: `tests/test_script_smoke.py`: functional smoke suite (marker-based).
-- Planned: extend `tests/script_specs/**`: spec-driven smoke cases.
-- Planned: `tests/fixtures/**`: fixture repos/files for smoke.
-- Planned: `docs/testing/script-smoke.md`: smoke docs + authoring guide.
+- `tests/test_script_smoke.py`: functional smoke suite (marker-based).
+- `tests/script_specs/**`: spec-driven smoke cases.
+- `tests/fixtures/**`: fixture repos/files for smoke.
+- `docs/testing/script-smoke.md`: smoke docs + authoring guide.
 
 ## Script Inventory
 
@@ -197,7 +211,38 @@ Tracked script entrypoints (via `git ls-files`):
 | `skills/workflows/pr/progress/create-progress-pr/scripts/render_progress_pr.sh` | `bash` | regression (`--help`) | `spec-smoke` | render-only; validate output format |
 | `skills/workflows/pr/progress/create-progress-pr/scripts/validate_progress_index.sh` | `bash` | functional pytest | `pytest-fixture` | already covered by `tests/test_audit_scripts.py` |
 | `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh` | `bash` | regression (`--help`) | `pytest-fixture` | stub `gh`; fixture progress PR metadata |
+| `skills/workflows/pr/progress/progress-addendum/scripts/audit_progress_addendum.sh` | `bash` | regression (`--help`) | `spec-smoke` | audit `docs/progress/**` for canonical addendum placement |
+| `skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh` | `bash` | regression (`--help`) | `pytest-fixture` | run against fixture progress copies under `out/tests` |
 | `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | run `--check` via smoke spec |
 | `skills/workflows/release/release-workflow/scripts/release-audit.sh` | `bash` | regression (`--help`) | `pytest-fixture` | temp repo for tag checks + changelog fixtures |
 | `skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh` | `bash` | regression (`--help`) | `pytest-fixture` | changelog fixtures, verify extracted notes |
 | `skills/workflows/release/release-workflow/scripts/release-scaffold-entry.sh` | `bash` | regression (`--help`) | `spec-smoke` | output to `out/tests` and verify content |
+
+## Step 2 PR Plan
+
+Goal: Expand `script_smoke` coverage without making a single massive PR. Each PR should be reviewable and
+focused on one script family + its required stubs/fixtures.
+
+Defaults (selected):
+
+- Start from the baseline commit that lands Step 1 (`script_smoke` harness + initial cases).
+- Prefer `spec-smoke` cases first; defer `pytest-fixture` scripts unless the fixture setup is minimal.
+- Stubs should be strict validators by default (fail fast when argv/env wiring is wrong).
+- Keep a single `script_smoke` marker for now (no quick/full split yet).
+
+Planned PRs:
+
+| PR | Scope | Target scripts (primary) | Notes |
+| --- | --- | --- | --- |
+| #23 | DB client stubs (`psql`, `mysql`, `sqlcmd`) | `scripts/db-connect/*.zsh`, `skills/_projects/*/scripts/*` | Add strict stubs first; fixture-based coverage may follow in a later PR. |
+| #25 | Smoke specs: Chrome devtools + history tools | `scripts/chrome-devtools-mcp.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh` | Use dry-run + history fixtures under `tests/fixtures/`. |
+| #24 | Smoke specs: desktop notifications | `skills/tools/devex/desktop-notify/scripts/*.sh` | Add notifier stubs (`terminal-notifier` / `notify-send`) and validate wrapper behavior. |
+| #26 | Smoke specs: release workflow audits | `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |
+| #27 | Smoke specs: render-only workflow helpers | `skills/workflows/**/scripts/render_*.sh` | Validate templates render; no network required. |
+| #34 | Smoke specs: git command wrappers | `scripts/commands/git-scope`, `scripts/commands/git-tools` | Validate wrappers run in a hermetic env (includes a minimal `tree` stub). |
+| #28 | Follow-ups: PR workflow fixtures | `skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`, `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`, `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` | Fixture-based smoke coverage with an opt-in stubbed `gh`. |
+| #29 | Follow-ups: semantic commit fixture | `skills/tools/devex/semantic-commit/scripts/commit_with_message.sh` | Fixture-based smoke coverage in a temp git repo. |
+| #30 | Follow-ups: API testing tool fixtures | `skills/tools/testing/rest-api-testing/scripts/rest.sh`, `.../rest-report.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql.sh`, `.../gql-report.sh`, `.../gql-schema.sh`, `skills/tools/testing/api-test-runner/scripts/api-test.sh` | Add opt-in `curl`/`xh` stubs, fixtures, and smoke specs. |
+| #31 | Follow-ups: progress file helper fixtures | `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`, `skills/workflows/pr/progress/progress-addendum/scripts/*.sh` | Fixture-based smoke coverage in a temp git repo. |
+| #32 | Follow-ups: release workflow fixtures | `skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh`, `.../release-audit.sh` | Fixture-based smoke coverage with a stubbed `gh auth status`. |
+| #33 | Follow-ups: bundle wrapper fixture | `scripts/build/bundle-wrapper.zsh` | Fixture-based smoke coverage for bundled sources + embedded exec tools. |

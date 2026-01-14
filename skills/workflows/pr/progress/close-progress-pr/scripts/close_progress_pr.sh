@@ -7,7 +7,7 @@ Usage:
   close_progress_pr.sh [--pr <number>] [--progress-file <path>] [--no-merge]
 
 What it does:
-  - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to rg by PR URL)
+  - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to scanning docs/progress by PR URL)
   - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" lacks a Reason (excluding Step 4 “Release / wrap-up”)
   - Sets progress Status to DONE and updates the Updated date
   - Sets the progress "Links -> PR" to the PR URL
@@ -19,7 +19,7 @@ What it does:
   - If the progress file has "Links -> Planning PR", patches that PR body to include an "## Implementation" section linking to this PR
 
 Notes:
-  - Requires: gh, git, python3, rg
+  - Requires: gh, git, python3
   - Run inside the target git repo, ideally already on the PR head branch
 USAGE
 }
@@ -54,7 +54,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-for cmd in gh git python3 rg; do
+for cmd in gh git python3; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "error: $cmd is required" >&2
     exit 1
@@ -168,7 +168,25 @@ if [[ -z "$progress_file" ]]; then
 fi
 
 if [[ -z "$progress_file" && -d "docs/progress" ]]; then
-  progress_file="$(rg -l --fixed-string "$pr_url" docs/progress 2>/dev/null | head -n 1 || true)"
+  progress_file="$(python3 - "$pr_url" <<'PY'
+import sys
+from pathlib import Path
+
+needle = sys.argv[1]
+root = Path("docs/progress")
+
+if not root.is_dir():
+  raise SystemExit(0)
+
+for path in sorted(root.rglob("*.md"), key=lambda p: str(p)):
+  try:
+    if needle in path.read_text(encoding="utf-8", errors="ignore"):
+      print(path.as_posix())
+      raise SystemExit(0)
+  except OSError:
+    continue
+PY
+)"
 fi
 
 if [[ -z "$progress_file" ]]; then
@@ -582,7 +600,7 @@ if [[ "$merge_pr" == "1" ]]; then
   fi
 
   merge_args=("$pr_number" --merge --delete-branch)
-  if gh pr merge --help 2>/dev/null | rg -q -- "--yes"; then
+  if gh pr merge --help 2>/dev/null | grep -q -- "--yes"; then
     merge_args+=(--yes)
   fi
   gh pr merge "${merge_args[@]}"

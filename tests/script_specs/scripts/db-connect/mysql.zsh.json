@@ -1,0 +1,25 @@
+{
+  "smoke": [
+    {
+      "name": "codex-mysql-run",
+      "command": [
+        "zsh",
+        "-f",
+        "-c",
+        "source scripts/db-connect/mysql.zsh; codex_mysql_run TEST /dev/null -e 'select 1;'"
+      ],
+      "env": {
+        "TEST_MYSQL_HOST": "127.0.0.1",
+        "TEST_MYSQL_PORT": "3306",
+        "TEST_MYSQL_USER": "user",
+        "TEST_MYSQL_PASSWORD": "password",
+        "TEST_MYSQL_DB": "db"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "mysql stub ok"
+      }
+    }
+  ]
+}

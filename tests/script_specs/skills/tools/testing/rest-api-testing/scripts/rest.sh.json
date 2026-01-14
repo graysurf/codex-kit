@@ -1,0 +1,19 @@
+{
+  "smoke": [
+    {
+      "name": "fixture-ping",
+      "args": ["--url", "https://example.test", "--no-history", "tests/fixtures/rest/ping.request.json"],
+      "env": {
+        "CODEX_CURL_STUB_MODE": "1",
+        "CODEX_CURL_STUB_STATUS": "200",
+        "CODEX_CURL_STUB_BODY_FILE": "tests/fixtures/rest/ping.response.json"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"ok\""
+      }
+    }
+  ]
+}
+
