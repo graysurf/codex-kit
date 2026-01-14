@@ -9,7 +9,7 @@ are intentionally excluded via `.gitignore`.
 .
 ├── .github/    # CI workflows (GitHub Actions)
 ├── prompts/    # prompt presets
-├── skills/     # skills (tools/, workflows/, _projects/, .system/)
+├── skills/     # skills (tools/, workflows/, automation/, _projects/, .system/)
 ├── scripts/    # loader + helper scripts
 ├── docs/       # docs, templates, progress logs
 ├── tests/      # pytest regression/smoke tests
@@ -57,7 +57,7 @@ Artifacts are written under `out/tests/` (gitignored):
 
 All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `scripts/validate_skill_contracts.sh` and CI.
 
-Core skills are grouped under `skills/workflows/` and `skills/tools/`. Project-specific skills live under `skills/_projects/`. Internal/meta skills live under `skills/.system/` (not listed below).
+Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/automation/`. Project-specific skills live under `skills/_projects/`. Internal/meta skills live under `skills/.system/` (not listed below).
 
 ### Workflows
 
@@ -70,7 +70,6 @@ Core skills are grouped under `skills/workflows/` and `skills/tools/`. Project-s
 | PR / Progress | [handoff-progress-pr](./skills/workflows/pr/progress/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
 | PR / Progress | [close-progress-pr](./skills/workflows/pr/progress/close-progress-pr/) | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
 | PR / Progress | [progress-addendum](./skills/workflows/pr/progress/progress-addendum/) | Add an append-only Addendum section to DONE progress files (top-of-file), with audit + template scripts to keep archived docs from going stale. |
-| Maintenance | [find-and-fix-bugs](./skills/workflows/maintenance/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
 | Release | [release-workflow](./skills/workflows/release/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
 
 ### Tools
@@ -84,6 +83,13 @@ Core skills are grouped under `skills/workflows/` and `skills/tools/`. Project-s
 | Testing | [api-test-runner](./skills/tools/testing/api-test-runner/) | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results |
 | Testing | [graphql-api-testing](./skills/tools/testing/graphql-api-testing/) | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
 | Testing | [rest-api-testing](./skills/tools/testing/rest-api-testing/) | Test REST APIs with repeatable, file-based requests and generate API test reports |
+
+### Automation
+
+| Area | Skill | Description |
+| --- | --- | --- |
+| DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
+| Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
 
 ### Project-specific
 

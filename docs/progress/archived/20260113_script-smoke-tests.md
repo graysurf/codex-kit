@@ -208,7 +208,7 @@ Tracked script entrypoints (via `git ls-files`):
 | `skills/tools/testing/rest-api-testing/scripts/rest-history.sh` | `bash` | regression (`--help`) | `spec-smoke` | fixture history dir under `out/tests` |
 | `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` | `bash` | regression (`--help`) | `pytest-fixture` | needs fixture requests + stubbed HTTP |
 | `skills/tools/testing/rest-api-testing/scripts/rest.sh` | `bash` | regression (`--help`) | `pytest-fixture` | needs stubbed HTTP + fixture files |
-| `skills/workflows/maintenance/find-and-fix-bugs/scripts/render_issues_pr.sh` | `bash` | regression (`--help`) | `spec-smoke` | fixture issues JSON input, no network |
+| `skills/automation/find-and-fix-bugs/scripts/render_issues_pr.sh` | `bash` | regression (`--help`) | `spec-smoke` | fixture issues JSON input, no network |
 | `skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh` | `bash` | regression (`--help`) | `pytest-fixture` | stub `gh`; validate command sequencing |
 | `skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh` | `bash` | regression (`--help`) | `spec-smoke` | render-only; validate output format |
 | `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` | `bash` | regression (`--help`) | `pytest-fixture` | stub `gh`; fixture progress files |

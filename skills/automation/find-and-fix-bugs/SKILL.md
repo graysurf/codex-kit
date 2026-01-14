@@ -21,6 +21,7 @@ Inputs:
 Outputs:
 
 - An issues list (per `references/ISSUES_TEMPLATE.md`), a fix branch, commits, and a GitHub PR.
+- After PR creation, return to the original branch (leave the fix branch intact for follow-ups).
 
 Exit codes:
 
@@ -35,6 +36,7 @@ Failure modes:
 ## Setup
 
 - Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`
+- Record the starting branch/ref (for return after PR creation): `start_ref="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)"`
 
 ## Trigger
 
@@ -123,6 +125,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
   - Testing results or "not run"
 - Include the issues list in the PR body.
 - Use `scripts/render_issues_pr.sh --pr` (or `--issues`) to generate templates quickly.
+- After the PR is created, return to the original branch/ref: `git switch "$start_ref"` (or `git switch -` if you stayed on the fix branch the whole time).
 
 ## Output and clarification rules
 
