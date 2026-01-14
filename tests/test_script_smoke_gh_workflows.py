@@ -206,3 +206,221 @@ def test_script_smoke_fixture_close_progress_pr_no_merge(tmp_path: Path):
 
     subprocess.run(["git", "remote", "get-url", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
     subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_close_progress_pr_auto_strikethrough(tmp_path: Path):
+    work_tree, origin = init_fixture_repo(tmp_path)
+
+    head_branch = "feat/progress-124"
+    git(["checkout", "-b", head_branch], cwd=work_tree)
+
+    progress_file = work_tree / "docs" / "progress" / "20260113_fixture_progress.md"
+    progress_file.parent.mkdir(parents=True, exist_ok=True)
+    progress_file.write_text(
+        "\n".join(
+            [
+                "# codex-kit: Fixture progress",
+                "",
+                "| Status | Created | Updated |",
+                "| --- | --- | --- |",
+                "| IN PROGRESS | 2026-01-13 | 2026-01-13 |",
+                "",
+                "Links:",
+                "",
+                "- PR: TBD",
+                "- Docs: None",
+                "- Glossary: TBD",
+                "",
+                "## Goal",
+                "",
+                "- Fixture",
+                "",
+                "## Acceptance Criteria",
+                "",
+                "- Fixture",
+                "",
+                "## Steps (Checklist)",
+                "",
+                "- [x] Step 0: Alignment",
+                "  - Work Items:",
+                "    - [ ] (Optional) Add a one-time backfill script to import `apps/client/src/components/news/brand-news.json` into `articles`.",
+                "      - Reason: Optional follow-up; not required for backend module availability.",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 1: MVP",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 2: Expansion",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 3: Validation",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [ ] Step 4: Release / wrap-up",
+                "  - Work Items:",
+                "    - [ ] Fixture",
+                "",
+            ]
+        )
+        + "\n",
+        "utf-8",
+    )
+
+    git(["add", "docs/progress/20260113_fixture_progress.md"], cwd=work_tree)
+    git(["commit", "-m", "docs(progress): add fixture progress"], cwd=work_tree)
+    git(["push", "-u", "origin", head_branch], cwd=work_tree)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-progress-pr-auto-strikethrough")
+    spec = {
+        "args": [
+            "--pr",
+            "124",
+            "--progress-file",
+            "docs/progress/20260113_fixture_progress.md",
+            "--no-merge",
+        ],
+        "timeout_sec": 30,
+        "env": {
+            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "124",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/124",
+            "CODEX_GH_STUB_TITLE": "Fixture progress close",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": head_branch,
+            "CODEX_GH_STUB_STATE": "OPEN",
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-auto-strikethrough", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    archived = work_tree / "docs" / "progress" / "archived" / "20260113_fixture_progress.md"
+    assert archived.exists()
+    archived_text = archived.read_text("utf-8")
+    assert (
+        "- [ ] ~~(Optional) Add a one-time backfill script to import `apps/client/src/components/news/brand-news.json` into `articles`.~~"
+        in archived_text
+    )
+    assert "Reason: Optional follow-up; not required for backend module availability." in archived_text
+
+    subprocess.run(["git", "remote", "get-url", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
+    subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_close_progress_pr_invalid_strikethrough_fails(tmp_path: Path):
+    work_tree, origin = init_fixture_repo(tmp_path)
+
+    head_branch = "feat/progress-125"
+    git(["checkout", "-b", head_branch], cwd=work_tree)
+
+    progress_file = work_tree / "docs" / "progress" / "20260113_fixture_progress.md"
+    progress_file.parent.mkdir(parents=True, exist_ok=True)
+    progress_file.write_text(
+        "\n".join(
+            [
+                "# codex-kit: Fixture progress",
+                "",
+                "| Status | Created | Updated |",
+                "| --- | --- | --- |",
+                "| IN PROGRESS | 2026-01-13 | 2026-01-13 |",
+                "",
+                "Links:",
+                "",
+                "- PR: TBD",
+                "- Docs: None",
+                "- Glossary: TBD",
+                "",
+                "## Goal",
+                "",
+                "- Fixture",
+                "",
+                "## Acceptance Criteria",
+                "",
+                "- Fixture",
+                "",
+                "## Steps (Checklist)",
+                "",
+                "- [x] Step 0: Alignment",
+                "  - Work Items:",
+                "    - [ ] (Optional) Add a ~~backfill~~ script (bad format).",
+                "      - Reason: Optional follow-up.",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 1: MVP",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 2: Expansion",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 3: Validation",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [ ] Step 4: Release / wrap-up",
+                "  - Work Items:",
+                "    - [ ] Fixture",
+                "",
+            ]
+        )
+        + "\n",
+        "utf-8",
+    )
+
+    git(["add", "docs/progress/20260113_fixture_progress.md"], cwd=work_tree)
+    git(["commit", "-m", "docs(progress): add fixture progress"], cwd=work_tree)
+    git(["push", "-u", "origin", head_branch], cwd=work_tree)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-progress-pr-invalid-strikethrough")
+    spec = {
+        "args": [
+            "--pr",
+            "125",
+            "--progress-file",
+            "docs/progress/20260113_fixture_progress.md",
+            "--no-merge",
+        ],
+        "timeout_sec": 30,
+        "env": {
+            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "125",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/125",
+            "CODEX_GH_STUB_TITLE": "Fixture progress close",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": head_branch,
+            "CODEX_GH_STUB_STATE": "OPEN",
+        },
+        "expect": {
+            "exit_codes": [1],
+            "stderr_regex": r"unchecked checklist item contains '~~' but is not in the form",
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-invalid-strikethrough", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    archived = work_tree / "docs" / "progress" / "archived" / "20260113_fixture_progress.md"
+    assert not archived.exists()
+
+    subprocess.run(["git", "remote", "get-url", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
+    subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
