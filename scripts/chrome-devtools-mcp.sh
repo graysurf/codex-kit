@@ -18,12 +18,21 @@ CHROME_APP_PATH_DEFAULT="/Applications/Google Chrome.app/Contents/MacOS/Google C
 # Default remote debugging ports (connect mode)
 CHROME_REMOTE_DEBUG_PORT_DEFAULT="${CHROME_REMOTE_DEBUG_PORT_DEFAULT:-19222}"
 
+expand_tilde() {
+  local path="$1"
+  if [[ "$path" == "~" || "$path" == "~/"* ]]; then
+    path="${path/#\~/$HOME}"
+  fi
+  printf '%s' "$path"
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
 CODEX_HOME="${CODEX_HOME:-$REPO_ROOT}"
+CODEX_HOME="$(expand_tilde "$CODEX_HOME")"
 export CODEX_HOME
 
-USER_DATA_DIR_BASE="${CHROME_DEVTOOLS_USER_DATA_BASE:-$CODEX_HOME/.cache/chrome-devtools-mcp}"
+USER_DATA_DIR_BASE="$(expand_tilde "${CHROME_DEVTOOLS_USER_DATA_BASE:-$CODEX_HOME/.cache/chrome-devtools-mcp}")"
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -44,8 +53,8 @@ resolve_user_data_dir() {
   local dir="${CHROME_DEVTOOLS_USER_DATA_DIR:-}"
   local base="${CHROME_DEVTOOLS_USER_DATA_BASE:-$USER_DATA_DIR_BASE}"
   [[ -n "$dir" ]] || die "CHROME_DEVTOOLS_USER_DATA_DIR is required when CHROME_DEVTOOLS_MODE=profile"
-  # Expand ~ if present
-  [[ "$dir" == "~"* ]] && dir="${dir/#\~/$HOME}"
+  dir="$(expand_tilde "$dir")"
+  base="$(expand_tilde "$base")"
   # Prepend base path when a relative name is provided
   if [[ "$dir" != /* ]]; then
     dir="$base/$dir"
@@ -67,7 +76,7 @@ resolve_browser_url() {
 }
 
 # 1) Load .env (default: $CODEX_HOME/.env) into environment
-ENV_FILE="${ENV_FILE:-$CODEX_HOME/.env}"
+ENV_FILE="$(expand_tilde "${ENV_FILE:-$CODEX_HOME/.env}")"
 if [[ -f "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1090
@@ -80,15 +89,19 @@ MODE="${CHROME_DEVTOOLS_MODE:-clean}"  # clean|profile|connect
 
 # Log setup (default to $CODEX_HOME/out)
 # IMPORTANT: Do not redirect stdout; MCP uses stdout for the protocol.
-LOG_DIR="${CHROME_DEVTOOLS_LOG_DIR:-$CODEX_HOME/out}"
+LOG_DIR="$(expand_tilde "${CHROME_DEVTOOLS_LOG_DIR:-$CODEX_HOME/out}")"
 LOG_SUBDIR="${CHROME_DEVTOOLS_LOG_SUBDIR:-chrome-devtools-mcp}"
-LOG_FILE="${CHROME_DEVTOOLS_LOG_FILE:-$LOG_DIR/$LOG_SUBDIR/$(date +%Y%m%d-%H%M%S).log}"
+if [[ -n "${CHROME_DEVTOOLS_LOG_FILE:-}" ]]; then
+  LOG_FILE="$(expand_tilde "$CHROME_DEVTOOLS_LOG_FILE")"
+else
+  LOG_FILE="$LOG_DIR/$LOG_SUBDIR/$(date +%Y%m%d-%H%M%S).log"
+fi
 mkdir -p "$(dirname "$LOG_FILE")"
 exec 2>>"$LOG_FILE"
 
 # 3) Resolve browser executable
 if [[ -n "${CHROME_DEVTOOLS_BROWSER:-}" ]]; then
-  BROWSER_EXE="${CHROME_DEVTOOLS_BROWSER}"
+  BROWSER_EXE="$(expand_tilde "$CHROME_DEVTOOLS_BROWSER")"
 else
   BROWSER_EXE="$CHROME_APP_PATH_DEFAULT"
 fi
