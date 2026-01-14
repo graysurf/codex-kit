@@ -103,6 +103,43 @@ def test_script_smoke_fixture_handoff_progress_pr_patch_only(tmp_path: Path):
 
 
 @pytest.mark.script_smoke
+def test_script_smoke_fixture_handoff_progress_pr_patch_only_reuses_pr_body(tmp_path: Path):
+    work_tree, _ = init_fixture_repo(tmp_path)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "handoff-progress-pr-body-cache")
+    progress_file = "docs/progress/20260113_fixture.md"
+    pr_body = f"# Fixture PR\n\n## Progress\n- [{progress_file}]({progress_file})\n"
+
+    spec = {
+        "args": ["--pr", "22", "--patch-only"],
+        "timeout_sec": 15,
+        "env": {
+            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "22",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/22",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": "docs/progress/fixture",
+            "CODEX_GH_STUB_STATE": "MERGED",
+            "CODEX_GH_STUB_BODY": pr_body,
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-patch-only-body-cache", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    calls_path = log_dir / "gh.calls.txt"
+    calls = calls_path.read_text("utf-8")
+    assert calls.count("gh pr view 22 --json body") == 1
+
+    patched_body = (log_dir / "gh.pr.22.body.md").read_text("utf-8")
+    assert f"- [{progress_file}](https://github.com/example/repo/blob/main/{progress_file})" in patched_body
+
+
+@pytest.mark.script_smoke
 def test_script_smoke_fixture_close_progress_pr_no_merge(tmp_path: Path):
     work_tree, origin = init_fixture_repo(tmp_path)
 
@@ -203,6 +240,117 @@ def test_script_smoke_fixture_close_progress_pr_no_merge(tmp_path: Path):
     archived_text = archived.read_text("utf-8")
     assert "| DONE | 2026-01-13 |" in archived_text
     assert "- PR: https://github.com/example/repo/pull/123" in archived_text
+
+    subprocess.run(["git", "remote", "get-url", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
+    subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_close_progress_pr_merge_reuses_pr_body(tmp_path: Path):
+    work_tree, origin = init_fixture_repo(tmp_path)
+
+    head_branch = "feat/progress-126"
+    git(["checkout", "-b", head_branch], cwd=work_tree)
+
+    progress_rel = "docs/progress/20260113_fixture_progress.md"
+    progress_file = work_tree / progress_rel
+    progress_file.parent.mkdir(parents=True, exist_ok=True)
+    progress_file.write_text(
+        "\n".join(
+            [
+                "# codex-kit: Fixture progress",
+                "",
+                "| Status | Created | Updated |",
+                "| --- | --- | --- |",
+                "| IN PROGRESS | 2026-01-13 | 2026-01-13 |",
+                "",
+                "Links:",
+                "",
+                "- PR: TBD",
+                "- Docs: None",
+                "- Glossary: TBD",
+                "",
+                "## Goal",
+                "",
+                "- Fixture",
+                "",
+                "## Acceptance Criteria",
+                "",
+                "- Fixture",
+                "",
+                "## Steps (Checklist)",
+                "",
+                "- [x] Step 0: Alignment",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 1: MVP",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 2: Expansion",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [x] Step 3: Validation",
+                "  - Work Items:",
+                "    - [x] Fixture",
+                "  - Exit Criteria:",
+                "    - [x] Fixture",
+                "- [ ] Step 4: Release / wrap-up",
+                "  - Work Items:",
+                "    - [ ] Fixture",
+                "",
+            ]
+        )
+        + "\n",
+        "utf-8",
+    )
+
+    git(["add", progress_rel], cwd=work_tree)
+    git(["commit", "-m", "docs(progress): add fixture progress"], cwd=work_tree)
+    git(["push", "-u", "origin", head_branch], cwd=work_tree)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-progress-pr-body-cache")
+    pr_body = f"# Fixture PR\n\n## Progress\n- [{progress_rel}]({progress_rel})\n"
+
+    spec = {
+        "args": [
+            "--pr",
+            "126",
+        ],
+        "timeout_sec": 30,
+        "env": {
+            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "126",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/126",
+            "CODEX_GH_STUB_TITLE": "Fixture progress close",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": head_branch,
+            "CODEX_GH_STUB_STATE": "OPEN",
+            "CODEX_GH_STUB_BODY": pr_body,
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-merge-body-cache", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    calls_path = log_dir / "gh.calls.txt"
+    calls = calls_path.read_text("utf-8")
+    assert calls.count("gh pr view 126 --json body") == 1
+
+    patched_body = (log_dir / "gh.pr.126.body.md").read_text("utf-8")
+    assert (
+        "- [docs/progress/archived/20260113_fixture_progress.md](https://github.com/example/repo/blob/main/docs/progress/archived/20260113_fixture_progress.md)"
+        in patched_body
+    )
 
     subprocess.run(["git", "remote", "get-url", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)
     subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=str(work_tree), check=True, text=True, capture_output=True)

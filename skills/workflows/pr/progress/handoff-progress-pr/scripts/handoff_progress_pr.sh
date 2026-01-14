@@ -89,6 +89,22 @@ if [[ -z "$pr_number" ]]; then
   exit 1
 fi
 
+pr_body=""
+pr_body_loaded="0"
+
+load_pr_body() {
+  if [[ "$pr_body_loaded" != "1" ]]; then
+    pr_body="$(gh pr view "$pr_number" --json body -q .body)"
+    pr_body_loaded="1"
+  fi
+}
+
+write_pr_body_to_file() {
+  local dest="$1"
+  load_pr_body
+  printf '%s' "$pr_body" >"$dest"
+}
+
 pr_meta="$(gh pr view "$pr_number" --json url,baseRefName,headRefName,state -q '[.url, .baseRefName, .headRefName, .state] | @tsv')"
 IFS=$'\t' read -r pr_url base_branch head_branch pr_state <<<"$pr_meta"
 
@@ -151,7 +167,7 @@ PY
 }
 
 if [[ -z "$progress_file" ]]; then
-  pr_body="$(gh pr view "$pr_number" --json body -q .body)"
+  load_pr_body
   set +e
   progress_from_body="$(resolve_progress_from_body "$pr_body")"
   rc=$?
@@ -206,7 +222,7 @@ fi
 progress_url="${repo_origin}/${repo_full}/blob/${base_branch}/${progress_file}"
 
 tmp_file="$(mktemp)"
-gh pr view "$pr_number" --json body -q .body >"$tmp_file"
+write_pr_body_to_file "$tmp_file"
 
 python3 - "$tmp_file" "$progress_file" "$progress_url" <<'PY'
 import sys
