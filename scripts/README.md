@@ -5,13 +5,13 @@ Repo-local helpers for codex-kit (command entrypoints live in `commands/` at the
 ## Structure
 
 ```text
-commands/         Standalone command entrypoints used by skills and docs.
+commands/                         Standalone command entrypoints used by skills and docs.
 scripts/
-├── build/          Tooling to generate bundled commands.
-├── db-connect/     DB connection helpers (psql/mysql/mssql wrappers).
-├── env.zsh         Environment defaults shared by repo scripts.
-├── test.sh         Dev test runner (repo-only).
-└── validate_skill_contracts.sh  Lints `skills/**/SKILL.md` contracts.
+├── build/                        Tooling to generate bundled commands.
+├── db-connect/                   DB connection helpers (psql/mysql/mssql wrappers).
+├── env.zsh                       Environment defaults shared by repo scripts.
+├── test.sh                       Dev test runner (repo-only).
+└── validate_skill_contracts.sh   Lints `skills/**/SKILL.md` contracts.
 ```
 
 ## Bundling wrappers
