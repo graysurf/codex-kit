@@ -237,7 +237,7 @@ append_gql_history() {
 	script_abs="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd -P)/$(basename "${BASH_SOURCE[0]}")"
 	script_cmd="$script_abs"
 	if [[ -n "${CODEX_HOME:-}" && "$script_abs" == "${CODEX_HOME%/}/"* ]]; then
-		script_cmd="\$CODEX_HOME/${script_abs#${CODEX_HOME%/}/}"
+		script_cmd="\$CODEX_HOME/${script_abs#"${CODEX_HOME%/}"/}"
 	fi
 
 	local config_arg op_arg vars_arg
