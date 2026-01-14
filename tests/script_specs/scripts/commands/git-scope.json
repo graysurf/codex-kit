@@ -2,13 +2,12 @@
   "smoke": [
     {
       "name": "tracked-single",
-      "args": ["tracked", "docs/progress/20260113_script-smoke-tests.md"],
+      "args": ["tracked", "docs/progress/archived/20260113_script-smoke-tests.md"],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "docs/progress/20260113_script-smoke-tests\\.md"
+        "stdout_regex": "docs/progress/archived/20260113_script-smoke-tests\\.md"
       }
     }
   ]
 }
-
