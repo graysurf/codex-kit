@@ -1290,7 +1290,7 @@ git-commit-to-stash() {
 # - `--no-color` also applies when `NO_COLOR` is set.
 git-commit-context () {
   emulate -L zsh
-  setopt pipe_fail
+  setopt pipe_fail local_traps
 
   typeset tmpfile='' diff='' scope='' contents='' mode='clipboard'
   typeset no_color=false
@@ -1361,6 +1361,7 @@ git-commit-context () {
   scope="$(git-scope "${scope_args[@]}" | sed 's/\x1b\[[0-9;]*m//g')"
 
   tmpfile="$(mktemp -t commit-context.md.XXXXXX)"
+  trap '[[ -n "${tmpfile-}" ]] && rm -f "${tmpfile-}" >/dev/null 2>&1' EXIT
 
   contents="$(
     git -c core.quotepath=false diff --cached --name-status -z | while IFS= read -r -d '' fstatus; do
