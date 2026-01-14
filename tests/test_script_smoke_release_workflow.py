@@ -57,7 +57,7 @@ def test_script_smoke_release_notes_from_changelog(tmp_path: Path):
     )
 
     repo = repo_root()
-    script = "skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh"
+    script = "skills/automation/release-workflow/scripts/release-notes-from-changelog.sh"
     spec = {
         "args": ["--version", version, "--changelog", "CHANGELOG.md", "--output", "release-notes.md"],
         "timeout_sec": 10,
@@ -149,7 +149,7 @@ def test_script_smoke_release_audit_strict(tmp_path: Path):
     system_path = os.environ.get("PATH", "")
     path = os.pathsep.join([str(fixture_bin), str(stub_bin), system_path])
 
-    script = "skills/workflows/release/release-workflow/scripts/release-audit.sh"
+    script = "skills/automation/release-workflow/scripts/release-audit.sh"
     spec = {
         "args": ["--repo", ".", "--branch", "main", "--changelog", "CHANGELOG.md", "--version", "v1.2.3", "--strict"],
         "env": {"PATH": path},

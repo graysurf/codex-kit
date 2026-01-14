@@ -218,10 +218,10 @@ Tracked script entrypoints (via `git ls-files`):
 | `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh` | `bash` | regression (`--help`) | `pytest-fixture` | stub `gh`; fixture progress PR metadata |
 | `skills/workflows/pr/progress/progress-addendum/scripts/audit_progress_addendum.sh` | `bash` | regression (`--help`) | `spec-smoke` | audit `docs/progress/**` for canonical addendum placement |
 | `skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh` | `bash` | regression (`--help`) | `pytest-fixture` | run against fixture progress copies under `out/tests` |
-| `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | run `--check` via smoke spec |
-| `skills/workflows/release/release-workflow/scripts/release-audit.sh` | `bash` | regression (`--help`) | `pytest-fixture` | temp repo for tag checks + changelog fixtures |
-| `skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh` | `bash` | regression (`--help`) | `pytest-fixture` | changelog fixtures, verify extracted notes |
-| `skills/workflows/release/release-workflow/scripts/release-scaffold-entry.sh` | `bash` | regression (`--help`) | `spec-smoke` | output to `out/tests` and verify content |
+| `skills/automation/release-workflow/scripts/audit-changelog.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | run `--check` via smoke spec |
+| `skills/automation/release-workflow/scripts/release-audit.sh` | `bash` | regression (`--help`) | `pytest-fixture` | temp repo for tag checks + changelog fixtures |
+| `skills/automation/release-workflow/scripts/release-notes-from-changelog.sh` | `bash` | regression (`--help`) | `pytest-fixture` | changelog fixtures, verify extracted notes |
+| `skills/automation/release-workflow/scripts/release-scaffold-entry.sh` | `bash` | regression (`--help`) | `spec-smoke` | output to `out/tests` and verify content |
 
 ## Step 2 PR Plan
 
@@ -242,12 +242,12 @@ Planned PRs:
 | #23 | DB client stubs (`psql`, `mysql`, `sqlcmd`) | `scripts/db-connect/*.zsh`, `skills/_projects/*/scripts/*` | Add strict stubs first; fixture-based coverage may follow in a later PR. |
 | #25 | Smoke specs: Chrome devtools + history tools | `scripts/chrome-devtools-mcp.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh` | Use dry-run + history fixtures under `tests/fixtures/`. |
 | #24 | Smoke specs: desktop notifications | `skills/tools/devex/desktop-notify/scripts/*.sh` | Add notifier stubs (`terminal-notifier` / `notify-send`) and validate wrapper behavior. |
-| #26 | Smoke specs: release workflow audits | `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |
+| #26 | Smoke specs: release workflow audits | `skills/automation/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |
 | #27 | Smoke specs: render-only workflow helpers | `skills/workflows/**/scripts/render_*.sh` | Validate templates render; no network required. |
 | #34 | Smoke specs: git command wrappers | `scripts/commands/git-scope`, `scripts/commands/git-tools` | Validate wrappers run in a hermetic env (includes a minimal `tree` stub). |
 | #28 | Follow-ups: PR workflow fixtures | `skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`, `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`, `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` | Fixture-based smoke coverage with an opt-in stubbed `gh`. |
 | #29 | Follow-ups: semantic commit fixture | `skills/tools/devex/semantic-commit/scripts/commit_with_message.sh` | Fixture-based smoke coverage in a temp git repo. |
 | #30 | Follow-ups: API testing tool fixtures | `skills/tools/testing/rest-api-testing/scripts/rest.sh`, `.../rest-report.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql.sh`, `.../gql-report.sh`, `.../gql-schema.sh`, `skills/tools/testing/api-test-runner/scripts/api-test.sh` | Add opt-in `curl`/`xh` stubs, fixtures, and smoke specs. |
 | #31 | Follow-ups: progress file helper fixtures | `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`, `skills/workflows/pr/progress/progress-addendum/scripts/*.sh` | Fixture-based smoke coverage in a temp git repo. |
-| #32 | Follow-ups: release workflow fixtures | `skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh`, `.../release-audit.sh` | Fixture-based smoke coverage with a stubbed `gh auth status`. |
+| #32 | Follow-ups: release workflow fixtures | `skills/automation/release-workflow/scripts/release-notes-from-changelog.sh`, `.../release-audit.sh` | Fixture-based smoke coverage with a stubbed `gh auth status`. |
 | #33 | Follow-ups: bundle wrapper fixture | `scripts/build/bundle-wrapper.zsh` | Fixture-based smoke coverage for bundled sources + embedded exec tools. |

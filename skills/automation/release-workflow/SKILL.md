@@ -75,9 +75,9 @@ This fallback matches a common "CHANGELOG.md → GitHub Releases" workflow (conf
    - Version: `vX.Y.Z`
    - Date: `YYYY-MM-DD` (e.g. `date +%Y-%m-%d`)
 3. Update `CHANGELOG.md`
-   - Add a new entry at the top using the repo’s template (preferred), or `$CODEX_HOME/skills/workflows/release/release-workflow/template/RELEASE_TEMPLATE.md`
+   - Add a new entry at the top using the repo’s template (preferred), or `$CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md`
    - Keep section order; remove empty sections
-   - Run `$CODEX_HOME/skills/workflows/release/release-workflow/scripts/audit-changelog.zsh --check` (skips when repo provides its own template; use `--no-skip-template` to force)
+   - Run `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --check` (skips when repo provides its own template; use `--no-skip-template` to force)
 4. (Only when code changed) run the repo’s lint/test/build checks and record results
 5. Commit the changelog
 6. Create the GitHub release notes from the changelog section and publish the release with `gh release create`
@@ -86,18 +86,18 @@ This fallback matches a common "CHANGELOG.md → GitHub Releases" workflow (conf
 ## Templates (fallback)
 
 - `template/RELEASE_TEMPLATE.md`: Changelog entry / GitHub release notes template (copy into the project’s `CHANGELOG.md`).
-- Path: `$CODEX_HOME/skills/workflows/release/release-workflow/template/RELEASE_TEMPLATE.md`
+- Path: `$CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md`
 
 ## Helper scripts (fallback)
 
 These scripts are designed to run inside a target repo that uses `CHANGELOG.md` headings like `## vX.Y.Z - YYYY-MM-DD`.
 
 - Scaffold a new entry from a template:
-  - `$CODEX_HOME/skills/workflows/release/release-workflow/scripts/release-scaffold-entry.sh --version v1.3.2 --output "$CODEX_HOME/out/release-entry-v1.3.2.md"`
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --version v1.3.2 --output "$CODEX_HOME/out/release-entry-v1.3.2.md"`
   - Uses repo-local `docs/templates/RELEASE_TEMPLATE.md` when present; otherwise falls back to this skill template.
 - Audit basic prereqs + changelog format:
-  - `$CODEX_HOME/skills/workflows/release/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
 - Audit changelog formatting + placeholder cleanup (skips when repo provides its own template; use `--no-skip-template` to force):
-  - `$CODEX_HOME/skills/workflows/release/release-workflow/scripts/audit-changelog.zsh --repo . --check`
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 - Extract release notes from `CHANGELOG.md` into a file for `gh release create -F`:
-  - `$CODEX_HOME/skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$CODEX_HOME/out/release-notes-v1.3.2.md"`
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$CODEX_HOME/out/release-notes-v1.3.2.md"`

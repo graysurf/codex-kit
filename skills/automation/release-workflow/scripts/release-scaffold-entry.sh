@@ -14,7 +14,7 @@ Usage:
 Template resolution:
   1) --template (when provided)
   2) ./docs/templates/RELEASE_TEMPLATE.md (when present)
-  3) $CODEX_HOME/skills/workflows/release/release-workflow/template/RELEASE_TEMPLATE.md
+  3) $CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md
 
 Output:
   - Writes to --output (default: stdout).
@@ -65,7 +65,7 @@ if [[ -z "$template" ]]; then
   if [[ -f "docs/templates/RELEASE_TEMPLATE.md" ]]; then
     template="docs/templates/RELEASE_TEMPLATE.md"
   elif [[ -n "${CODEX_HOME:-}" ]]; then
-    template="${CODEX_HOME%/}/skills/workflows/release/release-workflow/template/RELEASE_TEMPLATE.md"
+    template="${CODEX_HOME%/}/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md"
   fi
 fi
 

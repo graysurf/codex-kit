@@ -70,7 +70,6 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | PR / Progress | [handoff-progress-pr](./skills/workflows/pr/progress/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
 | PR / Progress | [close-progress-pr](./skills/workflows/pr/progress/close-progress-pr/) | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
 | PR / Progress | [progress-addendum](./skills/workflows/pr/progress/progress-addendum/) | Add an append-only Addendum section to DONE progress files (top-of-file), with audit + template scripts to keep archived docs from going stale. |
-| Release | [release-workflow](./skills/workflows/release/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
 
 ### Tools
 
@@ -90,6 +89,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | --- | --- | --- |
 | DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
 | Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
+| Release | [release-workflow](./skills/automation/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
 
 ### Project-specific
 
