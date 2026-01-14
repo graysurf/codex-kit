@@ -112,7 +112,11 @@ if [[ -n "$branch" ]]; then
     say_ok "on branch $branch"
   fi
 else
-  [[ -n "$current_branch" ]] && say_ok "current branch: $current_branch" || say_warn "unable to detect current branch"
+  if [[ -n "$current_branch" ]]; then
+    say_ok "current branch: $current_branch"
+  else
+    say_warn "unable to detect current branch"
+  fi
 fi
 
 if git show-ref --tags --verify --quiet "refs/tags/$version" 2>/dev/null; then
