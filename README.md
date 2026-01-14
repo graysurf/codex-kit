@@ -7,14 +7,13 @@ are intentionally excluded via `.gitignore`.
 
 ```text
 .
-├── AGENTS.md
-├── README.md
-├── config.toml
-├── scripts/       # helpers (incl. codex-tools loader)
-├── prompts/       # prompt templates
-├── skills/        # custom skills (tools/, workflows/, _projects/, .system/)
-├── docs/          # docs and progress tracking
-└── setup/         # request templates / fixtures
+├── .github/    # CI workflows (GitHub Actions)
+├── prompts/    # prompt presets
+├── skills/     # skills (tools/, workflows/, _projects/, .system/)
+├── scripts/    # loader + helper scripts
+├── docs/       # docs, templates, progress logs
+├── tests/      # pytest regression/smoke tests
+└── AGENTS.md   # global agent rules (response/tooling)
 ```
 
 ## ⚙️ Setup
