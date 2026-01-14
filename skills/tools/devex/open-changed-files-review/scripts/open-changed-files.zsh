@@ -25,16 +25,17 @@ print_usage() {
   print -r -- "  --git   Open changed files from git (staged + unstaged + untracked)"
   print -r -- ""
   print -r -- "Options:"
-  print -r -- "  --dry-run       Print planned 'code ...' invocations (does not execute)"
-  print -r -- "  --verbose       Explain no-op behavior and ignored paths (stderr only)"
-  print -r -- "  --workspace-mode pwd|git (default: ${OPEN_CHANGED_FILES_WORKSPACE_MODE:-pwd})"
-  print -r -- "  --max-files N   Max files to open (default: ${OPEN_CHANGED_FILES_MAX_FILES:-$OCF_DEFAULT_MAX_FILES})"
-  print -r -- "  -h, --help      Show this help"
+  print -r -- "  --dry-run         Print planned 'code ...' invocations (does not execute)"
+  print -r -- "  --verbose         Explain no-op behavior and ignored paths (stderr only)"
+  print -r -- "  --workspace-mode  pwd|git (default: ${OPEN_CHANGED_FILES_WORKSPACE_MODE:-pwd})"
+  print -r -- "  --max-files N     Max files to open (default: ${OPEN_CHANGED_FILES_MAX_FILES:-$OCF_DEFAULT_MAX_FILES})"
+  print -r -- "  -h, --help        Show this help"
   print -r -- ""
   print -r -- "Env:"
   print -r -- "  OPEN_CHANGED_FILES_SOURCE=list|git (default: ${OPEN_CHANGED_FILES_SOURCE:-list})"
   print -r -- "  OPEN_CHANGED_FILES_WORKSPACE_MODE=pwd|git (default: ${OPEN_CHANGED_FILES_WORKSPACE_MODE:-pwd})"
   print -r -- "  OPEN_CHANGED_FILES_MAX_FILES=<n>     (default: $OCF_DEFAULT_MAX_FILES)"
+  print -r -- "  OPEN_CHANGED_FILES_CODE_PATH=auto|none|<path> (default: ${OPEN_CHANGED_FILES_CODE_PATH:-auto})"
 }
 
 # _ocf::die_usage: Print an error + usage to stderr and return status 2.
@@ -334,7 +335,32 @@ main() {
   (( max_files < 0 )) && { _ocf::die_usage "--max-files must be >= 0"; return $?; }
   (( max_files == 0 )) && return 0
 
-  OCF_CODE_PATH="$(_ocf::resolve_code_path 2>/dev/null || true)"
+  typeset code_override="${OPEN_CHANGED_FILES_CODE_PATH-}"
+  if [[ -n "$code_override" && "$code_override" != "auto" ]]; then
+    if [[ "$code_override" == "none" ]]; then
+      OCF_CODE_PATH=''
+    else
+      if (( dry_run )); then
+        OCF_CODE_PATH="$code_override"
+      else
+        typeset resolved=''
+        if [[ "$code_override" == */* ]]; then
+          [[ -x "$code_override" ]] && resolved="$code_override"
+        else
+          resolved="$(command -v "$code_override" 2>/dev/null || true)"
+          [[ -n "$resolved" && -x "$resolved" ]] || resolved=''
+        fi
+
+        if [[ -z "$resolved" ]]; then
+          _ocf::log "no-op: code override not found: $code_override"
+          return 0
+        fi
+        OCF_CODE_PATH="$resolved"
+      fi
+    fi
+  else
+    OCF_CODE_PATH="$(_ocf::resolve_code_path 2>/dev/null || true)"
+  fi
   if [[ -z "$OCF_CODE_PATH" ]]; then
     if (( dry_run )); then
       OCF_CODE_PATH='code'
