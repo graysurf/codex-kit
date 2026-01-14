@@ -31,10 +31,6 @@ Failure modes:
 - A guide step fails or is unclear (must stop and follow recovery instructions or ask).
 - Default guide steps fail (must stop and ask how to proceed).
 
-## Setup
-
-- Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`
-
 ## Workflow
 
 1. Identify the target repository root; ask if the repo path is unclear.

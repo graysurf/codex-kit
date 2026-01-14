@@ -79,7 +79,8 @@ codex_home="${CODEX_HOME:-}"
 if [[ -z "$codex_home" || ! -d "$codex_home" ]]; then
   codex_home="$(cd "${skill_root}/../../.." && pwd -P)"
 fi
-project_resolve="${codex_home%/}/scripts/commands/project-resolve"
+commands_dir="${CODEX_COMMANDS_PATH:-${codex_home%/}/commands}"
+project_resolve="${commands_dir%/}/project-resolve"
 [[ -x "$project_resolve" ]] || die "missing executable: $project_resolve"
 
 set +e

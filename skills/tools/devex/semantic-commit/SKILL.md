@@ -12,7 +12,7 @@ Prereqs:
 - Run inside a git work tree.
 - `git` available on `PATH`.
 - `zsh` available on `PATH` (scripts are `zsh -f`).
-- `$CODEX_HOME/scripts/codex-tools.sh` exists (provides `git-tools` and `git-scope`).
+- `git-tools` and `git-scope` available (via `CODEX_COMMANDS_PATH` or `$CODEX_HOME/commands`).
 
 Inputs:
 
@@ -33,13 +33,13 @@ Exit codes:
 Failure modes:
 
 - Not in a git repo or no staged changes.
-- `$CODEX_HOME` unset and loader cannot be resolved.
+- `git-tools` / `git-scope` not found.
 - `git commit` fails (hooks, conflicts, or repo state issues).
 
 ## Setup
 
 - Run inside the target git repo
-- Prefer using the scripts below; they load Codex git helpers via `source $CODEX_HOME/scripts/codex-tools.sh` and hard-fail if unavailable
+- Prefer using the scripts below; they resolve required commands directly (no sourcing)
 
 ## Scripts (only entrypoints)
 

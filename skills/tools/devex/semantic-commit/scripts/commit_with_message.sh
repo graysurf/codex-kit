@@ -75,7 +75,10 @@ fi
 export GIT_PAGER=cat
 export PAGER=cat
 
-load_codex_tools() {
+resolve_codex_command() {
+  local name="${1:-}"
+  [[ -n "$name" ]] || return 1
+
   if [[ -z "${CODEX_HOME:-}" ]]; then
     local script_dir repo_root
     script_dir="${${(%):-%x}:A:h}"
@@ -83,18 +86,12 @@ load_codex_tools() {
     export CODEX_HOME="$repo_root"
   fi
 
-  local loader="${CODEX_HOME%/}/scripts/codex-tools.sh"
-  if [[ ! -f "$loader" ]]; then
-    echo "error: codex tools loader not found: $loader" >&2
-    echo "hint: set CODEX_HOME to your codex-kit path (repo root) or reinstall codex-kit" >&2
-    exit 1
-  fi
+  local commands_dir="${CODEX_COMMANDS_PATH:-${CODEX_HOME%/}/commands}"
+  local candidate="${commands_dir%/}/${name}"
+  [[ -x "$candidate" ]] || return 1
 
-  # shellcheck disable=SC1090
-  source "$loader"
+  print -r -- "$candidate"
 }
-
-load_codex_tools
 
 tmpfile="$(mktemp 2>/dev/null || true)"
 if [[ -z "$tmpfile" ]]; then
@@ -140,7 +137,14 @@ else
   exit "$rc"
 fi
 
-if ! git-scope commit HEAD --no-color; then
+git_scope="$(resolve_codex_command git-scope 2>/dev/null || true)"
+if [[ -z "$git_scope" ]]; then
+  echo "warning: git-scope not found; falling back to git show --stat" >&2
+  command git show --no-color --stat HEAD
+  exit 0
+fi
+
+if ! "$git_scope" commit HEAD --no-color; then
   echo "warning: git-scope commit failed; falling back to git show --stat" >&2
   command git show --no-color --stat HEAD
 fi

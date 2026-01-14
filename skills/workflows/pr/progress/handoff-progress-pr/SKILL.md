@@ -39,7 +39,6 @@ Failure modes:
 
 ## Setup
 
-- Load commands with `source $CODEX_HOME/scripts/codex-tools.sh` (optional).
 - Ensure `gh auth status` succeeds.
 - Ensure the working tree is clean if you plan to merge (stash/commit unrelated work first).
 

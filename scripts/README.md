@@ -1,15 +1,15 @@
 # scripts
 
-Repo-local command entrypoints and helpers for codex-kit.
+Repo-local helpers for codex-kit (command entrypoints live in `commands/` at the repo root).
 
 ## Structure
 
 ```text
+commands/         Standalone command entrypoints used by skills and docs.
 scripts/
 ├── build/          Tooling to generate bundled commands.
-├── commands/       Standalone command entrypoints used by skills and docs.
 ├── db-connect/     DB connection helpers (psql/mysql/mssql wrappers).
-├── codex-tools.sh  Single-source loader for repo tools.
+├── codex-tools.sh  Optional convenience loader (not required by skills).
 └── env.zsh         Environment defaults shared by repo scripts.
 ```
 
@@ -24,7 +24,7 @@ Example (git-tools):
 ```zsh
 zsh -f scripts/build/bundle-wrapper.zsh \
   --input $HOME/.config/zsh/cache/wrappers/bin/git-tools \
-  --output scripts/commands/git-tools \
+  --output commands/git-tools \
   --entry git-tools
 ```
 

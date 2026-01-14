@@ -20,7 +20,7 @@ Links:
 ## Acceptance Criteria
 
 - `scripts/test.sh` (or `python -m pytest`) passes locally and in GitHub Actions.
-- Test discovery covers 100% of tracked script entrypoints under `scripts/`, `scripts/commands/`, and `skills/**/scripts/`.
+- Test discovery covers 100% of tracked script entrypoints under `scripts/`, `commands/`, and `skills/**/scripts/`.
 - Each discovered script has an executable test invocation (default: `--help`; or an explicit per-script spec) and runs in a hermetic sandbox:
   - `HOME` and `XDG_*` point to temp dirs under `out/tests/script-regression/`
   - `PATH` is prefixed with repo-local stubs to prevent destructive ops and outbound network calls (e.g., `gh`, `curl`)
@@ -46,7 +46,7 @@ Links:
 
 - Script entrypoints (tracked files):
   - `scripts/**`
-  - `scripts/commands/**`
+  - `commands/**`
   - `skills/**/scripts/**`
 - `prompts/*.md`
 - `skills/**/SKILL.md`

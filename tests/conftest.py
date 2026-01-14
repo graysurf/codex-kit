@@ -155,6 +155,8 @@ def discover_scripts() -> list[str]:
             continue
         if p.startswith("scripts/") or (p.startswith("skills/") and "/scripts/" in p):
             scripts.append(p)
+        if p.startswith("commands/"):
+            scripts.append(p)
     return sorted(scripts)
 
 
@@ -207,8 +209,8 @@ def script_coverage_out_dir() -> Path:
 
 
 def script_group(script: str) -> str:
-    if script.startswith("scripts/commands/"):
-        return "scripts/commands"
+    if script.startswith("commands/"):
+        return "commands"
     if script.startswith("scripts/"):
         return "scripts"
     if script.startswith("skills/") and "/scripts/" in script:

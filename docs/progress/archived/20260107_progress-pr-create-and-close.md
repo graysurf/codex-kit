@@ -95,7 +95,7 @@ Links:
   - Exit Criteria:
     - [x] Requirements, scope, and acceptance criteria are aligned (this document is complete).
     - [x] No progress placeholders remain: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no output.
-    - [x] Default scripts/commands to validate behavior are listed under later steps.
+    - [x] Default commands/ to validate behavior are listed under later steps.
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
     - [x] Add `create-progress-pr` skill with:

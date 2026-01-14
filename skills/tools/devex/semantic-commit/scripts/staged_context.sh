@@ -9,9 +9,6 @@ Print staged change context for commit message generation.
 
 Prefers:
   git-tools commit context --stdout --no-color
-
-This script will attempt to load Codex git tools by sourcing:
-  $CODEX_HOME/scripts/codex-tools.sh
 USAGE
 }
 
@@ -39,7 +36,10 @@ fi
 export GIT_PAGER=cat
 export PAGER=cat
 
-load_codex_tools() {
+resolve_codex_command() {
+  local name="${1:-}"
+  [[ -n "$name" ]] || return 1
+
   if [[ -z "${CODEX_HOME:-}" ]]; then
     local script_dir repo_root
     script_dir="${${(%):-%x}:A:h}"
@@ -47,20 +47,21 @@ load_codex_tools() {
     export CODEX_HOME="$repo_root"
   fi
 
-  local loader="${CODEX_HOME%/}/scripts/codex-tools.sh"
-  if [[ ! -f "$loader" ]]; then
-    echo "error: codex tools loader not found: $loader" >&2
-    echo "hint: set CODEX_HOME to your codex-kit path (repo root) or reinstall codex-kit" >&2
-    exit 1
-  fi
+  local commands_dir="${CODEX_COMMANDS_PATH:-${CODEX_HOME%/}/commands}"
+  local candidate="${commands_dir%/}/${name}"
+  [[ -x "$candidate" ]] || return 1
 
-  # shellcheck disable=SC1090
-  source "$loader"
+  print -r -- "$candidate"
 }
 
-load_codex_tools
+git_tools="$(resolve_codex_command git-tools 2>/dev/null || true)"
+if [[ -z "$git_tools" ]]; then
+  echo "warning: git-tools not found; printing fallback staged diff only" >&2
+  command git diff --staged --no-color
+  exit 0
+fi
 
-if ! git-tools commit context --stdout --no-color; then
+if ! "$git_tools" commit context --stdout --no-color; then
   echo "warning: git-tools commit context failed; printing fallback staged diff only" >&2
   command git diff --staged --no-color
 fi

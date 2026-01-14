@@ -35,7 +35,6 @@ Failure modes:
 
 ## Setup
 
-- Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`
 - Work from the target repo root.
 - Ensure `gh auth status` succeeds.
 - Ensure the working tree is clean (stash or commit unrelated work first).

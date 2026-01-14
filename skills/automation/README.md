@@ -20,4 +20,4 @@ Guidelines:
 - `_libs/` is for sourceable libraries and non-entrypoint code (no shebang; not executable).
 - Keep executable entrypoints in a skill’s `scripts/` only when necessary.
 - Prefer `skills/automation/<primitive>/` as a shared primitive (others reference it) over duplicating wrappers.
-- Prefer shared CLI primitives under `scripts/commands/` (e.g. `project-resolve`) for deterministic project file/folder discovery; keep per-skill `<skill>-resolve.sh` wrappers in each skill’s `scripts/`.
+- Prefer shared CLI primitives under `commands/` (optionally via `CODEX_COMMANDS_PATH`) for deterministic project file/folder discovery; keep per-skill `<skill>-resolve.sh` wrappers in each skill’s `scripts/`.

@@ -33,10 +33,6 @@ Failure modes:
 - Missing `gh` auth or insufficient permissions to push/create PR.
 - PR body missing required sections; if using a progress file, missing/invalid progress link.
 
-## Setup
-
-- Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`
-
 ## Inputs
 
 - Prefer explicit user feature description and acceptance criteria.

@@ -181,8 +181,8 @@ Tracked script entrypoints (via `git ls-files`):
 | `scripts/build/bundle-wrapper.zsh` | `zsh -f` | regression (`--help`) | `pytest-fixture` | likely needs temp FS + wrapper inputs |
 | `scripts/chrome-devtools-mcp.sh` | `bash` | regression (spec: dry-run) | `spec-smoke` | keep `CHROME_DEVTOOLS_DRY_RUN=true` |
 | `scripts/codex-tools.sh` | `zsh -f` | regression (`--help`) | `help-only` | loader/library; smoke may not add value |
-| `scripts/commands/git-scope` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate output format |
-| `scripts/commands/git-tools` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate router output |
+| `commands/git-scope` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate output format |
+| `commands/git-tools` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate router output |
 | `scripts/db-connect/mssql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `sqlcmd` to validate argv/env wiring |
 | `scripts/db-connect/mysql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `mysql` to validate argv/env wiring |
 | `scripts/db-connect/psql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `psql` to validate argv/env wiring |
@@ -244,7 +244,7 @@ Planned PRs:
 | #24 | Smoke specs: desktop notifications | `skills/tools/devex/desktop-notify/scripts/*.sh` | Add notifier stubs (`terminal-notifier` / `notify-send`) and validate wrapper behavior. |
 | #26 | Smoke specs: release workflow audits | `skills/automation/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |
 | #27 | Smoke specs: render-only workflow helpers | `skills/workflows/**/scripts/render_*.sh` | Validate templates render; no network required. |
-| #34 | Smoke specs: git command wrappers | `scripts/commands/git-scope`, `scripts/commands/git-tools` | Validate wrappers run in a hermetic env (includes a minimal `tree` stub). |
+| #34 | Smoke specs: git command wrappers | `commands/git-scope`, `commands/git-tools` | Validate wrappers run in a hermetic env (includes a minimal `tree` stub). |
 | #28 | Follow-ups: PR workflow fixtures | `skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`, `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`, `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` | Fixture-based smoke coverage with an opt-in stubbed `gh`. |
 | #29 | Follow-ups: semantic commit fixture | `skills/tools/devex/semantic-commit/scripts/commit_with_message.sh` | Fixture-based smoke coverage in a temp git repo. |
 | #30 | Follow-ups: API testing tool fixtures | `skills/tools/testing/rest-api-testing/scripts/rest.sh`, `.../rest-report.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql.sh`, `.../gql-report.sh`, `.../gql-schema.sh`, `skills/tools/testing/api-test-runner/scripts/api-test.sh` | Add opt-in `curl`/`xh` stubs, fixtures, and smoke specs. |

@@ -12,7 +12,6 @@ Prereqs:
 - Run inside the target git repo.
 - `rg` available on `PATH` for codebase scanning.
 - `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
-- `$CODEX_HOME/scripts/codex-tools.sh` available for helper commands (recommended).
 
 Inputs:
 
@@ -35,7 +34,6 @@ Failure modes:
 
 ## Setup
 
-- Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`
 - Record the starting branch/ref (for return after PR creation): `start_ref="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)"`
 
 ## Trigger

@@ -39,7 +39,6 @@ Failure modes:
 ## Setup
 
 - Ensure `gh auth status` succeeds.
-- Load local helper commands (optional): `source $CODEX_HOME/scripts/codex-tools.sh`
 
 ## Key rule: Progress links must survive branch deletion
 
