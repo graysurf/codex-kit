@@ -20,7 +20,7 @@ CHROME_REMOTE_DEBUG_PORT_DEFAULT="${CHROME_REMOTE_DEBUG_PORT_DEFAULT:-19222}"
 
 expand_tilde() {
   local path="$1"
-  if [[ "$path" == "~" || "$path" == "~/"* ]]; then
+  if [[ $path == \~ || $path == \~/* ]]; then
     path="${path/#\~/$HOME}"
   fi
   printf '%s' "$path"

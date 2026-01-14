@@ -117,12 +117,10 @@ if [[ -n "$followup_progress" && -n "$followup_title" ]]; then
   exit 1
 fi
 
-for cmd in python3; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    echo "error: $cmd is required" >&2
-    exit 1
-  fi
-done
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "error: python3 is required" >&2
+  exit 1
+fi
 
 python3 - "$date_iso" "$print_entry" "$print_section" <<'PY'
 import datetime

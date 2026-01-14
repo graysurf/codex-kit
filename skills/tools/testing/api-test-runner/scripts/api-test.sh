@@ -176,7 +176,6 @@ done
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "Must run inside a git work tree"
 repo_root="$(git rev-parse --show-toplevel)"
-invocation_dir="$(pwd -P 2>/dev/null || pwd)"
 cd "$repo_root"
 
 [[ -z "$suite_name" || -z "$suite_file" ]] || die "Use only one of --suite or --suite-file"
@@ -1331,7 +1330,6 @@ PY
 }
 
 started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date)"
-run_started_ms="$(now_ms)"
 
 total=0
 passed=0
@@ -1976,7 +1974,6 @@ for ((i=0; i<case_count; i++)); do
   fi
 done
 
-run_finished_ms="$(now_ms)"
 finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date)"
 
 results_json="$(jq -c -n \
