@@ -11,6 +11,8 @@ scripts/
 ├── db-connect/                           DB connection helpers (psql/mysql/mssql wrappers).
 ├── env.zsh                               Environment defaults shared by repo scripts.
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.
+├── fix-zsh-typeset-initializers.zsh      Adds initializers to bare zsh `typeset/local` declarations.
+├── fix-shell-style.zsh                   Runs shell style fixers (check/write).
 ├── test.sh                               Dev test runner (repo-only).
 └── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
 ```

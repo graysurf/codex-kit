@@ -75,6 +75,19 @@ def test_validate_progress_index_passes_for_repo():
     assert result.status == "pass", result
 
 
+def test_fix_shell_style_passes_for_repo():
+    repo = repo_root()
+    script = "scripts/fix-shell-style.zsh"
+    spec = {
+        "args": ["--check"],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
+    }
+    result = run_smoke_script(script, "audit-shell-style-pass", spec, repo, cwd=repo)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+
 def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path):
     repo = repo_root()
     original = repo / "docs" / "progress" / "README.md"
