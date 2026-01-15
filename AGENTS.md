@@ -89,9 +89,9 @@
 
 ## codex-kit
 
-### 修改程式碼後的測試方法
+### 測試規範
 
-- `pytest`（需用 venv 執行）
+- `pytest`（使用 venv 執行）
   - `python3 -m venv .venv`
   - `.venv/bin/pip install -r requirements-dev.txt`
   - `source .venv/bin/activate && pytest`
