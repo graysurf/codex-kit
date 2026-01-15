@@ -15,6 +15,10 @@
 
 Generated at: <YYYY-MM-DDTHH:MM:SS±ZZZZ>
 
+Endpoint: --env <ENV_NAME>
+
+Result: <PASS|FAIL|NOT_EXECUTED>
+
 ### GraphQL Operation
 
 ```graphql

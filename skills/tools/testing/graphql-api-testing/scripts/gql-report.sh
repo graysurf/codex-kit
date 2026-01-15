@@ -353,6 +353,22 @@ response_lang="json"
 response_body="{}"
 response_raw=""
 
+endpoint_note=""
+if [[ -n "$explicit_url" ]]; then
+	endpoint_note="Endpoint: --url ${explicit_url}"
+elif [[ -n "$env_name" ]]; then
+	endpoint_note="Endpoint: --env ${env_name}"
+else
+	endpoint_note="Endpoint: (implicit; see GQL_URL / GQL_ENV_DEFAULT)"
+fi
+
+result_note="Result: (not executed)"
+if [[ "$run_request" == "true" ]]; then
+	result_note="Result: PASS"
+elif [[ -n "$response_file" ]]; then
+	result_note="Result: (response provided; request not executed)"
+fi
+
 if [[ "$run_request" == "true" ]]; then
 	script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 	gql_sh="$script_dir/gql.sh"
@@ -461,6 +477,9 @@ fi
 			printf '```bash\n%s\n```\n\n' "$command_snippet"
 		fi
 		printf "Generated at: %s\n\n" "$generated_at"
+
+		printf "%s\n\n" "$endpoint_note"
+		printf "%s\n\n" "$result_note"
 
 		printf "### GraphQL Operation\n\n"
 		printf '```graphql\n%s\n```\n\n' "$operation_content"
