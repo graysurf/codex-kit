@@ -89,6 +89,18 @@
 
 ## codex-kit
 
+### 開發規範（Shell / zsh）
+
+- `stdout`/`stderr`：本 repo 腳本以非互動（non-interactive）使用為主；`stdout` 盡量只輸出「會被其他工具/LLM 解析」的內容，其他資訊（debug/progress/warn）一律走 `stderr`（zsh: `print -u2 -r -- ...`；bash: `echo ... >&2`）。
+- 避免意外輸出（zsh `typeset`/`local`）：避免在 loop 內重複執行「不帶初值」的宣告（例如 `typeset key file`）。在 `unsetopt typeset_silent`（含預設）時，可能把既有值印到 `stdout`（如 `key=''`），造成雜訊。
+  - 作法 A：宣告移到 loop 外只做一次（建議）→ `typeset key='' file=''`；loop 內只做賦值（`key=...`）。
+  - 作法 B：需要 loop 內宣告時 → 一律帶初值（`typeset key='' file=''`）。
+- 字串引號規則（zsh；bash 同理）
+  - Literal（不需要 `$var`/`$(cmd)` 展開）→ 單引號：`typeset homebrew_path=''`
+  - 需要展開 → 雙引號並保持引用：`typeset repo_root="$PWD"`、`print -r -- "$msg"`
+  - 需要跳脫序列（例如 `\n`）→ 用 `$'...'`
+- 自動修正（只處理空字串）：`scripts/fix-typeset-empty-string-quotes.zsh --check|--write` 會把 `typeset/local ...=""` 統一為 `''`。
+
 ### 測試規範
 
 - `pytest`（使用 venv 執行）
