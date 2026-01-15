@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/semgrep-scan.sh [--profile <local|recommended|security|shell>] [--target <path>] [--] [semgrep args...]
+  scripts/semgrep-scan.sh [--profile <local|recommended|security|shell|scripting>] [--target <path>] [--] [semgrep args...]
 
 Runs Semgrep with repo-local rules plus selected Semgrep Registry packs.
 Writes JSON output to $CODEX_HOME/out/semgrep/ and prints the JSON path to stdout.
@@ -14,17 +14,21 @@ Profiles:
   recommended:  .semgrep.yaml + p/ci + p/python + p/github-actions
   security:     recommended + p/security-audit + p/secrets + p/supply-chain + p/command-injection
   shell:        .semgrep.yaml + p/supply-chain + p/command-injection + p/secrets (restricts to *.sh, *.zsh, /commands/**)
+  scripting:    .semgrep.yaml + p/python + p/supply-chain + p/command-injection + p/secrets (restricts to *.py, *.sh, *.zsh, /commands/**)
+
+Default profile: scripting
 
 Examples:
   scripts/semgrep-scan.sh
   scripts/semgrep-scan.sh --profile security
   scripts/semgrep-scan.sh --profile shell
+  scripts/semgrep-scan.sh --profile scripting
   scripts/semgrep-scan.sh --target skills/automation
   scripts/semgrep-scan.sh -- --exclude tests
 USAGE
 }
 
-profile="recommended"
+profile="scripting"
 target="."
 pass_args=()
 
@@ -93,8 +97,20 @@ case "$profile" in
     done
     pass_args=(--include='*.sh' --include='*.zsh' --include='/commands/**' "${pass_args[@]}")
     ;;
+  scripting)
+    for cfg in p/python p/supply-chain p/command-injection p/secrets; do
+      configs+=(--config "$cfg")
+    done
+    pass_args=(
+      --include='*.py'
+      --include='*.sh'
+      --include='*.zsh'
+      --include='/commands/**'
+      "${pass_args[@]}"
+    )
+    ;;
   *)
-    echo "error: unknown --profile: $profile (expected local|recommended|security|shell)" >&2
+    echo "error: unknown --profile: $profile (expected local|recommended|security|shell|scripting)" >&2
     exit 2
     ;;
 esac

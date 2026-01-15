@@ -16,7 +16,7 @@ scripts/
 ├── lint.sh                               Runs shell + python lint/syntax checks.
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
-├── check.sh                             Runs lint.sh then test.sh (pytest).
+├── check.sh                             Runs selected checks (lint/contracts/semgrep/tests).
 └── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
 ```
 
@@ -86,4 +86,5 @@ Use `semgrep-scan.sh` to run `.semgrep.yaml` plus curated Semgrep Registry packs
 
 Examples:
 
+- Default (scripting profile): `scripts/semgrep-scan.sh`
 - Shell scripts only: `scripts/semgrep-scan.sh --profile shell`

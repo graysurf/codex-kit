@@ -38,10 +38,10 @@ Run the repo pytest suite:
 scripts/test.sh
 ```
 
-Run lint + tests (recommended before committing):
+Run lint + contracts + semgrep + tests (recommended before committing):
 
 ```bash
-scripts/check.sh
+scripts/check.sh --all
 ```
 
 Run lint only:
@@ -121,6 +121,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
   - `recommended`: `p/ci`, `p/python`, `p/github-actions`
   - `security`: adds `p/security-audit`, `p/secrets`, `p/supply-chain`, `p/command-injection`
   - `shell`: `p/supply-chain`, `p/command-injection`, `p/secrets` (restricted to `*.sh`, `*.zsh`, `/commands/**`)
+  - `scripting` (default): `p/python`, `p/supply-chain`, `p/command-injection`, `p/secrets` (restricted to `*.py`, `*.sh`, `*.zsh`, `/commands/**`)
 
 ## 🪪 License
 

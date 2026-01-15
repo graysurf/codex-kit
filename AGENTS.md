@@ -105,12 +105,14 @@
 
 #### Commit 前執行（必須）
 
-- 執行：`scripts/check.sh`
-- `scripts/check.sh` 會做以下測試：
-  - 先跑 `scripts/lint.sh`（shell + python）
+- 執行：`scripts/check.sh --all`
+- `scripts/check.sh --all` 會做以下測試：
+  - `scripts/lint.sh`（shell + python）
     - Shell：依 shebang 分流執行 `shellcheck`（bash）+ `bash -n` + `zsh -n`
     - Python：`ruff check tests` + `mypy --config-file mypy.ini tests` + tracked `.py` 語法編譯檢查
-  - 再跑 `scripts/test.sh`（pytest；會優先用 `.venv/bin/python`）
+  - `scripts/validate_skill_contracts.sh`
+  - `scripts/semgrep-scan.sh`
+  - `scripts/test.sh`（pytest；會優先用 `.venv/bin/python`）
 
 #### 工具與設定（按需使用）
 
@@ -122,8 +124,11 @@
     - `shellcheck`、`zsh`（macOS: `brew install shellcheck`；Ubuntu: `sudo apt-get install -y shellcheck zsh`）
 - 快速入口
   - `scripts/lint.sh`（預設跑 shell + python）
-  - `scripts/check.sh --no-tests`（只跑 lint；快速迭代用）
-  - `scripts/check.sh -- -m script_smoke`（把參數轉交給 pytest）
+  - `scripts/check.sh --lint`（只跑 lint；快速迭代用）
+  - `scripts/check.sh --contracts`（只跑 skill contracts 檢查）
+  - `scripts/check.sh --tests -- -m script_smoke`（把參數轉交給 pytest）
+  - `scripts/check.sh --semgrep`（只跑 Semgrep）
+  - `scripts/check.sh --all`（完整檢查）
 - `pytest`
   - 建議用 wrapper：`scripts/test.sh`（可直接轉交 pytest args）
   - 常用：`scripts/test.sh -m script_smoke`、`scripts/test.sh -m script_regression`
