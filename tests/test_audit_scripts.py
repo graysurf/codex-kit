@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from .conftest import SCRIPT_SMOKE_RUN_RESULTS, repo_root
 from .test_script_smoke import run_smoke_script
 

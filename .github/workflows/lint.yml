@@ -16,51 +16,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install zsh (for zsh -n)
+        run: |
+          if ! command -v zsh >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y zsh
+          fi
+
       - name: Install shellcheck
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
 
-      - name: Shellcheck (bash scripts)
+      - name: Shell lint + syntax (bash + zsh)
         run: |
-          set -euo pipefail
-
-          files="$(python3 - <<'PY'
-          import subprocess
-          from pathlib import Path
-
-          tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
-          files = []
-          for p in tracked:
-            path = Path(p)
-            if path.suffix != ".sh":
-              continue
-            if path.parts and path.parts[0] == "shell_snapshots":
-              continue
-            if not path.is_file():
-              continue
-            try:
-              first = path.read_text("utf-8", errors="ignore").splitlines()[:1]
-            except OSError:
-              continue
-            if not first:
-              continue
-            shebang = first[0]
-            if not shebang.startswith("#!"):
-              continue
-            if "bash" in shebang and "zsh" not in shebang:
-              files.append(p)
-
-          print("\n".join(files))
-          PY
-          )"
-
-          if [[ -z "$files" ]]; then
-            echo "No bash scripts found for shellcheck."
-            exit 0
-          fi
-
-          echo "$files" | xargs shellcheck -S error
+          scripts/lint.sh --shell
 
       - name: Validate skill contract sections
         run: |
@@ -120,6 +90,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
+
+      - name: Python lint + typecheck (ruff + mypy)
+        run: |
+          scripts/lint.sh --python
 
       - name: Pytest
         env:

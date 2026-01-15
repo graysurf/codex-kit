@@ -38,6 +38,18 @@ Run the repo pytest suite:
 scripts/test.sh
 ```
 
+Run lint + tests (recommended before committing):
+
+```bash
+scripts/verify.sh
+```
+
+Run lint only:
+
+```bash
+scripts/lint.sh
+```
+
 Artifacts are written under `out/tests/` (gitignored):
 
 - `out/tests/script-regression/summary.json`: per-script `--help` regression harness results

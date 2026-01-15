@@ -13,8 +13,10 @@ scripts/
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.
 ├── fix-zsh-typeset-initializers.zsh      Adds initializers to bare zsh `typeset/local` declarations.
 ├── fix-shell-style.zsh                   Runs shell style fixers (check/write).
+├── lint.sh                               Runs shell + python lint/syntax checks.
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
+├── verify.sh                             Runs lint.sh then test.sh (pytest).
 └── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
 ```
 
@@ -64,6 +66,19 @@ Exit codes:
 
 - `0`: all validated files are compliant
 - non-zero: validation/usage errors (prints `error:` lines to stderr)
+
+### Lint + syntax checks
+
+`scripts/lint.sh` runs:
+
+- Shell: `shellcheck` (bash) + `bash -n` + `zsh -n` (shebang-based)
+- Python: `ruff` + `mypy`
+
+Usage:
+
+- Lint everything: `scripts/lint.sh`
+- Shell only: `scripts/lint.sh --shell`
+- Python only: `scripts/lint.sh --python`
 
 ## Semgrep
 

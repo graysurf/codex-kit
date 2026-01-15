@@ -133,8 +133,8 @@ class Handler(BaseHTTPRequestHandler):
             variables = payload.get("variables") or {}
 
             if "createThing" in query:
-                thing_id = STATE.create_graphql_thing()
-                self._send_json(200, {"data": {"createThing": {"id": thing_id}}})
+                created_id = STATE.create_graphql_thing()
+                self._send_json(200, {"data": {"createThing": {"id": created_id}}})
                 return
 
             if "deleteThing" in query:
@@ -194,4 +194,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
