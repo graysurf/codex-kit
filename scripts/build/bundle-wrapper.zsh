@@ -200,7 +200,7 @@ parse_explicit_sources() {
       continue
     fi
     local expanded=''
-    eval "expanded=${raw}"
+    expanded="${(e)raw}"
     expanded="${expanded/#\~/$HOME}"
     if [[ "$expanded" != /* ]]; then
       expanded="${dir%/}/${expanded}"

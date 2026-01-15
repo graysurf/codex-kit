@@ -82,9 +82,14 @@ fi
 commands_dir="${CODEX_COMMANDS_PATH:-${codex_home%/}/commands}"
 project_resolve="${commands_dir%/}/project-resolve"
 [[ -x "$project_resolve" ]] || die "missing executable: $project_resolve"
+command -v python3 >/dev/null 2>&1 || die "python3 not found; required to parse project-resolve JSON output"
+
+parse_project_resolve_json() {
+  python3 -c 'import json,sys; data=json.loads(sys.argv[1]); path=data.get("path",""); source=data.get("source","repo"); print(path if isinstance(path,str) else ""); print(source if isinstance(source,str) else "repo")' "$1"
+}
 
 set +e
-guide_env="$(
+guide_json="$(
   "$project_resolve" \
     --repo "$repo_abs" \
     --prefer "docs/RELEASE_GUIDE.md" \
@@ -92,8 +97,7 @@ guide_env="$(
     --search-name "RELEASE_GUIDE.md" \
     --max-depth "$max_depth" \
     --fallback "$default_guide" \
-    --format env \
-    --prefix "GUIDE_"
+    --format json
 )"
 guide_rc=$?
 set -e
@@ -105,20 +109,20 @@ if [[ "$guide_rc" -ne 0 ]]; then
   die "guide resolution failed (exit=$guide_rc)"
 fi
 
-eval "$guide_env"
-guide_path="${GUIDE_PATH:-}"
-guide_source="${GUIDE_SOURCE:-repo}"
+[[ -n "$guide_json" ]] || die "guide resolution returned empty output"
+mapfile -t guide_fields < <(parse_project_resolve_json "$guide_json")
+guide_path="${guide_fields[0]:-}"
+guide_source="${guide_fields[1]:-repo}"
 [[ -n "$guide_path" ]] || die "guide resolution returned empty path"
 [[ "$guide_source" == "fallback" ]] && guide_source="default"
 
 set +e
-template_env="$(
+template_json="$(
   "$project_resolve" \
     --repo "$repo_abs" \
     --prefer "docs/templates/RELEASE_TEMPLATE.md" \
     --fallback "$default_template" \
-    --format env \
-    --prefix "TEMPLATE_"
+    --format json
 )"
 template_rc=$?
 set -e
@@ -130,9 +134,10 @@ if [[ "$template_rc" -ne 0 ]]; then
   die "template resolution failed (exit=$template_rc)"
 fi
 
-eval "$template_env"
-template_path="${TEMPLATE_PATH:-}"
-template_source="${TEMPLATE_SOURCE:-repo}"
+[[ -n "$template_json" ]] || die "template resolution returned empty output"
+mapfile -t template_fields < <(parse_project_resolve_json "$template_json")
+template_path="${template_fields[0]:-}"
+template_source="${template_fields[1]:-repo}"
 [[ -n "$template_path" ]] || die "template resolution returned empty path"
 [[ "$template_source" == "fallback" ]] && template_source="default"
 
