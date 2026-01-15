@@ -108,7 +108,7 @@ read_env_var_from_files() {
   local key="$1"
   shift
 
-  local value=""
+  local value=''
   local file
   for file in "$@"; do
     [[ -f "$file" ]] || continue
@@ -151,11 +151,11 @@ resolve_setup_dir() {
     config_dir_explicit="1"
   fi
 
-  local seed_abs=""
+  local seed_abs=''
   seed_abs="$(cd "$seed" 2>/dev/null && pwd -P || true)"
   [[ -n "$seed_abs" ]] || return 1
 
-  local found=""
+  local found=''
   found="$(find_upwards_for_file "$seed_abs" "schema.env" 2>/dev/null || true)"
   if [[ -z "$found" ]]; then
     found="$(find_upwards_for_file "$seed_abs" "schema.local.env" 2>/dev/null || true)"

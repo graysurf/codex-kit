@@ -233,7 +233,7 @@ derive_case() {
   local base="$1"
   shift || true
   local meta=()
-  local endpoint=""
+  local endpoint=''
   if [[ -n "$explicit_url" ]]; then
     endpoint="url"
   elif [[ -n "$env_name" ]]; then

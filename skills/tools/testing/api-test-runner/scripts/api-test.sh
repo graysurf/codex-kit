@@ -29,7 +29,7 @@ mask_args_for_command_snippet() {
   local -a original=("$@")
   local -a masked=()
   local mask_next="0"
-  local arg=""
+  local arg=''
 
   for arg in "${original[@]}"; do
     if [[ "$mask_next" == "1" ]]; then
@@ -52,7 +52,7 @@ mask_args_for_command_snippet() {
     esac
   done
 
-  local out=""
+  local out=''
   out="$(printf "%q " "${masked[@]}")"
   out="${out% }"
   printf "%s" "$out"
@@ -494,7 +494,7 @@ auth_render_credentials() {
   local profile="$1"
   local expr="$2"
   local provider="$3"
-  local out="" rc
+  local out='' rc
 
   [[ -n "$auth_secret_json" ]] || { printf "%s" "auth_secret_missing(provider=${provider},profile=${profile})" >&2; return 1; }
 
@@ -531,7 +531,7 @@ auth_extract_token() {
   local token_expr="$2"
   local provider="$3"
   local profile="$4"
-  local token="" rc
+  local token='' rc
 
   set +e
   token="$(
@@ -559,7 +559,7 @@ auth_login_rest() {
   local profile="$1"
 
   local template_abs credentials_json request_file_tmp response_tmp stderr_tmp rc token auth_login_url auth_env
-  local auth_config_dir=""
+  local auth_config_dir=''
   local -a cmd=()
   template_abs="$(resolve_path "$auth_rest_login_request_template")"
   [[ -f "$template_abs" ]] || return 1
@@ -628,7 +628,7 @@ auth_login_graphql() {
   local profile="$1"
 
   local op_abs vars_template_abs credentials_json vars_tmp response_tmp stderr_tmp rc token auth_login_url auth_env
-  local auth_config_dir=""
+  local auth_config_dir=''
   local -a cmd=()
   op_abs="$(resolve_path "$auth_gql_login_op")"
   [[ -f "$op_abs" ]] || return 1
@@ -715,14 +715,14 @@ ensure_auth_token() {
 
   local err_tmp
   err_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.error)"
-  local token=""
+  local token=''
   if [[ "$auth_provider" == "rest" ]]; then
     token="$(auth_login_rest "$profile" 2>"$err_tmp" || true)"
   else
     token="$(auth_login_graphql "$profile" 2>"$err_tmp" || true)"
   fi
   token="$(trim "$token")"
-  local err=""
+  local err=''
   err="$(cat "$err_tmp" 2>/dev/null || true)"
   err="$(trim "$err")"
   rm -f "$err_tmp" 2>/dev/null || true
@@ -835,7 +835,7 @@ cleanup_extract_value() {
   [[ -n "$response_file" && -f "$response_file" ]] || return 1
   [[ -n "$expr" ]] || return 1
 
-  local out="" rc
+  local out='' rc
   set +e
   out="$(
     jq -r "$expr" "$response_file" 2>/dev/null |
@@ -893,7 +893,7 @@ cleanup_render_file_template() {
   [[ -n "$template_file" && -f "$template_file" ]] || return 1
   [[ -n "$out_file" ]] || return 1
 
-  local rendered=""
+  local rendered=''
   rendered="$(cleanup_render_template "$(cat "$template_file")" "$response_file" "$vars_json" 2>/dev/null || true)"
   rendered="$(trim "$rendered")"
   [[ -n "$rendered" ]] || return 1

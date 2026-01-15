@@ -64,7 +64,7 @@ if [[ "$source" == "project" ]]; then
 fi
 
 render_project_pr_template() {
-  local candidate=""
+  local candidate=''
 
   if [[ -f "${repo_root}/.github/pull_request_template.md" ]]; then
     candidate="${repo_root}/.github/pull_request_template.md"

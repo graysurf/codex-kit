@@ -184,7 +184,7 @@ append_rest_history() {
 	local endpoint_value="${endpoint_value_used:-}"
 
 	local auth_label="none"
-	local token_for_log=""
+	local token_for_log=''
 	if [[ "${auth_source_used:-none}" == "access_token" ]]; then
 		auth_label="access_token"
 	elif [[ "${auth_source_used:-none}" == "token" ]]; then
@@ -502,7 +502,7 @@ read_env_var_from_files() {
 	local key="$1"
 	shift
 
-	local value=""
+	local value=''
 	local file
 	for file in "$@"; do
 		[[ -f "$file" ]] || continue
@@ -591,7 +591,7 @@ find_upwards_for_setup_subdir() {
 }
 
 resolve_setup_dir() {
-	local seed=""
+	local seed=''
 	local config_dir_explicit=false
 
 	if [[ -n "$config_dir" ]]; then
@@ -603,11 +603,11 @@ resolve_setup_dir() {
 		seed="."
 	fi
 
-	local seed_abs=""
+	local seed_abs=''
 	seed_abs="$(cd "$seed" 2>/dev/null && pwd -P || true)"
 	[[ -n "$seed_abs" ]] || return 1
 
-	local found=""
+	local found=''
 	found="$(find_upwards_for_file "$seed_abs" "endpoints.env" 2>/dev/null || true)"
 	if [[ -z "$found" ]]; then
 		found="$(find_upwards_for_file "$seed_abs" "tokens.env" 2>/dev/null || true)"
@@ -624,7 +624,7 @@ resolve_setup_dir() {
 		return 0
 	fi
 
-	local found_setup=""
+	local found_setup=''
 	found_setup="$(find_upwards_for_setup_subdir "$seed_abs" "setup/rest" 2>/dev/null || true)"
 	if [[ -n "$found_setup" ]]; then
 		printf "%s" "$found_setup"
@@ -637,7 +637,7 @@ resolve_setup_dir() {
 	fi
 
 	local invocation_abs="$invocation_dir"
-	local found_invocation=""
+	local found_invocation=''
 	found_invocation="$(find_upwards_for_setup_subdir "$invocation_abs" "setup/rest" 2>/dev/null || true)"
 	if [[ -n "$found_invocation" ]]; then
 		printf "%s" "$found_invocation"

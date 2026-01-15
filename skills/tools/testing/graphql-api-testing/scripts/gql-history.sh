@@ -146,11 +146,11 @@ resolve_setup_dir() {
     config_dir_explicit="1"
   fi
 
-  local seed_abs=""
+  local seed_abs=''
   seed_abs="$(cd "$seed" 2>/dev/null && pwd -P || true)"
   [[ -n "$seed_abs" ]] || return 1
 
-  local found=""
+  local found=''
   found="$(find_upwards_for_file "$seed_abs" ".gql_history" 2>/dev/null || true)"
   if [[ -z "$found" ]]; then
     found="$(find_upwards_for_file "$seed_abs" "endpoints.env" 2>/dev/null || true)"

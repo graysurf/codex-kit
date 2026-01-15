@@ -205,8 +205,8 @@ append_gql_history() {
 	local setup_rel
 	setup_rel="$(maybe_relpath "$setup" "$invocation_dir")"
 
-	local endpoint_label=""
-	local endpoint_value=""
+	local endpoint_label=''
+	local endpoint_value=''
 	if [[ -n "${explicit_url:-}" ]]; then
 		endpoint_label="url"
 		endpoint_value="$explicit_url"
@@ -225,7 +225,7 @@ append_gql_history() {
 	fi
 
 	local auth_label="none"
-	local jwt_for_log=""
+	local jwt_for_log=''
 	if [[ "${jwt_profile_selected:-false}" == "false" && -n "${ACCESS_TOKEN:-}" ]]; then
 		auth_label="access_token"
 	elif [[ "${jwt_profile_selected:-false}" == "true" ]]; then
@@ -429,7 +429,7 @@ read_env_var_from_files() {
 	local key="$1"
 	shift
 
-	local value=""
+	local value=''
 	local file
 	for file in "$@"; do
 		[[ -f "$file" ]] || continue
@@ -491,7 +491,7 @@ find_upwards_for_file() {
 }
 
 resolve_setup_dir() {
-	local seed=""
+	local seed=''
 	local config_dir_explicit=false
 
 	if [[ -n "$config_dir" ]]; then
@@ -503,11 +503,11 @@ resolve_setup_dir() {
 		seed="."
 	fi
 
-	local seed_abs=""
+	local seed_abs=''
 	seed_abs="$(cd "$seed" 2>/dev/null && pwd -P || true)"
 	[[ -n "$seed_abs" ]] || return 1
 
-	local found=""
+	local found=''
 	found="$(find_upwards_for_file "$seed_abs" "endpoints.env" 2>/dev/null || true)"
 	if [[ -z "$found" ]]; then
 		found="$(find_upwards_for_file "$seed_abs" "jwts.env" 2>/dev/null || true)"
@@ -782,9 +782,9 @@ maybe_auto_login() {
 	[[ -n "$setup_dir" ]] || return 1
 
 	local profile="$1"
-	local login_op=""
-	local login_vars=""
-	local login_dir=""
+	local login_op=''
+	local login_vars=''
+	local login_dir=''
 
 	local -a candidates
 	candidates=("$setup_dir" "$setup_dir/operations" "$setup_dir/ops")
