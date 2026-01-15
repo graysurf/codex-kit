@@ -72,7 +72,7 @@ rc=0
 contains_path() {
   local needle="${1:-}"
   shift || true
-  local p=""
+  local p=''
   for p in "$@"; do
     if [[ "$p" == "$needle" ]]; then
       return 0

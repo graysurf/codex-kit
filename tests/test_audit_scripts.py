@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from .conftest import SCRIPT_SMOKE_RUN_RESULTS, repo_root
 from .test_script_smoke import run_smoke_script
+
+ScriptSpec = dict[str, Any]
 
 
 def test_validate_skill_contracts_passes_for_repo():
     repo = repo_root()
     script = "scripts/validate_skill_contracts.sh"
-    spec = {
+    spec: ScriptSpec = {
         "args": [],
         "timeout_sec": 10,
         "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
@@ -50,7 +53,7 @@ def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path):
 
     repo = repo_root()
     script = "scripts/validate_skill_contracts.sh"
-    spec = {
+    spec: ScriptSpec = {
         "args": ["--file", str(fixture)],
         "timeout_sec": 10,
         "expect": {"exit_codes": [1], "stderr_regex": r"Failure modes"},
@@ -63,7 +66,7 @@ def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path):
 def test_validate_progress_index_passes_for_repo():
     repo = repo_root()
     script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
-    spec = {
+    spec: ScriptSpec = {
         "args": [],
         "timeout_sec": 10,
         "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
@@ -76,7 +79,7 @@ def test_validate_progress_index_passes_for_repo():
 def test_fix_shell_style_passes_for_repo():
     repo = repo_root()
     script = "scripts/fix-shell-style.zsh"
-    spec = {
+    spec: ScriptSpec = {
         "args": ["--check"],
         "timeout_sec": 10,
         "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
@@ -126,7 +129,7 @@ def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path):
     mutated.write_text("\n".join(lines).rstrip() + "\n", "utf-8")
 
     script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
-    spec = {
+    spec: ScriptSpec = {
         "args": ["--file", str(mutated)],
         "timeout_sec": 10,
         "expect": {"exit_codes": [1], "stderr_regex": r"invalid PR cell"},

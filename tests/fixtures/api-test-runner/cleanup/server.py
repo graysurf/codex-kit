@@ -6,6 +6,7 @@ import json
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Lock
+from typing import cast
 from urllib.parse import urlparse
 
 
@@ -75,11 +76,17 @@ def _read_json(handler: BaseHTTPRequestHandler) -> object | None:
         return None
 
 
+def _as_dict(value: object | None) -> dict[str, object] | None:
+    if isinstance(value, dict):
+        return cast(dict[str, object], value)
+    return None
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "api-test-runner-fixture/1.0"
 
-    def log_message(self, fmt: str, *args: object) -> None:
-        sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), fmt % args))
+    def log_message(self, format: str, *args: object) -> None:
+        sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), format % args))
 
     def _send_json(self, status: int, payload: object) -> None:
         data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
@@ -124,13 +131,22 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if path == "/graphql":
-            payload = _read_json(self)
-            if not isinstance(payload, dict):
+            payload = _as_dict(_read_json(self))
+            if payload is None:
                 self._send_json(400, {"error": "invalid_json"})
                 return
 
-            query = str(payload.get("query") or "")
-            variables = payload.get("variables") or {}
+            query_value = payload.get("query")
+            query = str(query_value) if query_value is not None else ""
+            variables_value = payload.get("variables")
+            if not variables_value:
+                variables: dict[str, object] = {}
+            else:
+                variables_opt = _as_dict(variables_value)
+                if variables_opt is None:
+                    self._send_json(400, {"error": "invalid_variables"})
+                    return
+                variables = variables_opt
 
             if "createThing" in query:
                 created_id = STATE.create_graphql_thing()
@@ -138,18 +154,20 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if "deleteThing" in query:
-                if not isinstance(variables, dict):
-                    self._send_json(400, {"error": "invalid_variables"})
-                    return
-                input_obj = variables.get("input") or {}
-                if not isinstance(input_obj, dict):
-                    self._send_json(400, {"error": "invalid_input"})
-                    return
-                thing_id = input_obj.get("id")
-                if not isinstance(thing_id, str) or not thing_id:
+                input_value = variables.get("input")
+                if not input_value:
+                    input_obj: dict[str, object] = {}
+                else:
+                    input_opt = _as_dict(input_value)
+                    if input_opt is None:
+                        self._send_json(400, {"error": "invalid_input"})
+                        return
+                    input_obj = input_opt
+                thing_id_value = input_obj.get("id")
+                if not isinstance(thing_id_value, str) or not thing_id_value:
                     self._send_json(400, {"error": "missing_id"})
                     return
-                success = STATE.delete_graphql_thing(thing_id)
+                success = STATE.delete_graphql_thing(thing_id_value)
                 self._send_json(200, {"data": {"deleteThing": {"success": success}}})
                 return
 

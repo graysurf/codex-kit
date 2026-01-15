@@ -103,8 +103,36 @@
 
 ### 測試規範
 
-- `pytest`（使用 venv 執行）
+#### Part 1：Commit 前必跑（必須）
+
+- 執行：`scripts/verify.sh`
+- 前置（只需做一次／更新後重跑）：`python3 -m venv .venv` + `.venv/bin/pip install -r requirements-dev.txt`
+- 前置（系統工具）：`shellcheck`、`zsh`（macOS: `brew install shellcheck`；Ubuntu: `sudo apt-get install -y shellcheck zsh`）
+- `scripts/verify.sh` 做什麼：
+  - 先跑 `scripts/lint.sh`（shell + python）
+    - Shell：依 shebang 分流執行 `shellcheck`（bash）+ `bash -n` + `zsh -n`
+    - Python：`ruff check tests` + `mypy --config-file mypy.ini tests` + tracked `.py` 語法編譯檢查
+  - 再跑 `scripts/test.sh`（pytest；會優先用 `.venv/bin/python`）
+
+#### Part 2：工具與設定（按需使用）
+
+- 快速入口
+  - `scripts/lint.sh`（預設跑 shell + python）
+  - `scripts/verify.sh --no-tests`（只跑 lint；快速迭代用）
+  - `scripts/verify.sh -- -m script_smoke`（把參數轉交給 pytest）
+- Python venv（建議）
   - `python3 -m venv .venv`
   - `.venv/bin/pip install -r requirements-dev.txt`
-  - `source .venv/bin/activate && pytest`
-- `./scripts/test.sh`（pytest wrapper；會優先用 `.venv/bin/python`）
+- `pytest`
+  - 建議用 wrapper：`scripts/test.sh`（可直接轉交 pytest args）
+  - 常用：`scripts/test.sh -m script_smoke`、`scripts/test.sh -m script_regression`
+  - Artifacts：寫到 `out/tests/`（例如 `out/tests/script-coverage/summary.md`）
+- `ruff`（Python lint；設定檔：`ruff.toml`）
+  - `source .venv/bin/activate && ruff check tests`
+  - 自動修正（safe fixes）：`source .venv/bin/activate && ruff check --fix tests`
+  - 或用整合入口：`scripts/lint.sh --python`
+- `mypy`（Python typecheck；設定檔：`mypy.ini`）
+  - `source .venv/bin/activate && mypy --config-file mypy.ini tests`
+  - 或用整合入口：`scripts/lint.sh --python`
+- Shell（bash/zsh）
+  - `scripts/lint.sh --shell`（需要 `shellcheck` 與 `zsh`）

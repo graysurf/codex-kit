@@ -5,7 +5,7 @@ import shlex
 import subprocess
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -54,9 +54,13 @@ def run_script(script: str, spec: dict[str, Any], repo: Path) -> ScriptRunResult
     if not script_path.exists():
         raise FileNotFoundError(script)
 
-    args = spec.get("args", ["--help"])
-    if not isinstance(args, list) or not all(isinstance(x, str) for x in args):
+    args_value = spec.get("args", ["--help"])
+    if not isinstance(args_value, list):
         raise TypeError(f"spec.args must be a list of strings: {script}")
+    args_list = cast(list[object], args_value)
+    if not all(isinstance(item, str) for item in args_list):
+        raise TypeError(f"spec.args must be a list of strings: {script}")
+    args = cast(list[str], args_list)
 
     timeout_sec = spec.get("timeout_sec", 5)
     if not isinstance(timeout_sec, (int, float)):
@@ -67,11 +71,12 @@ def run_script(script: str, spec: dict[str, Any], repo: Path) -> ScriptRunResult
     if extra_env:
         if not isinstance(extra_env, dict):
             raise TypeError(f"spec.env must be a JSON object: {script}")
-        for k, v in extra_env.items():
-            if v is None:
-                env.pop(str(k), None)
+        extra_env_dict = cast(dict[object, object], extra_env)
+        for key, value in extra_env_dict.items():
+            if value is None:
+                env.pop(str(key), None)
             else:
-                env[str(k)] = str(v)
+                env[str(key)] = str(value)
 
     shebang = parse_shebang(script_path)
     if not shebang:
@@ -83,12 +88,22 @@ def run_script(script: str, spec: dict[str, Any], repo: Path) -> ScriptRunResult
     if expect and not isinstance(expect, dict):
         raise TypeError(f"spec.expect must be a JSON object: {script}")
 
-    exit_codes = expect.get("exit_codes", [0])
-    if not isinstance(exit_codes, list) or not all(isinstance(x, int) for x in exit_codes):
-        raise TypeError(f"expect.exit_codes must be a list of ints: {script}")
+    expect_dict: dict[object, object] = {}
+    if isinstance(expect, dict):
+        expect_dict = cast(dict[object, object], expect)
 
-    stdout_re = compile_optional_regex(expect.get("stdout_regex"))
-    stderr_re = compile_optional_regex(expect.get("stderr_regex"))
+    exit_codes_value = expect_dict.get("exit_codes", [0])
+    if not isinstance(exit_codes_value, list):
+        raise TypeError(f"expect.exit_codes must be a list of ints: {script}")
+    exit_codes_list = cast(list[object], exit_codes_value)
+    if not all(isinstance(code, int) for code in exit_codes_list):
+        raise TypeError(f"expect.exit_codes must be a list of ints: {script}")
+    exit_codes = cast(list[int], exit_codes_list)
+
+    stdout_pattern = expect_dict.get("stdout_regex")
+    stderr_pattern = expect_dict.get("stderr_regex")
+    stdout_re = compile_optional_regex(stdout_pattern if isinstance(stdout_pattern, str) else None)
+    stderr_re = compile_optional_regex(stderr_pattern if isinstance(stderr_pattern, str) else None)
 
     start = time.monotonic()
     try:
