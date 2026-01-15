@@ -1,0 +1,13 @@
+{
+  "smoke": [
+    {
+      "name": "help",
+      "args": ["--help"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "Usage:"
+      }
+    }
+  ]
+}

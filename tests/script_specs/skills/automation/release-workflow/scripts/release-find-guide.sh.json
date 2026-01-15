@@ -1,0 +1,13 @@
+{
+  "smoke": [
+    {
+      "name": "project-path-guide",
+      "args": ["--project-path", "skills/automation/release-workflow"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "skills/automation/release-workflow/RELEASE_GUIDE\\.md\\s*$"
+      }
+    }
+  ]
+}

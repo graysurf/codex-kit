@@ -1,0 +1,13 @@
+{
+  "smoke": [
+    {
+      "name": "json-defaults",
+      "args": ["--repo", "skills/automation/release-workflow", "--format", "json"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "release-workflow/RELEASE_GUIDE\\.md.*release-workflow/template/RELEASE_TEMPLATE\\.md"
+      }
+    }
+  ]
+}

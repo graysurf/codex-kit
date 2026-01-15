@@ -1,0 +1,13 @@
+{
+  "smoke": [
+    {
+      "name": "prefer-readme",
+      "args": ["--repo", ".", "--prefer", "README.md", "--format", "path"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "README\\.md\\s*$"
+      }
+    }
+  ]
+}

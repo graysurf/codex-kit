@@ -1,0 +1,28 @@
+{
+  "smoke": [
+    {
+      "name": "graphql-dry-run",
+      "args": [
+        "--dry-run",
+        "$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir /tmp/setup/graphql --env local --jwt member setup/graphql/operations/ping.graphql out/ping.variables.json | jq ."
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "gql-report\\.sh.*--env local.*--jwt member"
+      }
+    },
+    {
+      "name": "rest-dry-run",
+      "args": [
+        "--dry-run",
+        "$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --config-dir /tmp/setup/rest --env local --token member setup/rest/requests/ping.request.json | jq ."
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "rest-report\\.sh.*--env local.*--token member"
+      }
+    }
+  ]
+}
