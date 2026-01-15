@@ -102,6 +102,13 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | [tun-mssql](./skills/_projects/tun-group/tun-mssql/) | Run SQL Server queries via the tun-mssql wrapper |
 | [tun-psql](./skills/_projects/tun-group/tun-psql/) | Run PostgreSQL queries via the tun-psql wrapper |
 
+## Semgrep
+
+- Local rules: `.semgrep.yaml`
+- Curated open-source configs (Semgrep Registry): `scripts/semgrep-scan.sh`
+  - `recommended`: `p/ci`, `p/python`, `p/github-actions`
+  - `security`: adds `p/security-audit`, `p/secrets`, `p/supply-chain`, `p/command-injection`
+
 ## 🪪 License
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

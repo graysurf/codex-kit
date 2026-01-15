@@ -13,6 +13,7 @@ scripts/
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.
 ├── fix-zsh-typeset-initializers.zsh      Adds initializers to bare zsh `typeset/local` declarations.
 ├── fix-shell-style.zsh                   Runs shell style fixers (check/write).
+├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
 └── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
 ```
