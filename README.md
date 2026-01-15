@@ -69,7 +69,7 @@ Artifacts are written under `out/tests/` (gitignored):
 
 All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `scripts/validate_skill_contracts.sh` and CI.
 
-Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/automation/`. Project-specific skills live under `skills/_projects/`. Internal/meta skills live under `skills/.system/` (not listed below).
+Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/automation/`. Internal/meta skills live under `skills/.system/` (not listed below).
 
 ### Workflows
 
@@ -104,16 +104,6 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/) | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR |
 | Release | [release-workflow](./skills/automation/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
-
-### Project-specific
-
-| Skill | Description |
-| --- | --- |
-| [fr-psql](./skills/_projects/finance-report/fr-psql/) | Run PostgreSQL queries via the fr-psql wrapper |
-| [mb-mssql](./skills/_projects/megabank/mb-mssql/) | Run SQL Server queries via the mb-mssql wrapper |
-| [qb-mysql](./skills/_projects/qburger/qb-mysql/) | Run MySQL queries via the qb-mysql wrapper |
-| [tun-mssql](./skills/_projects/tun-group/tun-mssql/) | Run SQL Server queries via the tun-mssql wrapper |
-| [tun-psql](./skills/_projects/tun-group/tun-psql/) | Run PostgreSQL queries via the tun-psql wrapper |
 
 ## Semgrep
 
