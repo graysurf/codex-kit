@@ -41,7 +41,7 @@ scripts/test.sh
 Run lint + tests (recommended before committing):
 
 ```bash
-scripts/verify.sh
+scripts/check.sh
 ```
 
 Run lint only:

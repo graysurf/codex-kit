@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/verify.sh [--no-tests] [--] [pytest args...]
+  scripts/check.sh [--no-tests] [--] [pytest args...]
 
 Runs repo-local lint checks (shell + python), then runs the pytest suite.
 
@@ -12,9 +12,9 @@ Setup:
   .venv/bin/pip install -r requirements-dev.txt
 
 Examples:
-  scripts/verify.sh
-  scripts/verify.sh -- -m script_smoke
-  scripts/verify.sh --no-tests
+  scripts/check.sh
+  scripts/check.sh -- -m script_smoke
+  scripts/check.sh --no-tests
 USAGE
 }
 

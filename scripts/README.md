@@ -16,7 +16,7 @@ scripts/
 ├── lint.sh                               Runs shell + python lint/syntax checks.
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
-├── verify.sh                             Runs lint.sh then test.sh (pytest).
+├── check.sh                             Runs lint.sh then test.sh (pytest).
 └── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
 ```
 
