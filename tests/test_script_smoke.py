@@ -241,9 +241,10 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
     spec: dict[str, Any] = {
         "args": [],
         "timeout_sec": 10,
+        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None},
         "expect": {
             "exit_codes": [0],
-            "stdout_regex": r"hello\.txt",
+            "stdout_regex": r"(?s)# Commit Context.*hello\.txt",
         },
     }
 

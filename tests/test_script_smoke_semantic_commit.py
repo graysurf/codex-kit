@@ -34,9 +34,10 @@ def test_script_smoke_fixture_semantic_commit_commit_with_message(tmp_path: Path
     spec = {
         "args": ["--message", "test(fixture): commit staged change"],
         "timeout_sec": 20,
+        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None},
         "expect": {
             "exit_codes": [0],
-            "stdout_regex": r"test\(fixture\): commit staged change",
+            "stdout_regex": r"(?s)test\(fixture\): commit staged change.*Directory tree",
         },
     }
 
