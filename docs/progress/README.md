@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-16 | [Env bool flags standardization](20260116_env-bool-flags.md) | [#48](https://github.com/graysurf/codex-kit/pull/48) |
 
 ## Archived
 
