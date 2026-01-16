@@ -111,3 +111,77 @@ def test_script_smoke_bundle_wrapper_embeds_sources_and_tools(tmp_path: Path):
     assert completed.returncode == 0, f"bundled wrapper failed: rc={completed.returncode}\nstderr={completed.stderr}"
     assert "hello-main" in completed.stdout
     assert "tool:arg1" in completed.stdout
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_bundle_wrapper_copies_bundled_input(tmp_path: Path):
+    home_dir = tmp_path / "home"
+    home_dir.mkdir(parents=True, exist_ok=True)
+
+    input_path = home_dir / "wrapper.zsh"
+    write_executable(
+        input_path,
+        "\n".join(
+            [
+                "#!/usr/bin/env -S zsh -f",
+                "set -e",
+                "",
+                "# Bundled from: /tmp/old-source",
+                "# --- BEGIN fake.zsh",
+                "hello_main() {",
+                '  print -r -- "hello-main"',
+                "}",
+                "# --- END fake.zsh",
+                "",
+                'if ! typeset -f hello_main >/dev/null 2>&1; then',
+                '  print -u2 -r -- "❌ missing function: hello_main"',
+                "  exit 1",
+                "fi",
+                "",
+                'hello_main "$@"',
+                "",
+            ]
+        ),
+    )
+
+    output = tmp_path / "out" / "bundled.zsh"
+
+    repo = repo_root()
+    script = "scripts/build/bundle-wrapper.zsh"
+    spec = {
+        "args": ["--input", str(input_path), "--output", str(output), "--entry", "hello_main"],
+        "env": {"HOME": str(home_dir)},
+        "timeout_sec": 20,
+        "expect": {"exit_codes": [0]},
+    }
+
+    result = run_smoke_script(script, "bundle-wrapper-copy", spec, repo, cwd=tmp_path)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+
+    assert result.status == "pass", (
+        f"script smoke (fixture) failed: {script} (exit={result.exit_code})\n"
+        f"argv: {' '.join(result.argv)}\n"
+        f"stdout: {result.stdout_path}\n"
+        f"stderr: {result.stderr_path}\n"
+        f"note: {result.note or 'None'}"
+    )
+
+    assert output.exists(), f"missing bundle output: {output}"
+    assert output.stat().st_mode & 0o111, f"bundle output is not executable: {output}"
+
+    out_text = output.read_text("utf-8")
+    assert "# Bundled from: ~/wrapper.zsh" in out_text
+
+    env = default_smoke_env(repo)
+    env["HOME"] = str(home_dir)
+    completed = subprocess.run(
+        [str(output)],
+        cwd=str(tmp_path),
+        env=env,
+        text=True,
+        capture_output=True,
+        timeout=10,
+        check=False,
+    )
+    assert completed.returncode == 0, f"bundled wrapper failed: rc={completed.returncode}\nstderr={completed.stderr}"
+    assert "hello-main" in completed.stdout
