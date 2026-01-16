@@ -1,7 +1,7 @@
 #!/usr/bin/env -S zsh -f
 set -e
 
-# Bundled from: /var/folders/3d/s2d3jvyn0g758lsd_2t79h1w0000gn/T/tmp.ijYUUsYNda
+# Bundled from: /var/folders/3d/s2d3jvyn0g758lsd_2t79h1w0000gn/T/tmp.1PZI98I1Mb
 : "${ZDOTDIR:=$HOME/.config/zsh}"
 export ZDOTDIR
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$ZDOTDIR/config}"
@@ -105,7 +105,9 @@ set_clipboard() {
   fi
 }
 
-typeset -gr _ZSH_BOOTSTRAP_PRELOAD_PATH="${(%):-%N}"
+if [[ -z ${_ZSH_BOOTSTRAP_PRELOAD_PATH+1} ]]; then
+  typeset -gr _ZSH_BOOTSTRAP_PRELOAD_PATH="${(%):-%N}"
+fi
 
 # progress_bar::load
 # Load the progress bar implementation (scripts/progress-bar.zsh) on demand.
@@ -170,6 +172,45 @@ progress_bar::tick() { progress_bar::load || return $?; progress_bar::tick "$@";
 # Bootstrap shim for progress_bar::stop (clear indeterminate progress bar line).
 # Usage: progress_bar::stop <id>
 progress_bar::stop() { progress_bar::load || return $?; progress_bar::stop "$@"; }
+
+# ────────────────────────────────────────────────────────
+# Env helpers
+# ────────────────────────────────────────────────────────
+
+if [[ -z ${_ZSH_ENV_BOOL_INVALID_WARNED+1} ]]; then
+  typeset -gA _ZSH_ENV_BOOL_INVALID_WARNED=()
+fi
+
+# zsh_env::is_true <value> [name]
+# Return 0 when the input value is `true` (case-insensitive).
+#
+# Rules:
+# - Only `true` and `false` are accepted.
+# - Empty/unset: treated as false (no warning).
+# - Invalid (non-empty, not true/false): warn once to stderr and treat as false.
+zsh_env::is_true() {
+  emulate -L zsh
+  setopt pipe_fail nounset
+
+  typeset raw="${1-}"
+  [[ -n "$raw" ]] || return 1
+
+  typeset name="${2-}"
+  typeset lowered="${raw:l}"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      if [[ -n "$name" && -z "${_ZSH_ENV_BOOL_INVALID_WARNED[$name]-}" ]]; then
+        _ZSH_ENV_BOOL_INVALID_WARNED[$name]=1
+        print -u2 -r -- "warning: ${name} must be true|false (got: ${raw}); treating as false"
+      elif [[ -z "$name" ]]; then
+        print -u2 -r -- "warning: invalid boolean value (expected true|false; got: ${raw}); treating as false"
+      fi
+      return 1
+      ;;
+  esac
+}
 
 # --- END ~/.config/zsh/bootstrap/00-preload.zsh
 
@@ -504,12 +545,12 @@ git-reset-mixed() {
 # Safety:
 # - Can rewrite history and/or discard tracked changes depending on your choice.
 git-reset-undo() {
-  typeset target_commit=''
-  typeset status_lines=''
-  typeset reflog_line_current='' reflog_subject_current=''
-  typeset reflog_line_target='' reflog_subject_target=''
-  typeset choice=''
-  typeset -a op_warnings=()
+  typeset target_commit
+  typeset status_lines
+  typeset reflog_line_current reflog_subject_current
+  typeset reflog_line_target  reflog_subject_target
+  typeset choice
+  typeset -a op_warnings
 
   # ── Safety: ensure we are inside a Git repository ───────────────────────────
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -679,7 +720,7 @@ git-reset-undo() {
 # - May update tracked files to match the target state; checkout can fail if it would overwrite changes.
 # - Depending on reflog, you may end up in detached HEAD.
 git-back-head() {
-  typeset prev_head=''
+  typeset prev_head
 
   # Resolve HEAD@{1} to a commit SHA for display/validation
   prev_head=$(git rev-parse HEAD@{1} 2>/dev/null)
@@ -711,7 +752,7 @@ git-back-head() {
 # Safety:
 # - Checkout may fail if local changes would be overwritten.
 git-back-checkout() {
-  typeset current_branch='' from_branch=''
+  typeset current_branch from_branch
 
   # Determine the current branch; in detached HEAD this becomes literal "HEAD"
   current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || return 1
@@ -729,13 +770,15 @@ git-back-checkout() {
 
   # Find the most recent reflog checkout entry that moved *to* current_branch,
   # then extract the "from" token.
-  from_branch=$(
-    git reflog |
-      grep "checkout: moving from " |
-      grep " to $current_branch" |
-      sed -n 's/.*checkout: moving from \([^ ]*\) to '"$current_branch"'.*/\1/p' |
-      head -n 1
-  )
+  from_branch=''
+  typeset reflog_subject=''
+  while IFS=$'\n' read -r reflog_subject; do
+    [[ "$reflog_subject" == 'checkout: moving from '* ]] || continue
+    [[ "$reflog_subject" == *" to $current_branch" ]] || continue
+    from_branch="${reflog_subject#checkout: moving from }"
+    from_branch="${from_branch% to $current_branch}"
+    break
+  done < <(git reflog --format='%gs' 2>/dev/null)
 
   if [[ -z "$from_branch" ]]; then
     print "❌ Could not find a previous checkout that switched to $current_branch."
@@ -1570,12 +1613,13 @@ $scope
 $diff
 \`\`\`
 
-## 📚 Staged file contents (index version):
+  ## 📚 Staged file contents (index version):
 
 $contents" > "$tmpfile"
 
   if [[ "$mode" == "stdout" ]]; then
     command cat "$tmpfile"
+    rm -f -- "$tmpfile" >/dev/null 2>&1 || true
     return 0
   fi
 
@@ -1584,6 +1628,7 @@ $contents" > "$tmpfile"
   fi
 
   command cat "$tmpfile" | set_clipboard
+  rm -f -- "$tmpfile" >/dev/null 2>&1 || true
 
   if [[ "$mode" == "clipboard" ]]; then
     printf "✅ Commit context copied to clipboard with:\n"
@@ -1766,7 +1811,7 @@ _git_scope_collect() {
         | grep -v '^$' | sort -u ;;
     tracked)
       typeset -a prefixes=("${args[@]}")
-      typeset files='' all_filtered='' clean_prefix=''
+      typeset files all_filtered
       files=$(git -c core.quotepath=false ls-files)
       if [[ ${#prefixes[@]} -gt 0 ]]; then
         for prefix in "${prefixes[@]}"; do
@@ -1819,7 +1864,7 @@ print_file_content() {
       printf '\n```\n'
     fi
   elif git cat-file -e "HEAD:$file" 2>/dev/null; then
-    typeset tmp=''
+    typeset tmp
     tmp="$(mktemp)"
     git show "HEAD:$file" > "$tmp"
 
@@ -1921,7 +1966,7 @@ _git_scope_commit() {
   _git_scope_print_commit_message "$commit"
   _git_scope_render_commit_files "$commit" "$parent_selector"
 
-  typeset -a file_list=()
+  typeset -a file_list
   file_list=("${_git_scope_commit_file_list[@]}")
 
   if [[ "$_git_scope_should_print" == true ]]; then
