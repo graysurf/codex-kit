@@ -2,13 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-16 | 2026-01-16 |
+| DONE | 2026-01-16 | 2026-01-16 |
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/48
+- PR: https://github.com/graysurf/codex-kit/pull/49
+- Planning PR: https://github.com/graysurf/codex-kit/pull/48
 - Docs: None
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
 
@@ -131,61 +132,61 @@ Explicit exclusions (out-of-scope examples):
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr will auto-wrap the item text with Markdown strikethrough (use `- [ ] ~~like this~~`).
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Review and confirm the Inventory table (env list + renames + touched files).
-    - [ ] Confirm explicit exclusions for upstream and non-boolean env vars (see Inventory exclusions).
-    - [ ] Confirm enforcement scope (include tests + workflows; exclude `docs/progress/**`).
+    - [x] Review and confirm the Inventory table (env list + renames + touched files).
+    - [x] Confirm explicit exclusions for upstream and non-boolean env vars (see Inventory exclusions).
+    - [x] Confirm enforcement scope (include tests + workflows; exclude `docs/progress/**`).
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - Inventory table (in this file)
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned.
-    - [ ] I/O contract is defined (inputs/outputs/artifacts).
-    - [ ] Risks and rollout plan are defined (including breaking-change notes).
-    - [ ] Verification commands are defined:
+    - [x] Requirements, scope, and acceptance criteria are aligned.
+    - [x] I/O contract is defined (inputs/outputs/artifacts).
+    - [x] Risks and rollout plan are defined (including breaking-change notes).
+    - [x] Verification commands are defined:
       - `scripts/check.sh --all`
       - `scripts/audit-env-bools.zsh --check`
-- [ ] Step 1: Minimum viable output (MVP)
+- [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [ ] Introduce shared boolean env parsing helper(s) (single source of truth per shell).
-    - [ ] Apply env renames + strict parsing across all Inventory flags in code.
-    - [ ] Update docs/templates/examples and test specs to new names + `true|false` values.
+    - [x] Introduce shared boolean env parsing helper(s) (single source of truth per shell).
+    - [x] Apply env renames + strict parsing across all Inventory flags in code.
+    - [x] Update docs/templates/examples and test specs to new names + `true|false` values.
   - Artifacts:
     - Updated sources under `.github/workflows/`, `scripts/`, `skills/`, `tests/`, `docs/` (excluding `docs/progress/**`)
   - Exit Criteria:
-    - [ ] All Inventory flags use `*_ENABLED` names and accept only `true|false`.
-    - [ ] No tracked examples/specs for Inventory flags use `0/1/yes/no/on/off`.
-- [ ] Step 2: Expansion / integration
+    - [x] All Inventory flags use `*_ENABLED` names and accept only `true|false`.
+    - [x] No tracked examples/specs for Inventory flags use `0/1/yes/no/on/off`.
+- [x] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Add `scripts/audit-env-bools.zsh --check` and integrate into `scripts/check.sh --all`.
-    - [ ] Add/adjust regression tests for the new audit script (and any updated specs/stubs).
+    - [x] Add `scripts/audit-env-bools.zsh --check` and integrate into `scripts/check.sh --all`.
+    - [x] Add/adjust regression tests for the new audit script (and any updated specs/stubs).
   - Artifacts:
     - `scripts/audit-env-bools.zsh`
     - Updates to `scripts/check.sh`
     - Test coverage under `tests/`
   - Exit Criteria:
-    - [ ] `scripts/audit-env-bools.zsh --check` passes.
-    - [ ] `scripts/check.sh --all` passes with audit included.
-    - [ ] No remaining legacy env names or forbidden values for Inventory flags outside `docs/progress/**`.
-- [ ] Step 3: Validation / testing
+    - [x] `scripts/audit-env-bools.zsh --check` passes.
+    - [x] `scripts/check.sh --all` passes with audit included.
+    - [x] No remaining legacy env names or forbidden values for Inventory flags outside `docs/progress/**`.
+- [x] Step 3: Validation / testing
   - Work Items:
-    - [ ] Run and record full repo validation (`scripts/check.sh --all`).
-    - [ ] Run and record the env-bools audit (`scripts/audit-env-bools.zsh --check`).
+    - [x] Run and record full repo validation (`scripts/check.sh --all`).
+    - [x] Run and record the env-bools audit (`scripts/audit-env-bools.zsh --check`).
   - Artifacts:
     - PR `Testing` notes (pass/failed/skipped per command)
     - Any logs under `out/` (when produced)
   - Exit Criteria:
-    - [ ] Validation and test commands executed with results recorded.
-    - [ ] Script-smoke / regression coverage still passes after env changes.
-    - [ ] Evidence exists (logs/outputs/commands) in PR description or `out/`.
-- [ ] Step 4: Release / wrap-up
+    - [x] Validation and test commands executed with results recorded.
+    - [x] Script-smoke / regression coverage still passes after env changes.
+    - [x] Evidence exists (logs/outputs/commands) in PR description or `out/`.
+- [x] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Set Status to `DONE`, archive progress file, and update index (close-progress-pr).
+    - [x] Set Status to `DONE`, archive progress file, and update index (close-progress-pr).
   - Artifacts:
     - Archived progress file under `docs/progress/archived/`
   - Exit Criteria:
-    - [ ] Cleanup completed (set Status to `DONE`; move to `archived/`; update index; patch PR Progress link).
+    - [x] Cleanup completed (set Status to `DONE`; move to `archived/`; update index; patch PR Progress link).
 
 ## Modules
 
