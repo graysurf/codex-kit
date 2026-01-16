@@ -15,6 +15,17 @@ The bundler sets sensible defaults if missing:
 - `ZSH_BOOTSTRAP_SCRIPT_DIR` (default: `$ZDOTDIR/bootstrap`)
 - `ZSH_SCRIPT_DIR` (default: `$ZDOTDIR/scripts`)
 
+## Maintenance
+
+This script is intended to stay in sync with the upstream `bundle-wrapper.zsh` used by your zsh wrapper/tooling.
+
+If you update the upstream version locally, you can vendor it into this repo with:
+
+```zsh
+cp "$HOME/.config/zsh/tools/bundle-wrapper.zsh" scripts/build/bundle-wrapper.zsh
+scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
+```
+
 ## Supported wrapper patterns
 
 - Simple `source <path>` / `. <path>` lines (static paths only)
