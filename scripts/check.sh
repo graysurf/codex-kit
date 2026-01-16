@@ -4,9 +4,9 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/check.sh [--lint] [--contracts] [--tests] [--semgrep] [--all] [--] [pytest args...]
+  scripts/check.sh [--lint] [--contracts] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
 
-Runs repo-local lint checks (shell + python), validates skill contracts, optionally runs Semgrep, and runs pytest.
+Runs repo-local lint checks (shell + python), validates skill contracts, runs env-bools audit, optionally runs Semgrep, and runs pytest.
 
 Setup:
   .venv/bin/pip install -r requirements-dev.txt
@@ -14,6 +14,7 @@ Setup:
 Examples:
   scripts/check.sh --all
   scripts/check.sh --lint
+  scripts/check.sh --env-bools
   scripts/check.sh --tests -- -m script_smoke
   scripts/check.sh --semgrep
 USAGE
@@ -21,6 +22,7 @@ USAGE
 
 run_lint=0
 run_contracts=0
+run_env_bools=0
 run_tests=0
 run_semgrep=0
 seen_pytest_args=0
@@ -93,6 +95,10 @@ while [[ $# -gt 0 ]]; do
       run_contracts=1
       shift
       ;;
+    --env-bools)
+      run_env_bools=1
+      shift
+      ;;
     --tests)
       run_tests=1
       shift
@@ -104,6 +110,7 @@ while [[ $# -gt 0 ]]; do
     --all)
       run_lint=1
       run_contracts=1
+      run_env_bools=1
       run_tests=1
       run_semgrep=1
       shift
@@ -132,7 +139,7 @@ if [[ "$seen_pytest_args" -eq 1 && "$run_tests" -eq 0 ]]; then
   exit 2
 fi
 
-if [[ "$run_lint" -eq 0 && "$run_contracts" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
+if [[ "$run_lint" -eq 0 && "$run_contracts" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
   usage
   exit 0
 fi
@@ -142,6 +149,7 @@ cd "$repo_root"
 
 lint_rc=0
 contract_rc=0
+env_bools_rc=0
 semgrep_rc=0
 test_rc=0
 
@@ -165,6 +173,18 @@ if [[ "$run_contracts" -eq 1 ]]; then
 
   if [[ "$contract_rc" -ne 0 ]]; then
     echo "error: validate_skill_contracts failed (exit=$contract_rc)" >&2
+  fi
+fi
+
+if [[ "$run_env_bools" -eq 1 ]]; then
+  echo "lint: env bools audit" >&2
+  set +e
+  zsh -f scripts/audit-env-bools.zsh --check
+  env_bools_rc=$?
+  set -e
+
+  if [[ "$env_bools_rc" -ne 0 ]]; then
+    echo "error: env bools audit failed (exit=$env_bools_rc)" >&2
   fi
 fi
 
@@ -196,6 +216,6 @@ if [[ "$run_tests" -eq 1 ]]; then
   fi
 fi
 
-if [[ "$lint_rc" -ne 0 || "$contract_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
+if [[ "$lint_rc" -ne 0 || "$contract_rc" -ne 0 || "$env_bools_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
   exit 1
 fi

@@ -110,7 +110,7 @@ max_failed = safe_int(max_failed_raw, 50)
 max_skipped = safe_int(max_skipped_raw, 50)
 
 SKIP_HINTS: Dict[str, str] = {
-  "write_cases_disabled": "Enable writes with API_TEST_ALLOW_WRITES=1 (or --allow-writes) to run allowWrite cases.",
+  "write_cases_disabled": "Enable writes with API_TEST_ALLOW_WRITES_ENABLED=true (or --allow-writes) to run allowWrite cases.",
   "not_selected": "Case not selected (check --only filter).",
   "skipped_by_id": "Case skipped by id (check --skip filter).",
   "tag_mismatch": "Case tags did not match selected --tag filters.",

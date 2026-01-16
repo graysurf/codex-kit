@@ -32,15 +32,27 @@ to_env_key() {
 	printf "%s" "$s"
 }
 
-is_falsy() {
-	local s
-	s="$(to_lower "$(trim "${1:-}")")"
-	case "$s" in
-		0|false|no|off|n)
-			return 0
+bool_from_env() {
+	local raw="${1:-}"
+	local name="${2:-}"
+	local default="${3:-false}"
+
+	raw="$(trim "$raw")"
+	if [[ -z "$raw" ]]; then
+		[[ "$default" == "true" ]]
+		return $?
+	fi
+
+	local lowered
+	lowered="$(to_lower "$raw")"
+	case "$lowered" in
+		true) return 0 ;;
+		false) return 1 ;;
+		*)
+			echo "rest.sh: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+			return 1
 			;;
 	esac
-	return 1
 }
 
 maybe_print_failure_body_to_stderr() {
@@ -129,7 +141,7 @@ append_rest_history() {
 
 	[[ "${rest_action:-call}" == "call" ]] || return 0
 
-	if is_falsy "${REST_HISTORY:-1}"; then
+	if ! bool_from_env "${REST_HISTORY_ENABLED:-}" "REST_HISTORY_ENABLED" "true"; then
 		return 0
 	fi
 
@@ -170,7 +182,7 @@ append_rest_history() {
 	fi
 
 	local log_url=true
-	if is_falsy "${REST_HISTORY_LOG_URL:-1}"; then
+	if ! bool_from_env "${REST_HISTORY_LOG_URL_ENABLED:-}" "REST_HISTORY_LOG_URL_ENABLED" "true"; then
 		log_url=false
 	fi
 
@@ -273,15 +285,15 @@ Options:
       --config-dir <dir> REST setup dir (searches upward for endpoints.env/tokens.env; default: request dir or ./setup/rest)
       --no-history        Disable writing to .rest_history for this run
 
-Environment variables:
-  REST_URL        Explicit REST base URL (overridden by --env/--url)
-  ACCESS_TOKEN    If set (and no token profile is selected), sends Authorization: Bearer <token>
-  REST_TOKEN_NAME Token profile name (same as --token)
-  REST_HISTORY    Enable/disable local command history (default: 1)
-  REST_HISTORY_FILE         Override history file path (default: <setup_dir>/.rest_history)
-  REST_HISTORY_LOG_URL      Include URL in history entries (default: 1)
-  REST_HISTORY_MAX_MB       Rotate when file exceeds size in MB (default: 10; 0 disables)
-  REST_HISTORY_ROTATE_COUNT Number of rotated files to keep (default: 5)
+	Environment variables:
+	  REST_URL        Explicit REST base URL (overridden by --env/--url)
+	  ACCESS_TOKEN    If set (and no token profile is selected), sends Authorization: Bearer <token>
+	  REST_TOKEN_NAME Token profile name (same as --token)
+	  REST_HISTORY_ENABLED=false          Disable local command history (default: enabled)
+	  REST_HISTORY_FILE         Override history file path (default: <setup_dir>/.rest_history)
+	  REST_HISTORY_LOG_URL_ENABLED=false  Omit URL in history entries (default: included)
+	  REST_HISTORY_MAX_MB       Rotate when file exceeds size in MB (default: 10; 0 disables)
+	  REST_HISTORY_ROTATE_COUNT Number of rotated files to keep (default: 5)
 
 Request schema (JSON only):
   {
@@ -347,7 +359,7 @@ while [[ $# -gt 0 ]]; do
 			shift 2
 			;;
 		--no-history)
-			REST_HISTORY=0
+			REST_HISTORY_ENABLED=false
 			shift
 			;;
 		--)

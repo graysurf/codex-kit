@@ -17,15 +17,27 @@ to_lower() {
 	printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
 }
 
-is_falsy() {
-	local s
-	s="$(to_lower "$(trim "${1:-}")")"
-	case "$s" in
-		0|false|no|off|n)
-			return 0
+bool_from_env() {
+	local raw="${1:-}"
+	local name="${2:-}"
+	local default="${3:-false}"
+
+	raw="$(trim "$raw")"
+	if [[ -z "$raw" ]]; then
+		[[ "$default" == "true" ]]
+		return $?
+	fi
+
+	local lowered
+	lowered="$(to_lower "$raw")"
+	case "$lowered" in
+		true) return 0 ;;
+		false) return 1 ;;
+		*)
+			echo "gql-report.sh: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+			return 1
 			;;
 	esac
-	return 1
 }
 
 parse_int_default() {
@@ -99,10 +111,10 @@ Environment variables:
   GQL_REPORT_DIR          Default output directory when --out is not set.
                           If relative, it is resolved against <project root>.
                           Default: <project root>/docs
-  GQL_ALLOW_EMPTY         Same as --allow-empty (1/true/yes).
+  GQL_ALLOW_EMPTY_ENABLED=true  Same as --allow-empty (default: disabled)
   GQL_VARS_MIN_LIMIT      If variables JSON contains numeric `limit` fields (including nested pagination inputs), bump them to at least N (default: 5; 0 disables)
-  GQL_REPORT_INCLUDE_COMMAND Include the `gql.sh` command snippet in the report (default: 1)
-  GQL_REPORT_COMMAND_LOG_URL Include URL value in the command snippet when --url is used (default: 1)
+  GQL_REPORT_INCLUDE_COMMAND_ENABLED=false  Omit the `gql.sh` command snippet in the report (default: included)
+  GQL_REPORT_COMMAND_LOG_URL_ENABLED=false Omit URL value in the command snippet when --url is used (default: included)
 
 Notes:
   - Requires jq for JSON formatting.
@@ -226,11 +238,11 @@ if [[ -z "$project_root" ]]; then
 	project_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
 fi
 
-if is_falsy "${GQL_REPORT_INCLUDE_COMMAND:-1}"; then
+if ! bool_from_env "${GQL_REPORT_INCLUDE_COMMAND_ENABLED:-}" "GQL_REPORT_INCLUDE_COMMAND_ENABLED" "true"; then
 	include_command=false
 fi
 
-if is_falsy "${GQL_REPORT_COMMAND_LOG_URL:-1}"; then
+if ! bool_from_env "${GQL_REPORT_COMMAND_LOG_URL_ENABLED:-}" "GQL_REPORT_COMMAND_LOG_URL_ENABLED" "true"; then
 	include_command_url=false
 fi
 
@@ -409,11 +421,9 @@ elif [[ -n "$response_file" ]]; then
 		response_note="> NOTE: run the operation and replace this section with the real response (formatted JSON)."
 	fi
 
-case "${GQL_ALLOW_EMPTY:-}" in
-	1|true|TRUE|yes|YES)
-		allow_empty=true
-		;;
-esac
+if bool_from_env "${GQL_ALLOW_EMPTY_ENABLED:-}" "GQL_ALLOW_EMPTY_ENABLED" "false"; then
+	allow_empty=true
+fi
 
 if [[ "$allow_empty" == "false" ]]; then
 	if [[ "$run_request" != "true" && -z "$response_file" ]]; then

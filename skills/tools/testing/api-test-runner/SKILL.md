@@ -186,7 +186,7 @@ For write cases that create persistent resources (DB rows, uploaded files, etc),
 
 - `cleanup` can be an object (single step) or an array of steps.
 - Each cleanup step must include `type`: `rest` or `graphql`.
-- Cleanup steps run only when writes are allowed: `API_TEST_ALLOW_WRITES=1` (or `--allow-writes`) or when the effective `env` is `local`.
+- Cleanup steps run only when writes are allowed: `API_TEST_ALLOW_WRITES_ENABLED=true` (or `--allow-writes`) or when the effective `env` is `local`.
 
 REST cleanup step fields:
 
@@ -426,7 +426,7 @@ Allow writes only when:
 - The case has `allowWrite: true`, AND
 - Either:
   - effective `env` is `local`, OR
-  - the runner is invoked with `--allow-writes` (or `API_TEST_ALLOW_WRITES=1`).
+  - the runner is invoked with `--allow-writes` (or `API_TEST_ALLOW_WRITES_ENABLED=true`).
 
 ## Results
 

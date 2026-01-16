@@ -32,6 +32,10 @@ jobs:
         run: |
           scripts/lint.sh --shell
 
+      - name: Env bool audit
+        run: |
+          zsh -f scripts/audit-env-bools.zsh --check
+
       - name: Validate skill contract sections
         run: |
           scripts/validate_skill_contracts.sh

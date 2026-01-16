@@ -69,7 +69,7 @@ jobs:
       - name: Run cleanup fixture suite
         env:
           CODEX_HOME: ${{ github.workspace }}
-          API_TEST_ALLOW_WRITES: "1"
+          API_TEST_ALLOW_WRITES_ENABLED: "true"
           API_TEST_OUTPUT_DIR: out/api-test-runner/cleanup
         run: |
           set -euo pipefail

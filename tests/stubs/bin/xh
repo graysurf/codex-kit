@@ -1,14 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-is_truthy() {
-  case "${1:-}" in
-    1|true|yes|on) return 0 ;;
-  esac
-  return 1
+trim() {
+  local s="${1:-}"
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf "%s" "$s"
 }
 
-if ! is_truthy "${CODEX_XH_STUB_MODE:-}"; then
+to_lower() {
+  printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+bool_from_env() {
+  local raw="${1:-}"
+  local name="${2:-}"
+  local default="${3:-false}"
+
+  raw="$(trim "$raw")"
+  if [[ -z "$raw" ]]; then
+    [[ "$default" == "true" ]]
+    return $?
+  fi
+
+  local lowered
+  lowered="$(to_lower "$raw")"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      echo "xh-stub: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+      return 1
+      ;;
+  esac
+}
+
+if ! bool_from_env "${CODEX_XH_STUB_MODE_ENABLED:-}" "CODEX_XH_STUB_MODE_ENABLED" "false"; then
   echo "error: xh is blocked by script regression tests" >&2
   exit 90
 fi
@@ -29,4 +56,3 @@ else
 fi
 
 exit 0
-

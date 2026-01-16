@@ -18,6 +18,40 @@ CHROME_APP_PATH_DEFAULT="/Applications/Google Chrome.app/Contents/MacOS/Google C
 # Default remote debugging ports (connect mode)
 CHROME_REMOTE_DEBUG_PORT_DEFAULT="${CHROME_REMOTE_DEBUG_PORT_DEFAULT:-19222}"
 
+trim() {
+  local s="${1:-}"
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf '%s' "$s"
+}
+
+to_lower() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+bool_from_env() {
+  local raw="${1:-}"
+  local name="${2:-}"
+  local default="${3:-false}"
+
+  raw="$(trim "$raw")"
+  if [[ -z "$raw" ]]; then
+    [[ "$default" == "true" ]]
+    return $?
+  fi
+
+  local lowered
+  lowered="$(to_lower "$raw")"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      echo "warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+      return 1
+      ;;
+  esac
+}
+
 expand_tilde() {
   local path="$1"
   if [[ $path == \~ || $path == \~/* ]]; then
@@ -38,15 +72,14 @@ die() { echo "error: $*" >&2; exit 1; }
 
 preflight_browser_url() {
   local browser_url="$1"
-  local enabled="${CHROME_DEVTOOLS_PREFLIGHT:-false}"
-  [[ "$enabled" == "true" ]] || return 0
-  [[ "${CHROME_DEVTOOLS_DRY_RUN:-false}" == "true" ]] && return 0
+  bool_from_env "${CHROME_DEVTOOLS_PREFLIGHT_ENABLED:-}" "CHROME_DEVTOOLS_PREFLIGHT_ENABLED" "false" || return 0
+  bool_from_env "${CHROME_DEVTOOLS_DRY_RUN_ENABLED:-}" "CHROME_DEVTOOLS_DRY_RUN_ENABLED" "false" && return 0
 
   local timeout_sec="${CHROME_DEVTOOLS_PREFLIGHT_TIMEOUT_SEC:-2}"
   local version_url="${browser_url%/}/json/version"
   echo "preflight: GET $version_url (timeout ${timeout_sec}s)" >&2
   curl -fsS --max-time "$timeout_sec" "$version_url" >/dev/null \
-    || die "preflight failed: cannot reach Chrome DevTools at $version_url (set CHROME_DEVTOOLS_PREFLIGHT=false to skip)"
+    || die "preflight failed: cannot reach Chrome DevTools at $version_url (set CHROME_DEVTOOLS_PREFLIGHT_ENABLED=false to skip)"
 }
 
 resolve_user_data_dir() {
@@ -122,7 +155,7 @@ case "$MODE" in
   connect)
     # connect mode usually targets the profile you are currently using
     # Prefer autoConnect when remote debugging is enabled on your browser
-    if [[ "${CHROME_DEVTOOLS_AUTOCONNECT:-false}" == "true" ]]; then
+    if bool_from_env "${CHROME_DEVTOOLS_AUTOCONNECT_ENABLED:-}" "CHROME_DEVTOOLS_AUTOCONNECT_ENABLED" "false"; then
       cmd+=(--autoConnect=true)
     else
       # Otherwise connect to a manually exposed remote debugging port
@@ -157,7 +190,7 @@ if [[ -n "${CHROME_DEVTOOLS_EXTRA_ARGS:-}" ]]; then
 fi
 
 # 7) Debug / dry-run
-if [[ "${CHROME_DEVTOOLS_DRY_RUN:-false}" == "true" ]]; then
+if bool_from_env "${CHROME_DEVTOOLS_DRY_RUN_ENABLED:-}" "CHROME_DEVTOOLS_DRY_RUN_ENABLED" "false"; then
   printf '%q ' "${cmd[@]}"; echo
   exit 0
 fi

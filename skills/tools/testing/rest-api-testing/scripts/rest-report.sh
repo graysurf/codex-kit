@@ -17,15 +17,27 @@ to_lower() {
 	printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
 }
 
-is_falsy() {
-	local s
-	s="$(to_lower "$(trim "${1:-}")")"
-	case "$s" in
-		0|false|no|off|n)
-			return 0
+bool_from_env() {
+	local raw="${1:-}"
+	local name="${2:-}"
+	local default="${3:-false}"
+
+	raw="$(trim "$raw")"
+	if [[ -z "$raw" ]]; then
+		[[ "$default" == "true" ]]
+		return $?
+	fi
+
+	local lowered
+	lowered="$(to_lower "$raw")"
+	case "$lowered" in
+		true) return 0 ;;
+		false) return 1 ;;
+		*)
+			echo "rest-report.sh: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+			return 1
 			;;
 	esac
-	return 1
 }
 
 maybe_relpath() {
@@ -74,8 +86,8 @@ Environment variables:
   REST_REPORT_DIR          Default output directory when --out is not set.
                           If relative, it is resolved against <project root>.
                           Default: <project root>/docs
-  REST_REPORT_INCLUDE_COMMAND Include the `rest.sh` command snippet in the report (default: 1)
-  REST_REPORT_COMMAND_LOG_URL Include URL value in the command snippet when --url is used (default: 1)
+  REST_REPORT_INCLUDE_COMMAND_ENABLED=false     Omit the `rest.sh` command snippet in the report (default: included)
+  REST_REPORT_COMMAND_LOG_URL_ENABLED=false    Omit URL value in the command snippet when --url is used (default: included)
 
 Notes:
   - Requires jq for JSON formatting.
@@ -189,11 +201,11 @@ if [[ -z "$project_root" ]]; then
 	project_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
 fi
 
-if is_falsy "${REST_REPORT_INCLUDE_COMMAND:-1}"; then
+if ! bool_from_env "${REST_REPORT_INCLUDE_COMMAND_ENABLED:-}" "REST_REPORT_INCLUDE_COMMAND_ENABLED" "true"; then
 	include_command=false
 fi
 
-if is_falsy "${REST_REPORT_COMMAND_LOG_URL:-1}"; then
+if ! bool_from_env "${REST_REPORT_COMMAND_LOG_URL_ENABLED:-}" "REST_REPORT_COMMAND_LOG_URL_ENABLED" "true"; then
 	include_command_url=false
 fi
 

@@ -17,6 +17,29 @@ to_lower() {
   printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
 }
 
+bool_from_env() {
+  local raw="${1:-}"
+  local name="${2:-}"
+  local default="${3:-false}"
+
+  raw="$(trim "$raw")"
+  if [[ -z "$raw" ]]; then
+    [[ "$default" == "true" ]]
+    return $?
+  fi
+
+  local lowered
+  lowered="$(to_lower "$raw")"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      echo "api-test.sh: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+      return 1
+      ;;
+  esac
+}
+
 to_upper() {
   printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
 }
@@ -84,7 +107,7 @@ Options:
   -h, --help               Show help
 
 Environment:
-  API_TEST_ALLOW_WRITES=1  Same as --allow-writes
+  API_TEST_ALLOW_WRITES_ENABLED=true  Same as --allow-writes
   API_TEST_OUTPUT_DIR      Base output dir (default: <repo>/out/api-test-runner)
   API_TEST_AUTH_JSON       JSON credentials for suite auth (when .auth is configured; override via .auth.secretEnv)
   API_TEST_REST_URL        Default REST URL when suite/case omits url
@@ -231,8 +254,7 @@ out_dir_base="${API_TEST_OUTPUT_DIR:-${repo_root%/}/out/api-test-runner}"
 run_dir="${out_dir_base%/}/${run_id}"
 mkdir -p "$run_dir"
 
-allow_writes_env="$(to_lower "$(trim "${API_TEST_ALLOW_WRITES:-0}")")"
-if [[ "$allow_writes_env" == "1" || "$allow_writes_env" == "true" || "$allow_writes_env" == "yes" ]]; then
+if bool_from_env "${API_TEST_ALLOW_WRITES_ENABLED:-}" "API_TEST_ALLOW_WRITES_ENABLED" "false"; then
   allow_writes="1"
 fi
 
@@ -1281,7 +1303,7 @@ run_case_cleanup() {
   fi
 
   if [[ "$allow_writes" != "1" && "$(to_lower "$effective_env")" != "local" ]]; then
-    cleanup_append_log "$stderr_file" "cleanup skipped (writes disabled): enable with API_TEST_ALLOW_WRITES=1 (or --allow-writes)"
+    cleanup_append_log "$stderr_file" "cleanup skipped (writes disabled): enable with API_TEST_ALLOW_WRITES_ENABLED=true (or --allow-writes)"
     return 0
   fi
 

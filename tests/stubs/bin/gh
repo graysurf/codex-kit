@@ -1,14 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-is_truthy() {
-  case "${1:-}" in
-    1|true|yes|on) return 0 ;;
-  esac
-  return 1
+trim() {
+  local s="${1:-}"
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf "%s" "$s"
 }
 
-if ! is_truthy "${CODEX_GH_STUB_MODE:-}"; then
+to_lower() {
+  printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+bool_from_env() {
+  local raw="${1:-}"
+  local name="${2:-}"
+  local default="${3:-false}"
+
+  raw="$(trim "$raw")"
+  if [[ -z "$raw" ]]; then
+    [[ "$default" == "true" ]]
+    return $?
+  fi
+
+  local lowered
+  lowered="$(to_lower "$raw")"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      echo "gh-stub: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+      return 1
+      ;;
+  esac
+}
+
+if ! bool_from_env "${CODEX_GH_STUB_MODE_ENABLED:-}" "CODEX_GH_STUB_MODE_ENABLED" "false"; then
   echo "error: gh is blocked by script regression tests" >&2
   exit 90
 fi
@@ -165,7 +192,7 @@ fi
 
 if [[ "${1-}" == "pr" && "${2-}" == "merge" ]]; then
   if [[ "${3-}" == "--help" || "${3-}" == "-h" ]]; then
-    if is_truthy "${CODEX_GH_STUB_MERGE_HELP_HAS_YES:-1}"; then
+    if bool_from_env "${CODEX_GH_STUB_MERGE_HELP_HAS_YES_ENABLED:-}" "CODEX_GH_STUB_MERGE_HELP_HAS_YES_ENABLED" "true"; then
       printf "%s\n" "      --yes"
     fi
     exit 0

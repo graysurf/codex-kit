@@ -31,15 +31,27 @@ to_env_key() {
 	printf "%s" "$s"
 }
 
-is_falsy() {
-	local s
-	s="$(to_lower "$(trim "${1:-}")")"
-	case "$s" in
-		0|false|no|off|n)
-			return 0
+bool_from_env() {
+	local raw="${1:-}"
+	local name="${2:-}"
+	local default="${3:-false}"
+
+	raw="$(trim "$raw")"
+	if [[ -z "$raw" ]]; then
+		[[ "$default" == "true" ]]
+		return $?
+	fi
+
+	local lowered
+	lowered="$(to_lower "$raw")"
+	case "$lowered" in
+		true) return 0 ;;
+		false) return 1 ;;
+		*)
+			echo "gql.sh: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+			return 1
 			;;
 	esac
-	return 1
 }
 
 parse_int_default() {
@@ -154,7 +166,7 @@ append_gql_history() {
 
 	[[ "${gql_action:-call}" == "call" ]] || return 0
 
-	if is_falsy "${GQL_HISTORY:-1}"; then
+	if ! bool_from_env "${GQL_HISTORY_ENABLED:-}" "GQL_HISTORY_ENABLED" "true"; then
 		return 0
 	fi
 
@@ -195,7 +207,7 @@ append_gql_history() {
 	fi
 
 	local log_url=true
-	if is_falsy "${GQL_HISTORY_LOG_URL:-1}"; then
+	if ! bool_from_env "${GQL_HISTORY_LOG_URL_ENABLED:-}" "GQL_HISTORY_LOG_URL_ENABLED" "true"; then
 		log_url=false
 	fi
 
@@ -316,9 +328,9 @@ Environment variables:
   ACCESS_TOKEN   If set (and no JWT profile is selected), sends Authorization: Bearer <token>
   GQL_JWT_NAME   JWT profile name (same as --jwt)
   GQL_VARS_MIN_LIMIT        If variables JSON contains numeric `limit` fields (including nested pagination inputs), bump them to at least N (default: 5; 0 disables)
-  GQL_HISTORY              Enable/disable local command history (default: 1)
+  GQL_HISTORY_ENABLED=false          Disable local command history (default: enabled)
   GQL_HISTORY_FILE         Override history file path (default: <setup_dir>/.gql_history)
-  GQL_HISTORY_LOG_URL      Include URL in history entries (default: 1)
+  GQL_HISTORY_LOG_URL_ENABLED=false  Omit URL in history entries (default: included)
   GQL_HISTORY_MAX_MB       Rotate when file exceeds size in MB (default: 10; 0 disables)
   GQL_HISTORY_ROTATE_COUNT Number of rotated files to keep (default: 5)
 
@@ -373,10 +385,10 @@ while [[ $# -gt 0 ]]; do
 			list_jwts=true
 			shift
 			;;
-		--no-history)
-			GQL_HISTORY=0
-			shift
-			;;
+			--no-history)
+				GQL_HISTORY_ENABLED=false
+				shift
+				;;
 		--)
 			shift
 			break

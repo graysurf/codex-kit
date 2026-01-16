@@ -51,7 +51,7 @@ def test_script_smoke_fixture_close_feature_pr(tmp_path: Path):
         "args": ["--pr", "123", "--skip-checks", "--no-cleanup"],
         "timeout_sec": 15,
         "env": {
-            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
             "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "123",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/123",
@@ -83,7 +83,7 @@ def test_script_smoke_fixture_handoff_progress_pr_patch_only(tmp_path: Path):
         "args": ["--pr", "21", "--progress-file", progress_file, "--patch-only"],
         "timeout_sec": 15,
         "env": {
-            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
             "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "21",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/21",
@@ -116,7 +116,7 @@ def test_script_smoke_fixture_handoff_progress_pr_patch_only_reuses_pr_body(tmp_
         "args": ["--pr", "22", "--patch-only"],
         "timeout_sec": 15,
         "env": {
-            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
             "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "22",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/22",
@@ -220,7 +220,7 @@ def test_script_smoke_fixture_close_progress_pr_no_merge(tmp_path: Path):
         ],
         "timeout_sec": 30,
         "env": {
-            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
             "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "123",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/123",
@@ -326,7 +326,7 @@ def test_script_smoke_fixture_close_progress_pr_merge_reuses_pr_body(tmp_path: P
         ],
         "timeout_sec": 30,
         "env": {
-            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
             "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "126",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/126",
@@ -438,7 +438,7 @@ def test_script_smoke_fixture_close_progress_pr_auto_strikethrough(tmp_path: Pat
         ],
         "timeout_sec": 30,
         "env": {
-            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
             "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "124",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/124",
@@ -548,7 +548,7 @@ def test_script_smoke_fixture_close_progress_pr_invalid_strikethrough_fails(tmp_
         ],
         "timeout_sec": 30,
         "env": {
-            "CODEX_GH_STUB_MODE": "1",
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
             "CODEX_STUB_LOG_DIR": str(log_dir),
             "CODEX_GH_STUB_PR_NUMBER": "125",
             "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/125",

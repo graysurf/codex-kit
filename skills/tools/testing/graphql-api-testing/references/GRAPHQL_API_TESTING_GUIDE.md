@@ -256,7 +256,7 @@ If you already have a `gql.sh` command snippet (e.g. from `setup/graphql/.gql_hi
 setup/graphql/api-report-from-cmd.sh '<paste a gql.sh command snippet>'
 ```
 
-By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL=0`.
+By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND_ENABLED=false`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL_ENABLED=false`.
 
 8) CI / E2E (optional)
 
@@ -277,7 +277,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
 Notes:
 
 - Many GraphQL servers return HTTP 200 even when `.errors` is present, so assert it explicitly.
-- If you don’t want CI jobs to write history, add `--no-history` (or set `GQL_HISTORY=0`).
+- If you don’t want CI jobs to write history, add `--no-history` (or set `GQL_HISTORY_ENABLED=false`).
 
 ## Notes for stability
 
@@ -289,8 +289,8 @@ Notes:
 - History defaults and controls:
   - Defaults: enabled, logs both success/failure with exit code; rotates at 10 MB and keeps N old files.
   - One-off disable: `gql.sh --no-history ...`
-  - Disable: `GQL_HISTORY=0`
-  - Omit URL in history entries: `GQL_HISTORY_LOG_URL=0`
+  - Disable: `GQL_HISTORY_ENABLED=false`
+  - Omit URL in history entries: `GQL_HISTORY_LOG_URL_ENABLED=false`
   - Size/rotation: `GQL_HISTORY_MAX_MB=10` (default), `GQL_HISTORY_ROTATE_COUNT=5`
 - Variables defaults and controls:
   - If variables JSON contains numeric `limit` fields (including nested pagination inputs), scripts bump them to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).

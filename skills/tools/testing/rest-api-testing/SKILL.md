@@ -101,7 +101,7 @@ If your repo bootstrapped `setup/rest/` from the template, you can also use:
 
 ## Notes (defaults)
 
-- History is on by default: `setup/rest/.rest_history` (gitignored); one-off disable with `--no-history` (or `REST_HISTORY=0`).
+- History is on by default: `setup/rest/.rest_history` (gitignored); one-off disable with `--no-history` (or `REST_HISTORY_ENABLED=false`).
 - Requests can embed CI-friendly assertions:
   - `expect.status` (integer; required when `expect` is present)
   - `expect.jq` (optional; evaluated with `jq -e` against the JSON response)

@@ -5,7 +5,7 @@
       "args": ["--pr", "123"],
       "timeout_sec": 10,
       "env": {
-        "CODEX_GH_STUB_MODE": "1",
+        "CODEX_GH_STUB_MODE_ENABLED": "true",
         "CODEX_GH_STUB_BODY_FILE": "tests/fixtures/bug-pr/body.md",
         "CODEX_GH_STUB_PR_NUMBER": "123",
         "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/123",

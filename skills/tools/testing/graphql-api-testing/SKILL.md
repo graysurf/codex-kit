@@ -103,8 +103,8 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --con
 
 ## Notes (defaults)
 
-- History is on by default: `setup/graphql/.gql_history` (gitignored); one-off disable with `--no-history` (or `GQL_HISTORY=0`).
-- Reports include `## Command` by default; disable with `--no-command` (or `GQL_REPORT_INCLUDE_COMMAND=0`).
+- History is on by default: `setup/graphql/.gql_history` (gitignored); one-off disable with `--no-history` (or `GQL_HISTORY_ENABLED=false`).
+- Reports include `## Command` by default; disable with `--no-command` (or `GQL_REPORT_INCLUDE_COMMAND_ENABLED=false`).
 - Variables: any numeric `limit` fields (including nested pagination inputs) are normalized to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 - Prefer `--config-dir setup/graphql` in automation for deterministic discovery.
 
@@ -127,7 +127,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
 Notes:
 
 - Many GraphQL servers return HTTP 200 even when `.errors` is present, so assert it explicitly.
-- If you don’t want CI jobs to write history, add `--no-history` (or set `GQL_HISTORY=0`).
+- If you don’t want CI jobs to write history, add `--no-history` (or set `GQL_HISTORY_ENABLED=false`).
 
 ## References
 
