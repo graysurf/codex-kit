@@ -45,7 +45,7 @@ Failure modes:
      - `$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-resolve.sh`
    - Or target a specific PR:
      - `$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-resolve.sh --pr <number>`
-   - If it exits `2`: stop and report “沒有相關問題/沒有 bug 類型 PR”.
+   - If it exits `2`: stop and report “No relevant issues found (no bug-type PR found).”
 
 2. Checkout the PR branch:
    - `gh pr checkout <number>`
