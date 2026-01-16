@@ -166,21 +166,27 @@ add_exec_source() {
 parse_sources_array() {
   local file="$1"
   local in_sources=0
-  local line=''
+  local line='' rest=''
   while IFS= read -r line; do
-    if [[ "$line" == *"typeset -a sources=("* ]]; then
-      in_sources=1
-      continue
-    fi
-    if (( in_sources )); then
-      if [[ "$line" == *")"* ]]; then
-        in_sources=0
+    rest="$line"
+    if (( ! in_sources )); then
+      if [[ "$rest" == *"typeset -a sources=("* ]]; then
+        in_sources=1
+        rest="${rest#*"typeset -a sources=("}"
+      else
         continue
       fi
-      if [[ "$line" =~ '\"([^\"]+)\"' ]]; then
-        sources_from_array+=("${match[1]}")
-      fi
     fi
+
+    if [[ "$rest" == *")"* ]]; then
+      rest="${rest%%")"*}"
+      in_sources=0
+    fi
+
+    while [[ "$rest" =~ '\"([^\"]+)\"' ]]; do
+      sources_from_array+=("${match[1]}")
+      rest="${rest[$(( MEND + 1 )),-1]}"
+    done
   done < "$file"
 }
 
@@ -190,21 +196,27 @@ parse_sources_array() {
 parse_exec_sources_array() {
   local file="$1"
   local in_sources=0
-  local line=''
+  local line='' rest=''
   while IFS= read -r line; do
-    if [[ "$line" == *"typeset -a exec_sources=("* ]]; then
-      in_sources=1
-      continue
-    fi
-    if (( in_sources )); then
-      if [[ "$line" == *")"* ]]; then
-        in_sources=0
+    rest="$line"
+    if (( ! in_sources )); then
+      if [[ "$rest" == *"typeset -a exec_sources=("* ]]; then
+        in_sources=1
+        rest="${rest#*"typeset -a exec_sources=("}"
+      else
         continue
       fi
-      if [[ "$line" =~ '\"([^\"]+)\"' ]]; then
-        exec_sources_from_array+=("${match[1]}")
-      fi
     fi
+
+    if [[ "$rest" == *")"* ]]; then
+      rest="${rest%%")"*}"
+      in_sources=0
+    fi
+
+    while [[ "$rest" =~ '\"([^\"]+)\"' ]]; do
+      exec_sources_from_array+=("${match[1]}")
+      rest="${rest[$(( MEND + 1 )),-1]}"
+    done
   done < "$file"
 }
 
