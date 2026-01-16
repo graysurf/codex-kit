@@ -11,6 +11,10 @@ Why:
 - Matches existing `rest-api-testing` / `graphql-api-testing` conventions
 - Avoids coupling to any particular test framework’s directory structure
 
+Note:
+
+- `--suite <name>` searches `tests/api/suites/<name>.suite.json` first, then falls back to `setup/api/suites/<name>.suite.json`.
+
 Typical structure:
 
 ```text
@@ -42,10 +46,12 @@ $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
 
 ### Option B: put everything under `tests/`
 
-This is supported today, but with one important note:
+This is supported today.
 
-- `api-test-runner --suite <name>` currently resolves only to `setup/api/suites/<name>.suite.json`
-- If your suite files live under `tests/`, run with `--suite-file <path>` instead
+Suite resolution note:
+
+- `--suite <name>` searches `tests/api/suites/<name>.suite.json` (fallback: `setup/api/suites/...`).
+- If your suite manifest lives outside those suites dirs (e.g. fixtures), use `--suite-file <path>` (or set `API_TEST_SUITES_DIR`).
 
 Recommended structure:
 
@@ -100,7 +106,7 @@ Run:
 
 ```bash
 $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
-  --suite-file tests/api/suites/smoke.suite.json \
+  --suite smoke \
   --out out/api-test-runner/results.json \
   --junit out/api-test-runner/junit.xml
 ```
@@ -119,7 +125,7 @@ In CI, prefer explicit env vars (and runtime login) instead of committing real s
 Option B (recommended when JWTs expire): runtime login via a single JSON secret + suite `auth` block:
 
 - Provide a GitHub Secret (default name): `API_TEST_AUTH_JSON`
-- Add `auth` to your suite manifest (`setup/api/suites/*.suite.json`)
+- Add `auth` to your suite manifest (typically `tests/api/suites/*.suite.json`; or `setup/api/suites/*.suite.json` if using the `setup/` layout)
 - The runner logs in once per profile and injects `ACCESS_TOKEN` per case (no token files needed in CI)
 
 ## GitHub Actions
@@ -137,7 +143,7 @@ To make CI runs easier to scan (especially for non-engineers), generate a small 
 If you want to run a committed `tests/` layout instead:
 
 - Remove the “Bootstrap public suite” step
-- Change the run command to use `--suite-file tests/api/suites/<suite>.suite.json`
+- Change the run command to use `--suite <suite>` (or `--suite-file tests/api/suites/<suite>.suite.json`)
 
 ### Matrix sharding (parallel by tags)
 

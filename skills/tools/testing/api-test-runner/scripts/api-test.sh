@@ -94,6 +94,8 @@ Environment:
 Notes:
   - Requires: git, jq, python3
   - Runs from any subdir inside the repo; paths are resolved relative to repo root.
+  - `--suite` only searches the canonical suite dirs; if your suite file lives elsewhere, use `--suite-file` (or set `API_TEST_SUITES_DIR`).
+  - GraphQL ops that contain a `mutation` definition require `allowWrite: true` on the case (guardrail to prevent accidental writes in CI).
   - REST requests support multipart file uploads and optional cleanup blocks (see rest.sh schema).
   - Suite cases may optionally define .cleanup steps (REST + GraphQL) to remove write-case artifacts.
 EOF
@@ -802,18 +804,28 @@ try:
 except Exception:
   sys.exit(2)
 
-# Best-effort: strip block and line comments, then inspect the first operation keyword.
+# Best-effort: strip comments and string literals, then look for an operation definition.
+#
+# We intentionally treat any detected `mutation` operation definition as write-capable,
+# even if the file starts with fragments/comments/schema snippets.
 text = re.sub(r"/\\*.*?\\*/", " ", text, flags=re.S)
-text = re.sub(r"^\\s*#.*$", " ", text, flags=re.M)
-text = re.sub(r"^\\s*//.*$", " ", text, flags=re.M)
-text = text.strip()
 
-m = re.match(r"^(query|mutation|subscription)\\b", text, flags=re.I)
-if not m:
-  sys.exit(1)
+# Strip string literals (avoid false positives from e.g. argument strings containing "mutation").
+text = re.sub(r"\"\"\"[\\s\\S]*?\"\"\"", " ", text)
+text = re.sub(r"\"(?:\\\\.|[^\"\\\\])*\"", " ", text)
 
-op = m.group(1).lower()
-sys.exit(0 if op == "mutation" else 1)
+# Strip line comments (GraphQL uses '#', but some tools allow '//' too).
+text = re.sub(r"(?m)#.*$", " ", text)
+text = re.sub(r"(?m)//.*$", " ", text)
+
+# Detect `mutation` operation definitions.
+# - Must appear at the start of a definition line.
+# - Must not be schema shorthand like `mutation: Mutation` (exclude ':' as the next token).
+mutation_re = re.compile(
+  r"(?im)^\s*mutation\b(?=\s*(?:\(|@|\{|[_A-Za-z]))"
+)
+
+sys.exit(0 if mutation_re.search(text) else 1)
 PY
 }
 

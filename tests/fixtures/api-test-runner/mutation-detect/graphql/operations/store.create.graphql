@@ -1,0 +1,12 @@
+# leading comment (should be ignored)
+fragment StoreFields on Store {
+  id
+  name
+}
+
+mutation CreateStore($input: CreateStoreInput!) {
+  createStore(input: $input) {
+    ...StoreFields
+  }
+}
+

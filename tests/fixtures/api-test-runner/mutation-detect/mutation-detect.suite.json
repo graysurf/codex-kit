@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "name": "api-test-runner-mutation-detect-fixture",
+  "defaults": {
+    "env": "staging",
+    "noHistory": true,
+    "graphql": {
+      "configDir": "tests/fixtures/api-test-runner/mutation-detect/graphql",
+      "url": "https://example.test/graphql"
+    }
+  },
+  "cases": [
+    {
+      "id": "graphql.mutation_without_allowWrite",
+      "type": "graphql",
+      "op": "tests/fixtures/api-test-runner/mutation-detect/graphql/operations/store.create.graphql"
+    }
+  ]
+}
+

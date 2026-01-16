@@ -96,19 +96,22 @@ $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
 
 ## Suite Manifests
 
-Canonical location (committed):
+Canonical locations searched by `--suite`:
 
-- `setup/api/suites/*.suite.json`
+- `tests/api/suites/*.suite.json`
+- (fallback) `setup/api/suites/*.suite.json` (used by the bundled template)
 
 Runner entrypoints:
 
-- `--suite <name>` → resolves to `setup/api/suites/<name>.suite.json`
-- `--suite-file <path>` → explicit override (recommended only when canonical path is not possible)
+- `--suite <name>` → resolves to `tests/api/suites/<name>.suite.json` (fallback: `setup/api/suites/...`); override the search dir with `API_TEST_SUITES_DIR`
+- `--suite-file <path>` → explicit suite file path (use when the suite manifest is not in a canonical suites dir)
 
 Notes:
 
 - REST cases point at `*.request.json` (same schema used by `rest.sh`).
 - GraphQL cases point at `*.graphql` + variables `*.json` (same inputs used by `gql.sh`).
+- Suite manifest location is independent from REST/GraphQL `configDir` (those can live under `tests/rest`, `tests/graphql`, etc).
+- GraphQL write safety: if an operation file contains a `mutation` definition, the runner treats it as write-capable and requires `allowWrite=true` on the case.
 
 ### Suite schema v1
 

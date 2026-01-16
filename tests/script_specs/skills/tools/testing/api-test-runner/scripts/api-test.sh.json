@@ -21,7 +21,21 @@
         "stdout_regex": "\"passed\":2"
       },
       "artifacts": ["out/tests/script-smoke/api-test/results.json"]
+    },
+    {
+      "name": "mutation-detect-requires-allowWrite",
+      "args": [
+        "--suite-file",
+        "tests/fixtures/api-test-runner/mutation-detect/mutation-detect.suite.json",
+        "--out",
+        "out/tests/script-smoke/api-test/mutation-detect.results.json"
+      ],
+      "timeout_sec": 20,
+      "expect": {
+        "exit_codes": [2],
+        "stdout_regex": "mutation_case_requires_allowWrite_true"
+      },
+      "artifacts": ["out/tests/script-smoke/api-test/mutation-detect.results.json"]
     }
   ]
 }
-
