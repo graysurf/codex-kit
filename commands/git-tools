@@ -1,7 +1,7 @@
 #!/usr/bin/env -S zsh -f
 set -e
 
-# Bundled from: /var/folders/3d/s2d3jvyn0g758lsd_2t79h1w0000gn/T/tmp.1PZI98I1Mb
+# Bundled from: ~/.config/zsh/cache/wrappers/bin/git-tools
 : "${ZDOTDIR:=$HOME/.config/zsh}"
 export ZDOTDIR
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$ZDOTDIR/config}"
