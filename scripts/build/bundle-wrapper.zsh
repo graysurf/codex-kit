@@ -89,6 +89,36 @@ print -u2 -r -- "bundle: ZSH_CONFIG_DIR=$ZSH_CONFIG_DIR"
 print -u2 -r -- "bundle: ZSH_BOOTSTRAP_SCRIPT_DIR=$ZSH_BOOTSTRAP_SCRIPT_DIR"
 print -u2 -r -- "bundle: ZSH_SCRIPT_DIR=$ZSH_SCRIPT_DIR"
 
+if command grep -q '^# Bundled from:' "$input" 2>/dev/null && command grep -q '^# --- BEGIN ' "$input" 2>/dev/null; then
+  print -u2 -r -- "bundle: detected already-bundled input; copying"
+
+  input_label="$input"
+  if [[ "$input_label" == "$HOME/"* ]]; then
+    input_label="~/${input_label#$HOME/}"
+  fi
+
+  tmpfile="$(mktemp 2>/dev/null || true)"
+  [[ -n "$tmpfile" ]] || die "failed to create temp file"
+
+  typeset replaced=false
+  typeset line=''
+  {
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      if [[ "$replaced" == false && "$line" == "# Bundled from:"* ]]; then
+        print -r -- "# Bundled from: ${input_label}"
+        replaced=true
+        continue
+      fi
+      print -r -- "$line"
+    done < "$input"
+  } >| "$tmpfile"
+
+  mkdir -p -- "${output:h}"
+  mv -f -- "$tmpfile" "$output"
+  chmod +x "$output"
+  exit 0
+fi
+
 typeset -a sources_from_array=()
 typeset -a sources_explicit=()
 typeset -A seen_sources=()
