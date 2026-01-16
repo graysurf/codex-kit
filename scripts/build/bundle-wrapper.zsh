@@ -92,11 +92,12 @@ print -u2 -r -- "bundle: ZSH_SCRIPT_DIR=$ZSH_SCRIPT_DIR"
 if command grep -q '^# Bundled from:' "$input" 2>/dev/null && command grep -q '^# --- BEGIN ' "$input" 2>/dev/null; then
   print -u2 -r -- "bundle: detected already-bundled input; copying"
 
-  input_label="$input"
+  typeset input_label="$input"
   if [[ "$input_label" == "$HOME/"* ]]; then
     input_label="~/${input_label#$HOME/}"
   fi
 
+  typeset tmpfile=''
   tmpfile="$(mktemp 2>/dev/null || true)"
   [[ -n "$tmpfile" ]] || die "failed to create temp file"
 
@@ -222,15 +223,33 @@ parse_explicit_sources() {
     if [[ "${tokens[1]}" != "source" && "${tokens[1]}" != "." ]]; then
       continue
     fi
+
     local raw="${tokens[2]}"
-    if [[ "$raw" == *'$('* || "$raw" == *'`'* || "$raw" == *'<('* ]]; then
+    if [[ "$raw" == *'$('* || "$raw" == *'`'* || "$raw" == *'<('* || "$raw" == *'>('* ]]; then
       die "dynamic source unsupported: $raw"
     fi
     if [[ "$raw" == *'$src'* || "$raw" == *'${src}'* ]]; then
       continue
     fi
-    local expanded=''
-    expanded="${(e)raw}"
+
+    raw="${(Q)raw}"
+    local expanded="$raw"
+    local var_name='' var_value=''
+
+    while [[ "$expanded" =~ '\$\{([A-Za-z_][A-Za-z0-9_]*)\}' ]]; do
+      var_name="${match[1]}"
+      (( ${+parameters[$var_name]} )) || die "unbound variable in source path: $var_name"
+      var_value="${(P)var_name}"
+      expanded="${expanded//$MATCH/$var_value}"
+    done
+
+    while [[ "$expanded" =~ '\$([A-Za-z_][A-Za-z0-9_]*)' ]]; do
+      var_name="${match[1]}"
+      (( ${+parameters[$var_name]} )) || die "unbound variable in source path: $var_name"
+      var_value="${(P)var_name}"
+      expanded="${expanded//$MATCH/$var_value}"
+    done
+
     expanded="${expanded/#\~/$HOME}"
     if [[ "$expanded" != /* ]]; then
       expanded="${dir%/}/${expanded}"
@@ -261,6 +280,7 @@ all_exec_sources=("${exec_sources_explicit[@]}")
 
 tmpfile="$(mktemp 2>/dev/null || true)"
 [[ -n "$tmpfile" ]] || die "failed to create temp file"
+trap '[[ -n "${tmpfile-}" ]] && command rm -f -- "${tmpfile-}" >/dev/null 2>&1 || true' EXIT
 
 {
   local input_label="$input"
@@ -294,29 +314,28 @@ tmpfile="$(mktemp 2>/dev/null || true)"
     print -r -- ""
   done
 
-  if (( ${#all_exec_sources[@]} > 0 )); then
-    print -r -- "# --- BEGIN embedded exec tools"
-    print -r -- "_bundle_wrapper_exec_tools::run() {"
-    print -r -- "  emulate -L zsh"
-    print -r -- "  setopt pipe_fail err_return nounset"
-    print -r -- ""
-    print -r -- "  typeset writer_fn=\"\${1-}\" label=\"\${2-}\""
-    print -r -- "  shift 2 || true"
-    print -r -- "  [[ -n \"\$writer_fn\" && -n \"\$label\" ]] || return 2"
-    print -r -- "  typeset tmp='' rc=0"
-    print -r -- "  tmp=\"\$(mktemp 2>/dev/null || true)\""
-    print -r -- "  [[ -n \"\$tmp\" ]] || tmp=\"/tmp/bundle-wrapper.\${label}.\$\$.zsh\""
-    print -r -- "  if ! typeset -f \"\$writer_fn\" >/dev/null 2>&1; then"
-    print -r -- "    print -u2 -r -- \"❌ missing embedded writer: \$writer_fn\""
-    print -r -- "    return 1"
-    print -r -- "  fi"
-    print -r -- "  \"\$writer_fn\" >| \"\$tmp\""
-    print -r -- "  zsh -f -- \"\$tmp\" \"\$@\""
-    print -r -- "  rc=\$?"
-    print -r -- "  command rm -f -- \"\$tmp\" >/dev/null 2>&1 || true"
-    print -r -- "  return \$rc"
-    print -r -- "}"
-    print -r -- ""
+	if (( ${#all_exec_sources[@]} > 0 )); then
+	  print -r -- "# --- BEGIN embedded exec tools"
+	  print -r -- "_bundle_wrapper_exec_tools::run() {"
+	  print -r -- "  emulate -L zsh"
+	  print -r -- "  setopt pipe_fail err_return nounset local_traps"
+	  print -r -- ""
+	  print -r -- "  typeset writer_fn=\"\${1-}\" label=\"\${2-}\""
+	  print -r -- "  shift 2 || true"
+	  print -r -- "  [[ -n \"\$writer_fn\" && -n \"\$label\" ]] || return 2"
+	  print -r -- "  typeset tmp=''"
+	  print -r -- "  tmp=\"\$(mktemp 2>/dev/null || true)\""
+	  print -r -- "  [[ -n \"\$tmp\" ]] || tmp=\"/tmp/bundle-wrapper.\${label}.\$\$.zsh\""
+	  print -r -- "  trap '[[ -n \"\${tmp-}\" ]] && command rm -f -- \"\${tmp-}\" >/dev/null 2>&1 || true' EXIT"
+	  print -r -- "  if ! typeset -f \"\$writer_fn\" >/dev/null 2>&1; then"
+	  print -r -- "    print -u2 -r -- \"❌ missing embedded writer: \$writer_fn\""
+	  print -r -- "    return 1"
+	  print -r -- "  fi"
+	  print -r -- "  \"\$writer_fn\" >| \"\$tmp\""
+	  print -r -- "  zsh -f -- \"\$tmp\" \"\$@\""
+	  print -r -- "  return \$?"
+	  print -r -- "}"
+	  print -r -- ""
 
     local tool_path='' tool_rel='' tool_file='' tool_cmd='' tool_id='' writer_fn='' delim='' suffix=''
     local -i n=0

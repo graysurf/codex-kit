@@ -223,6 +223,14 @@ fix_file_in_place() {
 
   typeset file="$1"
 
+  typeset orig_perm=''
+  if zmodload zsh/stat >/dev/null 2>&1; then
+    typeset -a st=()
+    if zstat -A st +mode "$file" >/dev/null 2>&1; then
+      orig_perm="$(printf '%o' $(( st[1] & 8#7777 )))"
+    fi
+  fi
+
   typeset tmp=''
   tmp="$(mktemp 2>/dev/null || true)"
   if [[ -z "$tmp" ]]; then
@@ -254,10 +262,19 @@ fix_file_in_place() {
     rm -f -- "$tmp" >/dev/null 2>&1 || true
     return 1
   }
+  if [[ -n "$orig_perm" ]]; then
+    command chmod "$orig_perm" "$tmp" >/dev/null 2>&1 || {
+      rm -f -- "$tmp" >/dev/null 2>&1 || true
+      return 1
+    }
+  fi
   command mv -f -- "$tmp" "$file" || {
     rm -f -- "$tmp" >/dev/null 2>&1 || true
     return 1
   }
+  if [[ -n "$orig_perm" ]]; then
+    command chmod "$orig_perm" "$file" >/dev/null 2>&1 || return 1
+  fi
   return 0
 }
 

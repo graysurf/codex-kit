@@ -258,3 +258,53 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
         f"stderr: {result.stderr_path}\n"
         f"note: {result.note or 'None'}"
     )
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_git_tools_commit_context_cleans_tmp(tmp_path: Path):
+    work_tree = tmp_path / "repo"
+    work_tree.mkdir(parents=True, exist_ok=True)
+
+    def run(cmd: list[str]) -> None:
+        subprocess.run(cmd, cwd=str(work_tree), check=True, text=True, capture_output=True)
+
+    run(["git", "init"])
+    run(["git", "config", "user.email", "fixture@example.com"])
+    run(["git", "config", "user.name", "Fixture User"])
+
+    tracked = work_tree / "hello.txt"
+    tracked.write_text("one\n", "utf-8")
+    run(["git", "add", "hello.txt"])
+    run(["git", "commit", "-m", "init"])
+
+    tracked.write_text("two\n", "utf-8")
+    run(["git", "add", "hello.txt"])
+
+    tmpdir = tmp_path / "tmpdir"
+    tmpdir.mkdir(parents=True, exist_ok=True)
+
+    repo = repo_root()
+    script = "commands/git-tools"
+    spec: dict[str, Any] = {
+        "args": ["commit", "context", "--stdout", "--no-color"],
+        "timeout_sec": 10,
+        "env": {"TMPDIR": str(tmpdir)},
+        "expect": {
+            "exit_codes": [0],
+            "stdout_regex": r"(?s)# Commit Context.*hello\.txt",
+        },
+    }
+
+    result = run_smoke_script(script, "git-tools-commit-context-cleanup", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+
+    assert result.status == "pass", (
+        f"script smoke (fixture) failed: {script} (exit={result.exit_code})\n"
+        f"argv: {' '.join(result.argv)}\n"
+        f"stdout: {result.stdout_path}\n"
+        f"stderr: {result.stderr_path}\n"
+        f"note: {result.note or 'None'}"
+    )
+
+    leftovers = sorted(p.name for p in tmpdir.iterdir())
+    assert not leftovers, f"unexpected TMPDIR leftovers from git-tools commit context: {leftovers}"
