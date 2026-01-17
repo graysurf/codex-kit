@@ -7,7 +7,7 @@
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/58
-- Docs: TBD
+- Docs: https://github.com/graysurf/codex-kit/blob/feat/docker-codex-env/docker/codex-env/README.md
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
 ## Addendum
@@ -88,6 +88,21 @@ Links:
 - Install priority order (per tool): Linuxbrew > OS package manager (apt) > release binary download.
 - Source repos (`zsh-kit`, `codex-kit`) are cloned during image build for reproducibility (pinned to an explicit ref).
 
+### Tool install audit (Ubuntu 24.04)
+
+Audit evidence (local):
+- `out/docker/verify/brew-dryrun.tsv` (full `brew install -n` scan across both lists)
+- `out/docker/verify/install-brew-required-and-agents.log` (installed required tools + `codex`/`opencode`/`gemini`)
+- `out/docker/verify/install-apt-mitmproxy.log` (apt fallback for `mitmproxy`)
+
+Findings:
+- Linuxbrew dry-run indicates all declared tools are installable via `brew install -n`.
+- `codex`: `brew install codex` works on `linux/arm64` (downloads `codex-aarch64-unknown-linux-musl.tar.gz`).
+- `visual-studio-code`: `brew install visual-studio-code` fails on Linux (`macOS is required for this software`).
+  - Fallback: install `code` via Microsoft apt repo (works; but pulls a large dependency set).
+- `mitmproxy`: Homebrew provides a macOS-only cask (installs a Mach-O binary that cannot run on Linux).
+  - Fallback: Ubuntu `apt` package `mitmproxy` works (version `8.1.1` in `24.04`).
+
 ### Risks / Uncertainties
 
 - Linuxbrew availability/compatibility on `linux/arm64` (bottles missing → slow source builds or failures).
@@ -118,8 +133,11 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] Decide `CODEX_HOME` strategy:
       - Path inside container (e.g. `/home/dev/.codex`)
       - One named volume per environment vs shared volume (trade-off: isolation vs reuse of auth)
-    - [ ] Validate and record the Linux install method for key tools that may not exist on Linuxbrew (follow the fallback order):
-      - `codex`, `opencode`, `gemini`/`gemini-cli`, `code`/VS Code
+    - [x] Validate and record the Linux install method for key tools that may not exist on Linuxbrew (follow the fallback order):
+      - `codex`: Linuxbrew cask works on `linux/arm64` (no fallback needed).
+      - `opencode`: Linuxbrew formula works on `linux/arm64`.
+      - `gemini-cli`: Linuxbrew formula works on `linux/arm64` (installs `gemini`).
+      - `code`/VS Code: Linuxbrew cask is macOS-only; fallback to Microsoft apt repo.
     - [ ] Define security baseline for runtime:
       - non-root default user
       - `no-new-privileges`
@@ -130,6 +148,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - `docs/progress/README.md` entry (In progress table)
     - `docker/codex-env/README.md` (planned) describing decisions and usage
+    - Implementation PR: https://github.com/graysurf/codex-kit/pull/59
   - Exit Criteria:
     - [ ] Requirements, scope, and acceptance criteria are aligned: reviewed in this progress doc.
     - [ ] Data flow and I/O contract are defined: container inputs/outputs/volumes/build args documented here.
