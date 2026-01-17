@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.3.0 - 2026-01-17
+
+### Added
+- Skill layout audit now enforces `TEMPLATE` markdown placement under `references/` or `assets/templates/`.
+
+### Changed
+- `create-progress-pr` defaults now source the progress template from `assets/templates/`.
+- Progress docs updated to reflect template placement guidance.
+
+### Fixed
+- None.
+
 ## v1.2.0 - 2026-01-16
 
 ### Added
