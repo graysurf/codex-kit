@@ -13,6 +13,10 @@ entries:
   - references/ (optional)
   - assets/     (optional)
 
+Also enforces:
+  - Markdown files with TEMPLATE in the filename must live under `references/`
+    or `assets/templates/` within the skill directory.
+
 Notes:
   - Only checks tracked skills (`git ls-files skills/**/SKILL.md`).
   - Only checks tracked files (ignores untracked junk like .DS_Store).
@@ -56,6 +60,7 @@ import sys
 from pathlib import Path
 
 ALLOWED_TOP_LEVEL = {"SKILL.md", "scripts", "references", "assets"}
+ALLOWED_TEMPLATE_PREFIXES = (("references",), ("assets", "templates"))
 
 
 def git_ls_files(*patterns: str) -> list[str]:
@@ -75,6 +80,7 @@ skill_dir_set = {Path(p) for p in skill_dirs}
 
 tracked_skill_files = sorted(git_ls_files("skills/**"))
 
+errors: list[str] = []
 top_level_by_skill: dict[Path, set[str]] = {Path(p): set() for p in skill_dirs}
 
 for raw in tracked_skill_files:
@@ -101,7 +107,12 @@ for raw in tracked_skill_files:
 
     top_level_by_skill.setdefault(owner, set()).add(rel.parts[0])
 
-errors: list[str] = []
+    if path.suffix.lower() == ".md" and "template" in path.name.lower():
+        allowed = any(tuple(rel.parts[: len(prefix)]) == prefix for prefix in ALLOWED_TEMPLATE_PREFIXES)
+        if not allowed:
+            errors.append(
+                f"{owner}: template markdown must live under references/ or assets/templates/: {rel.as_posix()}"
+            )
 for skill_dir_str in skill_dirs:
     skill_dir = Path(skill_dir_str)
     tops = top_level_by_skill.get(skill_dir, set())
@@ -123,4 +134,3 @@ if errors:
 
 print(f"ok: {len(skill_dirs)} tracked skills audited")
 PY
-

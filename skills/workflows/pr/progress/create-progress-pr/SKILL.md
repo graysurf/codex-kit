@@ -56,7 +56,7 @@ If information is missing, ask brief targeted questions. If still unknown, use `
 - Default (preferred):
   - PR body template: `references/PR_TEMPLATE.md`
   - Progress templates:
-    - `references/PROGRESS_TEMPLATE.md`
+    - `assets/templates/PROGRESS_TEMPLATE.md`
     - `references/PROGRESS_GLOSSARY.md`
 - Project templates (use only when the user explicitly asks to use the repo’s templates):
   - Progress templates:

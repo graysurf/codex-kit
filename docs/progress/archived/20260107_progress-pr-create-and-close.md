@@ -2,13 +2,17 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-07 | 2026-01-07 |
+| DONE | 2026-01-07 | 2026-01-17 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/5
 - Docs: `README.md`
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+
+## Addendum
+
+- 2026-01-17: `create-progress-pr` moved the default progress template from `references/PROGRESS_TEMPLATE.md` to `assets/templates/PROGRESS_TEMPLATE.md`.
 
 ## Goal
 
@@ -106,7 +110,7 @@ Links:
   - Artifacts:
     - `skills/workflows/pr/progress/create-progress-pr/SKILL.md`
     - `skills/workflows/pr/progress/create-progress-pr/references/PR_TEMPLATE.md`
-    - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_TEMPLATE.md`
+    - `skills/workflows/pr/progress/create-progress-pr/assets/templates/PROGRESS_TEMPLATE.md`
     - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_GLOSSARY.md`
     - `skills/workflows/pr/progress/create-progress-pr/references/OUTPUT_TEMPLATE.md`
     - `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`

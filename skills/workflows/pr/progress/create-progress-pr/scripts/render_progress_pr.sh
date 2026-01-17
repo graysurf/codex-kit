@@ -107,7 +107,7 @@ case "$mode" in
     if [[ "$source" == "project" ]]; then
       cat "${repo_root}/docs/templates/PROGRESS_TEMPLATE.md"
     else
-      cat "${skill_dir}/references/PROGRESS_TEMPLATE.md"
+      cat "${skill_dir}/assets/templates/PROGRESS_TEMPLATE.md"
     fi
     ;;
   --glossary)

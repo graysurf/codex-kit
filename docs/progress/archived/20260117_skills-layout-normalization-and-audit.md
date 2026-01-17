@@ -12,7 +12,7 @@ Links:
 
 ## Addendum
 
-- None
+- 2026-01-17: Clarify template placement: Markdown files with `TEMPLATE` in the filename belong in `references/` (writing skeletons) or `assets/templates/` (file scaffolds), enforced by `scripts/audit-skill-layout.sh`.
 
 ## Goal
 

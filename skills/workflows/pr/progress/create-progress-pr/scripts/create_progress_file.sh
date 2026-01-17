@@ -175,7 +175,7 @@ if [[ "$use_project_templates" == "1" ]]; then
     exit 1
   fi
 else
-  progress_template="${skill_dir}/references/PROGRESS_TEMPLATE.md"
+  progress_template="${skill_dir}/assets/templates/PROGRESS_TEMPLATE.md"
   glossary_template="${skill_dir}/references/PROGRESS_GLOSSARY.md"
 
   if [[ "$skip_install_templates" == "0" ]]; then

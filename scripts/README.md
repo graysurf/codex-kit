@@ -75,6 +75,7 @@ Exit codes:
 - `SKILL.md` at the skill root
 - Optional: `scripts/`, `references/`, `assets/`
 - No other tracked top-level entries
+- Markdown files with `TEMPLATE` in the filename must live under `references/` or `assets/templates/` within the skill
 
 ### Lint + syntax checks
 
