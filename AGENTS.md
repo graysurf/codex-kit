@@ -36,7 +36,7 @@
 - Completion notification (desktop)
   - If you finish the user's request in a turn (e.g. implemented/fixed/delivered something), and the user didn't explicitly opt out: send one desktop notification at the end of the turn (best-effort; silent no-op on failure).
   - Message: describe what was done in <= 20 words.
-  - Command (cross-platform; pass only the message): `$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh "Up to 20 words <**In English**>" --level info|success|warn|error`
+  - Command (cross-platform; pass only the message): `$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh "Up to 10 words" --level info|success|warn|error`
 
 ## Response template
 
