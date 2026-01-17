@@ -80,6 +80,19 @@ Principle: prefer purpose-built tools that are fast, repo-aware, and emit struct
 
 ---
 
+## Image processing (conversion / resize / compression)
+
+| Tool | Purpose | Use when | Avoid because this exists |
+| --- | --- | --- | --- |
+| `imagemagick` | General-purpose image conversion + resize | Resizing and converting common formats | Writing one-off scripts for basic transforms |
+| `vips` | High-performance image processing | Batch resizing and fast pipelines | Slower tools on large batches |
+| `pngquant` | PNG lossy compression | Reducing PNG size with acceptable quality | Manual PNG optimization guesses |
+| `jpegoptim` | JPEG optimizer | Compressing JPGs with CLI controls | Re-encoding images in GUI editors |
+| `mozjpeg` | High-quality JPEG encoder | Better visual quality at smaller sizes | Default JPEG encoders with worse quality/size |
+| `webp` | WebP encoder/decoder (`cwebp`) | Converting JPG/PNG to WebP | Ad-hoc WebP conversions |
+
+---
+
 ## Logs and system triage (as needed)
 
 | Tool | Purpose | Use when | Avoid because this exists |
