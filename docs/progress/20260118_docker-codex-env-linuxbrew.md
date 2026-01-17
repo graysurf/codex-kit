@@ -17,19 +17,20 @@ Links:
 
 ## Goal
 
-- Provide a Docker-based Codex work environment that mirrors the macOS setup as closely as practical (Linux container + zsh).
+- Provide a Docker-based Codex work environment on Ubuntu Server (Linux host, headless) that mirrors the macOS setup as closely as practical (Linux container + zsh).
 - Install CLI tooling via Linuxbrew from `zsh-kit` tool lists, with explicit apt fallbacks/removals when Linuxbrew lacks a package.
 - Support running multiple isolated environments concurrently (separate `HOME`/`CODEX_HOME` state per environment).
 - Keep secrets and mutable state out of the image (inject via volumes/env at runtime).
 
 ## Acceptance Criteria
 
-- `docker build` succeeds on macOS (Docker Desktop) for the primary target architecture.
+- `docker build` succeeds on Ubuntu Server (Docker Engine, headless) for the target architecture.
 - In the container, `zsh -lic 'echo ok'` succeeds (no startup errors) and the required tool executables are on `PATH`.
 - All required tools from `/Users/terry/.config/zsh/config/tools.list` are installed via Linuxbrew (or documented apt fallback/removal), and a smoke command verifies them.
 - Optional tools from `/Users/terry/.config/zsh/config/tools.optional.list` are installed by default (or documented apt fallback/removal), with an explicit opt-out for faster builds if needed.
 - Two environments can run concurrently and do not share mutable state (verify via distinct named volumes for `HOME` and `CODEX_HOME`).
 - Codex CLI is runnable in-container (`codex --version`), with auth/state stored outside the image (volume or env-based).
+- macOS VS Code can tunnel/attach to the container on the Ubuntu Server host (no Docker Desktop required).
 
 ## Scope
 
@@ -39,8 +40,9 @@ Links:
   - Provide a clear fallback policy for missing Linuxbrew packages (apt replacement or explicit removal with documented deviation).
   - Provide an explicit multi-environment run workflow (multiple concurrent containers, each with isolated volumes/state).
   - Provide smoke verification commands/scripts to prove the environment matches the declared DoD.
+  - Support headless Ubuntu Server hosts with macOS VS Code tunnel access to containers.
 - Out-of-scope:
-  - macOS containers / full macOS kernel parity (Docker Desktop runs Linux containers).
+  - Docker Desktop-specific workflows and macOS containers (target host is Ubuntu Server).
   - GUI apps, macOS-only tooling (`pbcopy`, `open`, etc.) unless explicitly shimmed or documented as unavailable.
   - Publishing images to a registry (GHCR) unless explicitly requested later.
   - Refactoring `zsh-kit` itself beyond what is required for container compatibility.
@@ -70,8 +72,8 @@ Links:
 ### Output
 
 - Docker build/runtime assets (planned paths; exact layout decided in Step 0):
-  - `docker/codex-env/Dockerfile`
-  - `docker/codex-env/compose.yml` (or `docker-compose.yml` at repo root)
+  - `Dockerfile` (repo root)
+  - `docker-compose.yml` (repo root)
   - `docker/codex-env/README.md` (TL;DR usage + knobs)
   - Optional: `docker/codex-env/smoke.sh` (host-invoked verification)
 
@@ -95,6 +97,11 @@ Links:
 - Install priority order (per tool): Linuxbrew > OS package manager (apt) > release binary download.
 - Source repos (`zsh-kit`, `codex-kit`) are cloned during image build for reproducibility (pinned to an explicit ref).
 - Split `zsh-kit` tool lists by OS (macOS/Linux) and add Linux apt-only lists for tools that cannot be installed via Linuxbrew (e.g. VS Code `code`, `mitmproxy`).
+- Target runtime: Ubuntu Server (Docker Engine, headless) with macOS VS Code tunnel access to containers; no Docker Desktop requirement.
+- Repository layout: `Dockerfile` + `docker-compose.yml` at repo root; keep helper scripts/docs under `docker/codex-env/`.
+- `HOME`/`CODEX_HOME`: per-environment named volumes (no sharing), with `HOME=/home/dev` and `CODEX_HOME=/home/dev/.codex`.
+- Security baseline: no extra hardening (skip `cap_drop` and `no-new-privileges`); default read-write mounts.
+- Minimum smoke verification set: `rg fd fzf gh jq codex opencode gemini psql mysql sqlcmd`.
 
 ### Tool install audit (Ubuntu 24.04)
 
@@ -127,6 +134,8 @@ Findings:
   - Mitigation: support two run modes (self-contained image defaults + optional bind mounts for local iteration).
 - Read-only bind mounts of `zsh-kit` can break plugin cloning/auto-update (plugins live under `ZDOTDIR` by default).
   - Mitigation: prefer clone-in-image; or mount only `config/` read-only; or override `ZSH_PLUGINS_DIR` to a writable volume/path.
+- No hardening baseline increases risk if the host is shared or untrusted.
+  - Mitigation: run on trusted Ubuntu servers only; revisit hardening if threat model changes.
 
 ## Steps (Checklist)
 
@@ -135,8 +144,8 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
 
 - [ ] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Confirm target runtime: Docker Desktop on macOS (Linux containers), primary host arch and any secondary arch requirements.
-    - [ ] Decide repository layout for Docker assets (recommend `docker/codex-env/`): file paths, naming, and entrypoints.
+    - [x] Confirm target runtime: Ubuntu Server (Docker Engine, headless) with macOS VS Code tunnel access; support native Linux hosts (amd64/arm64).
+    - [x] Decide repository layout for Docker assets: repo-root `Dockerfile` + `docker-compose.yml`; keep helper scripts/docs under `docker/codex-env/`.
     - [x] Confirm tool-install policy:
       - Required install set (brew) = `/Users/terry/.config/zsh/config/tools.list` (+ OS-specific required lists if present)
       - Optional install set (brew) = `/Users/terry/.config/zsh/config/tools.optional.list` (+ OS-specific optional lists if present)
@@ -145,9 +154,10 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Decide how to source `zsh-kit` and `codex-kit` inside the container:
       - Clone during image build (self-contained, pinned revision/ref).
     - [x] Decide install fallback order (per tool): Linuxbrew > apt > release binary.
-    - [ ] Decide `CODEX_HOME` strategy:
-      - Path inside container (e.g. `/home/dev/.codex`)
-      - One named volume per environment vs shared volume (trade-off: isolation vs reuse of auth)
+    - [x] Decide `CODEX_HOME` strategy:
+      - `HOME=/home/dev`
+      - `CODEX_HOME=/home/dev/.codex`
+      - One named volume per environment for `HOME` + `CODEX_HOME` (no sharing).
     - [x] Validate and record the Linux install method for key tools that may not exist on Linuxbrew (follow the fallback order):
       - `codex`: Linuxbrew cask works on `linux/arm64` (no fallback needed).
       - `opencode`: Linuxbrew formula works on `linux/arm64`.
@@ -156,12 +166,11 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - `psql`: Homebrew `libpq` works on `linux/arm64` (keg-only).
       - `mysql`: Homebrew `mysql-client` works on `linux/arm64` (keg-only).
       - `sqlcmd`: Homebrew `sqlcmd` works on `linux/arm64`.
-    - [ ] Define security baseline for runtime:
-      - non-root default user
-      - `no-new-privileges`
-      - `cap_drop: [ALL]`
-      - read-only bind mounts where feasible (`zsh-kit` config)
-    - [ ] Define the minimum smoke verification commands and expected outputs.
+    - [x] Define security baseline for runtime:
+      - No extra hardening (skip `cap_drop` and `no-new-privileges`).
+      - Read-write mounts by default.
+    - [x] Define the minimum smoke verification commands and expected outputs:
+      - `rg fd fzf gh jq codex opencode gemini psql mysql sqlcmd` present; `--version`/`--help` works.
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - `docs/progress/README.md` entry (In progress table)
@@ -174,29 +183,29 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] Minimal reproducible verification commands are defined: see Step 1/3 exit criteria.
 - [ ] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [ ] Add `docker/codex-env/Dockerfile` (Ubuntu base + apt bootstrap).
-    - [ ] Create a non-root user (e.g. `dev`) and ensure the default shell is `zsh`.
-    - [ ] Install Linuxbrew (non-root) and ensure brew is on `PATH` for login shells.
+    - [ ] Add `Dockerfile` at repo root (Ubuntu base + apt bootstrap).
+    - [ ] Use root user by default; optionally add a non-root user (`dev`) if needed later.
+    - [ ] Install Linuxbrew and ensure brew is on `PATH` for login shells.
     - [ ] Install required + optional CLI tools from `tools.list` and `tools.optional.list` by default.
       - Preferred: reuse `zsh-kit` installer logic (clone `zsh-kit`, run its installer in a non-interactive mode).
       - Ensure Docker build does not hang on confirmation prompts (add a non-interactive path if needed).
     - [ ] Add minimal runtime wiring:
       - `WORKDIR` default (e.g. `/work`)
       - container starts into `zsh -l` (or a small entrypoint that execs it)
-    - [ ] Add `docker/codex-env/compose.yml` with:
+    - [ ] Add `docker-compose.yml` with:
       - bind mount workspace(s)
       - named volume(s) for `HOME` and `CODEX_HOME`
-      - security hardening defaults (`cap_drop`, `no-new-privileges`)
+      - no extra hardening flags (per Step 0 decision)
     - [ ] Install Codex CLI in the container (exact mechanism TBD in Step 0) and validate it starts.
     - [ ] Create a minimal `docker/codex-env/README.md` with TL;DR commands.
   - Artifacts:
-    - `docker/codex-env/Dockerfile`
-    - `docker/codex-env/compose.yml`
+    - `Dockerfile`
+    - `docker-compose.yml`
     - `docker/codex-env/README.md`
   - Exit Criteria:
-    - [ ] Image builds: `docker build -f docker/codex-env/Dockerfile -t codex-env:linuxbrew .`
+    - [ ] Image builds: `docker build -f Dockerfile -t codex-env:linuxbrew .`
     - [ ] Interactive shell works: `docker run --rm -it codex-env:linuxbrew zsh -l`
-    - [ ] Tools on PATH (example smoke): `zsh -lic 'rg --version && fd --version && fzf --version && gh --version && jq --version'`
+    - [ ] Tools on PATH (example smoke): `zsh -lic 'rg --version && fd --version && fzf --version && gh --version && jq --version && codex --version && opencode --version && gemini --version && psql --version && mysql --version && sqlcmd --help'`
     - [ ] `codex --version` works in-container (auth may still be TBD if using per-env volumes).
     - [ ] Docs include the exact build/run commands and required mounts.
 - [ ] Step 2: Expansion / integration
@@ -225,10 +234,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] Validate `codex-kit` checks inside the container (at minimum lint):
       - `scripts/check.sh --lint`
     - [ ] Record evidence outputs under `out/docker/verify/` (tool versions, smoke logs).
-    - [ ] Validate security posture:
-      - default user is non-root
-      - compose includes `cap_drop: [ALL]` and `no-new-privileges`
-      - mounts are least-privilege (read-only where possible)
+    - [ ] Validate runtime posture matches decisions (no extra hardening; read-write mounts by default).
   - Artifacts:
     - `out/docker/verify/<timestamp>/smoke.log`
     - `out/docker/verify/<timestamp>/versions.txt`
@@ -236,8 +242,8 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
   - Exit Criteria:
     - [ ] Smoke and lint commands executed with results recorded under `out/docker/verify/`.
     - [ ] Two concurrent environments verified:
-      - `docker compose -f docker/codex-env/compose.yml -p env-a up`
-      - `docker compose -f docker/codex-env/compose.yml -p env-b up`
+      - `docker compose -f docker-compose.yml -p env-a up`
+      - `docker compose -f docker-compose.yml -p env-b up`
       - state isolation validated via distinct volumes.
     - [ ] Evidence exists and is linked from docs (file paths under `out/`).
 - [ ] Step 4: Release / wrap-up
@@ -254,5 +260,6 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
 
 ## Modules
 
-- `docker/codex-env`: Dockerfile + compose + runtime docs for the Codex dev environment.
+- `Dockerfile` + `docker-compose.yml`: root-level build/run assets for the Codex dev environment.
+- `docker/codex-env`: helper scripts and runtime docs.
 - `out/docker`: build/verify artifacts (logs, version snapshots, smoke outputs).
