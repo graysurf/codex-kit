@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-09 | 2026-01-09 |
+| DONE | 2026-01-09 | 2026-01-17 |
 
 Links:
 
@@ -10,6 +10,15 @@ Links:
 - Planning PR: https://github.com/graysurf/codex-kit/pull/11
 - Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
+
+## Addendum
+
+### 2026-01-17
+
+- Change: Update archived path references for the skill scaffold (`template/` -> `assets/scaffold/`).
+- Reason: The skills directory layout was normalized; keep DONE docs accurate and reduce search noise.
+- Impact: Documentation-only; no runtime behavior changes.
+- Links: `skills/tools/testing/api-test-runner/assets/scaffold/setup/api`; [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 
@@ -201,7 +210,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Artifacts:
     - `skills/tools/testing/api-test-runner/SKILL.md`
     - `skills/tools/testing/api-test-runner/scripts/api-test.sh`
-    - `skills/tools/testing/api-test-runner/template/setup/api/` (suite manifest + sample cases)
+    - `skills/tools/testing/api-test-runner/assets/scaffold/setup/api/` (suite manifest + sample cases)
     - `README.md` (skills list entry)
   - Exit Criteria:
     - [x] At least one happy path runs end-to-end (suite runner): `api-test.sh --suite <suite>`.
@@ -276,4 +285,4 @@ Observed summaries:
 
 - `skills/tools/testing/api-test-runner/scripts/api-test.sh`: Suite runner that executes REST/GraphQL cases and produces JSON results.
 - `skills/tools/testing/api-test-runner/SKILL.md`: End-user docs (suite schema, examples, CI usage, safety rules).
-- `skills/tools/testing/api-test-runner/template/setup/api`: Bootstrap template for committing `setup/api/` suite manifests in projects.
+- `skills/tools/testing/api-test-runner/assets/scaffold/setup/api`: Bootstrap template for committing `setup/api/` suite manifests in projects.

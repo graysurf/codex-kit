@@ -95,7 +95,7 @@ If your repo bootstrapped `setup/rest/` from the template, you can also use:
 
 - If `setup/rest/prompt.md` exists → read it first for project-specific context.
 - No `setup/rest/` yet → bootstrap from template:
-  - `cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/template/setup/rest" setup/`
+  - `cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/`
 - Have request file → run with `rest.sh`.
 - Need a markdown report → use `rest-report.sh --run` (or `--response`).
 

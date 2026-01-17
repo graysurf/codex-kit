@@ -77,9 +77,9 @@ tests/
 
 ```bash
 mkdir -p tests
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/template/setup/api" tests/
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/template/setup/rest" tests/
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/template/setup/graphql" tests/
+cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" tests/
+cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/rest" tests/
+cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/graphql" tests/
 ```
 
 Then edit your suite file to reference `tests/...` paths and set `configDir` defaults.

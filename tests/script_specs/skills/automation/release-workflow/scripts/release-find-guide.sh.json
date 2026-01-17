@@ -2,11 +2,11 @@
   "smoke": [
     {
       "name": "project-path-guide",
-      "args": ["--project-path", "skills/automation/release-workflow"],
+      "args": ["--project-path", "tests/fixtures/release-workflow/project-root-guide"],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "skills/automation/release-workflow/RELEASE_GUIDE\\.md\\s*$"
+        "stdout_regex": "tests/fixtures/release-workflow/project-root-guide/RELEASE_GUIDE\\.md\\s*$"
       }
     }
   ]

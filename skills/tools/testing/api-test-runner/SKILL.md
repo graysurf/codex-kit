@@ -56,13 +56,13 @@ Bootstrap a minimal `setup/api/` (when your repo already has `setup/rest` and/or
 
 ```bash
 mkdir -p setup
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/template/setup/api" setup/
+cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" setup/
 ```
 
 Bootstrap a runnable public-endpoint smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`):
 
 ```bash
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/template/setup" .
+cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
 ```
 
 Run a canonical suite:

@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-08 | 2026-01-08 |
+| DONE | 2026-01-08 | 2026-01-17 |
 
 Links:
 
@@ -10,6 +10,15 @@ Links:
 - Planning PR: https://github.com/graysurf/codex-kit/pull/7
 - Docs: [skills/tools/testing/graphql-api-testing/SKILL.md](../../../skills/tools/testing/graphql-api-testing/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
+
+## Addendum
+
+### 2026-01-17
+
+- Change: Update archived path references for the skill scaffold (`template/` -> `assets/scaffold/`).
+- Reason: The skills directory layout was normalized; keep DONE docs accurate and reduce search noise.
+- Impact: Documentation-only; no runtime behavior changes.
+- Links: `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/.gitignore`; [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 
@@ -36,7 +45,7 @@ Links:
 - In-scope:
   - Add history logging to `skills/tools/testing/graphql-api-testing/scripts/gql.sh` (append-only file under resolved `setup_dir`).
   - Define env-based controls (enable/disable; optional override path; optional size limit/rotation).
-  - Update bootstrap template `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
+  - Update bootstrap template `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/.gitignore` to ignore the history file.
   - Document the feature in `skills/tools/testing/graphql-api-testing/SKILL.md` (and optionally in the project guide template).
 - Out-of-scope:
   - Capturing full shell pipelines (e.g., `| jq .`) automatically.
@@ -115,14 +124,14 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - [x] Add `GQL_HISTORY_FILE` override and default path under resolved `setup_dir`.
     - [x] Add size limit enforcement (default: 10 MB) and rotate keep old files (keep N by policy).
     - [x] Add URL logging toggle (default on; `GQL_HISTORY_LOG_URL=0` omits URL).
-    - [x] Update `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
+    - [x] Update `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/.gitignore` to ignore the history file.
     - [x] Add report `## Command` section in `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` (enabled by default; toggleable).
     - [x] Add report URL omission toggle (`--no-command-url` / `GQL_REPORT_COMMAND_LOG_URL=0`).
     - [x] Update docs: `skills/tools/testing/graphql-api-testing/SKILL.md` (and `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`).
   - Artifacts:
     - `skills/tools/testing/graphql-api-testing/scripts/gql.sh`
     - `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`
-    - `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore`
+    - `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/.gitignore`
     - `skills/tools/testing/graphql-api-testing/SKILL.md`
   - Exit Criteria:
     - [x] `bash -n skills/tools/testing/graphql-api-testing/scripts/gql.sh` passes.
@@ -175,6 +184,6 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 
 - `skills/tools/testing/graphql-api-testing/scripts/gql.sh`: Record a canonical, replayable history entry for each invocation (no secrets).
 - `skills/tools/testing/graphql-api-testing/scripts/gql-history.sh`: Extract recent history entries for copy/paste replay.
-- `skills/tools/testing/graphql-api-testing/template/setup/graphql/.gitignore`: Keep the history file out of git by default.
+- `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/.gitignore`: Keep the history file out of git by default.
 - `skills/tools/testing/graphql-api-testing/SKILL.md`: Document history behavior, location, and env toggles.
 - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`: (Optional) Mention history in the project-local guide template.

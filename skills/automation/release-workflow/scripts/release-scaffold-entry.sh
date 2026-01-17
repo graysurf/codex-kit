@@ -65,7 +65,7 @@ done
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 skill_root="$(cd "${script_dir}/.." && pwd -P)"
-default_template="${skill_root}/template/RELEASE_TEMPLATE.md"
+default_template="${skill_root}/assets/templates/RELEASE_TEMPLATE.md"
 
 [[ -f "$default_template" ]] || die "default template missing: $default_template"
 

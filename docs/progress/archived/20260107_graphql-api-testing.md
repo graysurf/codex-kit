@@ -2,13 +2,22 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-07 | 2026-01-08 |
+| DONE | 2026-01-07 | 2026-01-17 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/6
 - Docs: [skills/tools/testing/graphql-api-testing/SKILL.md](../../../skills/tools/testing/graphql-api-testing/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
+
+## Addendum
+
+### 2026-01-17
+
+- Change: Update archived path references for the skill scaffold (`template/` -> `assets/scaffold/`).
+- Reason: The skills directory layout was normalized; keep DONE docs accurate and reduce search noise.
+- Impact: Documentation-only; no runtime behavior changes.
+- Links: `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql`; [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 
@@ -27,7 +36,7 @@ Links:
   - Run an operation via `gql.sh` (or replay via `--response`) and write a Markdown report under `<project>/docs/` by default.
   - Redact `accessToken` / `refreshToken` / `password` fields by default; allow opting out with `--no-redact`.
   - Refuse to write a report when the response has no meaningful `.data` content unless `--allow-empty` (or `GQL_ALLOW_EMPTY`) is set.
-- Bootstrap template exists under `skills/tools/testing/graphql-api-testing/template/setup/graphql` and includes:
+- Bootstrap template exists under `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql` and includes:
   - `endpoints.env`, `jwts.env`, `.gitignore`, and a sample `operations/login.graphql` + variables files.
 - Skill docs exist and reference `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md` for reporting.
 
@@ -100,11 +109,11 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
     - [x] Implement `gql.sh` caller with endpoint presets, JWT profiles, and curl fallback.
-    - [x] Provide a bootstrap template under `skills/tools/testing/graphql-api-testing/template/setup/graphql`.
+    - [x] Provide a bootstrap template under `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql`.
     - [x] Add a skill entry documenting the workflow and safety rules.
   - Artifacts:
     - `skills/tools/testing/graphql-api-testing/scripts/gql.sh`
-    - `skills/tools/testing/graphql-api-testing/template/setup/graphql/*`
+    - `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/*`
     - `skills/tools/testing/graphql-api-testing/SKILL.md`
   - Exit Criteria:
     - [x] `bash -n skills/tools/testing/graphql-api-testing/scripts/gql.sh` passes.
@@ -159,6 +168,6 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 - `skills/tools/testing/graphql-api-testing/SKILL.md`: End-user skill instructions (project layout, quickstart, safety, reporting rules).
 - `skills/tools/testing/graphql-api-testing/scripts/gql.sh`: Single entrypoint to run GraphQL operations with env/JWT presets and auto-login fallback.
 - `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`: Report generator (runs or replays requests, redacts secrets, blocks empty reports).
-- `skills/tools/testing/graphql-api-testing/template/setup/graphql`: Bootstrap template for per-project `setup/graphql/`.
+- `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql`: Bootstrap template for per-project `setup/graphql/`.
 - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`: Standard output contract for manual API test reports.
 - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`: Project-local guide template to copy into a repo.

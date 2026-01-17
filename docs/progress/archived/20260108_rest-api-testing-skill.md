@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-08 | 2026-01-09 |
+| DONE | 2026-01-08 | 2026-01-17 |
 
 Links:
 
@@ -10,6 +10,15 @@ Links:
 - Planning PR: https://github.com/graysurf/codex-kit/pull/9
 - Docs: [skills/tools/testing/rest-api-testing/SKILL.md](../../../skills/tools/testing/rest-api-testing/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
+
+## Addendum
+
+### 2026-01-17
+
+- Change: Update archived path references for the skill scaffold (`template/` -> `assets/scaffold/`).
+- Reason: The skills directory layout was normalized; keep DONE docs accurate and reduce search noise.
+- Impact: Documentation-only; no runtime behavior changes.
+- Links: `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest`; [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 
@@ -54,7 +63,7 @@ Links:
 - `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` can:
   - Run a request via `rest.sh` (or replay via `--response`) and write a Markdown report under `<project>/docs/` by default.
   - Redact common secret fields in request/response by default; allow opting out with `--no-redact`.
-- Bootstrap template exists under `skills/tools/testing/rest-api-testing/template/setup/rest` and includes:
+- Bootstrap template exists under `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest` and includes:
   - `endpoints.env`, `tokens.env`, `.gitignore`, and at least one sample `requests/*.request.json`.
 - Skill docs exist under `skills/tools/testing/rest-api-testing/SKILL.md` and reference `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md` for reporting.
 
@@ -131,7 +140,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
     - `skills/tools/testing/rest-api-testing/SKILL.md`
     - `skills/tools/testing/rest-api-testing/references/REST_API_TESTING_GUIDE.md`
-    - `skills/tools/testing/rest-api-testing/template/setup/rest/requests/health.request.json`
+    - `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest/requests/health.request.json`
   - Exit Criteria:
     - [x] Requirements, scope, and acceptance criteria are aligned (JSON-only, Bearer token, `expect.status` + `expect.jq`).
     - [x] Data flow and I/O contract are defined (request schema + `expect` semantics documented + canonical example exists).
@@ -143,13 +152,13 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Implement `skills/tools/testing/rest-api-testing/scripts/rest.sh` (endpoint + auth presets, execute request, history).
     - [x] Implement `skills/tools/testing/rest-api-testing/scripts/rest-history.sh` (replay last command; tail N).
     - [x] Implement `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` (generate Markdown report with redaction).
-    - [x] Add bootstrap template under `skills/tools/testing/rest-api-testing/template/setup/rest`.
+    - [x] Add bootstrap template under `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest`.
     - [x] Add skill instructions under `skills/tools/testing/rest-api-testing/SKILL.md`.
   - Artifacts:
     - `skills/tools/testing/rest-api-testing/scripts/rest.sh`
     - `skills/tools/testing/rest-api-testing/scripts/rest-history.sh`
     - `skills/tools/testing/rest-api-testing/scripts/rest-report.sh`
-    - `skills/tools/testing/rest-api-testing/template/setup/rest/*`
+    - `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest/*`
     - `skills/tools/testing/rest-api-testing/SKILL.md`
     - `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
   - Exit Criteria:
@@ -200,5 +209,5 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 - `skills/tools/testing/rest-api-testing/scripts/rest.sh`: Single entrypoint to run REST requests with env/token presets and history.
 - `skills/tools/testing/rest-api-testing/scripts/rest-report.sh`: Report generator (runs or replays requests, redacts secrets by default).
 - `skills/tools/testing/rest-api-testing/scripts/rest-history.sh`: History reader / replay helper.
-- `skills/tools/testing/rest-api-testing/template/setup/rest`: Bootstrap template for per-project `setup/rest/`.
+- `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest`: Bootstrap template for per-project `setup/rest/`.
 - `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`: Standard output contract for manual REST API test reports.

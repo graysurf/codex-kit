@@ -56,7 +56,7 @@ Failure modes:
 
 The default fallback guide lives at:
 
-- `$CODEX_HOME/skills/automation/release-workflow/RELEASE_GUIDE.md`
+- `$CODEX_HOME/skills/automation/release-workflow/references/DEFAULT_RELEASE_GUIDE.md`
 
 ## Helper scripts (fallback)
 
