@@ -18,7 +18,9 @@ Links:
 - Change: Update archived path references for the skill scaffold (`template/` -> `assets/scaffold/`).
 - Reason: The skills directory layout was normalized; keep DONE docs accurate and reduce search noise.
 - Impact: Documentation-only; no runtime behavior changes.
-- Links: `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest`; [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
+- Links:
+  - `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest`
+  - [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 

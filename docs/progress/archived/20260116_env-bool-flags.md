@@ -18,7 +18,9 @@ Links:
 - Change: Update archived path references after the skills layout change (`template/` -> `assets/scaffold/`).
 - Reason: Keep DONE docs accurate and reduce search noise after normalizing skill directory structure.
 - Impact: Documentation-only; no runtime behavior changes.
-- Links: `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example`; [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
+- Links:
+  - `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example`
+  - [docs/progress/archived/20260117_skills-layout-normalization-and-audit.md](20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 

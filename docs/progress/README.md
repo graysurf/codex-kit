@@ -9,8 +9,8 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-16 | [Env bool flags standardization](archived/20260116_env-bool-flags.md) | [#49](https://github.com/graysurf/codex-kit/pull/49) |
 | 2026-01-17 | [Skills layout normalization and audit](archived/20260117_skills-layout-normalization-and-audit.md) | [#56](https://github.com/graysurf/codex-kit/pull/56) |
+| 2026-01-16 | [Env bool flags standardization](archived/20260116_env-bool-flags.md) | [#49](https://github.com/graysurf/codex-kit/pull/49) |
 | 2026-01-13 | [Script smoke tests expansion](archived/20260113_script-smoke-tests.md) | [#22](https://github.com/graysurf/codex-kit/pull/22) |
 | 2026-01-13 | [Script regression tests (pytest)](archived/20260113_script-regression-tests-pytest.md) | [#20](https://github.com/graysurf/codex-kit/pull/20) |
 | 2026-01-11 | [Skill contract fields and lint](archived/20260111_skill-contract-fields-and-lint.md) | [#17](https://github.com/graysurf/codex-kit/pull/17) |
