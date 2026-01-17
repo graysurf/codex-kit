@@ -6,7 +6,7 @@
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "release-workflow/RELEASE_GUIDE\\.md.*release-workflow/template/RELEASE_TEMPLATE\\.md"
+        "stdout_regex": "release-workflow/references/DEFAULT_RELEASE_GUIDE\\.md.*release-workflow/assets/templates/RELEASE_TEMPLATE\\.md"
       }
     }
   ]

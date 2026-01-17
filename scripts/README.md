@@ -16,8 +16,9 @@ scripts/
 ├── lint.sh                               Runs shell + python lint/syntax checks.
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
-├── check.sh                             Runs selected checks (lint/contracts/semgrep/tests).
-└── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
+├── check.sh                              Runs selected checks (lint/contracts/semgrep/tests).
+├── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
+└── audit-skill-layout.sh                 Validates tracked skill directory layout.
 ```
 
 ## Bundling wrappers
@@ -66,6 +67,14 @@ Exit codes:
 
 - `0`: all validated files are compliant
 - non-zero: validation/usage errors (prints `error:` lines to stderr)
+
+### Skill layout audit
+
+`scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
+
+- `SKILL.md` at the skill root
+- Optional: `scripts/`, `references/`, `assets/`
+- No other tracked top-level entries
 
 ### Lint + syntax checks
 

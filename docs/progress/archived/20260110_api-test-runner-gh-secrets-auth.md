@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-10 | 2026-01-10 |
+| DONE | 2026-01-10 | 2026-01-17 |
 
 Links:
 
@@ -11,6 +11,15 @@ Links:
 - Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20879442172
+
+## Addendum
+
+### 2026-01-17
+
+- Change: Update archived path references for the skill scaffold (`template/` -> `assets/scaffold/`).
+- Reason: The skills directory layout was normalized; keep DONE docs accurate and reduce search noise.
+- Impact: Documentation-only; no runtime behavior changes.
+- Links: `skills/tools/testing/api-test-runner/assets/scaffold/setup/api/suites`; [docs/progress/20260117_skills-layout-normalization-and-audit.md](../20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 
@@ -175,7 +184,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `.github/workflows/api-test-runner.yml`
     - `skills/tools/testing/api-test-runner/SKILL.md`
     - `skills/tools/testing/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
-    - `skills/tools/testing/api-test-runner/template/setup/api/suites/*.suite.json` (new example suite)
+    - `skills/tools/testing/api-test-runner/assets/scaffold/setup/api/suites/*.suite.json` (new example suite)
   - Exit Criteria:
     - [x] A suite using `auth` can run end-to-end when `API_TEST_AUTH_JSON` is provided.
       - Command: `skills/tools/testing/api-test-runner/scripts/api-test.sh --suite <auth-suite> --out out/api-test-runner/results.json`

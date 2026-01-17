@@ -63,7 +63,7 @@ To initialize `setup/graphql/` in a repo for the first time, copy the bundled te
 
 ```bash
 mkdir -p setup
-cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/template/setup/graphql" setup/
+cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql" setup/
 ```
 
 The template includes a helper to turn a copied `gql.sh` history command into a report:

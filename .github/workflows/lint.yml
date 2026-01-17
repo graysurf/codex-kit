@@ -40,6 +40,10 @@ jobs:
         run: |
           scripts/validate_skill_contracts.sh
 
+      - name: Validate skill directory layout
+        run: |
+          scripts/audit-skill-layout.sh
+
       - name: Smoke test (negative fixture)
         run: |
           set -euo pipefail

@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-10 | 2026-01-14 |
+| DONE | 2026-01-10 | 2026-01-17 |
 
 Links:
 
@@ -12,6 +12,13 @@ Links:
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20880992440
 
 ## Addendum
+
+### 2026-01-17
+
+- Change: Update archived path references for the skill scaffold (`template/` -> `assets/scaffold/`).
+- Reason: The skills directory layout was normalized; keep DONE docs accurate and reduce search noise.
+- Impact: Documentation-only; no runtime behavior changes.
+- Links: `skills/tools/testing/api-test-runner/assets/scaffold/setup`; [docs/progress/20260117_skills-layout-normalization-and-audit.md](../20260117_skills-layout-normalization-and-audit.md)
 
 ### 2026-01-14
 
@@ -118,7 +125,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `out/api-test-runner/summary.md`
   - Exit Criteria:
     - [x] Commands executed with results recorded:
-      - `cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/template/setup" ./setup`
+      - `cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" ./setup`
       - `skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --out out/api-test-runner/results.json`
       - `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh --in out/api-test-runner/results.json --out out/api-test-runner/summary.md --slow 5`
     - [x] Summary is readable and small (failed list + slow Top N; no skipped unless enabled).

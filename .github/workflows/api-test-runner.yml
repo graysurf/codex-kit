@@ -24,7 +24,7 @@ jobs:
       - name: Bootstrap public suite (gitignored setup/)
         run: |
           rm -rf setup
-          cp -R skills/tools/testing/api-test-runner/template/setup ./setup
+          cp -R skills/tools/testing/api-test-runner/assets/scaffold/setup ./setup
 
       - name: Run suite
         env:
@@ -126,7 +126,7 @@ jobs:
       - name: Bootstrap public suite (gitignored setup/)
         run: |
           rm -rf setup
-          cp -R skills/tools/testing/api-test-runner/template/setup ./setup
+          cp -R skills/tools/testing/api-test-runner/assets/scaffold/setup ./setup
 
       - name: Run suite (expected GraphQL failure demo)
         continue-on-error: true
@@ -192,7 +192,7 @@ jobs:
         if: ${{ env.API_TEST_AUTH_JSON != '' }}
         run: |
           rm -rf setup
-          cp -R skills/tools/testing/api-test-runner/template/setup ./setup
+          cp -R skills/tools/testing/api-test-runner/assets/scaffold/setup ./setup
 
       - name: Run suite (auth via GitHub Secrets)
         if: ${{ env.API_TEST_AUTH_JSON != '' }}

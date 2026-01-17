@@ -44,7 +44,7 @@ To initialize `setup/rest/` in a repo for the first time, copy the bundled templ
 
 ```bash
 mkdir -p setup
-cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/template/setup/rest" setup/
+cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/
 ```
 
 The template includes a helper to turn a copied `rest.sh` history command into a report:

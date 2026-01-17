@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-17 | [Skills layout normalization and audit](20260117_skills-layout-normalization-and-audit.md) | TBD |
 
 ## Archived
 

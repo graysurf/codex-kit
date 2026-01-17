@@ -43,6 +43,7 @@ export PROJECT_PATH="$PWD"
 ## 🛠️ Skills
 
 All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `scripts/validate_skill_contracts.sh` and CI.
+Tracked skill directory layout (`SKILL.md` + optional `scripts/`, `references/`, `assets/`) is enforced by `scripts/audit-skill-layout.sh` and CI.
 
 Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/automation/`. Internal/meta skills live under `skills/.system/` (not listed below).
 
@@ -78,7 +79,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | Maintenance | [fix-bug-pr](./skills/automation/fix-bug-pr/) | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced |
 | Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/) | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR |
-| Release | [release-workflow](./skills/automation/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
+| Release | [release-workflow](./skills/automation/release-workflow/) | Execute project release workflows by following a repo release guide (with a bundled fallback) |
 
 ## 🪪 License
 

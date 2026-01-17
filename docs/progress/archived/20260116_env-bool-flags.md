@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DONE | 2026-01-16 | 2026-01-16 |
+| DONE | 2026-01-16 | 2026-01-17 |
 
 Links:
 
@@ -13,7 +13,12 @@ Links:
 
 ## Addendum
 
-- None
+### 2026-01-17
+
+- Change: Update archived path references after the skills layout change (`template/` -> `assets/scaffold/`).
+- Reason: Keep DONE docs accurate and reduce search noise after normalizing skill directory structure.
+- Impact: Documentation-only; no runtime behavior changes.
+- Links: `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example`; [docs/progress/20260117_skills-layout-normalization-and-audit.md](../20260117_skills-layout-normalization-and-audit.md)
 
 ## Goal
 
@@ -116,11 +121,11 @@ Explicit exclusions (out-of-scope examples):
 | `REST_HISTORY_LOG_URL` | `REST_HISTORY_LOG_URL_ENABLED` | `skills/tools/testing/rest-api-testing/scripts/rest.sh` | Rename; strict `true|false` only. |
 | `REST_REPORT_INCLUDE_COMMAND` | `REST_REPORT_INCLUDE_COMMAND_ENABLED` | `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` | Rename; strict `true|false` only. |
 | `REST_REPORT_COMMAND_LOG_URL` | `REST_REPORT_COMMAND_LOG_URL_ENABLED` | `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` | Rename; strict `true|false` only. |
-| `GQL_HISTORY` | `GQL_HISTORY_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/template/setup/graphql/gql.local.env.example` | Rename; update `--no-history` to set `GQL_HISTORY_ENABLED=false`. |
-| `GQL_HISTORY_LOG_URL` | `GQL_HISTORY_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/template/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
-| `GQL_REPORT_INCLUDE_COMMAND` | `GQL_REPORT_INCLUDE_COMMAND_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/template/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
-| `GQL_REPORT_COMMAND_LOG_URL` | `GQL_REPORT_COMMAND_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/template/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
-| `GQL_ALLOW_EMPTY` | `GQL_ALLOW_EMPTY_ENABLED` | `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/template/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `GQL_HISTORY` | `GQL_HISTORY_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; update `--no-history` to set `GQL_HISTORY_ENABLED=false`. |
+| `GQL_HISTORY_LOG_URL` | `GQL_HISTORY_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `GQL_REPORT_INCLUDE_COMMAND` | `GQL_REPORT_INCLUDE_COMMAND_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `GQL_REPORT_COMMAND_LOG_URL` | `GQL_REPORT_COMMAND_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `GQL_ALLOW_EMPTY` | `GQL_ALLOW_EMPTY_ENABLED` | `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
 | `API_TEST_ALLOW_WRITES` | `API_TEST_ALLOW_WRITES_ENABLED` | `.github/workflows/api-test-runner.yml`<br>`skills/tools/testing/api-test-runner/SKILL.md`<br>`skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`<br>`skills/tools/testing/api-test-runner/scripts/api-test.sh` | Rename; update docs/workflow examples from `1` to `true`. |
 | `CODEX_CURL_STUB_MODE` | `CODEX_CURL_STUB_MODE_ENABLED` | `tests/script_specs/skills/tools/testing/api-test-runner/scripts/api-test.sh.json`<br>`tests/script_specs/skills/tools/testing/rest-api-testing/scripts/rest.sh.json`<br>`tests/stubs/bin/curl` | Rename; update test specs from `\"1\"` to `\"true\"`. |
 | `CODEX_XH_STUB_MODE` | `CODEX_XH_STUB_MODE_ENABLED` | `tests/script_specs/skills/tools/testing/api-test-runner/scripts/api-test.sh.json`<br>`tests/script_specs/skills/tools/testing/graphql-api-testing/scripts/gql.sh.json`<br>`tests/stubs/bin/xh` | Rename; update test specs from `\"1\"` to `\"true\"`. |
