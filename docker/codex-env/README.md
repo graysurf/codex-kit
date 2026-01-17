@@ -26,12 +26,13 @@ docker build -f docker/codex-env/Dockerfile -t codex-env:ubuntu24-tools \
 ```
 
 Notes:
-- `visual-studio-code` cannot be installed via Linuxbrew; `INSTALL_VSCODE=1` uses the Microsoft apt repo to install `code`.
-- `mitmproxy` is macOS-only in Homebrew (cask); it is installed via `apt` instead.
+- Tools are installed from `zsh-kit/config/tools*.list` files (OS-specific files are picked based on `uname`).
+- `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
+- `mitmproxy` is installed via `apt` on Linux (declared in `tools.optional.linux.apt.list`).
 
 ## Tool audit (Ubuntu 24.04)
 
-Runs `brew install -n` across `zsh-kit` tool lists and prints a TSV report:
+Runs `brew install -n` across brew-managed entries and prints a TSV report (also includes apt-declared entries):
 
 ```sh
 docker run --rm codex-env:ubuntu24 /opt/codex-env/bin/audit-tools.sh | sed -n '1,40p'
