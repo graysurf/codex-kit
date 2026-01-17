@@ -177,15 +177,13 @@ fix_line() {
     return 1
   }
 
-  typeset init="''"
-  if [[ "$opt_flags" == *A* || "$opt_flags" == *a* ]]; then
-    init="()"
-  elif [[ "$opt_flags" == *i* ]]; then
-    init="0"
-  fi
-
   typeset changed=false
   typeset -a out_words=("$cmd" "${opts[@]}")
+
+  typeset preserve_existing=false
+  if [[ "$opt_flags" == *r* || "$opt_flags" == *x* || "$opt_flags" == *U* ]]; then
+    preserve_existing=true
+  fi
 
   typeset i="$idx" tok=''
   while (( i <= ${#words[@]} )); do
@@ -198,7 +196,39 @@ fix_line() {
     if [[ "$tok" == *"="* ]]; then
       out_words+=("$tok")
     elif [[ "$tok" =~ '^[A-Za-z_][A-Za-z0-9_]*$' ]]; then
-      out_words+=("${tok}=${init}")
+      typeset tok_init="''"
+      typeset tok_is_array=false
+      typeset tok_is_int=false
+
+      if [[ "$opt_flags" == *A* || "$opt_flags" == *a* ]]; then
+        tok_is_array=true
+      elif [[ "$opt_flags" == *i* ]]; then
+        tok_is_int=true
+      fi
+
+      # Special params: `path` is an array even without `-a`, and is commonly declared with `-U`.
+      if [[ "$opt_flags" == *U* && "$tok" == 'path' ]]; then
+        tok_is_array=true
+        tok_is_int=false
+      fi
+
+      if [[ "$preserve_existing" == true ]]; then
+        if [[ "$tok_is_array" == true ]]; then
+          tok_init="(\\${${tok}:+\\\"\\${(@)${tok}}\\\"})"
+        elif [[ "$tok_is_int" == true ]]; then
+          tok_init="\"\\${${tok}-0}\""
+        else
+          tok_init="\"\\${${tok}-}\""
+        fi
+      else
+        if [[ "$tok_is_array" == true ]]; then
+          tok_init="()"
+        elif [[ "$tok_is_int" == true ]]; then
+          tok_init="0"
+        fi
+      fi
+
+      out_words+=("${tok}=${tok_init}")
       changed=true
     else
       out_words+=("$tok")
@@ -208,7 +238,23 @@ fix_line() {
 
   if [[ "$changed" == true ]]; then
     typeset indent="${line%%[^[:space:]]*}"
-    print -r -- "${indent}${(j: :)out_words}"
+    # Note: ${(z)...} tokenization may split `name=()` into `name=` and `()`.
+    # Avoid producing the invalid `name= ()` (space after '=') when rebuilding.
+    typeset out_line='' prev='' cur=''
+    out_line="${out_words[1]-}"
+    typeset j=2
+    while (( j <= ${#out_words[@]} )); do
+      prev="${out_words[$(( j - 1 ))]}"
+      cur="${out_words[j]}"
+      if [[ "$prev" =~ '^[A-Za-z_][A-Za-z0-9_]*=$' && "$cur" == \(* ]]; then
+        out_line+="$cur"
+      else
+        out_line+=" $cur"
+      fi
+      (( j++ ))
+    done
+
+    print -r -- "${indent}${out_line}"
     return 0
   fi
 
