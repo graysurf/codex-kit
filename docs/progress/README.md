@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-18 | [Docker Codex env (Linuxbrew)](20260118_docker-codex-env-linuxbrew.md) | [#58](https://github.com/graysurf/codex-kit/pull/58) |
 
 ## Archived
 
