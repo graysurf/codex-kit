@@ -61,6 +61,8 @@ ENV CODEX_KIT_DIR="/opt/codex-kit"
 ENV ZDOTDIR="/opt/zsh-kit"
 ENV HOME="/home/codex"
 ENV CODEX_HOME="/home/codex/.codex"
+ENV CODEX_COMMANDS_PATH="/home/codex/.codex/commands"
+ENV ZSH_FEATURES="codex,opencode"
 
 COPY docker/codex-env/ /opt/codex-env/
 
