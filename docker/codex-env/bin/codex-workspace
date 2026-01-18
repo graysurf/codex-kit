@@ -5,6 +5,7 @@ DEFAULT_IMAGE="${CODEX_ENV_IMAGE:-graysurf/codex-env:linuxbrew}"
 WORKSPACE_PREFIX="${CODEX_WORKSPACE_PREFIX:-codex-ws}"
 DEFAULT_GITHUB_HOST="${GITHUB_HOST:-github.com}"
 DEFAULT_SECRETS_DIR="${CODEX_SECRET_DIR_HOST:-$HOME/.config/zsh/scripts/_features/codex/secrets}"
+DEFAULT_SECRETS_MOUNT="/opt/zsh-kit/scripts/_features/codex/secrets"
 DEFAULT_CONFIG_DIR="${CODEX_CONFIG_DIR_HOST:-}"
 DEFAULT_PRIVATE_DIR="${CODEX_ZSH_PRIVATE_DIR_HOST:-}"
 
@@ -18,7 +19,7 @@ Usage:
                     [--config-dir <host-path>]
                     [--private-dir <host-path>]
                     [--persist-gh-token] [--setup-git]
-                    [--secrets-dir <host-path>] [--no-secrets]
+                    [--secrets-dir <host-path>] [--secrets-mount <container-path>] [--no-secrets]
                     [--codex-profile <profile>]
                     [--tunnel] [--tunnel-detach]
   codex-workspace shell <name>
@@ -32,6 +33,7 @@ Defaults:
   --image:       graysurf/codex-env:linuxbrew  (or $CODEX_ENV_IMAGE)
   workspace name: derived from <repo> + timestamp
   secrets dir:   $CODEX_SECRET_DIR_HOST or $HOME/.config/zsh/scripts/_features/codex/secrets (mounted :rw when present)
+  secrets mount: /opt/zsh-kit/scripts/_features/codex/secrets (override via --secrets-mount)
   config dir:    $CODEX_CONFIG_DIR_HOST (mounted to /home/codex/.config as :ro when provided)
   private dir:   $CODEX_ZSH_PRIVATE_DIR_HOST (mounted to /opt/zsh-kit/.private as :ro when provided)
 
@@ -40,6 +42,7 @@ Notes:
   - For private repos, export GH_TOKEN (or GITHUB_TOKEN) on the host before running `up`.
   - For persistent in-container git auth, use `--persist-gh-token --setup-git` (tokens become container env).
   - `codex-use` integration requires mounting the secrets dir and running with zsh login shell.
+  - When --secrets-mount is set to a non-default path, codex-workspace symlinks the zsh-kit secrets dir to it.
 EOF
 }
 
@@ -61,6 +64,18 @@ need_host_dir() {
   local path="$2"
   [[ -n "$path" ]] || die "missing ${label} path"
   [[ -d "$path" ]] || die "${label} dir not found: $path"
+}
+
+normalize_secrets_mount() {
+  local path="${1:-}"
+  [[ -n "$path" ]] || die "missing secrets mount path"
+  if [[ "$path" == "~"* ]]; then
+    path="/home/codex${path#~}"
+  fi
+  [[ "$path" == /* ]] || die "secrets mount must be an absolute path (or ~/<path>): $path"
+  path="${path%/}"
+  [[ -n "$path" ]] || die "invalid secrets mount path"
+  echo "$path"
 }
 
 slugify() {
@@ -193,6 +208,10 @@ workspace_up() {
   local private_dir="$DEFAULT_PRIVATE_DIR"
   local use_secrets="1"
   local secrets_dir="$DEFAULT_SECRETS_DIR"
+  local secrets_dir_explicit="0"
+  local secrets_mount="$(normalize_secrets_mount "$DEFAULT_SECRETS_MOUNT")"
+  local secrets_mount_explicit="0"
+  local no_secrets_explicit="0"
   local codex_profile=""
   local start_tunnel="0"
   local tunnel_detach="0"
@@ -220,9 +239,11 @@ workspace_up() {
       --setup-git)
         setup_git="1"; shift ;;
       --secrets-dir)
-        secrets_dir="${2:-}"; shift 2 ;;
+        secrets_dir="${2:-}"; secrets_dir_explicit="1"; shift 2 ;;
+      --secrets-mount)
+        secrets_mount="$(normalize_secrets_mount "${2:-}")"; secrets_mount_explicit="1"; shift 2 ;;
       --no-secrets)
-        use_secrets="0"; shift ;;
+        use_secrets="0"; no_secrets_explicit="1"; shift ;;
       --codex-profile)
         codex_profile="${2:-}"; shift 2 ;;
       --tunnel)
@@ -280,12 +301,13 @@ workspace_up() {
 
   if container_exists "$container"; then
     echo "workspace exists: $container"
-    if [[ -n "$config_dir" || -n "$private_dir" || "$persist_gh_token" == "1" || "$setup_git" == "1" ]]; then
+    if [[ -n "$config_dir" || -n "$private_dir" || "$persist_gh_token" == "1" || "$setup_git" == "1" || "$secrets_dir_explicit" == "1" || "$secrets_mount_explicit" == "1" || "$no_secrets_explicit" == "1" ]]; then
       warn "workspace already exists; mounts/env cannot be changed after creation"
       warn "if you need new mounts/env, run: $(basename "$0") rm ${container} --volumes && re-run up"
     fi
     ensure_container_running "$container"
   else
+    local created="1"
     local run_args=(
       -d
       --name "$container"
@@ -315,7 +337,7 @@ workspace_up() {
     fi
 
     if [[ "$use_secrets" == "1" && -n "$secrets_dir" && -d "$secrets_dir" ]]; then
-      run_args+=( -v "${secrets_dir}:/opt/zsh-kit/scripts/_features/codex/secrets:rw" )
+      run_args+=( -v "${secrets_dir}:${secrets_mount}:rw" )
     elif [[ -n "$codex_profile" ]]; then
       die "--codex-profile requires a secrets dir mount (set --secrets-dir or CODEX_SECRET_DIR_HOST)"
     fi
@@ -326,6 +348,25 @@ workspace_up() {
 
   # Ensure /work is writable for the default user even when backed by a fresh named volume.
   docker exec -u root "$container" bash -lc 'mkdir -p /work && chown -R codex:codex /work' >/dev/null
+
+  # If secrets are mounted, wire them into zsh-kit by symlinking the codex secrets dir.
+  # This makes `codex-use` available when mounting secrets outside the zsh-kit tree.
+  if [[ "${created-0}" == "1" && "$use_secrets" == "1" && -n "$secrets_dir" && -d "$secrets_dir" && "$secrets_mount" != "$DEFAULT_SECRETS_MOUNT" ]]; then
+    docker exec -u codex "$container" bash -lc '
+      set -euo pipefail
+      src="/opt/zsh-kit/scripts/_features/codex/secrets"
+      dst="$1"
+
+      mkdir -p "$dst"
+
+      if [[ -L "$src" && "$(readlink "$src" 2>/dev/null || true)" == "$dst" ]]; then
+        exit 0
+      fi
+
+      rm -rf "$src"
+      ln -s "$dst" "$src"
+    ' -- "$secrets_mount" >/dev/null || true
+  fi
 
   if [[ -z "$repo_dir" ]]; then
     repo_dir="/work/${owner}/${repo}"
