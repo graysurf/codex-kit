@@ -99,7 +99,7 @@ Links:
 - Split `zsh-kit` tool lists by OS (macOS/Linux) and add Linux apt-only lists for tools that cannot be installed via Linuxbrew (e.g. VS Code `code`, `mitmproxy`).
 - Target runtime: Ubuntu Server (Docker Engine, headless) with macOS VS Code tunnel access to containers; no Docker Desktop requirement.
 - Repository layout: `Dockerfile` + `docker-compose.yml` at repo root; keep helper scripts/docs under `docker/codex-env/`.
-- `HOME`/`CODEX_HOME`: per-environment named volumes (no sharing), with `HOME=/home/dev` and `CODEX_HOME=/home/dev/.codex`.
+- `HOME`/`CODEX_HOME`: per-environment named volumes (no sharing), with `HOME=/home/codex` and `CODEX_HOME=/home/codex/.codex`.
 - Security baseline: no extra hardening (skip `cap_drop` and `no-new-privileges`); default read-write mounts.
 - Minimum smoke verification set: `rg fd fzf gh jq codex opencode gemini psql mysql sqlcmd`.
 
@@ -155,8 +155,8 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Clone during image build (self-contained, pinned revision/ref).
     - [x] Decide install fallback order (per tool): Linuxbrew > apt > release binary.
     - [x] Decide `CODEX_HOME` strategy:
-      - `HOME=/home/dev`
-      - `CODEX_HOME=/home/dev/.codex`
+      - `HOME=/home/codex`
+      - `CODEX_HOME=/home/codex/.codex`
       - One named volume per environment for `HOME` + `CODEX_HOME` (no sharing).
     - [x] Validate and record the Linux install method for key tools that may not exist on Linuxbrew (follow the fallback order):
       - `codex`: Linuxbrew cask works on `linux/arm64` (no fallback needed).
@@ -184,7 +184,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
     - [x] Add `Dockerfile` at repo root (Ubuntu base + apt bootstrap).
-    - [x] Use root user by default; optionally add a non-root user (`dev`) if needed later.
+    - [x] Use `codex` user by default (passwordless sudo); root still available when needed.
     - [x] Install Linuxbrew and ensure brew is on `PATH` for login shells.
     - [x] Install required + optional CLI tools from `tools.list` and `tools.optional.list` by default.
       - Preferred: reuse `zsh-kit` installer logic (clone `zsh-kit`, run its installer in a non-interactive mode).
@@ -223,12 +223,16 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Example: provide `gdate`/`gseq` aliases or symlinks if scripts assume macOS GNU coreutils naming.
       - Decision: Document-only (no shims). See `docker/codex-env/README.md`.
     - [x] Add a “local bind-mount mode” for `zsh-kit` and/or `codex-kit` (read-only mounts) for fast iteration.
+    - [x] Provide runtime secrets injection docs and compose overrides for GitHub/Codex auth.
+      - Codex profiles use `codex-use` with secrets mounted under `/opt/zsh-kit/scripts/_features/codex/secrets`.
     - [ ] Improve build speed via BuildKit caching for brew downloads/builds (optional, but recommended).
       - Reason: Defer until baseline build times are captured.
   - Artifacts:
     - `docker/codex-env/README.md` updates (document knobs, fallback policy, and known deltas vs macOS)
     - `docker/codex-env/apt-fallback.txt` (or equivalent mapping file)
     - `docker/codex-env/docker-compose.local.yml` (optional local bind-mount override)
+    - `docker/codex-env/docker-compose.secrets.yml` (optional secrets override)
+    - `docker/codex-env/docker-compose.ssh.yml` (optional SSH override)
     - Optional: `docker/codex-env/shims/` (only if needed)
   - Exit Criteria:
     - [ ] Optional opt-out path works and is documented (commands + expected results).

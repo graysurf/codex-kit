@@ -11,13 +11,13 @@ services:
         INSTALL_OPTIONAL_TOOLS: ${INSTALL_OPTIONAL_TOOLS:-1}
         INSTALL_VSCODE: ${INSTALL_VSCODE:-1}
     environment:
-      HOME: /home/dev
-      CODEX_HOME: /home/dev/.codex
+      HOME: /home/codex
+      CODEX_HOME: /home/codex/.codex
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ${WORKSPACE_DIR:-.}:/work
-      - codex-home:/home/dev
-      - codex-codex-home:/home/dev/.codex
+      - codex-home:/home/codex
+      - codex-codex-home:/home/codex/.codex
     working_dir: /work
     tty: true
     stdin_open: true

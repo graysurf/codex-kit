@@ -33,13 +33,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
   && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -s /usr/bin/zsh dev \
-  && echo "dev ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/dev \
-  && chmod 0440 /etc/sudoers.d/dev \
-  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/dev/.codex \
-  && chown -R dev:dev /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/dev
+RUN useradd -m -s /usr/bin/zsh codex \
+  && echo "codex ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/codex \
+  && chmod 0440 /etc/sudoers.d/codex \
+  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex/.codex \
+  && chown -R codex:codex /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex
 
-USER dev
+USER codex
 
 RUN NONINTERACTIVE=1 /bin/bash -lc "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" \
   && /home/linuxbrew/.linuxbrew/bin/brew --version
@@ -58,22 +58,31 @@ RUN git clone "${CODEX_KIT_REPO}" /opt/codex-kit \
 ENV ZSH_KIT_DIR="/opt/zsh-kit"
 ENV CODEX_KIT_DIR="/opt/codex-kit"
 ENV ZDOTDIR="/opt/zsh-kit"
-ENV HOME="/home/dev"
-ENV CODEX_HOME="/home/dev/.codex"
+ENV HOME="/home/codex"
+ENV CODEX_HOME="/home/codex/.codex"
 
 COPY docker/codex-env/ /opt/codex-env/
 
 USER root
 RUN chmod +x /opt/codex-env/bin/*.sh
-USER dev
+USER codex
 
 RUN if [[ "${INSTALL_TOOLS}" == "1" ]]; then \
     INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS}" INSTALL_VSCODE="${INSTALL_VSCODE}" /opt/codex-env/bin/install-tools.sh; \
   fi
 
+RUN mkdir -p /opt/zsh-kit/cache /opt/zsh-kit/plugins \
+  && ZDOTDIR="/opt/zsh-kit" \
+     ZSH_CACHE_DIR="/opt/zsh-kit/cache" \
+     ZSH_PLUGINS_DIR="/opt/zsh-kit/plugins" \
+     ZSH_PLUGIN_LIST_FILE="/opt/zsh-kit/config/plugins.list" \
+     zsh -f -c 'set -e; source /opt/zsh-kit/bootstrap/plugin_fetcher.zsh; while IFS= read -r line; do [[ -z "$line" || "$line" == \#* ]] && continue; plugin_fetch_if_missing_from_entry "$line"; done < "$ZSH_PLUGIN_LIST_FILE"' \
+  && date +%s > /opt/zsh-kit/cache/plugin.timestamp
+
 USER root
 
 WORKDIR /work
 
+USER codex
 ENTRYPOINT ["/opt/codex-env/bin/entrypoint.sh"]
 CMD ["zsh", "-l"]

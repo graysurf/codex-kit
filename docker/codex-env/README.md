@@ -86,6 +86,44 @@ Verify pull:
 docker pull "${DOCKERHUB_USER}/codex-env:linuxbrew"
 ```
 
+## GitHub auth (token or SSH)
+
+Option A: GitHub token (recommended for `gh`)
+
+```sh
+export GH_TOKEN=your_token
+export CODEX_SECRET_DIR_HOST=/path/to/codex-secrets/profile
+
+docker compose -f docker-compose.yml -f docker/codex-env/docker-compose.secrets.yml up --build
+docker compose exec -it codex-env gh auth status
+docker compose exec -it codex-env gh auth setup-git
+```
+
+Option B: SSH agent forwarding
+
+```sh
+export SSH_AUTH_SOCK=/path/to/ssh-agent.sock
+export SSH_KNOWN_HOSTS_PATH=/path/to/known_hosts
+
+docker compose -f docker-compose.yml -f docker/codex-env/docker-compose.ssh.yml up --build
+docker compose exec -it codex-env ssh -T git@github.com
+```
+
+## Codex secrets (codex-use)
+
+Mount the host `zsh-kit` secrets directory (contains `_codex-secret.zsh` + `*.json` profiles),
+then run `codex-use <profile>` inside the container to copy a profile into the active auth file.
+
+```sh
+export CODEX_SECRET_DIR_HOST=/path/to/zsh-kit/scripts/_features/codex/secrets
+docker compose -f docker-compose.yml -f docker/codex-env/docker-compose.secrets.yml up --build
+docker compose exec -it codex-env zsh -lic 'codex-use personal'
+```
+
+Notes:
+- The secrets directory should be writable because `codex-use` syncs current auth back to secrets.
+- If you want read-only secrets, delete `$CODEX_AUTH_FILE` before switching profiles.
+
 ## Compose (recommended)
 
 ```sh
