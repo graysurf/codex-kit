@@ -8,11 +8,9 @@ Usage:
 
 What it does:
   - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to scanning docs/progress by PR URL)
-  - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" is not explicitly deferred:
-    - Pass: `- [x] ...`
-    - Pass (requires Reason): `- [ ] ~~...~~`
-    - Fail: `- [ ] ...` (unstruck)
-    - Note: Step 4 “Release / wrap-up” is excluded (post-merge / wrap-up).
+  - Auto-defer unchecked checklist items under "## Steps (Checklist)" by marking them `~~...~~` (excluding Step 4 “Release / wrap-up”)
+    - Fails if an unchecked item contains `~~` but is not in the form `- [ ] ~~...~~`
+    - Fails if a deferred unchecked item is missing a `Reason:` line
   - Sets progress Status to DONE and updates the Updated date
   - Sets the progress "Links -> PR" to the PR URL
   - Moves the progress file to docs/progress/archived/
@@ -246,103 +244,11 @@ fi
 filename="$(basename "$progress_file")"
 archived_path="docs/progress/archived/${filename}"
 
-validate_checklist() {
-  python3 - "$1" <<'PY'
-import re
-import sys
-
-path = sys.argv[1]
-
-with open(path, "r", encoding="utf-8") as f:
-  lines = f.read().splitlines()
-
-start = None
-for i, line in enumerate(lines):
-  if line.strip() == "## Steps (Checklist)":
-    start = i + 1
-    break
-
-if start is None:
-  raise SystemExit(f"error: cannot find '## Steps (Checklist)' in {path}")
-
-end = len(lines)
-for i in range(start, len(lines)):
-  if lines[i].startswith("## "):
-    end = i
-    break
-
-checkbox_re = re.compile(r"^(?P<indent>\s*)-\s*\[(?P<mark>[ xX])\]\s+(?P<text>.+)$")
-step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*(?:~~\s*)?Step\s+(?P<num>\d+):")
-missing_reason = []
-missing_strikethrough = []
-in_code_block = False
-current_step = None
-
-# Step 4 ("Release / wrap-up") is intentionally excluded from Reason checks because it includes post-merge tasks.
-exempt_step_min = 4
-
-for i in range(start, end):
-  line = lines[i]
-  if line.strip().startswith("```"):
-    in_code_block = not in_code_block
-    continue
-  if in_code_block:
-    continue
-
-  m_step = step_re.match(line)
-  if m_step:
-    try:
-      current_step = int(m_step.group("num"))
-    except ValueError:
-      current_step = None
-
-  m = checkbox_re.match(line)
-  if not m or m.group("mark") != " ":
-    continue
-  if current_step is not None and current_step >= exempt_step_min:
-    continue
-
-  text_stripped = m.group("text").strip()
-  is_deferred = text_stripped.startswith("~~") and text_stripped.endswith("~~")
-
-  if not is_deferred:
-    missing_strikethrough.append((i + 1, line.rstrip()))
-    continue
-
-  if "reason:" in line.lower():
-    continue
-  found = False
-  for j in range(i + 1, end):
-    next_line = lines[j]
-    if checkbox_re.match(next_line):
-      break
-    if "reason:" in next_line.lower():
-      found = True
-      break
-  if not found:
-    missing_reason.append((i + 1, line.rstrip()))
-
-if missing_strikethrough:
-  print("error: unchecked checklist items in '## Steps (Checklist)' must be deferred with '~~...~~':", file=sys.stderr)
-  for lineno, text in missing_strikethrough:
-    print(f"  - {path}:{lineno}: {text}", file=sys.stderr)
-  print("hint: either check the item (- [x]) or mark it deferred (- [ ] ~~...~~).", file=sys.stderr)
-  raise SystemExit(1)
-
-if missing_reason:
-  print("error: deferred checklist items in '## Steps (Checklist)' require a Reason:", file=sys.stderr)
-  for lineno, text in missing_reason:
-    print(f"  - {path}:{lineno}: {text}", file=sys.stderr)
-  print("hint: add 'Reason: ...' to the same line or a following line before the next checkbox.", file=sys.stderr)
-  raise SystemExit(1)
-PY
-}
-
-validate_checklist "$progress_file"
-
 today="$(date +%Y-%m-%d)"
 
 python3 - "$progress_file" "$today" "$pr_url" "$archived_path" <<'PY'
+from __future__ import annotations
+
 import os
 import re
 import sys
@@ -352,7 +258,7 @@ path, today, pr_url, archived_path = sys.argv[1], sys.argv[2], sys.argv[3], sys.
 with open(path, "r", encoding="utf-8") as f:
   lines = f.readlines()
 
-def normalize_checklist_strikethrough(lines) -> None:
+def checklist_section_range(lines) -> tuple[int, int]:
   start = None
   for i, line in enumerate(lines):
     if line.strip() == "## Steps (Checklist)":
@@ -366,6 +272,11 @@ def normalize_checklist_strikethrough(lines) -> None:
     if lines[i].startswith("## "):
       end = i
       break
+
+  return (start, end)
+
+def normalize_checklist_strikethrough(lines) -> None:
+  start, end = checklist_section_range(lines)
 
   checkbox_re = re.compile(r"^(?P<indent>\s*)-\s*\[(?P<mark>[ xX])\]\s+(?P<text>.+?)\s*$")
   step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*(?:~~\s*)?Step\s+(?P<num>\d+):")
@@ -401,22 +312,77 @@ def normalize_checklist_strikethrough(lines) -> None:
     text_leading_ws = text[: len(text) - len(text.lstrip())]
     text_stripped = text.lstrip()
 
-    if text_stripped.startswith("~~"):
-      if "~~" not in text_stripped[2:]:
+    if "~~" in text_stripped:
+      if not text_stripped.startswith("~~") or not text_stripped.endswith("~~"):
         raise SystemExit(
-          f"error: unchecked checklist item has opening '~~' but no closing '~~': {path}:{i+1}: {raw}"
+          "error: unchecked checklist item contains '~~' but is not in the form '- [ ] ~~...~~': "
+          f"{path}:{i+1}: {raw}"
         )
       continue
 
-    if "~~" in text:
-      raise SystemExit(
-        "error: unchecked checklist item contains '~~' but is not in the form '- [ ] ~~...~~': "
-        f"{path}:{i+1}: {raw}"
-      )
-
     lines[i] = f"{m.group('indent')}- [ ] {text_leading_ws}~~{text_stripped}~~\n"
 
+def validate_checklist_reasons(lines) -> None:
+  start, end = checklist_section_range(lines)
+
+  checkbox_re = re.compile(r"^(?P<indent>\s*)-\s*\[(?P<mark>[ xX])\]\s+(?P<text>.+)$")
+  step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*(?:~~\s*)?Step\s+(?P<num>\d+):")
+
+  in_code_block = False
+  current_step = None
+  exempt_step_min = 4
+
+  missing_reason = []
+  for i in range(start, end):
+    raw = lines[i].rstrip("\n")
+
+    if raw.strip().startswith("```"):
+      in_code_block = not in_code_block
+      continue
+    if in_code_block:
+      continue
+
+    m_step = step_re.match(raw)
+    if m_step:
+      try:
+        current_step = int(m_step.group("num"))
+      except ValueError:
+        current_step = None
+
+    m = checkbox_re.match(raw)
+    if not m or m.group("mark") != " ":
+      continue
+    if current_step is not None and current_step >= exempt_step_min:
+      continue
+
+    text_stripped = m.group("text").strip()
+    is_deferred = text_stripped.startswith("~~") and text_stripped.endswith("~~")
+    if not is_deferred:
+      continue
+
+    if "reason:" in raw.lower():
+      continue
+
+    found = False
+    for j in range(i + 1, end):
+      next_line = lines[j].rstrip("\n")
+      if checkbox_re.match(next_line):
+        break
+      if "reason:" in next_line.lower():
+        found = True
+        break
+    if not found:
+      missing_reason.append((i + 1, raw.rstrip()))
+
+  if missing_reason:
+    print("error: deferred checklist items in '## Steps (Checklist)' require a Reason:", file=sys.stderr)
+    for lineno, text in missing_reason:
+      print(f"  - {path}:{lineno}: {text}", file=sys.stderr)
+    print("hint: add 'Reason: ...' to the same line or a following line before the next checkbox.", file=sys.stderr)
+    raise SystemExit(1)
+
 normalize_checklist_strikethrough(lines)
+validate_checklist_reasons(lines)
 
 patched_status = False
 patched_pr = False

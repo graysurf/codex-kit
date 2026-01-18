@@ -31,7 +31,8 @@ Exit codes:
 
 Failure modes:
 
-- Unchecked checklist items missing `Reason:` (fail-fast).
+- Deferred checklist items missing `Reason:` (fail-fast).
+- Unchecked checklist items containing invalid `~~` (fail-fast; must be full-line `- [ ] ~~...~~`).
 - Progress file cannot be located or moved (path mismatch, conflicts).
 - PR merge blocked (draft/checks failing/permissions).
 - PR is not progress-tracked (`## Progress` is `None` or missing); use `close-feature-pr` instead.
@@ -71,10 +72,10 @@ If the progress file includes a `Links -> Planning PR` entry, ensure that planni
      - `rg -n --fixed-string "$pr_url" docs/progress -S`
 4. Finalize progress
    - Update the progress file:
-     - Fail-fast if any unchecked checklist item under `## Steps (Checklist)` is not explicitly deferred (excluding Step 4 “Release / wrap-up”)
+     - Auto-defer unchecked checklist items under `## Steps (Checklist)` by marking them `~~...~~` (excluding Step 4 “Release / wrap-up”)
        - Pass: `- [x] ...`
-       - Pass (requires `Reason:`): `- [ ] ~~...~~`
-       - Fail: `- [ ] ...` (unstruck)
+       - Auto-fix: `- [ ] ...` → `- [ ] ~~...~~`
+       - Fail: unchecked item contains `~~` but is not full-line `- [ ] ~~...~~`
      - For intentionally deferred / not-do items (Steps 0–3), keep the checkbox unchecked, include an explicit `Reason:`, and mark the item text with Markdown strikethrough (use `- [ ] ~~like this~~`)
      - Set Status to `DONE`
      - Update the `Updated` date to today
