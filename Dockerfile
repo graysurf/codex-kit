@@ -59,10 +59,9 @@ RUN git clone "${CODEX_KIT_REPO}" /opt/codex-kit \
 ENV ZSH_KIT_DIR="/opt/zsh-kit"
 ENV CODEX_KIT_DIR="/opt/codex-kit"
 ENV ZDOTDIR="/opt/zsh-kit"
+ENV ZSH_FEATURES="codex,opencode"
 ENV HOME="/home/codex"
 ENV CODEX_HOME="/home/codex/.codex"
-ENV CODEX_COMMANDS_PATH="/home/codex/.codex/commands"
-ENV ZSH_FEATURES="codex,opencode"
 
 COPY docker/codex-env/ /opt/codex-env/
 
