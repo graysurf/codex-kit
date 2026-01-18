@@ -142,7 +142,7 @@ Findings:
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr will auto-wrap the item text with Markdown strikethrough (use `- [ ] ~~like this~~`).
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
     - [x] Confirm target runtime: Ubuntu Server (Docker Engine, headless) with macOS VS Code tunnel access; support native Linux hosts (amd64/arm64).
     - [x] Decide repository layout for Docker assets: repo-root `Dockerfile` + `docker-compose.yml`; keep helper scripts/docs under `docker/codex-env/`.
@@ -177,37 +177,42 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - `docker/codex-env/README.md` (planned) describing decisions and usage
     - Implementation PR: https://github.com/graysurf/codex-kit/pull/59
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned: reviewed in this progress doc.
-    - [ ] Data flow and I/O contract are defined: container inputs/outputs/volumes/build args documented here.
-    - [ ] Risks and mitigation plan are defined: captured above, with explicit “what to do when brew fails” policy.
-    - [ ] Minimal reproducible verification commands are defined: see Step 1/3 exit criteria.
+    - [x] Requirements, scope, and acceptance criteria are aligned: reviewed in this progress doc.
+    - [x] Data flow and I/O contract are defined: container inputs/outputs/volumes/build args documented here.
+    - [x] Risks and mitigation plan are defined: captured above, with explicit “what to do when brew fails” policy.
+    - [x] Minimal reproducible verification commands are defined: see Step 1/3 exit criteria.
 - [ ] Step 1: Minimum viable output (MVP)
+  - Reason: Pending interactive shell + smoke verification outputs from container.
   - Work Items:
-    - [ ] Add `Dockerfile` at repo root (Ubuntu base + apt bootstrap).
-    - [ ] Use root user by default; optionally add a non-root user (`dev`) if needed later.
-    - [ ] Install Linuxbrew and ensure brew is on `PATH` for login shells.
-    - [ ] Install required + optional CLI tools from `tools.list` and `tools.optional.list` by default.
+    - [x] Add `Dockerfile` at repo root (Ubuntu base + apt bootstrap).
+    - [x] Use root user by default; optionally add a non-root user (`dev`) if needed later.
+    - [x] Install Linuxbrew and ensure brew is on `PATH` for login shells.
+    - [x] Install required + optional CLI tools from `tools.list` and `tools.optional.list` by default.
       - Preferred: reuse `zsh-kit` installer logic (clone `zsh-kit`, run its installer in a non-interactive mode).
       - Ensure Docker build does not hang on confirmation prompts (add a non-interactive path if needed).
-    - [ ] Add minimal runtime wiring:
+    - [x] Add minimal runtime wiring:
       - `WORKDIR` default (e.g. `/work`)
       - container starts into `zsh -l` (or a small entrypoint that execs it)
-    - [ ] Add `docker-compose.yml` with:
+    - [x] Add `docker-compose.yml` with:
       - bind mount workspace(s)
       - named volume(s) for `HOME` and `CODEX_HOME`
       - no extra hardening flags (per Step 0 decision)
     - [ ] Install Codex CLI in the container (exact mechanism TBD in Step 0) and validate it starts.
-    - [ ] Create a minimal `docker/codex-env/README.md` with TL;DR commands.
+      - Reason: Pending `codex --version` output.
+    - [x] Create a minimal `docker/codex-env/README.md` with TL;DR commands.
   - Artifacts:
     - `Dockerfile`
     - `docker-compose.yml`
     - `docker/codex-env/README.md`
   - Exit Criteria:
-    - [ ] Image builds: `docker build -f Dockerfile -t codex-env:linuxbrew .`
+    - [x] Image builds: `docker build -f Dockerfile -t codex-env:linuxbrew .`
     - [ ] Interactive shell works: `docker run --rm -it codex-env:linuxbrew zsh -l`
+      - Reason: Pending explicit interactive shell output.
     - [ ] Tools on PATH (example smoke): `zsh -lic 'rg --version && fd --version && fzf --version && gh --version && jq --version && codex --version && opencode --version && gemini --version && psql --version && mysql --version && sqlcmd --help'`
+      - Reason: Pending smoke command output.
     - [ ] `codex --version` works in-container (auth may still be TBD if using per-env volumes).
-    - [ ] Docs include the exact build/run commands and required mounts.
+      - Reason: Pending `codex --version` output.
+    - [x] Docs include the exact build/run commands and required mounts.
 - [ ] Step 2: Expansion / integration
   - Work Items:
     - [ ] Add explicit opt-out for optional tools (default is required + optional):

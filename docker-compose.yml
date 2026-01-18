@@ -1,0 +1,27 @@
+services:
+  codex-env:
+    image: codex-env:linuxbrew
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ZSH_KIT_REF: ${ZSH_KIT_REF:-main}
+        CODEX_KIT_REF: ${CODEX_KIT_REF:-main}
+        INSTALL_TOOLS: ${INSTALL_TOOLS:-1}
+        INSTALL_OPTIONAL_TOOLS: ${INSTALL_OPTIONAL_TOOLS:-1}
+        INSTALL_VSCODE: ${INSTALL_VSCODE:-1}
+    environment:
+      HOME: /home/dev
+      CODEX_HOME: /home/dev/.codex
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - ${WORKSPACE_DIR:-.}:/work
+      - codex-home:/home/dev
+      - codex-codex-home:/home/dev/.codex
+    working_dir: /work
+    tty: true
+    stdin_open: true
+
+volumes:
+  codex-home:
+  codex-codex-home:

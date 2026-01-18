@@ -7,7 +7,7 @@ ARG ZSH_KIT_REPO="https://github.com/graysurf/zsh-kit.git"
 ARG ZSH_KIT_REF="main"
 ARG CODEX_KIT_REPO="https://github.com/graysurf/codex-kit.git"
 ARG CODEX_KIT_REF="main"
-ARG INSTALL_TOOLS="0"
+ARG INSTALL_TOOLS="1"
 ARG INSTALL_OPTIONAL_TOOLS="1"
 ARG INSTALL_VSCODE="1"
 
@@ -36,8 +36,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /usr/bin/zsh dev \
   && echo "dev ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/dev \
   && chmod 0440 /etc/sudoers.d/dev \
-  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env \
-  && chown -R dev:dev /opt/zsh-kit /opt/codex-kit /opt/codex-env
+  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/dev/.codex \
+  && chown -R dev:dev /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/dev
 
 USER dev
 
@@ -55,17 +55,25 @@ RUN git clone "${ZSH_KIT_REPO}" /opt/zsh-kit \
 RUN git clone "${CODEX_KIT_REPO}" /opt/codex-kit \
   && (cd /opt/codex-kit && git checkout "${CODEX_KIT_REF}")
 
+ENV ZSH_KIT_DIR="/opt/zsh-kit"
+ENV CODEX_KIT_DIR="/opt/codex-kit"
 ENV ZDOTDIR="/opt/zsh-kit"
-ENV CODEX_HOME="/opt/codex-kit"
+ENV HOME="/home/dev"
+ENV CODEX_HOME="/home/dev/.codex"
 
-COPY --chown=dev:dev docker/codex-env/ /opt/codex-env/
+COPY docker/codex-env/ /opt/codex-env/
 
+USER root
 RUN chmod +x /opt/codex-env/bin/*.sh
+USER dev
 
 RUN if [[ "${INSTALL_TOOLS}" == "1" ]]; then \
     INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS}" INSTALL_VSCODE="${INSTALL_VSCODE}" /opt/codex-env/bin/install-tools.sh; \
   fi
 
+USER root
+
 WORKDIR /work
 
+ENTRYPOINT ["/opt/codex-env/bin/entrypoint.sh"]
 CMD ["zsh", "-l"]
