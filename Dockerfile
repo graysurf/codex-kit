@@ -57,8 +57,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /usr/bin/zsh codex \
   && echo "codex ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/codex \
   && chmod 0440 /etc/sudoers.d/codex \
-  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex/.codex \
-  && chown -R codex:codex /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex
+  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex/.codex /home/linuxbrew/.linuxbrew \
+  && chown -R codex:codex /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex /home/linuxbrew
 
 USER codex
 
