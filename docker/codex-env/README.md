@@ -68,6 +68,11 @@ Prereqs:
 - `docker login` already completed.
 - Local image exists: `codex-env:linuxbrew`.
 
+CI publish (auto):
+- GitHub Actions workflow: `Publish codex-env image (Docker Hub)` (runs on `main`).
+- Requires repo secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
+- Publishes: `graysurf/codex-env:{linuxbrew,latest,sha-<short>}`.
+
 Tag and push:
 
 ```sh
