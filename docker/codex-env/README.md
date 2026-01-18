@@ -121,8 +121,7 @@ docker compose exec -it codex-env zsh -lic 'codex-use personal'
 ```
 
 Notes:
-- The secrets directory should be writable because `codex-use` syncs current auth back to secrets.
-- If you want read-only secrets, delete `$CODEX_AUTH_FILE` before switching profiles.
+- The secrets directory is mounted read-write by default because `codex-use` syncs auth back to secrets.
 
 ## Compose (recommended)
 
