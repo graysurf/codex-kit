@@ -5,6 +5,8 @@ DEFAULT_IMAGE="${CODEX_ENV_IMAGE:-graysurf/codex-env:linuxbrew}"
 WORKSPACE_PREFIX="${CODEX_WORKSPACE_PREFIX:-codex-ws}"
 DEFAULT_GITHUB_HOST="${GITHUB_HOST:-github.com}"
 DEFAULT_SECRETS_DIR="${CODEX_SECRET_DIR_HOST:-$HOME/.config/zsh/scripts/_features/codex/secrets}"
+DEFAULT_CONFIG_DIR="${CODEX_CONFIG_DIR_HOST:-}"
+DEFAULT_PRIVATE_DIR="${CODEX_ZSH_PRIVATE_DIR_HOST:-}"
 
 usage() {
   cat <<'EOF'
@@ -13,6 +15,9 @@ codex-workspace: start isolated Codex workspaces from a git repo input.
 Usage:
   codex-workspace up <repo> [--name <name>] [--image <image>] [--no-pull]
                     [--ref <git-ref>] [--dir <path>]
+                    [--config-dir <host-path>]
+                    [--private-dir <host-path>]
+                    [--persist-gh-token] [--setup-git]
                     [--secrets-dir <host-path>] [--no-secrets]
                     [--codex-profile <profile>]
                     [--tunnel] [--tunnel-detach]
@@ -27,10 +32,13 @@ Defaults:
   --image:       graysurf/codex-env:linuxbrew  (or $CODEX_ENV_IMAGE)
   workspace name: derived from <repo> + timestamp
   secrets dir:   $CODEX_SECRET_DIR_HOST or $HOME/.config/zsh/scripts/_features/codex/secrets (mounted :rw when present)
+  config dir:    $CODEX_CONFIG_DIR_HOST (mounted to /home/codex/.config as :ro when provided)
+  private dir:   $CODEX_ZSH_PRIVATE_DIR_HOST (mounted to /opt/zsh-kit/.private as :ro when provided)
 
 Notes:
   - Repo is cloned into a Docker named volume mounted at /work (no host workspace bind mount).
   - For private repos, export GH_TOKEN (or GITHUB_TOKEN) on the host before running `up`.
+  - For persistent in-container git auth, use `--persist-gh-token --setup-git` (tokens become container env).
   - `codex-use` integration requires mounting the secrets dir and running with zsh login shell.
 EOF
 }
@@ -46,6 +54,13 @@ warn() {
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+}
+
+need_host_dir() {
+  local label="$1"
+  local path="$2"
+  [[ -n "$path" ]] || die "missing ${label} path"
+  [[ -d "$path" ]] || die "${label} dir not found: $path"
 }
 
 slugify() {
@@ -133,6 +148,38 @@ volume_names() {
   echo "${container}-work" "${container}-home" "${container}-codex-home"
 }
 
+setup_git_auth() {
+  local container="$1"
+  local host="$2"
+
+  docker exec "$container" bash -lc 'command -v git >/dev/null 2>&1' || return 0
+
+  if docker exec "$container" bash -lc 'command -v gh >/dev/null 2>&1'; then
+    if docker exec "$container" bash -lc '[[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]'; then
+      if docker exec "$container" bash -lc 'gh auth setup-git --hostname "$1" --force' -- "$host" >/dev/null 2>&1; then
+        return 0
+      fi
+      if docker exec "$container" bash -lc 'gh auth setup-git --hostname "$1"' -- "$host" >/dev/null 2>&1; then
+        return 0
+      fi
+    fi
+  fi
+
+  # Fallback: use an env-based credential helper (requires GH_TOKEN/GITHUB_TOKEN present in the container env).
+  if docker exec "$container" bash -lc '[[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]'; then
+    docker exec "$container" bash -lc '
+      set -euo pipefail
+      host="$1"
+      url="https://${host}"
+      git config --global "credential.${url}.helper" \
+        "!f() { echo username=x-access-token; echo password=\${GH_TOKEN:-\${GITHUB_TOKEN:-}}; }; f"
+    ' -- "$host" >/dev/null
+    return 0
+  fi
+
+  return 0
+}
+
 workspace_up() {
   local repo_input="$1"
   shift
@@ -142,11 +189,15 @@ workspace_up() {
   local pull="1"
   local repo_ref=""
   local repo_dir=""
+  local config_dir="$DEFAULT_CONFIG_DIR"
+  local private_dir="$DEFAULT_PRIVATE_DIR"
   local use_secrets="1"
   local secrets_dir="$DEFAULT_SECRETS_DIR"
   local codex_profile=""
   local start_tunnel="0"
   local tunnel_detach="0"
+  local persist_gh_token="0"
+  local setup_git="0"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -160,6 +211,14 @@ workspace_up() {
         repo_ref="${2:-}"; shift 2 ;;
       --dir)
         repo_dir="${2:-}"; shift 2 ;;
+      --config-dir)
+        config_dir="${2:-}"; shift 2 ;;
+      --private-dir)
+        private_dir="${2:-}"; shift 2 ;;
+      --persist-gh-token)
+        persist_gh_token="1"; shift ;;
+      --setup-git)
+        setup_git="1"; shift ;;
       --secrets-dir)
         secrets_dir="${2:-}"; shift 2 ;;
       --no-secrets)
@@ -199,10 +258,32 @@ workspace_up() {
   local vol_work vol_home vol_codex
   read -r vol_work vol_home vol_codex < <(volume_names "$container")
 
+  if [[ -n "$config_dir" ]]; then
+    need_host_dir "config" "$config_dir"
+  fi
+
+  if [[ -z "$private_dir" && -n "$config_dir" && -d "${config_dir%/}/zsh/.private" ]]; then
+    private_dir="${config_dir%/}/zsh/.private"
+  fi
+  if [[ -n "$private_dir" ]]; then
+    need_host_dir "private" "$private_dir"
+  fi
+
+  local gh_token="${GH_TOKEN:-}"
+  local github_token="${GITHUB_TOKEN:-}"
+
+  if [[ "$setup_git" == "1" && -n "${gh_token}${github_token}" ]]; then
+    persist_gh_token="1"
+  fi
+
   ensure_image "$image" "$pull"
 
   if container_exists "$container"; then
     echo "workspace exists: $container"
+    if [[ -n "$config_dir" || -n "$private_dir" || "$persist_gh_token" == "1" || "$setup_git" == "1" ]]; then
+      warn "workspace already exists; mounts/env cannot be changed after creation"
+      warn "if you need new mounts/env, run: $(basename "$0") rm ${container} --volumes && re-run up"
+    fi
     ensure_container_running "$container"
   else
     local run_args=(
@@ -218,6 +299,19 @@ workspace_up() {
       -v "${vol_codex}:/home/codex/.codex"
       -w /work
     )
+
+    if [[ -n "$config_dir" ]]; then
+      run_args+=( -v "${config_dir}:/home/codex/.config:ro" )
+    fi
+
+    if [[ -n "$private_dir" ]]; then
+      run_args+=( -v "${private_dir}:/opt/zsh-kit/.private:ro" )
+    fi
+
+    if [[ "$persist_gh_token" == "1" ]]; then
+      [[ -n "$gh_token" ]] && run_args+=( -e "GH_TOKEN=$gh_token" )
+      [[ -n "$github_token" ]] && run_args+=( -e "GITHUB_TOKEN=$github_token" )
+    fi
 
     if [[ "$use_secrets" == "1" && -n "$secrets_dir" && -d "$secrets_dir" ]]; then
       run_args+=( -v "${secrets_dir}:/opt/zsh-kit/scripts/_features/codex/secrets:rw" )
@@ -242,8 +336,6 @@ workspace_up() {
     echo "+ clone $owner_repo -> $repo_dir"
     docker exec "$container" mkdir -p "$(dirname "$repo_dir")"
 
-    local gh_token="${GH_TOKEN:-}"
-    local github_token="${GITHUB_TOKEN:-}"
     local token_env=()
     [[ -n "$gh_token" ]] && token_env+=( -e "GH_TOKEN=$gh_token" )
     [[ -n "$github_token" ]] && token_env+=( -e "GITHUB_TOKEN=$github_token" )
@@ -281,6 +373,14 @@ EOF
         die "git clone failed; if this repo is private, export GH_TOKEN or GITHUB_TOKEN on the host"
       fi
       die "git clone failed; verify GH_TOKEN/GITHUB_TOKEN scopes and repo access"
+    fi
+  fi
+
+  if [[ "$setup_git" == "1" ]]; then
+    if setup_git_auth "$container" "$host"; then
+      :
+    else
+      warn "failed to configure git auth; git may prompt for credentials"
     fi
   fi
 

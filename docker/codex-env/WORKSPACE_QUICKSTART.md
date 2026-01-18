@@ -12,7 +12,7 @@ For private repos, export a token on the host before running `up`:
 
 ```sh
 export GH_TOKEN=your_token
-./docker/codex-env/bin/codex-workspace up graysurf/codex-kit --name codex-kit
+./docker/codex-env/bin/codex-workspace up graysurf/codex-kit --name codex-kit --persist-gh-token --setup-git
 ```
 
 Find workspace names later:

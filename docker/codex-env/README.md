@@ -115,6 +115,17 @@ export GH_TOKEN=your_token
 ./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git
 ```
 
+Persist token-based git auth (so `git fetch/push` inside the workspace does not prompt):
+
+```sh
+export GH_TOKEN=your_token
+./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git --persist-gh-token --setup-git
+```
+
+Notes:
+- `--persist-gh-token` injects `GH_TOKEN`/`GITHUB_TOKEN` into the container environment (visible via `docker inspect`).
+- `--setup-git` runs `gh auth setup-git` (or a fallback credential helper) inside the workspace.
+
 Codex profiles (`codex-use`):
 
 - Auto (during `up`): `./docker/codex-env/bin/codex-workspace up <repo> --codex-profile personal`
@@ -123,6 +134,8 @@ Codex profiles (`codex-use`):
 Notes:
 - `codex-workspace up` mounts `$CODEX_SECRET_DIR_HOST` (or `$HOME/.config/zsh/scripts/_features/codex/secrets` when present) into the container at `/opt/zsh-kit/scripts/_features/codex/secrets` as `:rw`.
 - If you do not want to mount secrets, pass `--no-secrets`.
+- To mount the host `~/.config` directory read-only into the workspace, use `--config-dir "$HOME/.config"` (or set `CODEX_CONFIG_DIR_HOST`).
+- If `--config-dir` is set and `$HOME/.config/zsh/.private` exists, it is auto-mounted into `/opt/zsh-kit/.private` (zsh-kit private scripts).
 
 Start a VS Code tunnel (macOS client attaches via VS Code Tunnels):
 
