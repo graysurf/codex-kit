@@ -38,11 +38,29 @@ Start the tunnel:
 ./docker/codex-env/bin/codex-workspace tunnel codex-kit --detach
 ```
 
-If prompted, complete the device login inside the container:
+If this is your first run, you need to complete GitHub device login.
+
+When using `--detach`, the device code is written to the tunnel log. Tail the log and follow the URL:
+
+```sh
+docker exec -it codex-ws-codex-kit bash -lc 'tail -f /home/codex/.codex-env/logs/code-tunnel.log'
+```
+
+Alternatively, print a new device code by running the login command:
 
 ```sh
 docker exec -it codex-ws-codex-kit code tunnel user login --provider github
 ```
+
+Tip: the command/log will show a code like `ABCD-EFGH` — enter that code at https://github.com/login/device (you do not paste it back into the terminal).
+
+Verify the tunnel is connected (expected: `"tunnel":"Connected"` and `"name":"codex-kit"`):
+
+```sh
+docker exec -it codex-ws-codex-kit code tunnel status
+```
+
+Note: the first VS Code connection may take a few minutes while the VS Code Server is downloaded inside the container (you may see "Downloading VS Code Server...").
 
 Connect from VS Code:
 

@@ -487,8 +487,10 @@ workspace_tunnel() {
   local tunnel_name="${container#${WORKSPACE_PREFIX}-}"
   local log_path="/home/codex/.codex-env/logs/code-tunnel.log"
 
-  if docker exec "$container" bash -lc "pgrep -fa \"[c]ode tunnel\" >/dev/null 2>&1"; then
+  if docker exec "$container" bash -lc "pgrep -fa \"[c]ode-tunnel tunnel|[c]ode tunnel\" >/dev/null 2>&1"; then
     warn "code tunnel already running in $container"
+    echo "status:"
+    docker exec "$container" bash -lc "code tunnel status 2>/dev/null || true"
     echo "log: $log_path"
     echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
     return 0
@@ -498,6 +500,9 @@ workspace_tunnel() {
     docker exec "$container" bash -lc "mkdir -p \"\$(dirname \"$log_path\")\" && : >\"$log_path\""
     docker exec -d "$container" bash -lc "code tunnel --accept-server-license-terms --name \"$tunnel_name\" >\"$log_path\" 2>&1"
     echo "started: code tunnel ($tunnel_name) in $container"
+    echo "status:"
+    sleep 1
+    docker exec "$container" bash -lc "code tunnel status 2>/dev/null || true"
     echo "log: $log_path"
     echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
     return 0
