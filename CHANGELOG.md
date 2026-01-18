@@ -5,14 +5,19 @@ All notable changes to this project will be documented in this file.
 ## v1.3.1 - 2026-01-18
 
 ### Added
-- Docker codex env docs: root Dockerfile/compose usage, publish guide, and local override compose.
-- Root README link to the Docker environment docs.
+- Docker codex env (Ubuntu 24.04): root `Dockerfile` + compose, tool install scripts, and compose overlays for secrets/SSH/local overrides.
+- Workspace launcher: `docker/codex-env/bin/codex-workspace` (`up/ls/shell/tunnel/rm`) with `--secrets-mount` support and improved auth/mount flows.
+- Docker codex env docs: `docker/codex-env/README.md` and `docker/codex-env/WORKSPACE_QUICKSTART.md` (plus root README link).
+- Git commit context JSON: new `commands/git-commit-context-json` wrapper and `git-tools` JSON output support.
+- `close-progress-pr`: auto-defer unchecked checklist items and enforce deferred checklist formatting.
 
 ### Changed
-- None.
+- Docker env: clean up environment variables; add `CODEX_AUTH_FILE` config; default `CODEX_COMMANDS_PATH` and `ZSH_FEATURES`.
+- `semantic-commit`: staged context now outputs a JSON + patch bundle and falls back to `git diff --staged` when wrappers are unavailable.
+- Progress templates: clarify that unchecked Step 0–3 items must be struck with `Reason:` (Step 4 excluded).
 
 ### Fixed
-- None.
+- Shell style fixer: preserve initializer handling in `scripts/fix-zsh-typeset-initializers.zsh`.
 
 ## v1.3.0 - 2026-01-17
 
