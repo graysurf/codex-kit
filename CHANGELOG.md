@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.3.1 - 2026-01-18
+
+### Added
+- Docker codex env docs: root Dockerfile/compose usage, publish guide, and local override compose.
+- Root README link to the Docker environment docs.
+
+### Changed
+- None.
+
+### Fixed
+- None.
+
 ## v1.3.0 - 2026-01-17
 
 ### Added

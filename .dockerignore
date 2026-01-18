@@ -1,0 +1,20 @@
+# Secrets / local state
+auth.json
+config.toml
+history.jsonl
+sessions/
+
+# Virtualenv / env
+.venv/
+.env
+.env.*
+
+# Logs / outputs
+log/
+out/
+tmp/
+
+# OS / editor
+.DS_Store
+.vscode/
+

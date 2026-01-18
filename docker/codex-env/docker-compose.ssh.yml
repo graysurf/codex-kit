@@ -1,0 +1,7 @@
+services:
+  codex-env:
+    environment:
+      SSH_AUTH_SOCK: /ssh-agent
+    volumes:
+      - ${SSH_AUTH_SOCK:?Set SSH_AUTH_SOCK}:/ssh-agent
+      - ${SSH_KNOWN_HOSTS_PATH:?Set SSH_KNOWN_HOSTS_PATH}:/home/codex/.ssh/known_hosts:ro

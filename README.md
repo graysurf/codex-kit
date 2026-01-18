@@ -31,6 +31,10 @@ Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools 
 export PROJECT_PATH="$PWD"
 ```
 
+## 🐳 Docker environment
+
+See `docker/codex-env/README.md` for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
+
 ## 🧰 Prompts
 
 ### Common
