@@ -33,7 +33,7 @@ export PROJECT_PATH="$PWD"
 
 ## 🐳 Docker environment
 
-See `docker/codex-env/README.md` for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
+See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
 
 ## 🧰 Prompts
 
