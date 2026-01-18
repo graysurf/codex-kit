@@ -1,0 +1,464 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DEFAULT_IMAGE="${CODEX_ENV_IMAGE:-graysurf/codex-env:linuxbrew}"
+WORKSPACE_PREFIX="${CODEX_WORKSPACE_PREFIX:-codex-ws}"
+DEFAULT_GITHUB_HOST="${GITHUB_HOST:-github.com}"
+DEFAULT_SECRETS_DIR="${CODEX_SECRET_DIR_HOST:-$HOME/.config/zsh/scripts/_features/codex/secrets}"
+
+usage() {
+  cat <<'EOF'
+codex-workspace: start isolated Codex workspaces from a git repo input.
+
+Usage:
+  codex-workspace up <repo> [--name <name>] [--image <image>] [--no-pull]
+                    [--ref <git-ref>] [--dir <path>]
+                    [--secrets-dir <host-path>] [--no-secrets]
+                    [--codex-profile <profile>]
+                    [--tunnel] [--tunnel-detach]
+  codex-workspace shell <name>
+  codex-workspace tunnel <name> [--detach]
+  codex-workspace ls
+  codex-workspace start <name>
+  codex-workspace stop <name>
+  codex-workspace rm <name> [--volumes]
+
+Defaults:
+  --image:       graysurf/codex-env:linuxbrew  (or $CODEX_ENV_IMAGE)
+  workspace name: derived from <repo> + timestamp
+  secrets dir:   $CODEX_SECRET_DIR_HOST or $HOME/.config/zsh/scripts/_features/codex/secrets (mounted :rw when present)
+
+Notes:
+  - Repo is cloned into a Docker named volume mounted at /work (no host workspace bind mount).
+  - For private repos, export GH_TOKEN (or GITHUB_TOKEN) on the host before running `up`.
+  - `codex-use` integration requires mounting the secrets dir and running with zsh login shell.
+EOF
+}
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+warn() {
+  echo "warn: $*" >&2
+}
+
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+}
+
+slugify() {
+  printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g'
+}
+
+timestamp() {
+  date +"%Y%m%d-%H%M%S"
+}
+
+normalize_container_name() {
+  local name="$1"
+  if [[ "$name" == "${WORKSPACE_PREFIX}-"* ]]; then
+    echo "$name"
+  else
+    echo "${WORKSPACE_PREFIX}-${name}"
+  fi
+}
+
+parse_repo() {
+  local input="$1"
+  local host="" owner="" repo=""
+
+  if [[ "$input" =~ ^git@([^:]+):([^/]+)/([^/]+)(\.git)?$ ]]; then
+    host="${BASH_REMATCH[1]}"
+    owner="${BASH_REMATCH[2]}"
+    repo="${BASH_REMATCH[3]}"
+  elif [[ "$input" =~ ^ssh://git@([^/]+)/([^/]+)/([^/]+)(\.git)?$ ]]; then
+    host="${BASH_REMATCH[1]}"
+    owner="${BASH_REMATCH[2]}"
+    repo="${BASH_REMATCH[3]}"
+  elif [[ "$input" =~ ^https?://([^/]+)/([^/]+)/([^/]+)(\.git)?/?$ ]]; then
+    host="${BASH_REMATCH[1]}"
+    owner="${BASH_REMATCH[2]}"
+    repo="${BASH_REMATCH[3]}"
+  elif [[ "$input" =~ ^([^/]+)/([^/]+)$ ]]; then
+    host="$DEFAULT_GITHUB_HOST"
+    owner="${BASH_REMATCH[1]}"
+    repo="${BASH_REMATCH[2]}"
+  else
+    die "unsupported repo input: $input (expected: OWNER/REPO, https://..., or git@...:OWNER/REPO.git)"
+  fi
+
+  repo="${repo%.git}"
+  echo "$host" "$owner" "$repo"
+}
+
+ensure_image() {
+  local image="$1"
+  local pull="$2"
+
+  if docker image inspect "$image" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if [[ "$pull" != "1" ]]; then
+    die "image not found locally: $image (re-run without --no-pull)"
+  fi
+
+  echo "+ docker pull $image"
+  docker pull "$image"
+}
+
+container_exists() {
+  docker inspect "$1" >/dev/null 2>&1
+}
+
+container_running() {
+  [[ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null || true)" == "true" ]]
+}
+
+ensure_container_running() {
+  local container="$1"
+  if ! container_exists "$container"; then
+    die "workspace not found: $container"
+  fi
+  if ! container_running "$container"; then
+    echo "+ docker start $container"
+    docker start "$container" >/dev/null
+  fi
+}
+
+volume_names() {
+  local container="$1"
+  echo "${container}-work" "${container}-home" "${container}-codex-home"
+}
+
+workspace_up() {
+  local repo_input="$1"
+  shift
+
+  local image="$DEFAULT_IMAGE"
+  local ws_name=""
+  local pull="1"
+  local repo_ref=""
+  local repo_dir=""
+  local use_secrets="1"
+  local secrets_dir="$DEFAULT_SECRETS_DIR"
+  local codex_profile=""
+  local start_tunnel="0"
+  local tunnel_detach="0"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --name)
+        ws_name="${2:-}"; shift 2 ;;
+      --image)
+        image="${2:-}"; shift 2 ;;
+      --no-pull)
+        pull="0"; shift ;;
+      --ref)
+        repo_ref="${2:-}"; shift 2 ;;
+      --dir)
+        repo_dir="${2:-}"; shift 2 ;;
+      --secrets-dir)
+        secrets_dir="${2:-}"; shift 2 ;;
+      --no-secrets)
+        use_secrets="0"; shift ;;
+      --codex-profile)
+        codex_profile="${2:-}"; shift 2 ;;
+      --tunnel)
+        start_tunnel="1"; shift ;;
+      --tunnel-detach)
+        start_tunnel="1"; tunnel_detach="1"; shift ;;
+      -h|--help)
+        usage; exit 0 ;;
+      *)
+        die "unknown flag: $1" ;;
+    esac
+  done
+
+  local host owner repo
+  read -r host owner repo < <(parse_repo "$repo_input")
+
+  local owner_repo="${owner}/${repo}"
+  local clone_url="https://${host}/${owner}/${repo}.git"
+  local ts
+  ts="$(timestamp)"
+
+  if [[ -z "$ws_name" ]]; then
+    ws_name="$(slugify "${owner}-${repo}-${ts}")"
+  else
+    ws_name="$(slugify "$ws_name")"
+  fi
+
+  [[ -n "$ws_name" ]] || die "invalid workspace name"
+
+  local container
+  container="$(normalize_container_name "$ws_name")"
+
+  local vol_work vol_home vol_codex
+  read -r vol_work vol_home vol_codex < <(volume_names "$container")
+
+  ensure_image "$image" "$pull"
+
+  if container_exists "$container"; then
+    echo "workspace exists: $container"
+    ensure_container_running "$container"
+  else
+    local run_args=(
+      -d
+      --name "$container"
+      --label "codex-kit.workspace=1"
+      --label "codex-kit.repo=$owner_repo"
+      --label "codex-kit.created-at=$ts"
+      -e "HOME=/home/codex"
+      -e "CODEX_HOME=/home/codex/.codex"
+      -v "${vol_work}:/work"
+      -v "${vol_home}:/home/codex"
+      -v "${vol_codex}:/home/codex/.codex"
+      -w /work
+    )
+
+    if [[ "$use_secrets" == "1" && -n "$secrets_dir" && -d "$secrets_dir" ]]; then
+      run_args+=( -v "${secrets_dir}:/opt/zsh-kit/scripts/_features/codex/secrets:rw" )
+    elif [[ -n "$codex_profile" ]]; then
+      die "--codex-profile requires a secrets dir mount (set --secrets-dir or CODEX_SECRET_DIR_HOST)"
+    fi
+
+    echo "+ docker run ${container}"
+    docker run "${run_args[@]}" "$image" sleep infinity >/dev/null
+  fi
+
+  # Ensure /work is writable for the default user even when backed by a fresh named volume.
+  docker exec -u root "$container" bash -lc 'mkdir -p /work && chown -R codex:codex /work' >/dev/null
+
+  if [[ -z "$repo_dir" ]]; then
+    repo_dir="/work/${owner}/${repo}"
+  fi
+
+  if docker exec "$container" test -d "${repo_dir%/}/.git"; then
+    echo "repo already present: $repo_dir"
+  else
+    echo "+ clone $owner_repo -> $repo_dir"
+    docker exec "$container" mkdir -p "$(dirname "$repo_dir")"
+
+    local gh_token="${GH_TOKEN:-}"
+    local github_token="${GITHUB_TOKEN:-}"
+    local token_env=()
+    [[ -n "$gh_token" ]] && token_env+=( -e "GH_TOKEN=$gh_token" )
+    [[ -n "$github_token" ]] && token_env+=( -e "GITHUB_TOKEN=$github_token" )
+
+    if ! docker exec "${token_env[@]}" "$container" bash -lc '
+      set -euo pipefail
+      repo_url="$1"
+      dest="$2"
+      ref="${3-}"
+
+      mkdir -p "$(dirname "$dest")"
+
+      if [[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
+        askpass="/tmp/codex-workspace-git-askpass"
+        cat >"$askpass" <<EOF
+#!/usr/bin/env bash
+case "\${1-}" in
+  *Username*) echo "x-access-token" ;;
+  *Password*) echo "\${GH_TOKEN:-\${GITHUB_TOKEN:-}}" ;;
+  *) echo "" ;;
+esac
+EOF
+        chmod 700 "$askpass"
+        GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$askpass" git clone "$repo_url" "$dest"
+        rm -f "$askpass"
+      else
+        GIT_TERMINAL_PROMPT=0 git clone "$repo_url" "$dest"
+      fi
+
+      if [[ -n "$ref" ]]; then
+        git -C "$dest" checkout "$ref"
+      fi
+    ' -- "$clone_url" "$repo_dir" "$repo_ref"; then
+      if [[ -z "$gh_token" && -z "$github_token" ]]; then
+        die "git clone failed; if this repo is private, export GH_TOKEN or GITHUB_TOKEN on the host"
+      fi
+      die "git clone failed; verify GH_TOKEN/GITHUB_TOKEN scopes and repo access"
+    fi
+  fi
+
+  if [[ -n "$codex_profile" ]]; then
+    echo "+ codex-use $codex_profile"
+    docker exec "$container" zsh -lic "codex-use ${codex_profile}" >/dev/null
+  fi
+
+  echo
+  echo "git remote -v:"
+  docker exec "$container" git -C "$repo_dir" remote -v
+
+  echo
+  echo "workspace:  $container"
+  echo "repo:       $owner_repo"
+  echo "path:       $repo_dir"
+  echo
+  echo "Next:"
+  echo "  - Shell:   docker exec -it -w /work ${container} zsh -l"
+  echo "  - Tunnel:  $(basename "$0") tunnel ${container}"
+
+  if [[ "$start_tunnel" == "1" ]]; then
+    echo
+    if [[ "$tunnel_detach" == "1" ]]; then
+      workspace_tunnel "$container" --detach
+    else
+      workspace_tunnel "$container"
+    fi
+  fi
+}
+
+workspace_shell() {
+  local name="$1"
+  local container
+  container="$(normalize_container_name "$name")"
+  ensure_container_running "$container"
+  docker exec -it -w /work "$container" zsh -l
+}
+
+workspace_tunnel() {
+  local name="$1"
+  shift
+
+  local container
+  container="$(normalize_container_name "$name")"
+
+  local detach="0"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --detach)
+        detach="1"; shift ;;
+      -h|--help)
+        usage; exit 0 ;;
+      *)
+        die "unknown flag: $1" ;;
+    esac
+  done
+
+  ensure_container_running "$container"
+  docker exec "$container" bash -lc 'command -v code >/dev/null 2>&1' || die "missing 'code' in container (build with INSTALL_VSCODE=1)"
+
+  local tunnel_name="${container#${WORKSPACE_PREFIX}-}"
+  local log_path="/home/codex/.codex-env/logs/code-tunnel.log"
+
+  if docker exec "$container" bash -lc "pgrep -fa \"[c]ode tunnel\" >/dev/null 2>&1"; then
+    warn "code tunnel already running in $container"
+    echo "log: $log_path"
+    echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
+    return 0
+  fi
+
+  if [[ "$detach" == "1" ]]; then
+    docker exec "$container" bash -lc "mkdir -p \"\$(dirname \"$log_path\")\" && : >\"$log_path\""
+    docker exec -d "$container" bash -lc "code tunnel --accept-server-license-terms --name \"$tunnel_name\" >\"$log_path\" 2>&1"
+    echo "started: code tunnel ($tunnel_name) in $container"
+    echo "log: $log_path"
+    echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
+    return 0
+  fi
+
+  echo "Starting VS Code tunnel (name: $tunnel_name)."
+  echo "If this is the first run, follow the device-code login prompts."
+  docker exec -it "$container" code tunnel --accept-server-license-terms --name "$tunnel_name"
+}
+
+workspace_ls() {
+  need_cmd docker
+  docker ps -a --filter "label=codex-kit.workspace=1" --format '{{.Names}}' \
+    | while IFS= read -r c; do
+      [[ -n "$c" ]] || continue
+      repo="$(docker inspect -f '{{ index .Config.Labels "codex-kit.repo" }}' "$c" 2>/dev/null || true)"
+      created="$(docker inspect -f '{{ index .Config.Labels "codex-kit.created-at" }}' "$c" 2>/dev/null || true)"
+      status="$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || true)"
+      printf "%s\t%s\t%s\t%s\n" "$c" "$status" "$repo" "$created"
+    done
+}
+
+workspace_start() {
+  local name="$1"
+  local container
+  container="$(normalize_container_name "$name")"
+  ensure_container_running "$container"
+  echo "started: $container"
+}
+
+workspace_stop() {
+  local name="$1"
+  local container
+  container="$(normalize_container_name "$name")"
+  ensure_container_running "$container"
+  echo "+ docker stop $container"
+  docker stop "$container" >/dev/null
+  echo "stopped: $container"
+}
+
+workspace_rm() {
+  local name="$1"
+  shift
+
+  local container
+  container="$(normalize_container_name "$name")"
+
+  local rm_volumes="0"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --volumes)
+        rm_volumes="1"; shift ;;
+      -h|--help)
+        usage; exit 0 ;;
+      *)
+        die "unknown flag: $1" ;;
+    esac
+  done
+
+  if container_exists "$container"; then
+    echo "+ docker rm -f $container"
+    docker rm -f "$container" >/dev/null
+  else
+    warn "workspace not found: $container"
+  fi
+
+  if [[ "$rm_volumes" == "1" ]]; then
+    read -r vol_work vol_home vol_codex < <(volume_names "$container")
+    docker volume rm "$vol_work" "$vol_home" "$vol_codex" >/dev/null 2>&1 || true
+    echo "volumes removed: $container"
+  fi
+}
+
+main() {
+  need_cmd docker
+
+  local cmd="${1:-}"
+  case "$cmd" in
+    up)
+      [[ $# -ge 2 ]] || die "usage: codex-workspace up <repo> [flags]"
+      workspace_up "$2" "${@:3}" ;;
+    shell)
+      [[ $# -ge 2 ]] || die "usage: codex-workspace shell <name>"
+      workspace_shell "$2" ;;
+    tunnel)
+      [[ $# -ge 2 ]] || die "usage: codex-workspace tunnel <name> [--detach]"
+      workspace_tunnel "$2" "${@:3}" ;;
+    ls)
+      workspace_ls ;;
+    start)
+      [[ $# -ge 2 ]] || die "usage: codex-workspace start <name>"
+      workspace_start "$2" ;;
+    stop)
+      [[ $# -ge 2 ]] || die "usage: codex-workspace stop <name>"
+      workspace_stop "$2" ;;
+    rm)
+      [[ $# -ge 2 ]] || die "usage: codex-workspace rm <name> [--volumes]"
+      workspace_rm "$2" "${@:3}" ;;
+    -h|--help|help|"")
+      usage ;;
+    *)
+      die "unknown command: $cmd" ;;
+  esac
+}
+
+main "$@"

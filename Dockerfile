@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     file \
     git \
+    openssh-client \
     gnupg \
     locales \
     sudo \
@@ -80,6 +81,9 @@ RUN mkdir -p /opt/zsh-kit/cache /opt/zsh-kit/plugins \
   && date +%s > /opt/zsh-kit/cache/plugin.timestamp
 
 USER root
+
+RUN mkdir -p /work \
+  && chown -R codex:codex /work
 
 WORKDIR /work
 

@@ -86,6 +86,63 @@ Verify pull:
 docker pull "${DOCKERHUB_USER}/codex-env:linuxbrew"
 ```
 
+## Workspace launcher (isolated, no host workspace)
+
+`docker-compose.yml` defaults to bind-mounting a host workspace into `/work` (convenient for local iteration).
+If you want a fully isolated workspace that lives only inside Docker (named volumes; no host workspace folder created),
+use the launcher script.
+
+Pull the prebuilt image (skip if you already built locally):
+
+```sh
+docker pull graysurf/codex-env:linuxbrew
+```
+
+If you see `pull access denied`, the image may not be public under that namespace yet. Options:
+- Run `docker login` and retry.
+- Or use your own tag: `./docker/codex-env/bin/codex-workspace up <repo> --image DOCKERHUB_USER/codex-env:linuxbrew`
+
+Start a new workspace from a repo input (supports `git@github.com:...` and normalizes to HTTPS clone):
+
+```sh
+./docker/codex-env/bin/codex-workspace up git@github.com:graysurf/codex-kit.git
+```
+
+Private repos (recommended): export a token on the host before running `up`:
+
+```sh
+export GH_TOKEN=your_token
+./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git
+```
+
+Codex profiles (`codex-use`):
+
+- Auto (during `up`): `./docker/codex-env/bin/codex-workspace up <repo> --codex-profile personal`
+- Manual: `docker exec -it <workspace> zsh -lic 'codex-use personal'`
+
+Notes:
+- `codex-workspace up` mounts `$CODEX_SECRET_DIR_HOST` (or `$HOME/.config/zsh/scripts/_features/codex/secrets` when present) into the container at `/opt/zsh-kit/scripts/_features/codex/secrets` as `:rw`.
+- If you do not want to mount secrets, pass `--no-secrets`.
+
+Start a VS Code tunnel (macOS client attaches via VS Code Tunnels):
+
+```sh
+./docker/codex-env/bin/codex-workspace tunnel <workspace-name-or-container>
+```
+
+Common operations:
+
+```sh
+./docker/codex-env/bin/codex-workspace ls
+./docker/codex-env/bin/codex-workspace shell <workspace-name-or-container>
+./docker/codex-env/bin/codex-workspace stop <workspace-name-or-container>
+./docker/codex-env/bin/codex-workspace rm <workspace-name-or-container> --volumes
+```
+
+SSH cloning:
+
+- `codex-workspace` currently uses HTTPS cloning. If you need SSH agent forwarding, use Compose with `docker/codex-env/docker-compose.ssh.yml`.
+
 ## GitHub auth (token or SSH)
 
 Option A: GitHub token (recommended for `gh`)

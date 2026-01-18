@@ -20,6 +20,7 @@ Links:
 - Provide a Docker-based Codex work environment on Ubuntu Server (Linux host, headless) that mirrors the macOS setup as closely as practical (Linux container + zsh).
 - Install CLI tooling via Linuxbrew from `zsh-kit` tool lists, with explicit apt fallbacks/removals when Linuxbrew lacks a package.
 - Support running multiple isolated environments concurrently (separate `HOME`/`CODEX_HOME` state per environment).
+- Provide a host-invoked “workspace launcher” workflow that can start a fresh container, clone a target repo, and (optionally) start a VS Code tunnel for remote development.
 - Keep secrets and mutable state out of the image (inject via volumes/env at runtime).
 
 ## Acceptance Criteria
@@ -31,6 +32,7 @@ Links:
 - Two environments can run concurrently and do not share mutable state (verify via distinct named volumes for `HOME` and `CODEX_HOME`).
 - Codex CLI is runnable in-container (`codex --version`), with auth/state stored outside the image (volume or env-based).
 - macOS VS Code can tunnel/attach to the container on the Ubuntu Server host (no Docker Desktop required).
+- A host-side workspace launcher can start an isolated workspace from a git repo input (including `git@github.com:...`), clone the repo inside the container (no host workspace bind mount), and provide a repeatable “connect via VS Code tunnel” workflow.
 
 ## Scope
 
@@ -41,6 +43,7 @@ Links:
   - Provide an explicit multi-environment run workflow (multiple concurrent containers, each with isolated volumes/state).
   - Provide smoke verification commands/scripts to prove the environment matches the declared DoD.
   - Support headless Ubuntu Server hosts with macOS VS Code tunnel access to containers.
+  - Add a host-invoked workspace launcher script to spawn a new isolated workspace from a git repo input (with optional VS Code tunnel startup).
 - Out-of-scope:
   - Docker Desktop-specific workflows and macOS containers (target host is Ubuntu Server).
   - GUI apps, macOS-only tooling (`pbcopy`, `open`, etc.) unless explicitly shimmed or documented as unavailable.
@@ -75,6 +78,7 @@ Links:
   - `Dockerfile` (repo root)
   - `docker-compose.yml` (repo root)
   - `docker/codex-env/README.md` (TL;DR usage + knobs)
+  - `docker/codex-env/bin/codex-workspace` (host-side launcher; name TBD)
   - Optional: `docker/codex-env/smoke.sh` (host-invoked verification)
 
 ### Intermediate Artifacts
@@ -225,10 +229,101 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Add a “local bind-mount mode” for `zsh-kit` and/or `codex-kit` (read-only mounts) for fast iteration.
     - [x] Provide runtime secrets injection docs and compose overrides for GitHub/Codex auth.
       - Codex profiles use `codex-use` with secrets mounted under `/opt/zsh-kit/scripts/_features/codex/secrets`.
+    - [x] Add a host-side “workspace launcher” (Option A) to quickly start an isolated workspace container from a repo input.
+      - CLI / UX (interface + output):
+        - [x] Decide final command name and location:
+          - `docker/codex-env/bin/codex-workspace`
+        - [x] Define the minimum supported command set:
+          - `up <repo>`: create/start workspace + clone repo (idempotent).
+          - `tunnel <name>`: start or attach to `code tunnel` for the workspace.
+          - `shell <name>`: open an interactive shell in the workspace.
+          - `ls`: list workspaces (containers) created by this tool.
+          - `stop <name>` / `start <name>`: lifecycle control.
+          - `rm <name>`: remove workspace container (and optionally volumes).
+        - [x] Define flags and environment variables (document defaults):
+          - `--name <workspace>` (default: derived from repo + timestamp)
+          - `--image <image>` / `CODEX_ENV_IMAGE` (default: `graysurf/codex-env:linuxbrew`)
+          - `--no-pull` (skip `docker pull` when image missing locally)
+          - `--ref <git-ref>` (optional)
+          - `--dir <path>` (optional; default: `/work/<owner>/<repo>`)
+          - `--secrets-dir <path>` / `CODEX_SECRET_DIR_HOST` (optional host secrets dir mount)
+          - `--no-secrets` (skip secrets mount)
+          - `--codex-profile <profile>` (optional; run `codex-use <profile>` inside container)
+          - `--tunnel` / `--tunnel-detach` (optional; start tunnel after `up`)
+        - [x] Ensure all outputs are “copy/paste friendly”:
+          - Print next-step commands: `docker exec -it <name> zsh -l`, `docker logs -f <name>`, `code tunnel ...`.
+          - Never echo token values; redact env var values in logs.
+      - Image / container orchestration:
+        - [x] Implement “ensure image exists”:
+          - If `docker image inspect "${CODEX_ENV_IMAGE}"` fails → run `docker pull "${CODEX_ENV_IMAGE}"`.
+          - Allow skip via `--no-pull` for offline hosts.
+        - [x] Start container in detached mode with a long-running command (so later `docker exec` works consistently).
+        - [x] Apply discoverability labels so `ls` can be accurate (example):
+          - `--label codex-kit.workspace=1`
+          - `--label codex-kit.repo=<normalized>`
+          - `--label codex-kit.created-at=<iso8601>`
+        - [x] Set container `--workdir /work` and ensure `/work` exists and is writable.
+          - Also set image baseline: `Dockerfile` ensures `/work` is owned by `codex` to avoid permissions issues for fresh named volumes.
+        - [x] Ensure workspace state isolation:
+          - One named volume per workspace for `/work`.
+          - One named volume per workspace for `/home/codex`.
+          - One named volume per workspace for `/home/codex/.codex`.
+        - [x] Make naming deterministic and collision-safe:
+          - Normalise repo name (`OWNER_REPO`), add timestamp suffix by default.
+          - Reject invalid Docker names; provide a safe fallback.
+      - Repo cloning behavior (no host bind mount):
+        - [x] Accept and normalize repo inputs:
+          - `git@github.com:OWNER/REPO.git`
+          - `ssh://git@github.com/OWNER/REPO.git`
+          - `https://github.com/OWNER/REPO.git`
+          - `OWNER/REPO`
+          - (Optional) enterprise GitHub host via `GITHUB_HOST` (for `OWNER/REPO` form) or full URL input.
+        - [x] Prefer HTTPS clone with token-based auth:
+          - Use `git clone https://...` with `GIT_ASKPASS` + `GH_TOKEN`/`GITHUB_TOKEN` (avoids embedding tokens into `.git/config` remote URLs).
+        - [x] Idempotency:
+          - If repo directory exists (has `.git`) → skip clone.
+        - [ ] Optional: support submodules (`git submodule update --init --recursive`) behind a flag.
+          - Reason: Defer until a concrete repo requires submodules.
+        - [x] Verify clone result by printing `git remote -v` (no token embedded).
+      - GitHub auth injection at runtime:
+        - [x] Support `GH_TOKEN`/`GITHUB_TOKEN` injection without persisting into image layers:
+          - Pass tokens via `docker exec -e GH_TOKEN -e GITHUB_TOKEN` during clone (avoid storing in container metadata when possible).
+        - [x] Provide a fallback path for SSH cloning when token is unavailable (optional):
+          - Document using `docker/codex-env/docker-compose.ssh.yml` (ssh-agent forwarding + known_hosts).
+      - Codex auth integration (profile-based; no direct `auth.json` mount):
+        - [x] If `--codex-profile` is provided:
+          - Mount secrets dir (must be `:rw`).
+          - Run `zsh -lc 'codex-use <profile>'` inside the workspace container.
+          - Verify `codex --version` and `codex auth status` (or equivalent) works.
+        - [x] Document the manual path (no automation):
+          - `docker exec -it <name> zsh -lc 'codex-use <profile>'`
+      - VS Code tunnel workflow:
+        - [x] Implement `tunnel` subcommand:
+          - Start `code tunnel --accept-server-license-terms --name <workspace>` in the container.
+          - Support “foreground attach” (tail logs) vs “background” mode.
+        - [x] Handle first-run interactive login expectations:
+          - Print clear instructions for device-code login prompts.
+          - Ensure tunnel auth state persists in the workspace `HOME` volume.
+        - [x] Provide a “status” check:
+          - Detect if `code tunnel` is already running (process check) and show what to do next.
+      - Documentation:
+        - [x] Add a dedicated section to `docker/codex-env/README.md`:
+          - “Quick start a workspace from a repo”
+          - “How to connect from macOS VS Code”
+          - “How to inject GH token and Codex profiles”
+          - “How to list/stop/remove workspaces”
+        - [ ] Document limitations (e.g., host path differences on macOS vs Ubuntu Server).
+          - Reason: Defer until we validate on Ubuntu Server host (vs OrbStack local).
+      - Operational notes:
+        - [x] Add a cleanup guide to prevent disk bloat:
+          - list volumes/images created by the tool
+          - safe remove commands (container-only vs container+volumes)
+        - [x] Add a safety note about secrets (do not commit tokens; prefer env/secret mounts).
     - [ ] Improve build speed via BuildKit caching for brew downloads/builds (optional, but recommended).
       - Reason: Defer until baseline build times are captured.
   - Artifacts:
     - `docker/codex-env/README.md` updates (document knobs, fallback policy, and known deltas vs macOS)
+    - `docker/codex-env/bin/codex-workspace` (workspace launcher)
     - `docker/codex-env/apt-fallback.txt` (or equivalent mapping file)
     - `docker/codex-env/docker-compose.local.yml` (optional local bind-mount override)
     - `docker/codex-env/docker-compose.secrets.yml` (optional secrets override)
@@ -241,6 +336,12 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Reason: Documented fallback policy; awaiting verification on a fresh build.
     - [x] Multi-env workflow is documented and proven with two concurrent compose projects.
       - Evidence: `out/docker/verify/20260118_084317/multi-env.log`
+    - [x] Workspace launcher is implemented and documented:
+      - `docker/codex-env/bin/codex-workspace --help` works (macOS validated; Ubuntu Server pending).
+      - `codex-workspace up git@github.com:graysurf/codex-kit.git` creates a new workspace container and clones repo into `/work` (no host bind mount).
+        - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
+      - `codex-workspace tunnel <name> --detach` starts a VS Code tunnel for that workspace (first-run login flow documented).
+        - Evidence: `out/docker/verify/20260118_101244_workspace_tunnel_wait/workspace-tunnel.log`
 - [ ] Step 3: Validation / testing
   - Work Items:
     - [ ] Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.
@@ -248,10 +349,34 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - `scripts/check.sh --lint`
     - [ ] Record evidence outputs under `out/docker/verify/` (tool versions, smoke logs).
     - [ ] Validate runtime posture matches decisions (no extra hardening; read-write mounts by default).
+    - [ ] Validate the workspace launcher flow end-to-end on a clean host:
+      - [ ] Pull-only path (no local build): `docker pull graysurf/codex-env:linuxbrew`.
+        - Reason: `docker pull` currently fails locally (`pull access denied`); requires image to be published public under `graysurf/` or host to `docker login`.
+      - [x] Create workspace from SSH-style input: `codex-workspace up git@github.com:graysurf/codex-kit.git`.
+        - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
+      - [x] Confirm repo is in-container only:
+        - Host has no new workspace folder created.
+        - In container: repo exists under `/work/...` on a named volume.
+        - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
+      - [x] Start VS Code tunnel: `codex-workspace tunnel <name> --detach`.
+        - Evidence: `out/docker/verify/20260118_101244_workspace_tunnel_wait/workspace-tunnel.log`
+      - [ ] Attach from macOS VS Code to the tunnel.
+        - Reason: Manual step (requires interactive device-code login in VS Code UI).
+      - [ ] Validate GH token behavior:
+        - With `GH_TOKEN` set → clone succeeds.
+        - Without token → fails with actionable error (or SSH fallback works if implemented).
+        - Reason: Pending; needs a private repo (or a controlled permission test) to validate token-required behavior.
+      - [ ] Validate concurrent workspaces:
+        - Two different repos or two instances of same repo can run concurrently with isolated `HOME`/`CODEX_HOME` and `/work`.
+        - Reason: Pending; not executed yet.
+      - [x] Record evidence under `out/docker/verify/` and link it here.
+        - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
+        - Evidence: `out/docker/verify/20260118_101244_workspace_tunnel_wait/workspace-tunnel.log`
   - Artifacts:
     - `out/docker/verify/<timestamp>/smoke.log`
     - `out/docker/verify/<timestamp>/versions.txt`
     - `out/docker/verify/<timestamp>/check-lint.log`
+    - `out/docker/verify/<timestamp>/workspace-launcher.log`
   - Exit Criteria:
     - [ ] Smoke and lint commands executed with results recorded under `out/docker/verify/`.
     - [ ] Two concurrent environments verified:
@@ -259,6 +384,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - `docker compose -f docker-compose.yml -p env-b up`
       - state isolation validated via distinct volumes.
     - [ ] Evidence exists and is linked from docs (file paths under `out/`).
+    - [ ] Workspace launcher evidence exists and is linked from this progress doc (file paths under `out/`).
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [x] Update `README.md` entrypoints (link to Docker environment docs).
