@@ -8,8 +8,11 @@ Usage:
 
 What it does:
   - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to scanning docs/progress by PR URL)
-  - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" lacks a Reason (excluding Step 4 “Release / wrap-up”)
-  - Auto-wraps unchecked checklist item text in Step 0–3 with Markdown strikethrough: `- [ ] ~~like this~~`
+  - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" is not explicitly deferred:
+    - Pass: `- [x] ...`
+    - Pass (requires Reason): `- [ ] ~~...~~`
+    - Fail: `- [ ] ...` (unstruck)
+    - Note: Step 4 “Release / wrap-up” is excluded (post-merge / wrap-up).
   - Sets progress Status to DONE and updates the Updated date
   - Sets the progress "Links -> PR" to the PR URL
   - Moves the progress file to docs/progress/archived/
@@ -268,9 +271,10 @@ for i in range(start, len(lines)):
     end = i
     break
 
-checkbox_re = re.compile(r"^(\s*)-\s*\[(?P<mark>[ xX])\]\s+.+$")
+checkbox_re = re.compile(r"^(?P<indent>\s*)-\s*\[(?P<mark>[ xX])\]\s+(?P<text>.+)$")
 step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*(?:~~\s*)?Step\s+(?P<num>\d+):")
-missing = []
+missing_reason = []
+missing_strikethrough = []
 in_code_block = False
 current_step = None
 
@@ -297,6 +301,14 @@ for i in range(start, end):
     continue
   if current_step is not None and current_step >= exempt_step_min:
     continue
+
+  text_stripped = m.group("text").strip()
+  is_deferred = text_stripped.startswith("~~") and text_stripped.endswith("~~")
+
+  if not is_deferred:
+    missing_strikethrough.append((i + 1, line.rstrip()))
+    continue
+
   if "reason:" in line.lower():
     continue
   found = False
@@ -308,11 +320,18 @@ for i in range(start, end):
       found = True
       break
   if not found:
-    missing.append((i + 1, line.rstrip()))
+    missing_reason.append((i + 1, line.rstrip()))
 
-if missing:
-  print("error: unchecked checklist items in '## Steps (Checklist)' require a Reason:", file=sys.stderr)
-  for lineno, text in missing:
+if missing_strikethrough:
+  print("error: unchecked checklist items in '## Steps (Checklist)' must be deferred with '~~...~~':", file=sys.stderr)
+  for lineno, text in missing_strikethrough:
+    print(f"  - {path}:{lineno}: {text}", file=sys.stderr)
+  print("hint: either check the item (- [x]) or mark it deferred (- [ ] ~~...~~).", file=sys.stderr)
+  raise SystemExit(1)
+
+if missing_reason:
+  print("error: deferred checklist items in '## Steps (Checklist)' require a Reason:", file=sys.stderr)
+  for lineno, text in missing_reason:
     print(f"  - {path}:{lineno}: {text}", file=sys.stderr)
   print("hint: add 'Reason: ...' to the same line or a following line before the next checkbox.", file=sys.stderr)
   raise SystemExit(1)

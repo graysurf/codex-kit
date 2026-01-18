@@ -71,8 +71,11 @@ If the progress file includes a `Links -> Planning PR` entry, ensure that planni
      - `rg -n --fixed-string "$pr_url" docs/progress -S`
 4. Finalize progress
    - Update the progress file:
-     - Fail-fast if any unchecked checklist item under `## Steps (Checklist)` lacks a `Reason:` (excluding Step 4 “Release / wrap-up”)
-     - For intentionally deferred / not-do items (Steps 0–3), keep the checkbox unchecked, include an explicit `Reason:`, and mark the item text with Markdown strikethrough (use `- [ ] ~~like this~~`; the helper script auto-wraps)
+     - Fail-fast if any unchecked checklist item under `## Steps (Checklist)` is not explicitly deferred (excluding Step 4 “Release / wrap-up”)
+       - Pass: `- [x] ...`
+       - Pass (requires `Reason:`): `- [ ] ~~...~~`
+       - Fail: `- [ ] ...` (unstruck)
+     - For intentionally deferred / not-do items (Steps 0–3), keep the checkbox unchecked, include an explicit `Reason:`, and mark the item text with Markdown strikethrough (use `- [ ] ~~like this~~`)
      - Set Status to `DONE`
      - Update the `Updated` date to today
      - Set `Links -> PR` to the PR URL
