@@ -95,7 +95,7 @@ jobs:
   build-and-push-arm64:
     needs: precheck
     if: ${{ needs.precheck.outputs.publish == '1' }}
-    runs-on: ${{ vars.ARM64_RUNNER || 'ubuntu-24.04-arm64' }}
+    runs-on: ${{ vars.ARM64_RUNNER || 'ubuntu-24.04-arm' }}
     timeout-minutes: 360
     env:
       DOCKERHUB_IMAGE: graysurf/codex-env

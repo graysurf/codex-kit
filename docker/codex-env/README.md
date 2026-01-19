@@ -73,7 +73,7 @@ CI publish (auto):
 - Requires repo secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 - Publishes: `graysurf/codex-env:{linuxbrew,latest,sha-<short>}`.
 - Multi-arch: `linux/amd64` + `linux/arm64`.
-- Runner note: if your repo/org does not support `ubuntu-24.04-arm64`, set the GitHub Actions repo variable `ARM64_RUNNER` to a supported label (e.g. `ubuntu-22.04-arm64`).
+- Runner note: the GitHub-hosted ARM64 runners use partner labels like `ubuntu-24.04-arm` / `ubuntu-22.04-arm`. If you need a different label, set the GitHub Actions repo variable `ARM64_RUNNER`.
 
 Tag and push:
 
@@ -124,7 +124,7 @@ Notes:
 - The root `Dockerfile` sets OCI labels (including `org.opencontainers.image.source`) so the GHCR package can link back to this repo.
 - CI publish: run the GitHub Actions workflow `Publish codex-env image` (publishes to `ghcr.io/<owner>/codex-env`).
 - Multi-arch: CI publishes `linux/amd64` + `linux/arm64` so Apple Silicon hosts can pull without `--platform`.
-- Runner note: if your repo/org does not support `ubuntu-24.04-arm64`, set the GitHub Actions repo variable `ARM64_RUNNER` to a supported label (e.g. `ubuntu-22.04-arm64`).
+- Runner note: the GitHub-hosted ARM64 runners use partner labels like `ubuntu-24.04-arm` / `ubuntu-22.04-arm`. If you need a different label, set the GitHub Actions repo variable `ARM64_RUNNER`.
 
 ## Workspace launcher (isolated, no host workspace)
 
