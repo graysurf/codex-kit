@@ -317,6 +317,15 @@ workspace_up() {
 
   local container
   container="$(normalize_container_name "$ws_name")"
+  local hostname="$container"
+  local -i max_hostname_len=63
+  if (( ${#hostname} > max_hostname_len )); then
+    local -i tail_len=12
+    local tail="${hostname: -tail_len}"
+    local -i head_len=$(( max_hostname_len - 1 - tail_len ))
+    hostname="${hostname:0:head_len}-${tail}"
+    warn "container name too long for hostname; using: $hostname"
+  fi
 
   local vol_work vol_home vol_codex
   read -r vol_work vol_home vol_codex < <(volume_names "$container")
@@ -353,6 +362,7 @@ workspace_up() {
 	    local run_args=(
 	      -d
 	      --name "$container"
+	      --hostname "$hostname"
 	      --label "codex-kit.workspace=1"
 	      --label "codex-kit.created-at=$ts"
 	      -e "HOME=/home/codex"
