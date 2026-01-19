@@ -118,6 +118,8 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Set the PR title to the primary issue or a short summary of the fix. Do not reuse the commit subject. Capitalize the first word.
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the same PR title.
 - The PR must include:
+  - Problem description (expected vs actual, impact)
+  - Reproduction steps (or why repro is not feasible)
   - Issues found (including those not fixed)
   - Fix approach
   - Testing results or "not run"
