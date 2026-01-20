@@ -59,6 +59,14 @@ Examples:
 EOF
 }
 
+expand_tilde() {
+  local path="${1:-}"
+  if [[ $path == \~ || $path == \~/* ]]; then
+    path="${path/#\~/$HOME}"
+  fi
+  printf "%s" "$path"
+}
+
 case_override=""
 out_arg=""
 response_arg=""
@@ -205,6 +213,15 @@ done
 
 project_root=""
 if [[ -n "$config_dir" ]]; then
+  config_dir="$(expand_tilde "$config_dir")"
+fi
+if [[ -n "$out_arg" ]]; then
+  out_arg="$(expand_tilde "$out_arg")"
+fi
+if [[ -n "$response_arg" ]]; then
+  response_arg="$(expand_tilde "$response_arg")"
+fi
+if [[ -n "$config_dir" ]]; then
   project_root="$(git -C "$config_dir" rev-parse --show-toplevel 2>/dev/null || true)"
 fi
 
@@ -217,6 +234,7 @@ fi
 
 resolve_in_project() {
   local path="$1"
+  path="$(expand_tilde "$path")"
   if [[ -z "$path" ]]; then
     printf "%s" ""
     return 0
