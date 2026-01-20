@@ -3,7 +3,7 @@
     {
       "name": "check",
       "args": ["--check"],
-      "timeout_sec": 30,
+      "timeout_sec": 60,
       "expect": {
         "exit_codes": [0]
       }

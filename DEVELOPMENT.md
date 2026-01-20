@@ -20,7 +20,7 @@
 - `scripts/check.sh --all` runs:
   - `scripts/lint.sh` (shell + python)
     - Shell: route by shebang and run `shellcheck` (bash) + `bash -n` + `zsh -n`
-    - Python: `ruff check tests` + `mypy --config-file mypy.ini tests` + syntax-check for tracked `.py` files
+    - Python: `ruff check tests` + `mypy --config-file mypy.ini tests` + `pyright` + syntax-check for tracked `.py` files
   - `scripts/validate_skill_contracts.sh`
   - `scripts/semgrep-scan.sh`
   - `scripts/test.sh` (pytest; prefers `.venv/bin/python`)
@@ -50,6 +50,9 @@
   - Or via: `scripts/lint.sh --python`
 - `mypy` (typecheck; config: `mypy.ini`)
   - `source .venv/bin/activate && mypy --config-file mypy.ini tests`
+  - Or via: `scripts/lint.sh --python`
+- `pyright` (typecheck; config: `pyrightconfig.json`)
+  - `source .venv/bin/activate && pyright --project pyrightconfig.json`
   - Or via: `scripts/lint.sh --python`
 - Shell (bash/zsh)
   - `scripts/lint.sh --shell` (requires `shellcheck` and `zsh`)

@@ -82,7 +82,7 @@ Exit codes:
 `scripts/lint.sh` runs:
 
 - Shell: `shellcheck` (bash) + `bash -n` + `zsh -n` (shebang-based)
-- Python: `ruff` + `mypy`
+- Python: `ruff` + `mypy` + `pyright`
 
 Usage:
 

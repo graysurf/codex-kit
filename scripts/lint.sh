@@ -11,7 +11,7 @@ Runs repo-local lint and syntax checks.
 Modes:
   --all (default): run both shell + python checks
   --shell:         run shell checks only (bash + zsh)
-  --python:        run python checks only (ruff + mypy)
+  --python:        run python checks only (ruff + mypy + pyright)
 
 Setup:
   .venv/bin/pip install -r requirements-dev.txt
@@ -184,7 +184,7 @@ if [[ "$want_shell" -eq 1 ]]; then
 fi
 
 if [[ "$want_python" -eq 1 ]]; then
-  echo "lint: python (ruff/mypy)" >&2
+  echo "lint: python (ruff/mypy/pyright)" >&2
 
   python="${repo_root}/.venv/bin/python"
   if [[ ! -x "$python" ]]; then
@@ -215,6 +215,16 @@ if [[ "$want_python" -eq 1 ]]; then
     exit 1
   fi
 
+  pyright_bin="${repo_root}/.venv/bin/pyright"
+  if [[ ! -x "$pyright_bin" ]]; then
+    pyright_bin="$(command -v pyright || true)"
+  fi
+  if [[ -z "$pyright_bin" ]]; then
+    echo "error: pyright not found" >&2
+    echo "hint: run: .venv/bin/pip install -r requirements-dev.txt" >&2
+    exit 1
+  fi
+
   echo "lint: ruff check" >&2
   set +e
   "$ruff_bin" check --output-format concise tests
@@ -235,6 +245,20 @@ if [[ "$want_python" -eq 1 ]]; then
   mypy_rc=$?
   set -e
   if [[ "$mypy_rc" -ne 0 ]]; then
+    rc=1
+  fi
+
+  echo "lint: pyright" >&2
+  pyright_cfg="${repo_root}/pyrightconfig.json"
+  set +e
+  if [[ -f "$pyright_cfg" ]]; then
+    "$pyright_bin" --warnings --pythonpath "$python" --project "$pyright_cfg"
+  else
+    "$pyright_bin" --warnings --pythonpath "$python" tests
+  fi
+  pyright_rc=$?
+  set -e
+  if [[ "$pyright_rc" -ne 0 ]]; then
     rc=1
   fi
 
