@@ -1,1 +1,1 @@
-../../skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_TEMPLATE.md
+../../skills/workflows/pr/progress/create-progress-pr/assets/templates/PROGRESS_TEMPLATE.md
