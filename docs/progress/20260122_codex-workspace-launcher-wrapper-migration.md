@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: TBD
+- PR: [#63](https://github.com/graysurf/codex-kit/pull/63)
 - Docs: `docs/runbooks/codex-workspace-migration.md`
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
