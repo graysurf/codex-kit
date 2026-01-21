@@ -11,6 +11,8 @@ jobs:
   smoke-demo:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      CODEX_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -56,6 +58,8 @@ jobs:
   cleanup-fixture:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      CODEX_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -113,6 +117,8 @@ jobs:
   public-auth-demo:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      CODEX_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -163,6 +169,7 @@ jobs:
     timeout-minutes: 10
     env:
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
+      CODEX_HOME: ${{ github.workspace }}
 
     steps:
       - name: Skip (missing API_TEST_AUTH_JSON)
