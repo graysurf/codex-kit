@@ -171,14 +171,15 @@ Notes:
 
 Codex profiles (`codex-use`):
 
-- Auto (during `up`): `./docker/codex-env/bin/codex-workspace up <repo> --codex-profile personal`
+- Auto (during `up`): `./docker/codex-env/bin/codex-workspace up <repo> --secrets-dir ~/.config/codex_secrets --codex-profile personal`
 - Manual: `docker exec -it <workspace> zsh -lic 'codex-use personal'`
 
 Notes:
-- `codex-workspace up` mounts `$CODEX_SECRET_DIR_HOST` (or `$HOME/.config/zsh/scripts/_features/codex/secrets` when present) into the container at `/opt/zsh-kit/scripts/_features/codex/secrets` as `:rw` by default.
-  - Override with `--secrets-mount <container-path>` or `DEFAULT_SECRETS_MOUNT=<container-path>`.
+- Secrets are opt-in for the launcher: pass `--secrets-dir <host-path>` to mount secrets into the container.
+  - Recommended host path: `~/.config/codex_secrets`
+  - Default mount path: `/home/codex/codex_secrets` (override with `--secrets-mount` or `DEFAULT_SECRETS_MOUNT=<container-path>`).
   - When secrets are mounted, `codex-workspace` sets `CODEX_SECRET_DIR=<container-path>` inside the workspace.
-- If you do not want to mount secrets, pass `--no-secrets`.
+- If you want to force-disable secrets, pass `--no-secrets` (overrides `--secrets-dir`).
 
 Start a VS Code tunnel (macOS client attaches via VS Code Tunnels):
 
@@ -192,7 +193,8 @@ Common operations:
 ./docker/codex-env/bin/codex-workspace ls
 ./docker/codex-env/bin/codex-workspace shell <workspace-name-or-container>
 ./docker/codex-env/bin/codex-workspace stop <workspace-name-or-container>
-./docker/codex-env/bin/codex-workspace rm <workspace-name-or-container> --volumes
+./docker/codex-env/bin/codex-workspace rm <workspace-name-or-container>           # removes volumes by default
+# ./docker/codex-env/bin/codex-workspace rm <workspace-name-or-container> --keep-volumes
 ```
 
 SSH cloning:

@@ -71,5 +71,5 @@ Connect from VS Code:
 
 ```sh
 ./docker/codex-env/bin/codex-workspace stop codex-kit
-./docker/codex-env/bin/codex-workspace rm codex-kit --volumes
+./docker/codex-env/bin/codex-workspace rm codex-kit
 ```
