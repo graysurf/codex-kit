@@ -175,10 +175,14 @@ Codex profiles (`codex-use`):
 - Manual: `docker exec -it <workspace> zsh -lic 'codex-use personal'`
 
 Notes:
-- `codex-workspace up` mounts `$CODEX_SECRET_DIR_HOST` (or `$HOME/.config/zsh/scripts/_features/codex/secrets` when present) into the container at `/opt/zsh-kit/scripts/_features/codex/secrets` as `:rw`.
+- `codex-workspace up` mounts `$CODEX_SECRET_DIR_HOST` (or `$HOME/.config/zsh/scripts/_features/codex/secrets` when present) into the container at `/opt/zsh-kit/scripts/_features/codex/secrets` as `:rw` by default.
+  - Override with `--secrets-mount <container-path>` or `DEFAULT_SECRETS_MOUNT=<container-path>`.
+  - When secrets are mounted, `codex-workspace` sets `CODEX_SECRET_DIR=<container-path>` inside the workspace.
 - If you do not want to mount secrets, pass `--no-secrets`.
 - To mount the host `$HOME/.config` directory read-only into the workspace, use `--config-dir "$HOME/.config"` (or set `CODEX_CONFIG_DIR_HOST`).
-- If `--config-dir` is set and `$HOME/.config/zsh/.private` exists, it is auto-mounted into `/opt/zsh-kit/.private` (zsh-kit private scripts).
+- If `--config-dir` is set and `$HOME/.config/zsh/.private` exists, it is auto-mounted into `/opt/zsh-kit/.private` (zsh-kit private scripts) by default.
+  - Override the container mount path with `--private-mount <container-path>` or `DEFAULT_PRIVATE_MOUNT=<container-path>`.
+  - When private scripts are mounted, `codex-workspace` sets `ZSH_PRIVATE_SCRIPT_DIR=<container-path>` inside the workspace.
 
 Start a VS Code tunnel (macOS client attaches via VS Code Tunnels):
 
