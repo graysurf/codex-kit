@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     locales \
     sudo \
+    tini \
     tzdata \
     zsh \
     python3 \
@@ -94,7 +95,7 @@ RUN mkdir -p /work \
 WORKDIR /work
 
 USER codex
-ENTRYPOINT ["/opt/codex-env/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini","--","/opt/codex-env/bin/entrypoint.sh"]
 CMD ["zsh", "-l"]
 
 ARG IMAGE_TITLE="codex-env"
