@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-22 | [Codex workspace launcher-wrapper migration](20260122_codex-workspace-launcher-wrapper-migration.md) | [#63](https://github.com/graysurf/codex-kit/pull/63) |
 
 ## Archived
 
