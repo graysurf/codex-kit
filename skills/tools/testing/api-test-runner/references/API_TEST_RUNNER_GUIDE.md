@@ -38,7 +38,7 @@ setup/
 Run:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
+$CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
   --suite smoke \
   --out out/api-test-runner/results.json \
   --junit out/api-test-runner/junit.xml
@@ -105,7 +105,7 @@ Example (minimal pattern):
 Run:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
+$CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
   --suite smoke \
   --out out/api-test-runner/results.json \
   --junit out/api-test-runner/junit.xml
@@ -168,7 +168,7 @@ steps:
       CODEX_HOME: ${{ github.workspace }}
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
     run: |
-      skills/tools/testing/api-test-runner/scripts/api-test.sh \
+      $CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
         --suite my-suite \
         --tag staging \
         --tag "shard:${{ matrix.shard }}" \
@@ -178,7 +178,7 @@ steps:
   - name: Summarize shard results
     if: always()
     run: |
-      skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+      $CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
         --in "out/api-test-runner/results.shard-${{ matrix.shard }}.json" \
         --out "out/api-test-runner/summary.shard-${{ matrix.shard }}.md" \
         --slow 5

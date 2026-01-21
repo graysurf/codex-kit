@@ -35,7 +35,7 @@ Failure modes:
 
 1. Identify the target repository root; ask if the repo path is unclear.
 2. Resolve the guide + template (project-first; default fallback):
-   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
+   - `$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
    - If it exits `3`, stop and ask which guide to use.
 3. Read the resolved guide file fully before running any commands.
 4. Execute the guide steps in order, using the exact commands and tooling specified.
@@ -63,15 +63,15 @@ The default fallback guide lives at:
 These scripts are designed to run inside a target repo that uses `CHANGELOG.md` headings like `## vX.Y.Z - YYYY-MM-DD`.
 
 - Locate a project release guide deterministically:
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-find-guide.sh --project-path "$PROJECT_PATH" --search-root "$(pwd)" --max-depth 3`
+  - `$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/scripts/release-find-guide.sh --project-path "$PROJECT_PATH" --search-root "$(pwd)" --max-depth 3`
 - Resolve the guide + template deterministically (preferred entrypoint):
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
+  - `$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
 - Scaffold a new entry from a template:
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version v1.3.2 --output "$CODEX_HOME/out/release-entry-v1.3.2.md"`
+  - `$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version v1.3.2 --output "$CODEX_HOME/out/release-entry-v1.3.2.md"`
   - Selects the repo template when present; otherwise falls back to the bundled template.
 - Audit basic prereqs + changelog format:
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
+  - `$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
 - Audit changelog formatting + placeholder cleanup:
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
+  - `$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 - Extract release notes from `CHANGELOG.md` into a file for `gh release create -F`:
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$CODEX_HOME/out/release-notes-v1.3.2.md"`
+  - `$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/$CODEX_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$CODEX_HOME/out/release-notes-v1.3.2.md"`

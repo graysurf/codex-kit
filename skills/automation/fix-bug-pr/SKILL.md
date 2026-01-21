@@ -42,9 +42,9 @@ Failure modes:
 
 1. Resolve the target PR:
    - Auto-pick an open PR with unresolved bug items:
-     - `$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-resolve.sh`
+     - `$CODEX_HOME/skills/automation/fix-bug-pr/$CODEX_HOME/skills/automation/fix-bug-pr/$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-resolve.sh`
    - Or target a specific PR:
-     - `$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-resolve.sh --pr <number>`
+     - `$CODEX_HOME/skills/automation/fix-bug-pr/$CODEX_HOME/skills/automation/fix-bug-pr/$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-resolve.sh --pr <number>`
    - If it exits `2`: stop and report “No relevant issues found (no bug-type PR found).”
 
 2. Checkout the PR branch:
@@ -56,7 +56,7 @@ Failure modes:
 
 4. Implement the minimal fix + validation:
    - Prefer small, targeted diffs; avoid refactors.
-   - Run the most relevant checks (`scripts/check.sh --lint`, `scripts/test.sh`, etc.) when available.
+   - Run the most relevant checks (`$CODEX_HOME/scripts/check.sh --lint`, `$CODEX_HOME/scripts/test.sh`, etc.) when available.
 
 5. Commit + push:
    - Use `semantic-commit-autostage` (end-to-end automation) unless the user explicitly wants manual staging.
@@ -64,7 +64,7 @@ Failure modes:
 
 6. Update PR body progress (status sync):
    - Mark the fixed bug ID(s) as `fixed` and recompute overall status:
-     - `$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-patch.sh --pr <number> --mark-fixed <bug_id>`
+     - `$CODEX_HOME/skills/automation/fix-bug-pr/$CODEX_HOME/skills/automation/fix-bug-pr/$CODEX_HOME/skills/automation/fix-bug-pr/scripts/bug-pr-patch.sh --pr <number> --mark-fixed <bug_id>`
    - If all bug items are fixed, the PR body will be updated to `Status: fixed`.
 
 7. Comment on the PR with what changed:

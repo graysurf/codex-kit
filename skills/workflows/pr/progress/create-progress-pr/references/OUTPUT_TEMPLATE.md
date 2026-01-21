@@ -9,7 +9,7 @@
 
 ## Validation
 - `rg -n "\\[\\[.*\\]\\]" docs/progress -S` (no output)
-- `scripts/validate_progress_index.sh` (pass)
+- `$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/validate_progress_index.sh` (pass)
 - `docs/progress/README.md` updated (yes/no)
 
 ## Open Questions

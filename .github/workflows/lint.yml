@@ -30,19 +30,19 @@ jobs:
 
       - name: Shell lint + syntax (bash + zsh)
         run: |
-          scripts/lint.sh --shell
+          $CODEX_HOME/scripts/lint.sh --shell
 
       - name: Env bool audit
         run: |
-          zsh -f scripts/audit-env-bools.zsh --check
+          zsh -f $CODEX_HOME/scripts/audit-env-bools.zsh --check
 
       - name: Validate skill contract sections
         run: |
-          scripts/validate_skill_contracts.sh
+          $CODEX_HOME/scripts/validate_skill_contracts.sh
 
       - name: Validate skill directory layout
         run: |
-          scripts/audit-skill-layout.sh
+          $CODEX_HOME/scripts/audit-skill-layout.sh
 
       - name: Smoke test (negative fixture)
         run: |
@@ -67,7 +67,7 @@ jobs:
           - N/A
           MD
 
-          if scripts/validate_skill_contracts.sh --file "$tmp"; then
+          if $CODEX_HOME/scripts/validate_skill_contracts.sh --file "$tmp"; then
             echo "Expected validate_skill_contracts.sh to fail for missing 'Failure modes:'." >&2
             exit 1
           fi
@@ -101,13 +101,13 @@ jobs:
 
       - name: Python lint + typecheck (ruff + mypy + pyright)
         run: |
-          scripts/lint.sh --python
+          $CODEX_HOME/scripts/lint.sh --python
 
       - name: Pytest
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          scripts/test.sh
+          $CODEX_HOME/scripts/test.sh
 
       - name: Script coverage summary
         if: always()

@@ -93,6 +93,6 @@ Recommended pattern for feature PR bodies:
 
 ## Optional helper script
 
-- Use `scripts/handoff_progress_pr.sh` to merge and patch deterministically:
-  - `bash skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh --pr <number>`
+- Use `$CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/$CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh` to merge and patch deterministically:
+  - `bash $CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/$CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/$CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh --pr <number>`
   - If already merged but links are broken: `--patch-only`

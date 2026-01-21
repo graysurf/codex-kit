@@ -32,7 +32,7 @@ Links:
 
 ## Acceptance Criteria
 
-- `skills/tools/testing/rest-api-testing/scripts/rest.sh` can:
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh` can:
   - Resolve an endpoint base URL via `--env <name>`, `--url <url>`, or `REST_URL=<url>` (with `setup/rest/endpoints.env` + optional `endpoints.local.env` presets).
   - Resolve an Authorization token via `--token <name>`, `REST_TOKEN_NAME=<name>`, or `ACCESS_TOKEN=<token>` (with `setup/rest/tokens.env` + optional `tokens.local.env` presets) and send `Authorization: Bearer <token>`.
   - Execute a request file `setup/rest/requests/<name>.request.json` (single file includes method/path/query/headers/body/expect) and print the response body to stdout; exits non-zero on invalid inputs, assertion failures, or HTTP errors.
@@ -62,7 +62,7 @@ Links:
     - `REST_TOKEN_DEFAULT=`
     - `REST_TOKEN_ADMIN=`
     - `REST_TOKEN_MEMBER=`
-- `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` can:
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh` can:
   - Run a request via `rest.sh` (or replay via `--response`) and write a Markdown report under `<project>/docs/` by default.
   - Redact common secret fields in request/response by default; allow opting out with `--no-redact`.
 - Bootstrap template exists under `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest` and includes:
@@ -151,15 +151,15 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
       - `REST_URL=<baseUrl> ACCESS_TOKEN=<token> $CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --url "$REST_URL" setup/rest/requests/health.request.json`
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [x] Implement `skills/tools/testing/rest-api-testing/scripts/rest.sh` (endpoint + auth presets, execute request, history).
-    - [x] Implement `skills/tools/testing/rest-api-testing/scripts/rest-history.sh` (replay last command; tail N).
-    - [x] Implement `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` (generate Markdown report with redaction).
+    - [x] Implement `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh` (endpoint + auth presets, execute request, history).
+    - [x] Implement `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-history.sh` (replay last command; tail N).
+    - [x] Implement `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh` (generate Markdown report with redaction).
     - [x] Add bootstrap template under `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest`.
     - [x] Add skill instructions under `skills/tools/testing/rest-api-testing/SKILL.md`.
   - Artifacts:
-    - `skills/tools/testing/rest-api-testing/scripts/rest.sh`
-    - `skills/tools/testing/rest-api-testing/scripts/rest-history.sh`
-    - `skills/tools/testing/rest-api-testing/scripts/rest-report.sh`
+    - `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh`
+    - `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-history.sh`
+    - `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh`
     - `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest/*`
     - `skills/tools/testing/rest-api-testing/SKILL.md`
     - `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
@@ -208,8 +208,8 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 ## Modules
 
 - `skills/tools/testing/rest-api-testing/SKILL.md`: End-user skill instructions (project layout, quickstart, safety, reporting rules).
-- `skills/tools/testing/rest-api-testing/scripts/rest.sh`: Single entrypoint to run REST requests with env/token presets and history.
-- `skills/tools/testing/rest-api-testing/scripts/rest-report.sh`: Report generator (runs or replays requests, redacts secrets by default).
-- `skills/tools/testing/rest-api-testing/scripts/rest-history.sh`: History reader / replay helper.
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh`: Single entrypoint to run REST requests with env/token presets and history.
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh`: Report generator (runs or replays requests, redacts secrets by default).
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-history.sh`: History reader / replay helper.
 - `skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest`: Bootstrap template for per-project `setup/rest/`.
 - `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`: Standard output contract for manual REST API test reports.

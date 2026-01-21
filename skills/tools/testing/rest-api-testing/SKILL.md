@@ -21,7 +21,7 @@ Outputs:
 
 - Response JSON (or raw response) printed to stdout; errors printed to stderr.
 - Optional history file under `setup/rest/.rest_history` (gitignored; disabled via `--no-history`).
-- Optional markdown report via `scripts/rest-report.sh`.
+- Optional markdown report via `$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh`.
 
 Exit codes:
 
@@ -48,7 +48,7 @@ Make REST API calls reproducible and CI-friendly via:
 Call an existing request (JSON only):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
   --env local \
   setup/rest/requests/<request>.request.json \
 | jq .
@@ -58,23 +58,23 @@ If the endpoint requires auth, pass a token profile (from `setup/rest/tokens.loc
 
 ```bash
 # Token profile (requires REST_TOKEN_<NAME> to be non-empty in setup/rest/tokens.local.env)
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --env local --token default setup/rest/requests/<request>.request.json | jq .
+$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --env local --token default setup/rest/requests/<request>.request.json | jq .
 
 # Or: one-off token (useful for CI)
 REST_URL="https://<host>" ACCESS_TOKEN="<token>" \
-  $CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --url "$REST_URL" setup/rest/requests/<request>.request.json | jq .
+  $CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --url "$REST_URL" setup/rest/requests/<request>.request.json | jq .
 ```
 
 Replay the last run (history):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-history.sh --command-only
+$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-history.sh --command-only
 ```
 
 Generate a report (includes a replayable `## Command` by default):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env local \

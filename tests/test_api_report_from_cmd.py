@@ -19,7 +19,7 @@ def _run(cmd: list[str], *, cwd: Path, env: dict[str, str], stdin: str | None = 
     )
 
 
-def test_api_report_from_cmd_expands_tilde_config_dir() -> None:
+def test_api_report_from_cmd_expands_home_env_config_dir() -> None:
     repo = repo_root()
     env = default_env(repo)
     home = Path(env["HOME"])
@@ -32,7 +32,7 @@ def test_api_report_from_cmd_expands_tilde_config_dir() -> None:
 
     gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
     snippet = (
-        f"{gql_script} --config-dir ~/sample-project/setup/graphql --env local "
+        f"{gql_script} --config-dir $HOME/sample-project/setup/graphql --env local "
         "setup/graphql/operations/test.graphql "
         "setup/graphql/operations/test.variables.json"
     )

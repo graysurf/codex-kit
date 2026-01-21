@@ -44,8 +44,8 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- Get staged context (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`
-- Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`
+- Get staged context (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`
+- Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`
   - Prefer piping the full multi-line message via stdin
 - Do not call other helper commands directly; treat these scripts as the stable interface
 

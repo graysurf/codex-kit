@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 - Progress templates: clarify that unchecked Step 0–3 items must be struck with `Reason:` (Step 4 excluded).
 
 ### Fixed
-- Shell style fixer: preserve initializer handling in `scripts/fix-zsh-typeset-initializers.zsh`.
+- Shell style fixer: preserve initializer handling in `$CODEX_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
 
 ## v1.3.0 - 2026-01-17
 
@@ -34,10 +34,10 @@ All notable changes to this project will be documented in this file.
 ## v1.2.0 - 2026-01-16
 
 ### Added
-- Semgrep tooling: `.semgrep.yaml`, `.semgrepignore`, and `scripts/semgrep-scan.sh` with curated defaults.
+- Semgrep tooling: `.semgrep.yaml`, `.semgrepignore`, and `$CODEX_HOME/scripts/semgrep-scan.sh` with curated defaults.
 - `semgrep-find-and-fix` automation skill, including local config and PR/report templates.
-- Repo verification tooling: `scripts/check.sh` and `scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
-- Shell style fixers: `scripts/fix-shell-style.zsh`, `scripts/fix-typeset-empty-string-quotes.zsh`, `scripts/fix-zsh-typeset-initializers.zsh`.
+- Repo verification tooling: `$CODEX_HOME/scripts/check.sh` and `$CODEX_HOME/scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
+- Shell style fixers: `$CODEX_HOME/scripts/fix-shell-style.zsh`, `$CODEX_HOME/scripts/fix-typeset-empty-string-quotes.zsh`, `$CODEX_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
 - `commands/api-report-from-cmd` helper and API test report templates/metadata (REST + GraphQL).
 
 ### Changed

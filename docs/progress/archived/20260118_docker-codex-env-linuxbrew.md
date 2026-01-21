@@ -67,7 +67,7 @@ Links:
   - `https://github.com/graysurf/zsh-kit.git`
   - `https://github.com/graysurf/codex-kit.git`
 - Runtime host mounts (optional, for “live config” mode):
-  - `~/.config/zsh/` (bind mount into container, ideally read-only)
+  - `$HOME/.config/zsh/` (bind mount into container, ideally read-only)
   - Workspace repo(s) (bind mount)
 - Runtime secrets/state injection:
   - `OPENAI_API_KEY` (env) and/or `CODEX_HOME` (named volume) for Codex auth/session files
@@ -349,7 +349,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] ~~Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.~~
       - Reason: Not needed for current usage; smoke one-liners + evidence already exist.
     - [x] Validate `codex-kit` checks inside the container (at minimum lint):
-      - `scripts/check.sh --lint`
+      - `$CODEX_HOME/scripts/check.sh --lint`
       - Evidence: `out/docker/verify/20260118_121526_check_lint/check-lint.log`
     - [x] Record evidence outputs under `out/docker/verify/` (tool versions, smoke logs).
       - Evidence: `out/docker/verify/20260118_084317/smoke.log`

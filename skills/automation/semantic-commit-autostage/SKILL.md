@@ -23,8 +23,8 @@ Inputs:
 Outputs:
 
 - Staged changes via `git add` (this skill autostages).
-- `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`: prints staged context bundle to stdout (JSON + patch).
-- `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`: creates a git commit and prints a commit summary to stdout.
+- `$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/automation/semantic-commit-autostage/$CODEX_HOME/skills/automation/semantic-commit-autostage/scripts/staged_context.sh`: prints staged context bundle to stdout (JSON + patch).
+- `$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/automation/semantic-commit-autostage/$CODEX_HOME/skills/automation/semantic-commit-autostage/scripts/commit_with_message.sh`: creates a git commit and prints a commit summary to stdout.
 
 Exit codes:
 
@@ -49,8 +49,8 @@ Failure modes:
 
 - Autostage (all changes): `git add -A`
 - Autostage (tracked-only): `git add -u`
-- Get staged context (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`
-- Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`
+- Get staged context (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/automation/semantic-commit-autostage/$CODEX_HOME/skills/automation/semantic-commit-autostage/scripts/staged_context.sh`
+- Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/$CODEX_HOME/skills/automation/semantic-commit-autostage/$CODEX_HOME/skills/automation/semantic-commit-autostage/scripts/commit_with_message.sh`
   - Prefer piping the full multi-line message via stdin
 
 ## Workflow

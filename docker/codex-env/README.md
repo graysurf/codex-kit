@@ -176,7 +176,7 @@ Codex profiles (`codex-use`):
 Notes:
 - `codex-workspace up` mounts `$CODEX_SECRET_DIR_HOST` (or `$HOME/.config/zsh/scripts/_features/codex/secrets` when present) into the container at `/opt/zsh-kit/scripts/_features/codex/secrets` as `:rw`.
 - If you do not want to mount secrets, pass `--no-secrets`.
-- To mount the host `~/.config` directory read-only into the workspace, use `--config-dir "$HOME/.config"` (or set `CODEX_CONFIG_DIR_HOST`).
+- To mount the host `$HOME/.config` directory read-only into the workspace, use `--config-dir "$HOME/.config"` (or set `CODEX_CONFIG_DIR_HOST`).
 - If `--config-dir` is set and `$HOME/.config/zsh/.private` exists, it is auto-mounted into `/opt/zsh-kit/.private` (zsh-kit private scripts).
 
 Start a VS Code tunnel (macOS client attaches via VS Code Tunnels):

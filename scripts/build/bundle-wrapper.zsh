@@ -94,7 +94,7 @@ if command grep -q '^# Bundled from:' "$input" 2>/dev/null && command grep -q '^
 
   typeset input_label="$input"
   if [[ "$input_label" == "$HOME/"* ]]; then
-    input_label="~/${input_label#$HOME/}"
+    input_label='$HOME/'"${input_label#$HOME/}"
   fi
 
   typeset tmpfile=''
@@ -297,7 +297,7 @@ trap '[[ -n "${tmpfile-}" ]] && command rm -f -- "${tmpfile-}" >/dev/null 2>&1 |
 {
   local input_label="$input"
   if [[ "$input_label" == "$HOME/"* ]]; then
-    input_label="~/${input_label#$HOME/}"
+    input_label='$HOME/'"${input_label#$HOME/}"
   fi
 
   print -r -- "#!/usr/bin/env -S zsh -f"
@@ -317,7 +317,7 @@ trap '[[ -n "${tmpfile-}" ]] && command rm -f -- "${tmpfile-}" >/dev/null 2>&1 |
     if [[ "$label" == "$ZSH_SCRIPT_DIR/"* ]]; then
       label="${label#$ZSH_SCRIPT_DIR/}"
     elif [[ "$label" == "$HOME/"* ]]; then
-      label="~/${label#$HOME/}"
+      label='$HOME/'"${label#$HOME/}"
     fi
     print -r -- "# --- BEGIN ${label}"
     cat "$src"
@@ -356,7 +356,7 @@ trap '[[ -n "${tmpfile-}" ]] && command rm -f -- "${tmpfile-}" >/dev/null 2>&1 |
       if [[ "$tool_rel" == "$ZDOTDIR/"* ]]; then
         tool_rel="${tool_rel#$ZDOTDIR/}"
       elif [[ "$tool_rel" == "$HOME/"* ]]; then
-        tool_rel="~/${tool_rel#$HOME/}"
+        tool_rel='$HOME/'"${tool_rel#$HOME/}"
       fi
 
       tool_file="${tool_path:t}"

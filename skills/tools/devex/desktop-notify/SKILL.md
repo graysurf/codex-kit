@@ -38,13 +38,13 @@ Use this skill when you need to surface a short status update to the user via a 
 Prefer using the project wrapper (auto title) to avoid repeating title rules:
 
 ```bash
-$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh "your short message" --level success
+$CODEX_HOME/skills/tools/devex/desktop-notify/$CODEX_HOME/skills/tools/devex/desktop-notify/$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh "your short message" --level success
 ```
 
 If you need a custom title, call the notifier directly:
 
 ```bash
-$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh \
+$CODEX_HOME/skills/tools/devex/desktop-notify/$CODEX_HOME/skills/tools/devex/desktop-notify/$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh \
   --title "custom title" \
   --message "your short message" \
   --level info
@@ -60,7 +60,7 @@ $CODEX_HOME/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh \
 
 - `CODEX_DESKTOP_NOTIFY_ENABLED=false`: disable notifications (default: enabled)
 - `CODEX_DESKTOP_NOTIFY_HINTS_ENABLED=true`: print a one-line install hint when backend is missing (default: disabled)
-- `PROJECT_PATH`: used by `skills/tools/devex/desktop-notify/scripts/project-notify.sh` to derive the project title (fallback: git root, then `$PWD`)
+- `PROJECT_PATH`: used by `$CODEX_HOME/skills/tools/devex/desktop-notify/$CODEX_HOME/skills/tools/devex/desktop-notify/$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh` to derive the project title (fallback: git root, then `$PWD`)
 
 ## Install hints
 

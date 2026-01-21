@@ -20,14 +20,14 @@ Links:
 ## Acceptance Criteria
 
 - Every `skills/**/SKILL.md` contains `## Contract` and the 5 required headings: `Prereqs`, `Inputs`, `Outputs`, `Exit codes`, `Failure modes`.
-- `scripts/validate_skill_contracts.sh` exits `0` when compliant and non-zero when any file is missing required headings.
-- CI runs `shellcheck` and `scripts/validate_skill_contracts.sh`; lint enforces exact heading strings + fixed ordering within `## Contract`, and a minimal smoke test set is defined (no `--fix`/`--dry-run` initially).
+- `$CODEX_HOME/scripts/validate_skill_contracts.sh` exits `0` when compliant and non-zero when any file is missing required headings.
+- CI runs `shellcheck` and `$CODEX_HOME/scripts/validate_skill_contracts.sh`; lint enforces exact heading strings + fixed ordering within `## Contract`, and a minimal smoke test set is defined (no `--fix`/`--dry-run` initially).
 
 ## Scope
 
 - In-scope:
   - Docs-only edits to `skills/**/SKILL.md` to add the minimal `## Contract` section (no behavioral changes required).
-  - Add `scripts/validate_skill_contracts.sh` (simple, deterministic, CI-friendly).
+  - Add `$CODEX_HOME/scripts/validate_skill_contracts.sh` (simple, deterministic, CI-friendly).
   - Wire the lint (and `shellcheck`) into GitHub Actions CI.
   - Document the contract requirement for new skills (README + CI lint).
 - Out-of-scope:
@@ -45,15 +45,15 @@ Links:
 ### Output
 
 - Updated `skills/**/SKILL.md` files with a `## Contract` section that includes the 5 required headings
-- `scripts/validate_skill_contracts.sh`
+- `$CODEX_HOME/scripts/validate_skill_contracts.sh`
 - CI workflow updates under `.github/workflows/lint.yml`
 
 ### Intermediate Artifacts
 
-- CI logs from `shellcheck` and `scripts/validate_skill_contracts.sh`
+- CI logs from `shellcheck` and `$CODEX_HOME/scripts/validate_skill_contracts.sh`
 - Optional local report file: None (not implemented in MVP)
 
-### Lint script contract (`scripts/validate_skill_contracts.sh`)
+### Lint script contract (`$CODEX_HOME/scripts/validate_skill_contracts.sh`)
 
 - Success: exit `0`; no output.
 - Failure: non-zero; prints `error: <path>: ...` to stderr (missing headings / out-of-order / invalid args / file not found).
@@ -74,7 +74,7 @@ Links:
 - CI portability: implement the lint without requiring `rg` on GitHub runners (prefer `bash + python3` / `grep`).
 - Shellcheck severity: start with `shellcheck -S error` to avoid blocking on existing warnings/info.
 - Minimal smoke tests (beyond `shellcheck`):
-  - Positive: `scripts/validate_skill_contracts.sh` passes against the repo.
+  - Positive: `$CODEX_HOME/scripts/validate_skill_contracts.sh` passes against the repo.
   - Negative: lint fails (non-zero) and prints actionable output when a fixture SKILL doc is missing required headings.
 
 ### Risks / Uncertainties
@@ -100,24 +100,24 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] I/O contract is defined (paths, exit codes, and failure modes for lint): captured in this progress file.
     - [x] Risks and mitigations are explicit (including CI portability): captured in this progress file.
     - [x] Verification commands are defined:
-      - `scripts/validate_skill_contracts.sh`
+      - `$CODEX_HOME/scripts/validate_skill_contracts.sh`
       - `shellcheck -S error` (CI runs against tracked bash shebang scripts)
 - [x] Step 1: Add contracts + lint script (MVP)
   - Work Items:
     - [x] Add a `## Contract` section (with the 5 headings) to every `skills/**/SKILL.md`.
-    - [x] Implement `scripts/validate_skill_contracts.sh` (list failures deterministically; exit non-zero on any failure).
+    - [x] Implement `$CODEX_HOME/scripts/validate_skill_contracts.sh` (list failures deterministically; exit non-zero on any failure).
     - [x] Add basic usage docs in `scripts/README.md` for the lint command.
   - Artifacts:
     - `skills/**/SKILL.md`
-    - `scripts/validate_skill_contracts.sh`
+    - `$CODEX_HOME/scripts/validate_skill_contracts.sh`
     - `scripts/README.md`
   - Exit Criteria:
-    - [x] `scripts/validate_skill_contracts.sh` passes locally: `scripts/validate_skill_contracts.sh`
+    - [x] `$CODEX_HOME/scripts/validate_skill_contracts.sh` passes locally: `$CODEX_HOME/scripts/validate_skill_contracts.sh`
     - [x] Failure output is actionable and stable (prints file + missing headings).
     - [x] No placeholder tokens remain in edited docs; contract sections are present in all skill docs.
 - [x] Step 2: CI integration and policy docs
   - Work Items:
-    - [x] Add GitHub Actions CI job(s) to run `shellcheck` and `scripts/validate_skill_contracts.sh`.
+    - [x] Add GitHub Actions CI job(s) to run `shellcheck` and `$CODEX_HOME/scripts/validate_skill_contracts.sh`.
     - [x] Update `README.md` to document the `## Contract` requirement for new skills.
   - Artifacts:
     - `.github/workflows/lint.yml`
@@ -129,7 +129,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Work Items:
     - [x] Add minimal smoke tests without secrets:
       - `shellcheck` for supported shell scripts
-      - Lint positive pass and negative fixture fail for `scripts/validate_skill_contracts.sh`
+      - Lint positive pass and negative fixture fail for `$CODEX_HOME/scripts/validate_skill_contracts.sh`
     - [x] Ensure `shellcheck` covers repo scripts and passes (tracked `.sh` with bash shebang; excludes `shell_snapshots/`).
   - Artifacts:
     - CI logs for `shellcheck` + lint
@@ -150,6 +150,6 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 ## Modules
 
 - `skills/**/SKILL.md`: Add/maintain `## Contract` sections (5 required headings).
-- `scripts/validate_skill_contracts.sh`: Lint enforcement for required contract headings.
+- `$CODEX_HOME/scripts/validate_skill_contracts.sh`: Lint enforcement for required contract headings.
 - `.github/workflows/*.yml`: CI wiring for `shellcheck` + contract lint.
 - `README.md`: Document contract requirement for new skills.

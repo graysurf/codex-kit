@@ -69,5 +69,5 @@ Failure modes:
 
 ## Optional helper script
 
-- Use `scripts/close_feature_pr.sh` in this skill folder to run a deterministic merge + cleanup.
-- If `scripts/close_feature_pr.sh` fails, attempt to fix the underlying cause (prefer fixing the script when it's a script bug, otherwise fix the documented prerequisites/workflow), re-run it, and explicitly report whether the fix succeeded.
+- Use `$CODEX_HOME/skills/workflows/pr/feature/close-feature-pr/$CODEX_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh` in this skill folder to run a deterministic merge + cleanup.
+- If `$CODEX_HOME/skills/workflows/pr/feature/close-feature-pr/$CODEX_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh` fails, attempt to fix the underlying cause (prefer fixing the script when it's a script bug, otherwise fix the documented prerequisites/workflow), re-run it, and explicitly report whether the fix succeeded.

@@ -68,9 +68,9 @@ Failure modes:
   - If no planning PR, write `None` under `## Planning PR`.
 - Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
-- Use `scripts/render_feature_pr.sh --pr` to generate the PR template quickly.
+- Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr` to generate the PR template quickly.
 
 ## Output
 
 - Use `references/OUTPUT_TEMPLATE.md` as the response format.
-- Use `scripts/render_feature_pr.sh --output` to generate the output template quickly.
+- Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --output` to generate the output template quickly.

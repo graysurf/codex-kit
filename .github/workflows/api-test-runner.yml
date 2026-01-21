@@ -30,7 +30,7 @@ jobs:
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          skills/tools/testing/api-test-runner/scripts/api-test.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
             --suite smoke-demo \
             --out out/api-test-runner/results.json \
             --junit out/api-test-runner/junit.xml
@@ -38,7 +38,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/results.json \
             --out out/api-test-runner/summary.md \
             --slow 5
@@ -89,7 +89,7 @@ jobs:
           done
           curl -fsS "http://127.0.0.1:${port}/health" >/dev/null
 
-          skills/tools/testing/api-test-runner/scripts/api-test.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
             --suite-file tests/fixtures/api-test-runner/cleanup/cleanup.suite.json \
             --out out/api-test-runner/cleanup/results.json \
             --junit out/api-test-runner/cleanup/junit.xml
@@ -97,7 +97,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/cleanup/results.json \
             --out out/api-test-runner/cleanup/summary.md \
             --slow 5
@@ -133,7 +133,7 @@ jobs:
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          skills/tools/testing/api-test-runner/scripts/api-test.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
             --suite public-auth-demo \
             --out out/api-test-runner/public-auth-demo.results.json \
             --junit out/api-test-runner/public-auth-demo.junit.xml
@@ -141,7 +141,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/public-auth-demo.results.json \
             --out out/api-test-runner/public-auth-demo.summary.md \
             --slow 5
@@ -199,7 +199,7 @@ jobs:
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          skills/tools/testing/api-test-runner/scripts/api-test.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
             --suite auth-secrets-demo \
             --out out/api-test-runner/auth-secrets-demo.results.json \
             --junit out/api-test-runner/auth-secrets-demo.junit.xml
@@ -207,7 +207,7 @@ jobs:
       - name: Summarize results
         if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         run: |
-          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+          $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
             --in out/api-test-runner/auth-secrets-demo.results.json \
             --out out/api-test-runner/auth-secrets-demo.summary.md \
             --slow 5

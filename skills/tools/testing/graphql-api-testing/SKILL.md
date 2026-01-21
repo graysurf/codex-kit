@@ -22,7 +22,7 @@ Outputs:
 
 - Response JSON printed to stdout; errors printed to stderr.
 - Optional history file under `setup/graphql/.gql_history` (gitignored; disabled via `--no-history`).
-- Optional markdown report via `scripts/gql-report.sh`.
+- Optional markdown report via `$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`.
 
 Exit codes:
 
@@ -50,7 +50,7 @@ Make GraphQL API calls reproducible via:
 Call an existing operation:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
   --env local \
   --jwt default \
   setup/graphql/operations/<operation>.graphql \
@@ -61,7 +61,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
 Generate a report (includes a replayable `## Command` by default):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -83,13 +83,13 @@ If your repo bootstrapped `setup/graphql/` from the template, you can also use:
 Replay the last run (history):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-history.sh --command-only
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-history.sh --command-only
 ```
 
 Resolve committed schema SDL (for LLMs to author new operations):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql
 ```
 
 ## Flow (decision tree)
@@ -115,7 +115,7 @@ In CI, use `gql.sh` as the runner and `jq -e` as assertions (exit code is the co
 ```bash
 set -euo pipefail
 
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
   --config-dir setup/graphql \
   --env staging \
   --jwt ci \

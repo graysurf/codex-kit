@@ -27,7 +27,7 @@ Links:
 - Standardize project-owned boolean env flags to accept only `true|false` (case-insensitive).
 - On invalid values: warn to stderr and treat as `false`.
 - Unify naming: project-owned boolean flags end with `_ENABLED` (rename existing; no legacy aliases).
-- Add a repo-local audit and wire it into `scripts/check.sh --all` to prevent regressions.
+- Add a repo-local audit and wire it into `$CODEX_HOME/scripts/check.sh --all` to prevent regressions.
 
 ## Acceptance Criteria
 
@@ -36,8 +36,8 @@ Links:
 - Boolean parsing is consistent: only `true|false` are accepted; any other non-empty value warns to stderr and is treated
   as `false`.
 - Repo validation passes after implementation:
-  - `scripts/check.sh --all`
-  - `scripts/audit-env-bools.zsh --check`
+  - `$CODEX_HOME/scripts/check.sh --all`
+  - `$CODEX_HOME/scripts/audit-env-bools.zsh --check`
 - No tracked source/docs examples for Inventory flags use legacy names or `=0` / `=1` / `yes` / `no` / `on` / `off`.
 
 ## Scope
@@ -49,8 +49,8 @@ Links:
     - `skills/`
     - `tests/`
     - `docs/` (excluding `docs/progress/**`)
-  - Add `scripts/audit-env-bools.zsh` (ported from `/Users/terry/.config/zsh/tools/audit-env-bools.zsh`) and integrate it
-    into `scripts/check.sh --all`.
+  - Add `$CODEX_HOME/scripts/audit-env-bools.zsh` (ported from `/Users/terry/.config/zsh/tools/audit-env-bools.zsh`) and integrate it
+    into `$CODEX_HOME/scripts/check.sh --all`.
 - Out-of-scope:
   - Backwards compatibility / legacy aliases for old env names or `0/1` values.
   - Third-party/upstream env vars (e.g. `NO_COLOR`, `PYTHONDONTWRITEBYTECODE`).
@@ -71,14 +71,14 @@ Links:
   - Naming: `*_ENABLED`
   - Values: `true|false` only (case-insensitive)
   - Invalid value behavior: warn to stderr, treated as `false`
-- Repo-local enforcement: `scripts/audit-env-bools.zsh --check`.
+- Repo-local enforcement: `$CODEX_HOME/scripts/audit-env-bools.zsh --check`.
 - Updated docs/templates/examples and test specs to the new names/values.
 
 ### Intermediate Artifacts
 
 - `docs/progress/20260116_env-bool-flags.md` (this file)
-- `scripts/audit-env-bools.zsh`
-- `out/` artifacts produced by validation (e.g. Semgrep JSON from `scripts/check.sh --all`) (optional)
+- `$CODEX_HOME/scripts/audit-env-bools.zsh`
+- `out/` artifacts produced by validation (e.g. Semgrep JSON from `$CODEX_HOME/scripts/check.sh --all`) (optional)
 
 ## Design / Decisions
 
@@ -116,19 +116,19 @@ Explicit exclusions (out-of-scope examples):
 
 | Env (current) | Env (new) | codex-kit touchpoints | Notes |
 | --- | --- | --- | --- |
-| `CHROME_DEVTOOLS_DRY_RUN` | `CHROME_DEVTOOLS_DRY_RUN_ENABLED` | `scripts/chrome-devtools-mcp.sh`<br>`tests/script_specs/scripts/chrome-devtools-mcp.sh.json` | Rename; strict `true|false` only. |
-| `CHROME_DEVTOOLS_PREFLIGHT` | `CHROME_DEVTOOLS_PREFLIGHT_ENABLED` | `scripts/chrome-devtools-mcp.sh`<br>`tests/script_specs/scripts/chrome-devtools-mcp.sh.json` | Rename; strict `true|false` only. |
-| `CHROME_DEVTOOLS_AUTOCONNECT` | `CHROME_DEVTOOLS_AUTOCONNECT_ENABLED` | `scripts/chrome-devtools-mcp.sh` | Rename; strict `true|false` only. |
-| `REST_HISTORY` | `REST_HISTORY_ENABLED` | `skills/tools/testing/rest-api-testing/SKILL.md`<br>`skills/tools/testing/rest-api-testing/scripts/rest.sh` | Rename; update `--no-history` to set `REST_HISTORY_ENABLED=false`. |
-| `REST_HISTORY_LOG_URL` | `REST_HISTORY_LOG_URL_ENABLED` | `skills/tools/testing/rest-api-testing/scripts/rest.sh` | Rename; strict `true|false` only. |
-| `REST_REPORT_INCLUDE_COMMAND` | `REST_REPORT_INCLUDE_COMMAND_ENABLED` | `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` | Rename; strict `true|false` only. |
-| `REST_REPORT_COMMAND_LOG_URL` | `REST_REPORT_COMMAND_LOG_URL_ENABLED` | `skills/tools/testing/rest-api-testing/scripts/rest-report.sh` | Rename; strict `true|false` only. |
-| `GQL_HISTORY` | `GQL_HISTORY_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; update `--no-history` to set `GQL_HISTORY_ENABLED=false`. |
-| `GQL_HISTORY_LOG_URL` | `GQL_HISTORY_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
-| `GQL_REPORT_INCLUDE_COMMAND` | `GQL_REPORT_INCLUDE_COMMAND_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
-| `GQL_REPORT_COMMAND_LOG_URL` | `GQL_REPORT_COMMAND_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
-| `GQL_ALLOW_EMPTY` | `GQL_ALLOW_EMPTY_ENABLED` | `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
-| `API_TEST_ALLOW_WRITES` | `API_TEST_ALLOW_WRITES_ENABLED` | `.github/workflows/api-test-runner.yml`<br>`skills/tools/testing/api-test-runner/SKILL.md`<br>`skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`<br>`skills/tools/testing/api-test-runner/scripts/api-test.sh` | Rename; update docs/workflow examples from `1` to `true`. |
+| `CHROME_DEVTOOLS_DRY_RUN` | `CHROME_DEVTOOLS_DRY_RUN_ENABLED` | `$CODEX_HOME/scripts/chrome-devtools-mcp.sh`<br>`tests/script_specs/scripts/chrome-devtools-mcp.sh.json` | Rename; strict `true|false` only. |
+| `CHROME_DEVTOOLS_PREFLIGHT` | `CHROME_DEVTOOLS_PREFLIGHT_ENABLED` | `$CODEX_HOME/scripts/chrome-devtools-mcp.sh`<br>`tests/script_specs/scripts/chrome-devtools-mcp.sh.json` | Rename; strict `true|false` only. |
+| `CHROME_DEVTOOLS_AUTOCONNECT` | `CHROME_DEVTOOLS_AUTOCONNECT_ENABLED` | `$CODEX_HOME/scripts/chrome-devtools-mcp.sh` | Rename; strict `true|false` only. |
+| `REST_HISTORY` | `REST_HISTORY_ENABLED` | `skills/tools/testing/rest-api-testing/SKILL.md`<br>`$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh` | Rename; update `--no-history` to set `REST_HISTORY_ENABLED=false`. |
+| `REST_HISTORY_LOG_URL` | `REST_HISTORY_LOG_URL_ENABLED` | `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh` | Rename; strict `true|false` only. |
+| `REST_REPORT_INCLUDE_COMMAND` | `REST_REPORT_INCLUDE_COMMAND_ENABLED` | `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh` | Rename; strict `true|false` only. |
+| `REST_REPORT_COMMAND_LOG_URL` | `REST_REPORT_COMMAND_LOG_URL_ENABLED` | `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh` | Rename; strict `true|false` only. |
+| `GQL_HISTORY` | `GQL_HISTORY_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; update `--no-history` to set `GQL_HISTORY_ENABLED=false`. |
+| `GQL_HISTORY_LOG_URL` | `GQL_HISTORY_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `GQL_REPORT_INCLUDE_COMMAND` | `GQL_REPORT_INCLUDE_COMMAND_ENABLED` | `skills/tools/testing/graphql-api-testing/SKILL.md`<br>`skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `GQL_REPORT_COMMAND_LOG_URL` | `GQL_REPORT_COMMAND_LOG_URL_ENABLED` | `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`<br>`$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `GQL_ALLOW_EMPTY` | `GQL_ALLOW_EMPTY_ENABLED` | `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`<br>`skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/gql.local.env.example` | Rename; strict `true|false` only. |
+| `API_TEST_ALLOW_WRITES` | `API_TEST_ALLOW_WRITES_ENABLED` | `.github/workflows/api-test-runner.yml`<br>`skills/tools/testing/api-test-runner/SKILL.md`<br>`$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`<br>`$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh` | Rename; update docs/workflow examples from `1` to `true`. |
 | `CODEX_CURL_STUB_MODE` | `CODEX_CURL_STUB_MODE_ENABLED` | `tests/script_specs/skills/tools/testing/api-test-runner/scripts/api-test.sh.json`<br>`tests/script_specs/skills/tools/testing/rest-api-testing/scripts/rest.sh.json`<br>`tests/stubs/bin/curl` | Rename; update test specs from `\"1\"` to `\"true\"`. |
 | `CODEX_XH_STUB_MODE` | `CODEX_XH_STUB_MODE_ENABLED` | `tests/script_specs/skills/tools/testing/api-test-runner/scripts/api-test.sh.json`<br>`tests/script_specs/skills/tools/testing/graphql-api-testing/scripts/gql.sh.json`<br>`tests/stubs/bin/xh` | Rename; update test specs from `\"1\"` to `\"true\"`. |
 | `CODEX_GH_STUB_MODE` | `CODEX_GH_STUB_MODE_ENABLED` | `tests/script_specs/skills/automation/fix-bug-pr/scripts/bug-pr-patch.sh.json`<br>`tests/script_specs/skills/automation/fix-bug-pr/scripts/bug-pr-resolve.sh.json`<br>`tests/stubs/bin/gh`<br>`tests/test_script_smoke_gh_workflows.py` | Rename; update test specs from `\"1\"` to `\"true\"`. |
@@ -152,8 +152,8 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] I/O contract is defined (inputs/outputs/artifacts).
     - [x] Risks and rollout plan are defined (including breaking-change notes).
     - [x] Verification commands are defined:
-      - `scripts/check.sh --all`
-      - `scripts/audit-env-bools.zsh --check`
+      - `$CODEX_HOME/scripts/check.sh --all`
+      - `$CODEX_HOME/scripts/audit-env-bools.zsh --check`
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
     - [x] Introduce shared boolean env parsing helper(s) (single source of truth per shell).
@@ -166,20 +166,20 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] No tracked examples/specs for Inventory flags use `0/1/yes/no/on/off`.
 - [x] Step 2: Expansion / integration
   - Work Items:
-    - [x] Add `scripts/audit-env-bools.zsh --check` and integrate into `scripts/check.sh --all`.
+    - [x] Add `$CODEX_HOME/scripts/audit-env-bools.zsh --check` and integrate into `$CODEX_HOME/scripts/check.sh --all`.
     - [x] Add/adjust regression tests for the new audit script (and any updated specs/stubs).
   - Artifacts:
-    - `scripts/audit-env-bools.zsh`
-    - Updates to `scripts/check.sh`
+    - `$CODEX_HOME/scripts/audit-env-bools.zsh`
+    - Updates to `$CODEX_HOME/scripts/check.sh`
     - Test coverage under `tests/`
   - Exit Criteria:
-    - [x] `scripts/audit-env-bools.zsh --check` passes.
-    - [x] `scripts/check.sh --all` passes with audit included.
+    - [x] `$CODEX_HOME/scripts/audit-env-bools.zsh --check` passes.
+    - [x] `$CODEX_HOME/scripts/check.sh --all` passes with audit included.
     - [x] No remaining legacy env names or forbidden values for Inventory flags outside `docs/progress/**`.
 - [x] Step 3: Validation / testing
   - Work Items:
-    - [x] Run and record full repo validation (`scripts/check.sh --all`).
-    - [x] Run and record the env-bools audit (`scripts/audit-env-bools.zsh --check`).
+    - [x] Run and record full repo validation (`$CODEX_HOME/scripts/check.sh --all`).
+    - [x] Run and record the env-bools audit (`$CODEX_HOME/scripts/audit-env-bools.zsh --check`).
   - Artifacts:
     - PR `Testing` notes (pass/failed/skipped per command)
     - Any logs under `out/` (when produced)
@@ -197,12 +197,12 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
 
 ## Modules
 
-- `scripts/audit-env-bools.zsh`: enforce boolean env conventions (`*_ENABLED`, `true|false` only).
-- `scripts/check.sh`: integrate `scripts/audit-env-bools.zsh --check` into `--all`.
-- `scripts/chrome-devtools-mcp.sh`: adopt renamed `CHROME_DEVTOOLS_*_ENABLED` flags and strict parsing.
-- `skills/tools/testing/rest-api-testing/scripts/rest.sh`: adopt renamed `REST_*_ENABLED` flags and strict parsing.
-- `skills/tools/testing/rest-api-testing/scripts/rest-report.sh`: adopt renamed `REST_REPORT_*_ENABLED` flags and strict parsing.
-- `skills/tools/testing/graphql-api-testing/scripts/gql.sh`: adopt renamed `GQL_*_ENABLED` flags and strict parsing.
-- `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`: adopt renamed `GQL_*_ENABLED` flags and strict parsing.
-- `skills/tools/testing/api-test-runner/scripts/api-test.sh`: adopt renamed `API_TEST_ALLOW_WRITES_ENABLED` and strict parsing.
+- `$CODEX_HOME/scripts/audit-env-bools.zsh`: enforce boolean env conventions (`*_ENABLED`, `true|false` only).
+- `$CODEX_HOME/scripts/check.sh`: integrate `$CODEX_HOME/scripts/audit-env-bools.zsh --check` into `--all`.
+- `$CODEX_HOME/scripts/chrome-devtools-mcp.sh`: adopt renamed `CHROME_DEVTOOLS_*_ENABLED` flags and strict parsing.
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh`: adopt renamed `REST_*_ENABLED` flags and strict parsing.
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh`: adopt renamed `REST_REPORT_*_ENABLED` flags and strict parsing.
+- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`: adopt renamed `GQL_*_ENABLED` flags and strict parsing.
+- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`: adopt renamed `GQL_*_ENABLED` flags and strict parsing.
+- `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh`: adopt renamed `API_TEST_ALLOW_WRITES_ENABLED` and strict parsing.
 - `tests/stubs/bin/*`: adopt renamed `CODEX_*_STUB_*_ENABLED` flags and strict parsing.

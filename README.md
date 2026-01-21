@@ -19,7 +19,7 @@ are intentionally excluded via `.gitignore`.
 
 ## ⚙️ Setup
 
-Set `CODEX_HOME` in `~/.zshenv`:
+Set `CODEX_HOME` in `$HOME/.zshenv`:
 
 ```zsh
 export CODEX_HOME="$HOME/.codex"
@@ -46,8 +46,8 @@ See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Dock
 
 ## 🛠️ Skills
 
-All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `scripts/validate_skill_contracts.sh` and CI.
-Tracked skill directory layout (`SKILL.md` + optional `scripts/`, `references/`, `assets/`) is enforced by `scripts/audit-skill-layout.sh` and CI.
+All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `$CODEX_HOME/scripts/validate_skill_contracts.sh` and CI.
+Tracked skill directory layout (`SKILL.md` + optional `scripts/`, `references/`, `assets/`) is enforced by `$CODEX_HOME/scripts/audit-skill-layout.sh` and CI.
 
 Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/automation/`. Internal/meta skills live under `skills/.system/` (not listed below).
 

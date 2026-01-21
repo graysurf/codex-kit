@@ -108,7 +108,7 @@ REST_TOKEN_ADMIN="<admin token>"
 Tip: if you are not running from the repo root, add `--config-dir setup/rest` to the commands below.
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
   --env local \
   setup/rest/requests/<request>.request.json \
 | jq .
@@ -145,7 +145,7 @@ Notes:
 ```bash
 export REST_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
 
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env <local|staging|dev> \
@@ -177,7 +177,7 @@ Example (single request):
 ```bash
 REST_URL="https://<host>" \
 ACCESS_TOKEN="${ACCESS_TOKEN:-}" \
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
   --url "$REST_URL" \
   --config-dir setup/rest \
   setup/rest/requests/health.request.json

@@ -5,12 +5,12 @@ Bundle a zsh “wrapper script” into a single, standalone executable by inlini
 ## Usage
 
 ```zsh
-zsh -f scripts/build/bundle-wrapper.zsh --input <wrapper> --output <path> [--entry <fn>]
+zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh --input <wrapper> --output <path> [--entry <fn>]
 ```
 
 The bundler sets sensible defaults if missing:
 
-- `ZDOTDIR` (default: `~/.config/zsh`)
+- `ZDOTDIR` (default: `$HOME/.config/zsh`)
 - `ZSH_CONFIG_DIR` (default: `$ZDOTDIR/config`)
 - `ZSH_BOOTSTRAP_SCRIPT_DIR` (default: `$ZDOTDIR/bootstrap`)
 - `ZSH_SCRIPT_DIR` (default: `$ZDOTDIR/scripts`)
@@ -22,8 +22,8 @@ This script is intended to stay in sync with the upstream `bundle-wrapper.zsh` u
 If you update the upstream version locally, you can vendor it into this repo with:
 
 ```zsh
-cp "$HOME/.config/zsh/tools/bundle-wrapper.zsh" scripts/build/bundle-wrapper.zsh
-scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
+cp "$HOME/.config/zsh/tools/bundle-wrapper.zsh" $CODEX_HOME/scripts/build/bundle-wrapper.zsh
+$CODEX_HOME/scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 ```
 
 ## Supported wrapper patterns
@@ -46,7 +46,7 @@ scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 ### Bundle `git-commit-context-json` into this repo’s `commands/`
 
 ```zsh
-zsh -f scripts/build/bundle-wrapper.zsh \
+zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
   --input "$HOME/.config/zsh/cache/wrappers/bin/git-commit-context-json" \
   --output commands/git-commit-context-json \
   --entry git-commit-context-json
@@ -55,11 +55,11 @@ zsh -f scripts/build/bundle-wrapper.zsh \
 ### Re-bundle an already-bundled command (copy mode)
 
 ```zsh
-zsh -f scripts/build/bundle-wrapper.zsh \
+zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
   --input "$HOME/.codex/commands/project-resolve" \
   --output commands/project-resolve
 
-zsh -f scripts/build/bundle-wrapper.zsh \
+zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
   --input "$HOME/.codex/commands/api-report-from-cmd" \
   --output commands/api-report-from-cmd
 ```
@@ -70,7 +70,7 @@ zsh -f scripts/build/bundle-wrapper.zsh \
 tmp="$(mktemp -d)"
 mkdir -p "$tmp/zdotdir/scripts/lib" "$tmp/zdotdir/tools"
 
-cat >"$tmp/zdotdir/scripts/lib/hello.zsh" <<'EOF'
+cat >"$tmp/zdotdir/$CODEX_HOME/scripts/lib/hello.zsh" <<'EOF'
 hello_main() {
   print -r -- "hello-main"
   echo-tool "arg1"
@@ -94,7 +94,7 @@ EOF
 
 ZDOTDIR="$tmp/zdotdir" \
 ZSH_SCRIPT_DIR="$tmp/zdotdir/scripts" \
-zsh -f scripts/build/bundle-wrapper.zsh \
+zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
   --input "$tmp/wrapper.zsh" \
   --output "$tmp/bundled.zsh" \
   --entry hello_main

@@ -264,7 +264,7 @@ def test_script_smoke_bundle_wrapper_copies_bundled_input(tmp_path: Path):
     assert output.stat().st_mode & 0o111, f"bundle output is not executable: {output}"
 
     out_text = output.read_text("utf-8")
-    assert "# Bundled from: ~/wrapper.zsh" in out_text
+    assert "# Bundled from: $HOME/wrapper.zsh" in out_text
 
     env = default_smoke_env(repo)
     env["HOME"] = str(home_dir)

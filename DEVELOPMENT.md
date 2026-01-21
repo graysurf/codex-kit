@@ -10,20 +10,23 @@
   - Literal strings (no `$var`/`$(cmd)` expansion) -> single quotes: `typeset homebrew_path=''`
   - Needs expansion -> double quotes and keep quoting: `typeset repo_root="$PWD"`, `print -r -- "$msg"`
   - Needs escape sequences (e.g. `\n`) -> use `$'...'`
-- Auto-fix (empty strings only): `scripts/fix-typeset-empty-string-quotes.zsh --check|--write` normalizes `typeset/local ...=""` to `''`.
+- Path rules
+  - Prefer absolute paths in docs/examples; use `$CODEX_HOME/...` for repo-local tools (avoid `scripts/...` / `./scripts/...`).
+  - Use `$HOME/...` instead of `~/...` to avoid shell-specific tilde expansion edge cases.
+- Auto-fix (empty strings only): `$CODEX_HOME/scripts/fix-typeset-empty-string-quotes.zsh --check|--write` normalizes `typeset/local ...=""` to `''`.
 
 ## Testing
 
 ### Required before committing
 
-- Run: `scripts/check.sh --all`
-- `scripts/check.sh --all` runs:
-  - `scripts/lint.sh` (shell + python)
+- Run: `$CODEX_HOME/scripts/check.sh --all`
+- `$CODEX_HOME/scripts/check.sh --all` runs:
+  - `$CODEX_HOME/scripts/lint.sh` (shell + python)
     - Shell: route by shebang and run `shellcheck` (bash) + `bash -n` + `zsh -n`
     - Python: `ruff check tests` + `mypy --config-file mypy.ini tests` + `pyright` + syntax-check for tracked `.py` files
-  - `scripts/validate_skill_contracts.sh`
-  - `scripts/semgrep-scan.sh`
-  - `scripts/test.sh` (pytest; prefers `.venv/bin/python`)
+  - `$CODEX_HOME/scripts/validate_skill_contracts.sh`
+  - `$CODEX_HOME/scripts/semgrep-scan.sh`
+  - `$CODEX_HOME/scripts/test.sh` (pytest; prefers `.venv/bin/python`)
 
 ### Tooling / setup (as needed)
 
@@ -34,25 +37,25 @@
   - System tools
     - `shellcheck`, `zsh` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
 - Quick entry points
-  - `scripts/lint.sh` (defaults to shell + python)
-  - `scripts/check.sh --lint` (lint only; faster iteration)
-  - `scripts/check.sh --contracts` (skill-contract validation only)
-  - `scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
-  - `scripts/check.sh --semgrep` (Semgrep only)
-  - `scripts/check.sh --all` (full check)
+  - `$CODEX_HOME/scripts/lint.sh` (defaults to shell + python)
+  - `$CODEX_HOME/scripts/check.sh --lint` (lint only; faster iteration)
+  - `$CODEX_HOME/scripts/check.sh --contracts` (skill-contract validation only)
+  - `$CODEX_HOME/scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
+  - `$CODEX_HOME/scripts/check.sh --semgrep` (Semgrep only)
+  - `$CODEX_HOME/scripts/check.sh --all` (full check)
 - `pytest`
-  - Prefer the wrapper: `scripts/test.sh` (passes args through to pytest)
-  - Common: `scripts/test.sh -m script_smoke`, `scripts/test.sh -m script_regression`
+  - Prefer the wrapper: `$CODEX_HOME/scripts/test.sh` (passes args through to pytest)
+  - Common: `$CODEX_HOME/scripts/test.sh -m script_smoke`, `$CODEX_HOME/scripts/test.sh -m script_regression`
   - Artifacts: written to `out/tests/` (e.g. `out/tests/script-coverage/summary.md`)
 - `ruff` (Python lint; config: `ruff.toml`)
   - `source .venv/bin/activate && ruff check tests`
   - Safe autofix: `source .venv/bin/activate && ruff check --fix tests`
-  - Or via: `scripts/lint.sh --python`
+  - Or via: `$CODEX_HOME/scripts/lint.sh --python`
 - `mypy` (typecheck; config: `mypy.ini`)
   - `source .venv/bin/activate && mypy --config-file mypy.ini tests`
-  - Or via: `scripts/lint.sh --python`
+  - Or via: `$CODEX_HOME/scripts/lint.sh --python`
 - `pyright` (typecheck; config: `pyrightconfig.json`)
   - `source .venv/bin/activate && pyright --project pyrightconfig.json`
-  - Or via: `scripts/lint.sh --python`
+  - Or via: `$CODEX_HOME/scripts/lint.sh --python`
 - Shell (bash/zsh)
-  - `scripts/lint.sh --shell` (requires `shellcheck` and `zsh`)
+  - `$CODEX_HOME/scripts/lint.sh --shell` (requires `shellcheck` and `zsh`)

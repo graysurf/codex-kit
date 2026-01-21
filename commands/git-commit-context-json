@@ -1,7 +1,7 @@
 #!/usr/bin/env -S zsh -f
 set -e
 
-# Bundled from: ~/.config/zsh/cache/wrappers/bin/git-commit-context-json
+# Bundled from: $HOME/.config/zsh/cache/wrappers/bin/git-commit-context-json
 : "${ZDOTDIR:=$HOME/.config/zsh}"
 export ZDOTDIR
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$ZDOTDIR/config}"
@@ -32,7 +32,7 @@ export ZSH_COMPDUMP="${ZSH_COMPDUMP:-$ZSH_CACHE_DIR/.zcompdump}"
 
 # --- END _internal/wrappers.bundle-prelude.zsh
 
-# --- BEGIN ~/.config/zsh/bootstrap/00-preload.zsh
+# --- BEGIN $HOME/.config/zsh/bootstrap/00-preload.zsh
 # safe_unalias [-v] <name...>
 # Safely remove one or more aliases without causing errors.
 #
@@ -212,7 +212,7 @@ zsh_env::is_true() {
   esac
 }
 
-# --- END ~/.config/zsh/bootstrap/00-preload.zsh
+# --- END $HOME/.config/zsh/bootstrap/00-preload.zsh
 
 # --- BEGIN git/tools/git-commit.zsh
 # ────────────────────────────────────────────────────────

@@ -23,7 +23,7 @@
         "CHROME_DEVTOOLS_DRY_RUN_ENABLED": "true",
         "CHROME_DEVTOOLS_MODE": "clean",
         "CHROME_DEVTOOLS_PREFLIGHT_ENABLED": "false",
-        "CHROME_DEVTOOLS_LOG_FILE": "~/chrome-devtools-mcp/dry-run-tilde.log"
+        "CHROME_DEVTOOLS_LOG_FILE": "$HOME/chrome-devtools-mcp/dry-run-tilde.log"
       },
       "timeout_sec": 5,
       "expect": {

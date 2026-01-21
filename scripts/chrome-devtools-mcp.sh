@@ -57,6 +57,12 @@ expand_tilde() {
   if [[ $path == \~ || $path == \~/* ]]; then
     path="${path/#\~/$HOME}"
   fi
+  if [[ $path == '$HOME' || $path == '$HOME/'* ]]; then
+    path="$HOME${path:5}"
+  fi
+  if [[ $path == '${HOME}' || $path == '${HOME}/'* ]]; then
+    path="$HOME${path:7}"
+  fi
   printf '%s' "$path"
 }
 

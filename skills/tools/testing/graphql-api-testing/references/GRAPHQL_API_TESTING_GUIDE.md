@@ -145,13 +145,13 @@ If the repo commits its GraphQL schema SDL, LLMs can generate operations/variabl
 Resolve the schema file path:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql
 ```
 
 Print the schema contents:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql --cat
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql --cat
 ```
 
 5) Prepare operation and variables files
@@ -170,19 +170,19 @@ Tip: if you are not running from the repo root, add `--config-dir setup/graphql`
 List envs:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --list-envs
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --list-envs
 ```
 
 List JWT profiles:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --list-jwts
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --list-jwts
 ```
 
 Unauthenticated call (login):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
   --env local \
   setup/graphql/operations/login.graphql \
   setup/graphql/operations/login.variables.json \
@@ -192,7 +192,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
 Authenticated call (select JWT profile; will auto-login if missing):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
   --env local \
   --jwt default \
   setup/graphql/operations/<operation>.graphql \
@@ -204,7 +204,7 @@ Manual token export (optional; example path, adjust to your schema):
 
 ```bash
 export ACCESS_TOKEN="$(
-  $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+  $CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
     --env local \
     setup/graphql/operations/login.graphql \
     setup/graphql/operations/login.variables.json \
@@ -215,7 +215,7 @@ export ACCESS_TOKEN="$(
 Authenticated call (ACCESS_TOKEN):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
   --env local \
   setup/graphql/operations/<operation>.graphql \
   setup/graphql/operations/<variables>.json \
@@ -229,7 +229,7 @@ Reports should include real data. If the response is empty and that’s not clea
 ```bash
 export GQL_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
 
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -241,7 +241,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
 Use a saved response file instead of running (for replayability):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -265,7 +265,7 @@ In CI, use `gql.sh` as the runner and `jq -e` as assertions (exit code is the co
 ```bash
 set -euo pipefail
 
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
   --config-dir setup/graphql \
   --env <local|staging|dev> \
   --jwt <default|admin|...> \
@@ -281,11 +281,11 @@ Notes:
 
 ## Notes for stability
 
-- Prefer “files + template command” (or `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
+- Prefer “files + template command” (or `$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
 - If the repo commits its GraphQL schema SDL (recommended: `setup/graphql/schema.gql`), LLMs can generate operations/variables without separate API docs. Resolve it with:
-  - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql`
+  - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql`
 - `gql.sh` keeps a local history file at `setup/graphql/.gql_history` by default; extract the last entry for replay with:
-  - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-history.sh --command-only`
+  - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-history.sh --command-only`
 - History defaults and controls:
   - Defaults: enabled, logs both success/failure with exit code; rotates at 10 MB and keeps N old files.
   - One-off disable: `gql.sh --no-history ...`

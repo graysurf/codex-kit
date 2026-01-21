@@ -74,7 +74,7 @@ normalize_secrets_mount() {
   if [[ "$path" == "~"* ]]; then
     path="/home/codex${path#~}"
   fi
-  [[ "$path" == /* ]] || die "secrets mount must be an absolute path (or ~/<path>): $path"
+  [[ "$path" == /* ]] || die "secrets mount must be an absolute path (or \\$HOME/<path>): $path"
   path="${path%/}"
   [[ -n "$path" ]] || die "invalid secrets mount path"
   echo "$path"

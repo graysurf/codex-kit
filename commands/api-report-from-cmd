@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Bundled from: ~/.codex/commands/api-report-from-cmd
+# Bundled from: $HOME/.codex/commands/api-report-from-cmd
 # --- BEGIN commands/api-report-from-cmd
 
 if [[ -z "${CODEX_HOME:-}" ]]; then

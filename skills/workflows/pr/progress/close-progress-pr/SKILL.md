@@ -100,5 +100,5 @@ If the progress file includes a `Links -> Planning PR` entry, ensure that planni
 
 ## Optional helper script
 
-- Use `scripts/close_progress_pr.sh` in this skill folder to run a deterministic version of steps 3–8.
-- If `scripts/close_progress_pr.sh` fails, attempt to fix the underlying cause (prefer fixing the script when it's a script bug, otherwise fix the documented prerequisites/workflow), re-run it, and explicitly report whether the fix succeeded.
+- Use `$CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/$CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` in this skill folder to run a deterministic version of steps 3–8.
+- If `$CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/$CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` fails, attempt to fix the underlying cause (prefer fixing the script when it's a script bug, otherwise fix the documented prerequisites/workflow), re-run it, and explicitly report whether the fix succeeded.

@@ -35,7 +35,7 @@ Links:
 
 ## Acceptance Criteria
 
-- Add `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`:
+- Add `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`:
   - Input: `results.json` file (or stdin)
   - Output: concise Markdown summary to stdout (CI logs) and optional `--out <path>`
   - Default: list only failed cases + slowest Top N; skipped cases are shown only with `--show-skipped`
@@ -102,9 +102,9 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Minimal verification commands are listed in Step 3.
 - [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [x] Implement `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`
+    - [x] Implement `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`
   - Artifacts:
-    - `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`
+    - `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`
   - Exit Criteria:
     - [x] Generates a readable summary from a real `results.json` (see Step 3 commands).
 - [x] Step 2: Expansion / integration
@@ -128,8 +128,8 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Exit Criteria:
     - [x] Commands executed with results recorded:
       - `cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" ./setup`
-      - `skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --out out/api-test-runner/results.json`
-      - `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh --in out/api-test-runner/results.json --out out/api-test-runner/summary.md --slow 5`
+      - `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --out out/api-test-runner/results.json`
+      - `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh --in out/api-test-runner/results.json --out out/api-test-runner/summary.md --slow 5`
     - [x] Summary is readable and small (failed list + slow Top N; no skipped unless enabled).
     - [x] Failure modes are readable (missing file / invalid JSON).
 - [x] Step 4: Release / wrap-up
@@ -143,5 +143,5 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 
 ## Modules
 
-- `skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`: turns results JSON into a small Markdown summary for CI + PMs.
+- `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh`: turns results JSON into a small Markdown summary for CI + PMs.
 - `.github/workflows/api-test-runner.yml`: example usage (always-run summary, upload artifacts).

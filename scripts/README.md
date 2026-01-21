@@ -30,7 +30,7 @@ repo-local command without external dependencies on wrapper paths.
 Example (git-commit-context-json):
 
 ```zsh
-zsh -f scripts/build/bundle-wrapper.zsh \
+zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
   --input $HOME/.config/zsh/cache/wrappers/bin/git-commit-context-json \
   --output commands/git-commit-context-json \
   --entry git-commit-context-json
@@ -48,7 +48,7 @@ Notes:
 
 ### Skill contract lint
 
-`scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
+`$CODEX_HOME/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
 
 Requirements (inside `## Contract`, in order):
 
@@ -60,8 +60,8 @@ Requirements (inside `## Contract`, in order):
 
 Usage:
 
-- Validate all tracked skills: `scripts/validate_skill_contracts.sh`
-- Validate a specific file: `scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
+- Validate all tracked skills: `$CODEX_HOME/scripts/validate_skill_contracts.sh`
+- Validate a specific file: `$CODEX_HOME/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
 
 Exit codes:
 
@@ -70,7 +70,7 @@ Exit codes:
 
 ### Skill layout audit
 
-`scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
+`$CODEX_HOME/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
 
 - `SKILL.md` at the skill root
 - Optional: `scripts/`, `references/`, `assets/`
@@ -79,16 +79,16 @@ Exit codes:
 
 ### Lint + syntax checks
 
-`scripts/lint.sh` runs:
+`$CODEX_HOME/scripts/lint.sh` runs:
 
 - Shell: `shellcheck` (bash) + `bash -n` + `zsh -n` (shebang-based)
 - Python: `ruff` + `mypy` + `pyright`
 
 Usage:
 
-- Lint everything: `scripts/lint.sh`
-- Shell only: `scripts/lint.sh --shell`
-- Python only: `scripts/lint.sh --python`
+- Lint everything: `$CODEX_HOME/scripts/lint.sh`
+- Shell only: `$CODEX_HOME/scripts/lint.sh --shell`
+- Python only: `$CODEX_HOME/scripts/lint.sh --python`
 
 ## Semgrep
 
@@ -96,5 +96,5 @@ Use `semgrep-scan.sh` to run `.semgrep.yaml` plus curated Semgrep Registry packs
 
 Examples:
 
-- Default (scripting profile): `scripts/semgrep-scan.sh`
-- Shell scripts only: `scripts/semgrep-scan.sh --profile shell`
+- Default (scripting profile): `$CODEX_HOME/scripts/semgrep-scan.sh`
+- Shell scripts only: `$CODEX_HOME/scripts/semgrep-scan.sh --profile shell`

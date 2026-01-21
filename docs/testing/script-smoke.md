@@ -11,7 +11,7 @@
 2) Run smoke:
 
 ```bash
-scripts/test.sh -m script_smoke
+$CODEX_HOME/scripts/test.sh -m script_smoke
 ```
 
 ## What it does
