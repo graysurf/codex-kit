@@ -439,7 +439,14 @@ print_file_content() {
     fi
   elif git cat-file -e "HEAD:$file" 2>/dev/null; then
     typeset tmp=''
-    tmp="$(mktemp)"
+    tmp="$(mktemp 2>/dev/null || true)"
+    if [[ -z "$tmp" ]]; then
+      tmp="$(mktemp -t git-scope.XXXXXX 2>/dev/null || true)"
+    fi
+    [[ -n "$tmp" ]] || {
+      printf "❗ Failed to create temp file\n"
+      return 1
+    }
     git show "HEAD:$file" > "$tmp"
 
     if file --mime "$tmp" | grep -q 'charset=binary'; then
