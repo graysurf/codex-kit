@@ -2,13 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-22 | 2026-01-22 |
+| DONE | 2026-01-22 | 2026-01-22 |
 
 Links:
 
-- PR: [#63](https://github.com/graysurf/codex-kit/pull/63)
-- Docs: `docs/runbooks/codex-workspace-migration.md`
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- PR: https://github.com/graysurf/codex-kit/pull/63
+- Wrapper PR: https://github.com/graysurf/zsh-kit/pull/58
+- Docs: [docs/runbooks/codex-workspace-migration.md](../../runbooks/codex-workspace-migration.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
 
@@ -59,7 +60,7 @@ Links:
 
 - Tunnel logs on host (path returned in launcher JSON).
 - Planning and runbook docs:
-  - `docs/progress/20260122_codex-workspace-launcher-wrapper-migration.md`
+  - `docs/progress/archived/20260122_codex-workspace-launcher-wrapper-migration.md`
   - `docs/runbooks/codex-workspace-migration.md`
 
 ## Design / Decisions
@@ -81,63 +82,79 @@ Links:
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like this~~` and include `Reason:`. Unchecked and unstruck items (e.g. `- [ ] foo`) will block close-progress-pr.
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Move migration doc to `docs/runbooks/` and ensure it reflects the approved contract decisions.
-    - [ ] Create and merge a progress planning PR (docs-only) to track this work.
+    - [x] Move migration doc to `docs/runbooks/` and ensure it reflects the approved contract decisions.
+    - [x] Create and merge a progress planning PR (docs-only) to track this work.
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - `docs/runbooks/codex-workspace-migration.md`
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned in this progress file.
-    - [ ] Data flow and I/O contract are defined (CLI inputs / JSON outputs / side effects).
-    - [ ] Risks and rollback notes are captured.
-    - [ ] A minimal verification plan exists (smoke commands in Step 3).
-- [ ] Step 1: Minimum viable launcher contract (codex-kit)
+    - [x] Requirements, scope, and acceptance criteria are aligned in this progress file.
+    - [x] Data flow and I/O contract are defined (CLI inputs / JSON outputs / side effects).
+    - [x] Risks and rollback notes are captured.
+    - [x] A minimal verification plan exists (smoke commands in Step 3).
+- [x] Step 1: Minimum viable launcher contract (codex-kit)
   - Work Items:
-    - [ ] Add `--version` and capabilities.
-    - [ ] Implement `create/up --output json` with stdout JSON / stderr logs.
-    - [ ] Implement secrets opt-in (`--secrets-dir` required; no default).
-    - [ ] Implement tunnel name policy + JSON output (requires `--detach`).
-    - [ ] Implement `rm` default volumes removal with `--keep-volumes`.
+    - [x] Add `--version` and capabilities (`capabilities`, `--supports`).
+    - [x] Implement `create/up --output json` with stdout JSON / stderr logs.
+    - [x] Implement secrets opt-in (`--secrets-dir` required; no default).
+    - [x] Implement tunnel name policy + JSON output (requires `--detach`).
+    - [x] Implement `rm` default volumes removal with `--keep-volumes`.
   - Artifacts:
     - `docker/codex-env/bin/codex-workspace`
     - `docker/codex-env/README.md`
     - `docker/codex-env/WORKSPACE_QUICKSTART.md`
+    - `tests/test_codex_workspace_launcher_smoke.py`
+    - `tests/stubs/bin/docker`
   - Exit Criteria:
-    - [ ] At least one happy path runs end-to-end (create + optional clone): `codex-workspace create --output json OWNER/REPO`.
-    - [ ] JSON output is valid and stdout-only (no interleaved logs); stderr contains any human logs.
-    - [ ] Usage docs updated with new defaults and flags.
-- [ ] Step 2: Wrapper integration (zsh-kit)
+    - [x] At least one happy path runs end-to-end (create + clone): `codex-workspace create --output json OWNER/REPO`.
+    - [x] JSON output is valid and stdout-only (no interleaved logs); stderr contains any human logs.
+    - [x] Usage docs updated with new defaults and flags (runbook + launcher usage text).
+- [x] Step 2: Wrapper integration (zsh-kit)
   - Work Items:
-    - [ ] Switch wrapper `create` orchestration to consume launcher JSON output.
-    - [ ] Make wrapper `ls`/`start`/`stop`/`rm` call-throughs to launcher.
-    - [ ] Optionally enforce minimum launcher version/capabilities.
+    - [x] Switch wrapper `create` orchestration to consume launcher JSON output.
+    - [x] Make wrapper `ls`/`start`/`stop`/`rm` call-throughs to launcher.
+    - [x] Replace wrapper `tunnel` implementation with launcher call-through.
+    - [x] Optionally enforce minimum launcher version/capabilities.
   - Artifacts:
     - `scripts/_features/codex-workspace/*` (zsh-kit)
   - Exit Criteria:
-    - [ ] Wrapper no longer parses launcher human output; wrapper logic is driven by JSON.
-    - [ ] Launcher-owned commands have no duplicate logic in wrapper (thin delegation only).
-- [ ] Step 3: Validation / smoke tests
+    - [x] Wrapper no longer parses launcher human output; wrapper logic is driven by JSON.
+    - [x] Launcher-owned commands have no duplicate logic in wrapper (thin delegation only).
+- [x] Step 3: Validation / smoke tests
   - Work Items:
-    - [ ] Run launcher smoke commands locally.
-    - [ ] Run wrapper smoke commands locally.
+    - [x] Add launcher smoke tests (stub docker; no real container).
+    - [x] Run wrapper smoke commands locally (real Docker).
   - Artifacts:
     - CI results for implementation PRs
     - Local command logs (copy/paste or saved logs if needed)
+    - zsh-kit tests (local): `cd ~/.config/zsh && ./tools/check.zsh` (pass), `cd ~/.config/zsh && ./tests/run.zsh` (pass)
   - Exit Criteria:
-    - [ ] Launcher: `--version`, `--help`, `create --output json`, `tunnel --detach --output json`, and `rm` behave as specified.
-    - [ ] Wrapper: `create` works end-to-end using JSON output; lifecycle commands call-through.
-    - [ ] Evidence recorded (PR Testing sections + any necessary logs).
+    - [x] Launcher: `--version`, `--help`, `create --output json`, `tunnel --detach --output json`, and `rm` behave as specified.
+    - [x] Wrapper: `create` works end-to-end using JSON output; launcher-owned commands (ls/start/stop/rm/tunnel) call-through.
+    - [x] Evidence recorded (local real-Docker command logs).
+
+Evidence (real Docker; 2026-01-22):
+
+- Launcher create + clone:
+  - `env -u DEFAULT_SECRETS_MOUNT ./docker/codex-env/bin/codex-workspace create octocat/Hello-World --name smoke-launcher-20260122-084652 --output json`
+  - `workspace=codex-ws-smoke-launcher-20260122-084652`, `path=/work/octocat/Hello-World`
+- Launcher secrets + profile:
+  - `env -u DEFAULT_SECRETS_MOUNT ./docker/codex-env/bin/codex-workspace create octocat/Hello-World --name smoke-profile-20260122-084755 --secrets-dir ~/.config/codex_secrets --codex-profile work --output json`
+  - `CODEX_SECRET_DIR=/home/codex/codex_secrets` (in-container)
+- Wrapper create (delegates to launcher JSON output):
+  - `ZSH_SCRIPT_DIR=~/.config/zsh/scripts; source $ZSH_SCRIPT_DIR/_features/codex-workspace/init.zsh; codex-workspace create --no-extras octocat/Hello-World`
+  - `workspace=codex-ws-octocat-hello-world-20260122-085010`, `path=/work/octocat/Hello-World`
 - [ ] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Update progress file Links with implementation PRs and mark status DONE when complete.
-    - [ ] If released, record version/tag and relevant notes.
+    - [x] Update progress file Links with implementation PRs and mark status DONE when complete.
+    - [ ] ~~If released, record version/tag and relevant notes.~~ Reason: no release/tag for this change set.
   - Artifacts:
-    - `docs/progress/20260122_codex-workspace-launcher-wrapper-migration.md`
+    - `docs/progress/archived/20260122_codex-workspace-launcher-wrapper-migration.md`
   - Exit Criteria:
-    - [ ] Documentation completed and entry points updated (README / docs index links).
-    - [ ] Cleanup completed (archive progress file when done).
+    - [x] Documentation completed and entry points updated (README / docs index links).
+    - [x] Cleanup completed (archive progress file when done).
 
 ## Modules
 

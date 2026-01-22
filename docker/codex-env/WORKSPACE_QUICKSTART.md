@@ -5,14 +5,17 @@ Short guide to create a new workspace and connect with VS Code.
 ## 1) Create a new workspace (example repo)
 
 ```sh
-./docker/codex-env/bin/codex-workspace up graysurf/codex-kit --name codex-kit
+./docker/codex-env/bin/codex-workspace create graysurf/codex-kit --name codex-kit
 ```
 
-For private repos, export a token on the host before running `up`:
+Notes:
+- `create` is an alias of `up`.
+
+For private repos, export a token on the host before running `create`:
 
 ```sh
 export GH_TOKEN=your_token
-./docker/codex-env/bin/codex-workspace up graysurf/codex-kit --name codex-kit --persist-gh-token --setup-git
+./docker/codex-env/bin/codex-workspace create graysurf/codex-kit --name codex-kit --persist-gh-token --setup-git
 ```
 
 Find workspace names later:
@@ -36,6 +39,12 @@ Start the tunnel:
 
 ```sh
 ./docker/codex-env/bin/codex-workspace tunnel codex-kit --detach
+```
+
+Optional: machine output (stdout-only JSON; includes `tunnel_name` + `log_path`):
+
+```sh
+./docker/codex-env/bin/codex-workspace tunnel codex-kit --detach --output json
 ```
 
 If this is your first run, you need to complete GitHub device login.
@@ -71,5 +80,5 @@ Connect from VS Code:
 
 ```sh
 ./docker/codex-env/bin/codex-workspace stop codex-kit
-./docker/codex-env/bin/codex-workspace rm codex-kit --volumes
+./docker/codex-env/bin/codex-workspace rm codex-kit
 ```

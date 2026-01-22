@@ -1,36 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+CODEX_WORKSPACE_VERSION="0.1.0"
+CODEX_WORKSPACE_CAPABILITIES=(
+  "capabilities-command"
+  "supports-flag"
+  "version"
+  "create-alias"
+  "output-json"
+  "tunnel-name-v1"
+  "tunnel-json"
+  "secrets-explicit-dir"
+  "rm-default-volumes"
+  "rm-keep-volumes-flag"
+)
+
 DEFAULT_IMAGE="${CODEX_ENV_IMAGE:-graysurf/codex-env:linuxbrew}"
 WORKSPACE_PREFIX="${CODEX_WORKSPACE_PREFIX:-codex-ws}"
 DEFAULT_GITHUB_HOST="${GITHUB_HOST:-github.com}"
-DEFAULT_SECRETS_DIR="${CODEX_SECRET_DIR_HOST:-$HOME/.config/zsh/scripts/_features/codex/secrets}"
-ZSH_KIT_SECRETS_MOUNT="/opt/zsh-kit/scripts/_features/codex/secrets"
-DEFAULT_SECRETS_MOUNT="${DEFAULT_SECRETS_MOUNT:-$ZSH_KIT_SECRETS_MOUNT}"
+DEFAULT_SECRETS_DIR=""
+DEFAULT_SECRETS_MOUNT="${DEFAULT_SECRETS_MOUNT:-/home/codex/codex_secrets}"
 
 usage() {
   cat <<'EOF'
 codex-workspace: start isolated Codex workspaces from a git repo input.
 
 Usage:
-  codex-workspace up [<repo>] [--name <name>] [--no-clone] [--host <host>] [--image <image>] [--no-pull]
+  codex-workspace --version
+  codex-workspace capabilities
+  codex-workspace --supports <capability>
+  codex-workspace up|create [<repo>] [--name <name>] [--no-clone] [--host <host>] [--image <image>] [--no-pull]
                     [--ref <git-ref>] [--dir <path>]
                     [--persist-gh-token] [--setup-git]
                     [--secrets-dir <host-path>] [--secrets-mount <container-path>] [--no-secrets]
                     [--codex-profile <profile>]
                     [--tunnel] [--tunnel-detach]
+                    [--output json]
   codex-workspace shell <name>
-  codex-workspace tunnel <name> [--detach]
+  codex-workspace tunnel <name> [--name <tunnel_name>] [--detach] [--output json]
   codex-workspace ls
   codex-workspace start <name>
   codex-workspace stop <name>
-  codex-workspace rm <name> [--volumes]
+  codex-workspace rm <name> [--keep-volumes]
 
 Defaults:
   --image:       graysurf/codex-env:linuxbrew  (or $CODEX_ENV_IMAGE)
   workspace name: derived from <repo> + timestamp
-  secrets dir:   $CODEX_SECRET_DIR_HOST or $HOME/.config/zsh/scripts/_features/codex/secrets (mounted :rw when present)
-  secrets mount: /opt/zsh-kit/scripts/_features/codex/secrets (override via --secrets-mount; env: DEFAULT_SECRETS_MOUNT)
+  secrets mount: /home/codex/codex_secrets (override via --secrets-mount; env: DEFAULT_SECRETS_MOUNT)
 
 Notes:
   - Repo is cloned into a Docker named volume mounted at /work (no host workspace bind mount).
@@ -38,8 +54,11 @@ Notes:
     When `--no-clone` is set, `<repo>` is optional but `--name` is required if no repo is provided.
   - For private repos, export GH_TOKEN (or GITHUB_TOKEN) on the host before running `up`.
   - For persistent in-container git auth, use `--persist-gh-token --setup-git` (tokens become container env).
-  - `codex-use` integration requires mounting the secrets dir and running with zsh login shell.
-  - When secrets are mounted, codex-workspace sets CODEX_SECRET_DIR in-container to the mount path.
+  - Secrets are opt-in: pass `--secrets-dir <host-path>` to mount secrets.
+    - Recommended: `--secrets-dir $HOME/.config/codex_secrets`
+    - When secrets are mounted, codex-workspace sets CODEX_SECRET_DIR in-container to the mount path.
+  - `--codex-profile` requires secrets (`--secrets-dir ...`) and runs `codex-use <profile>` in the container.
+  - JSON output: when `--output json` is used, all human output goes to stderr and stdout is pure JSON.
 EOF
 }
 
@@ -52,8 +71,59 @@ warn() {
   echo "warn: $*" >&2
 }
 
+json_escape() {
+  local s="${1-}"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf '%s' "$s"
+}
+
+json_bool() {
+  if [[ "${1-}" == "1" ]]; then
+    printf 'true'
+  else
+    printf 'false'
+  fi
+}
+
+json_string_array() {
+  local -a items=("$@")
+  local first="1"
+  printf '['
+  local item=""
+  for item in "${items[@]}"; do
+    if [[ "$first" != "1" ]]; then
+      printf ','
+    fi
+    first="0"
+    printf '"%s"' "$(json_escape "$item")"
+  done
+  printf ']'
+}
+
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+}
+
+supports_capability() {
+  local needle="${1:-}"
+  local cap=""
+  for cap in "${CODEX_WORKSPACE_CAPABILITIES[@]}"; do
+    if [[ "$cap" == "$needle" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+emit_capabilities_json() {
+  printf '{'
+  printf '"version":"%s",' "$(json_escape "$CODEX_WORKSPACE_VERSION")"
+  printf '"capabilities":%s' "$(json_string_array "${CODEX_WORKSPACE_CAPABILITIES[@]}")"
+  printf '}\n'
 }
 
 normalize_secrets_mount() {
@@ -74,6 +144,69 @@ slugify() {
 
 timestamp() {
   date +"%Y%m%d-%H%M%S"
+}
+
+tunnel_name_hash4() {
+  local input="${1:-}"
+  [[ -n "$input" ]] || {
+    echo "0000"
+    return 0
+  }
+
+  local hash4=""
+  if command -v shasum >/dev/null 2>&1; then
+    hash4="$(printf "%s" "$input" | shasum -a 1 2>/dev/null | awk '{print $1}' | cut -c1-4)"
+  elif command -v sha1sum >/dev/null 2>&1; then
+    hash4="$(printf "%s" "$input" | sha1sum 2>/dev/null | awk '{print $1}' | cut -c1-4)"
+  elif command -v openssl >/dev/null 2>&1; then
+    hash4="$(printf "%s" "$input" | openssl sha1 2>/dev/null | awk '{print $2}' | cut -c1-4)"
+  fi
+
+  [[ -n "$hash4" ]] || hash4="0000"
+  echo "$hash4"
+}
+
+tunnel_name_sanitize() {
+  local name="${1:-}"
+  name="$(printf "%s" "$name" | tr '[:upper:]' '[:lower:]')"
+  name="$(printf "%s" "$name" | sed -E 's/[^a-z0-9-]+/-/g; s/--+/-/g; s/^-+//; s/-+$//')"
+  [[ -n "$name" ]] || name="ws"
+  echo "$name"
+}
+
+tunnel_default_name() {
+  local container="${1:-}"
+  [[ -n "$container" ]] || die "missing container for tunnel name"
+
+  local base="${container#${WORKSPACE_PREFIX}-}"
+  local candidate="$base"
+
+  # Common pattern: <owner>-<repo>-YYYYMMDD-HHMMSS
+  if [[ "$candidate" == *-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9] ]]; then
+    candidate="${candidate%-[0-9][0-9][0-9][0-9][0-9][0-9]}"
+    candidate="${candidate%-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}"
+  fi
+
+  candidate="$(tunnel_name_sanitize "$candidate")"
+
+  local -i max_len=20
+  if (( ${#candidate} <= max_len )); then
+    echo "$candidate"
+    return 0
+  fi
+
+  local hash4
+  hash4="$(tunnel_name_hash4 "$container")"
+  local -i prefix_len=$(( max_len - 5 )) # "<prefix>-<hash4>"
+  local short_prefix="${candidate:0:prefix_len}"
+  while [[ "$short_prefix" == *- ]]; do
+    short_prefix="${short_prefix%-}"
+  done
+  [[ -n "$short_prefix" ]] || short_prefix="ws"
+  short_prefix="$(tunnel_name_sanitize "$short_prefix")"
+
+  local shortened="${short_prefix}-${hash4}"
+  echo "${shortened:0:max_len}"
 }
 
 normalize_container_name() {
@@ -186,6 +319,7 @@ setup_git_auth() {
 }
 
 workspace_up() {
+  local output="text"
   local repo_input=""
   local image="$DEFAULT_IMAGE"
   local ws_name=""
@@ -199,7 +333,7 @@ workspace_up() {
   local secrets_dir_explicit="0"
   local secrets_mount="$(normalize_secrets_mount "$DEFAULT_SECRETS_MOUNT")"
   local secrets_mount_explicit="0"
-  if [[ "$DEFAULT_SECRETS_MOUNT" != "$ZSH_KIT_SECRETS_MOUNT" ]]; then
+  if [[ "$DEFAULT_SECRETS_MOUNT" != "/home/codex/codex_secrets" ]]; then
     secrets_mount_explicit="1"
   fi
   local no_secrets_explicit="0"
@@ -237,6 +371,10 @@ workspace_up() {
         use_secrets="0"; no_secrets_explicit="1"; shift ;;
       --codex-profile)
         codex_profile="${2:-}"; shift 2 ;;
+      --output)
+        output="${2:-}"; shift 2 ;;
+      --output=*)
+        output="${1#*=}"; shift ;;
       --tunnel)
         start_tunnel="1"; shift ;;
       --tunnel-detach)
@@ -268,8 +406,41 @@ workspace_up() {
     esac
   done
 
+  case "$output" in
+    ""|text)
+      output="text"
+      ;;
+    json)
+      ;;
+    *)
+      die "unsupported --output: $output (expected: text|json)"
+      ;;
+  esac
+
+  if [[ "$output" == "json" && "$start_tunnel" == "1" && "$tunnel_detach" != "1" ]]; then
+    die "--output json cannot be combined with interactive --tunnel; use --tunnel-detach or run 'codex-workspace tunnel ...' separately"
+  fi
+
+  if [[ "$use_secrets" == "1" && "$secrets_mount_explicit" == "1" && "$secrets_dir_explicit" != "1" ]]; then
+    die "--secrets-mount requires --secrets-dir (secrets are opt-in)"
+  fi
+
+  if [[ -n "$codex_profile" ]]; then
+    if [[ "$use_secrets" != "1" ]]; then
+      die "--codex-profile cannot be combined with --no-secrets"
+    fi
+    if [[ "$secrets_dir_explicit" != "1" ]]; then
+      die "--codex-profile requires --secrets-dir (secrets are opt-in)"
+    fi
+  fi
+
   if [[ "$no_clone" != "1" && -z "$repo_input" ]]; then
-    die "usage: codex-workspace up <repo> [flags]"
+    die "usage: codex-workspace up|create <repo> [flags]"
+  fi
+
+  if [[ "$output" == "json" ]]; then
+    exec 3>&1
+    exec 1>&2
   fi
 
   local host owner repo owner_repo clone_url
@@ -328,7 +499,7 @@ workspace_up() {
     echo "workspace exists: $container"
     if [[ "$persist_gh_token" == "1" || "$setup_git" == "1" || "$secrets_dir_explicit" == "1" || "$secrets_mount_explicit" == "1" || "$no_secrets_explicit" == "1" ]]; then
       warn "workspace already exists; mounts/env cannot be changed after creation"
-      warn "if you need new mounts/env, run: $(basename "$0") rm ${container} --volumes && re-run up"
+      warn "if you need new mounts/env, run: $(basename "$0") rm ${container} && re-run up|create"
     fi
     ensure_container_running "$container"
   else
@@ -356,11 +527,13 @@ workspace_up() {
       [[ -n "$github_token" ]] && run_args+=( -e "GITHUB_TOKEN=$github_token" )
     fi
 
-    if [[ "$use_secrets" == "1" && -n "$secrets_dir" && -d "$secrets_dir" ]]; then
+    if [[ "$use_secrets" == "1" && "$secrets_dir_explicit" == "1" ]]; then
+      [[ -n "$secrets_dir" ]] || die "--secrets-dir requires a value"
+      [[ -d "$secrets_dir" ]] || die "secrets dir not found: $secrets_dir"
       run_args+=( -v "${secrets_dir}:${secrets_mount}:rw" )
       run_args+=( -e "CODEX_SECRET_DIR=${secrets_mount}" )
     elif [[ -n "$codex_profile" ]]; then
-      die "--codex-profile requires a secrets dir mount (set --secrets-dir or CODEX_SECRET_DIR_HOST)"
+      die "--codex-profile requires --secrets-dir (secrets are opt-in)"
     fi
 
     echo "+ docker run ${container}"
@@ -470,6 +643,54 @@ EOF
       workspace_tunnel "$container"
     fi
   fi
+
+  if [[ "$output" == "json" ]]; then
+    local created_flag="0"
+    if container_exists "$container" && [[ "${created-0}" == "1" ]]; then
+      created_flag="1"
+    fi
+
+    local repo_json="null"
+    if [[ -n "$owner_repo" ]]; then
+      repo_json="\"$(json_escape "$owner_repo")\""
+    fi
+
+    local secrets_enabled="0"
+    if [[ "$use_secrets" == "1" && "$secrets_dir_explicit" == "1" ]]; then
+      secrets_enabled="1"
+    fi
+
+    local secrets_dir_json="null"
+    local secrets_mount_json="null"
+    if [[ "$secrets_enabled" == "1" ]]; then
+      secrets_dir_json="\"$(json_escape "$secrets_dir")\""
+      secrets_mount_json="\"$(json_escape "$secrets_mount")\""
+    fi
+
+    local codex_profile_json="null"
+    if [[ -n "$codex_profile" ]]; then
+      codex_profile_json="\"$(json_escape "$codex_profile")\""
+    fi
+
+    local cmd_name="${CODEX_WORKSPACE_SUBCOMMAND:-up}"
+    printf '{' >&3
+    printf '"version":"%s",' "$(json_escape "$CODEX_WORKSPACE_VERSION")" >&3
+    printf '"capabilities":%s,' "$(json_string_array "${CODEX_WORKSPACE_CAPABILITIES[@]}")" >&3
+    printf '"command":"%s",' "$(json_escape "$cmd_name")" >&3
+    printf '"workspace":"%s",' "$(json_escape "$container")" >&3
+    printf '"created":%s,' "$(json_bool "$created_flag")" >&3
+    printf '"repo":%s,' "$repo_json" >&3
+    printf '"path":"%s",' "$(json_escape "$repo_dir")" >&3
+    printf '"image":"%s",' "$(json_escape "$image")" >&3
+    printf '"secrets":{"enabled":%s,"dir":%s,"mount":%s,"codex_profile":%s}' \
+      "$(json_bool "$secrets_enabled")" \
+      "$secrets_dir_json" \
+      "$secrets_mount_json" \
+      "$codex_profile_json" >&3
+    printf '}\n' >&3
+
+    exec 1>&3 3>&-
+  fi
 }
 
 workspace_shell() {
@@ -487,11 +708,21 @@ workspace_tunnel() {
   local container
   container="$(normalize_container_name "$name")"
 
+  local output="text"
+  local tunnel_name_arg=""
   local detach="0"
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --name)
+        tunnel_name_arg="${2:-}"; shift 2 ;;
+      --name=*)
+        tunnel_name_arg="${1#*=}"; shift ;;
       --detach)
         detach="1"; shift ;;
+      --output)
+        output="${2:-}"; shift 2 ;;
+      --output=*)
+        output="${1#*=}"; shift ;;
       -h|--help)
         usage; exit 0 ;;
       *)
@@ -499,31 +730,94 @@ workspace_tunnel() {
     esac
   done
 
+  case "$output" in
+    ""|text)
+      output="text"
+      ;;
+    json)
+      ;;
+    *)
+      die "unsupported --output: $output (expected: text|json)"
+      ;;
+  esac
+
+  if [[ "$output" == "json" ]]; then
+    exec 3>&1
+    exec 1>&2
+  fi
+
   ensure_container_running "$container"
   docker exec "$container" bash -lc 'command -v code >/dev/null 2>&1' || die "missing 'code' in container (build with INSTALL_VSCODE=1)"
 
-  local tunnel_name="${container#${WORKSPACE_PREFIX}-}"
   local log_path="/home/codex/.codex-env/logs/code-tunnel.log"
 
+  local tunnel_name=""
+  if [[ -n "$tunnel_name_arg" ]]; then
+    tunnel_name="$(tunnel_name_sanitize "$tunnel_name_arg")"
+  else
+    tunnel_name="$(tunnel_default_name "$container")"
+  fi
+
+  local -i max_len=20
+  if (( ${#tunnel_name} > max_len )); then
+    die "VS Code tunnel name too long (${#tunnel_name} > ${max_len}): $tunnel_name (use --name <short>)"
+  fi
+
+  local already_running="0"
   if docker exec "$container" bash -lc "pgrep -fa \"[c]ode-tunnel tunnel|[c]ode tunnel\" >/dev/null 2>&1"; then
+    already_running="1"
     warn "code tunnel already running in $container"
-    echo "status:"
-    docker exec "$container" bash -lc "code tunnel status 2>/dev/null || true"
-    echo "log: $log_path"
-    echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
+    if [[ "$output" != "json" ]]; then
+      echo "status:"
+      docker exec "$container" bash -lc "code tunnel status 2>/dev/null || true"
+      echo "log: $log_path"
+      echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
+    fi
+    if [[ "$output" == "json" ]]; then
+      printf '{' >&3
+      printf '"version":"%s",' "$(json_escape "$CODEX_WORKSPACE_VERSION")" >&3
+      printf '"capabilities":%s,' "$(json_string_array "${CODEX_WORKSPACE_CAPABILITIES[@]}")" >&3
+      printf '"command":"tunnel",' >&3
+      printf '"workspace":"%s",' "$(json_escape "$container")" >&3
+      printf '"tunnel_name":"%s",' "$(json_escape "$tunnel_name")" >&3
+      printf '"detach":%s,' "$(json_bool "$detach")" >&3
+      printf '"already_running":%s,' "$(json_bool "$already_running")" >&3
+      printf '"log_path":"%s"' "$(json_escape "$log_path")" >&3
+      printf '}\n' >&3
+      exec 1>&3 3>&-
+    fi
     return 0
   fi
 
   if [[ "$detach" == "1" ]]; then
     docker exec "$container" bash -lc "mkdir -p \"\$(dirname \"$log_path\")\" && : >\"$log_path\""
     docker exec -d "$container" bash -lc "code tunnel --accept-server-license-terms --name \"$tunnel_name\" >\"$log_path\" 2>&1"
-    echo "started: code tunnel ($tunnel_name) in $container"
-    echo "status:"
-    sleep 1
-    docker exec "$container" bash -lc "code tunnel status 2>/dev/null || true"
-    echo "log: $log_path"
-    echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
+    if [[ "$output" != "json" ]]; then
+      echo "started: code tunnel ($tunnel_name) in $container"
+      echo "status:"
+      sleep 1
+      docker exec "$container" bash -lc "code tunnel status 2>/dev/null || true"
+      echo "log: $log_path"
+      echo "tail: docker exec -it $container bash -lc 'tail -f $log_path'"
+    fi
+    if [[ "$output" == "json" ]]; then
+      printf '{' >&3
+      printf '"version":"%s",' "$(json_escape "$CODEX_WORKSPACE_VERSION")" >&3
+      printf '"capabilities":%s,' "$(json_string_array "${CODEX_WORKSPACE_CAPABILITIES[@]}")" >&3
+      printf '"command":"tunnel",' >&3
+      printf '"workspace":"%s",' "$(json_escape "$container")" >&3
+      printf '"tunnel_name":"%s",' "$(json_escape "$tunnel_name")" >&3
+      printf '"detach":%s,' "$(json_bool "$detach")" >&3
+      printf '"already_running":%s,' "$(json_bool "$already_running")" >&3
+      printf '"log_path":"%s"' "$(json_escape "$log_path")" >&3
+      printf '}\n' >&3
+      exec 1>&3 3>&-
+    fi
     return 0
+  fi
+
+  if [[ "$output" == "json" ]]; then
+    die "--output json requires --detach for tunnel (non-interactive)"
   fi
 
   echo "Starting VS Code tunnel (name: $tunnel_name)."
@@ -568,9 +862,11 @@ workspace_rm() {
   local container
   container="$(normalize_container_name "$name")"
 
-  local rm_volumes="0"
+  local rm_volumes="1"
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --keep-volumes)
+        rm_volumes="0"; shift ;;
       --volumes)
         rm_volumes="1"; shift ;;
       -h|--help)
@@ -595,18 +891,42 @@ workspace_rm() {
 }
 
 main() {
-  need_cmd docker
-
   local cmd="${1:-}"
   shift || true
+
+  case "$cmd" in
+    --version)
+      echo "$CODEX_WORKSPACE_VERSION"
+      return 0
+      ;;
+    capabilities)
+      emit_capabilities_json
+      return 0
+      ;;
+    --supports)
+      [[ $# -ge 1 ]] || die "usage: codex-workspace --supports <capability>"
+      if supports_capability "$1"; then
+        return 0
+      fi
+      return 1
+      ;;
+    -h|--help|help|"")
+      usage
+      return 0
+      ;;
+  esac
+
+  need_cmd docker
   case "$cmd" in
     up)
-      workspace_up "$@" ;;
+      CODEX_WORKSPACE_SUBCOMMAND="up" workspace_up "$@" ;;
+    create)
+      CODEX_WORKSPACE_SUBCOMMAND="create" workspace_up "$@" ;;
     shell)
       [[ $# -ge 1 ]] || die "usage: codex-workspace shell <name>"
       workspace_shell "$1" ;;
     tunnel)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace tunnel <name> [--detach]"
+      [[ $# -ge 1 ]] || die "usage: codex-workspace tunnel <name> [--name <tunnel_name>] [--detach] [--output json]"
       workspace_tunnel "$1" "${@:2}" ;;
     ls)
       workspace_ls ;;
@@ -617,10 +937,8 @@ main() {
       [[ $# -ge 1 ]] || die "usage: codex-workspace stop <name>"
       workspace_stop "$1" ;;
     rm)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace rm <name> [--volumes]"
+      [[ $# -ge 1 ]] || die "usage: codex-workspace rm <name> [--keep-volumes]"
       workspace_rm "$1" "${@:2}" ;;
-    -h|--help|help|"")
-      usage ;;
     *)
       die "unknown command: $cmd" ;;
   esac

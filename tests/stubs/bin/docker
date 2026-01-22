@@ -1,0 +1,220 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+trim() {
+  local s="${1:-}"
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf "%s" "$s"
+}
+
+to_lower() {
+  printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+bool_from_env() {
+  local raw="${1:-}"
+  local name="${2:-}"
+  local default="${3:-false}"
+
+  raw="$(trim "$raw")"
+  if [[ -z "$raw" ]]; then
+    [[ "$default" == "true" ]]
+    return $?
+  fi
+
+  local lowered
+  lowered="$(to_lower "$raw")"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      echo "docker-stub: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+      return 1
+      ;;
+  esac
+}
+
+if ! bool_from_env "${CODEX_DOCKER_STUB_MODE_ENABLED:-}" "CODEX_DOCKER_STUB_MODE_ENABLED" "false"; then
+  echo "error: docker is blocked by tests" >&2
+  exit 90
+fi
+
+log_dir="${CODEX_STUB_LOG_DIR:-}"
+if [[ -n "$log_dir" ]]; then
+  mkdir -p "$log_dir"
+  printf "%s\n" "docker $*" >>"${log_dir%/}/docker.calls.txt"
+fi
+
+container_exists() {
+  if [[ -n "$log_dir" ]] && [[ -f "${log_dir%/}/container.exists" ]]; then
+    return 0
+  fi
+  bool_from_env "${CODEX_DOCKER_STUB_CONTAINER_EXISTS:-}" "CODEX_DOCKER_STUB_CONTAINER_EXISTS" "true"
+}
+
+container_running() {
+  bool_from_env "${CODEX_DOCKER_STUB_CONTAINER_RUNNING:-}" "CODEX_DOCKER_STUB_CONTAINER_RUNNING" "true"
+}
+
+image_exists() {
+  bool_from_env "${CODEX_DOCKER_STUB_IMAGE_EXISTS:-}" "CODEX_DOCKER_STUB_IMAGE_EXISTS" "true"
+}
+
+has_code() {
+  bool_from_env "${CODEX_DOCKER_STUB_HAS_CODE:-}" "CODEX_DOCKER_STUB_HAS_CODE" "true"
+}
+
+tunnel_running() {
+  bool_from_env "${CODEX_DOCKER_STUB_TUNNEL_RUNNING:-}" "CODEX_DOCKER_STUB_TUNNEL_RUNNING" "false"
+}
+
+repo_present() {
+  bool_from_env "${CODEX_DOCKER_STUB_REPO_PRESENT:-}" "CODEX_DOCKER_STUB_REPO_PRESENT" "false"
+}
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+  ""|-h|--help|help)
+    exit 0
+    ;;
+  version|--version)
+    echo "Docker version 0.0.0-stub, build stub"
+    exit 0
+    ;;
+  image)
+    sub="${1:-}"
+    shift || true
+    case "$sub" in
+      inspect)
+        if image_exists; then
+          exit 0
+        fi
+        exit 1
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+    ;;
+  pull)
+    exit 0
+    ;;
+  inspect)
+    if ! container_exists; then
+      exit 1
+    fi
+
+    if [[ "${1:-}" == "-f" || "${1:-}" == "--format" ]]; then
+      format="${2:-}"
+      case "$format" in
+        *".State.Running"*)
+          if container_running; then
+            printf "%s\n" "true"
+          else
+            printf "%s\n" "false"
+          fi
+          ;;
+        *".State.Status"*)
+          printf "%s\n" "${CODEX_DOCKER_STUB_CONTAINER_STATUS:-running}"
+          ;;
+        *"codex-kit.repo"*)
+          printf "%s\n" "${CODEX_DOCKER_STUB_LABEL_REPO:-}"
+          ;;
+        *"codex-kit.created-at"*)
+          printf "%s\n" "${CODEX_DOCKER_STUB_LABEL_CREATED_AT:-20260122-000000}"
+          ;;
+        *)
+          printf "%s\n" ""
+          ;;
+      esac
+    fi
+    exit 0
+    ;;
+  ps)
+    names="${CODEX_DOCKER_STUB_PS_NAMES:-}"
+    if [[ -n "$names" ]]; then
+      printf "%s\n" "$names"
+    fi
+    exit 0
+    ;;
+  run|start|stop|rm)
+    if [[ "$cmd" == "run" && -n "$log_dir" ]]; then
+      : >"${log_dir%/}/container.exists" 2>/dev/null || true
+    fi
+    exit 0
+    ;;
+  volume)
+    sub="${1:-}"
+    shift || true
+    case "$sub" in
+      rm)
+        exit 0
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+    ;;
+  exec)
+    # Drop exec flags.
+    while [[ $# -gt 0 && "${1:-}" == -* ]]; do
+      case "${1:-}" in
+        -u|-w)
+          shift 2
+          ;;
+        -d|-i|-t|-it|-T)
+          shift
+          ;;
+        --)
+          shift
+          break
+          ;;
+        *)
+          shift
+          ;;
+      esac
+    done
+
+    container="${1:-}"
+    shift || true
+
+    if ! container_exists; then
+      exit 1
+    fi
+
+    cmd_string="$*"
+    case "$cmd_string" in
+      *"command -v code"*)
+        if has_code; then
+          exit 0
+        fi
+        exit 1
+        ;;
+      *"pgrep -fa"* )
+        if tunnel_running; then
+          exit 0
+        fi
+        exit 1
+        ;;
+      *"test -d "*".git"*)
+        if repo_present; then
+          exit 0
+        fi
+        exit 1
+        ;;
+      *"code tunnel status"*)
+        printf "%s\n" '{"tunnel":"Connected","name":"stub"}'
+        exit 0
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+    ;;
+  *)
+    exit 0
+    ;;
+esac

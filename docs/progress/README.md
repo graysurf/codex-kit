@@ -4,12 +4,12 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-22 | [Codex workspace launcher-wrapper migration](20260122_codex-workspace-launcher-wrapper-migration.md) | [#63](https://github.com/graysurf/codex-kit/pull/63) |
 
 ## Archived
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-22 | [Codex workspace launcher-wrapper migration](archived/20260122_codex-workspace-launcher-wrapper-migration.md) | [#63](https://github.com/graysurf/codex-kit/pull/63) |
 | 2026-01-18 | [Docker Codex env (Linuxbrew)](archived/20260118_docker-codex-env-linuxbrew.md) | [#59](https://github.com/graysurf/codex-kit/pull/59) |
 | 2026-01-17 | [Skills layout normalization and audit](archived/20260117_skills-layout-normalization-and-audit.md) | [#56](https://github.com/graysurf/codex-kit/pull/56) |
 | 2026-01-16 | [Env bool flags standardization](archived/20260116_env-bool-flags.md) | [#49](https://github.com/graysurf/codex-kit/pull/49) |
