@@ -43,6 +43,22 @@ docker build -f Dockerfile -t codex-env:linuxbrew \
   .
 ```
 
+Skip Zsh plugin prefetch (useful for offline builds or flaky GitHub):
+
+```sh
+docker build -f Dockerfile -t codex-env:linuxbrew \
+  --build-arg PREFETCH_ZSH_PLUGINS=0 \
+  .
+```
+
+Tune plugin clone retries (default: 5):
+
+```sh
+docker build -f Dockerfile -t codex-env:linuxbrew \
+  --build-arg ZSH_PLUGIN_FETCH_RETRIES=10 \
+  .
+```
+
 Notes:
 - Tools are installed from `zsh-kit/config/tools*.list` files (OS-specific files are picked based on `uname`).
 - The image uses `tini` as PID 1 for signal forwarding and zombie reaping.

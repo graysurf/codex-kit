@@ -5,6 +5,8 @@ codex_user="${CODEX_USER:-codex}"
 codex_home="${CODEX_HOME:-/home/${codex_user}/.codex}"
 codex_src="${CODEX_KIT_DIR:-/opt/codex-kit}"
 
+export CODEX_AUTH_FILE="${CODEX_AUTH_FILE:-${codex_home%/}/auth.json}"
+
 if [[ ! -d "${codex_src%/}/commands" ]]; then
   echo "error: CODEX_KIT_DIR not found or missing commands: $codex_src" >&2
   exit 1

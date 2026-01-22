@@ -2,10 +2,19 @@ FROM ubuntu:24.04
 
 SHELL ["/bin/bash", "-lc"]
 
+ARG IMAGE_TITLE="codex-env"
+ARG IMAGE_DESCRIPTION="Ubuntu 24.04 Codex CLI dev environment (zsh-kit + codex-kit)"
+ARG IMAGE_SOURCE="https://github.com/graysurf/codex-kit"
+ARG IMAGE_URL="https://github.com/graysurf/codex-kit"
+ARG IMAGE_DOCUMENTATION="https://github.com/graysurf/codex-kit/tree/main/docker/codex-env"
+ARG IMAGE_LICENSES="MIT"
+
 ARG DEBIAN_FRONTEND=noninteractive
 ARG INSTALL_TOOLS="1"
 ARG INSTALL_OPTIONAL_TOOLS="1"
 ARG INSTALL_VSCODE="1"
+ARG PREFETCH_ZSH_PLUGINS="1"
+ARG ZSH_PLUGIN_FETCH_RETRIES="5"
 
 ENV LANG="C.UTF-8"
 ENV LC_ALL="C.UTF-8"
@@ -67,7 +76,6 @@ ENV ZSH_BOOT_WEATHER_ENABLED=false
 ENV ZSH_BOOT_QUOTE_ENABLED=false
 ENV HOME="/home/codex"
 ENV CODEX_HOME="/home/codex/.codex"
-ENV CODEX_AUTH_FILE="/home/codex/.codex/auth.json"
 
 COPY docker/codex-env/ /opt/codex-env/
 
@@ -79,13 +87,11 @@ RUN if [[ "${INSTALL_TOOLS}" == "1" ]]; then \
     INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS}" INSTALL_VSCODE="${INSTALL_VSCODE}" /opt/codex-env/bin/install-tools.sh; \
   fi
 
-RUN mkdir -p /opt/zsh-kit/cache /opt/zsh-kit/plugins \
-  && ZDOTDIR="/opt/zsh-kit" \
-     ZSH_CACHE_DIR="/opt/zsh-kit/cache" \
-     ZSH_PLUGINS_DIR="/opt/zsh-kit/plugins" \
-     ZSH_PLUGIN_LIST_FILE="/opt/zsh-kit/config/plugins.list" \
-     zsh -f -c 'set -e; source /opt/zsh-kit/bootstrap/plugin_fetcher.zsh; while IFS= read -r line; do [[ -z "$line" || "$line" == \#* ]] && continue; plugin_fetch_if_missing_from_entry "$line"; done < "$ZSH_PLUGIN_LIST_FILE"' \
-  && date +%s > /opt/zsh-kit/cache/plugin.timestamp
+RUN if [[ "${PREFETCH_ZSH_PLUGINS}" == "1" ]]; then \
+    ZSH_PLUGIN_FETCH_RETRIES="${ZSH_PLUGIN_FETCH_RETRIES}" /opt/codex-env/bin/prefetch-zsh-plugins.sh; \
+  else \
+    echo "skip: zsh plugin prefetch (PREFETCH_ZSH_PLUGINS != 1)" >&2; \
+  fi
 
 USER root
 
@@ -98,12 +104,6 @@ USER codex
 ENTRYPOINT ["/usr/bin/tini","--","/opt/codex-env/bin/entrypoint.sh"]
 CMD ["zsh", "-l"]
 
-ARG IMAGE_TITLE="codex-env"
-ARG IMAGE_DESCRIPTION="Ubuntu 24.04 Codex CLI dev environment (zsh-kit + codex-kit)"
-ARG IMAGE_SOURCE="https://github.com/graysurf/codex-kit"
-ARG IMAGE_URL="https://github.com/graysurf/codex-kit"
-ARG IMAGE_DOCUMENTATION="https://github.com/graysurf/codex-kit/tree/main/docker/codex-env"
-ARG IMAGE_LICENSES="MIT"
 ARG IMAGE_VERSION=""
 ARG IMAGE_REVISION=""
 ARG IMAGE_CREATED=""
