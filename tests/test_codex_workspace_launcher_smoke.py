@@ -136,7 +136,7 @@ def test_codex_profile_sets_secrets_metadata_and_runs_codex_use(tmp_path: Path) 
 
 
 @pytest.mark.script_smoke
-def test_setup_git_implies_persist_token_when_present(tmp_path: Path) -> None:
+def test_setup_git_does_not_persist_token_into_container_env(tmp_path: Path) -> None:
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
 
@@ -152,7 +152,8 @@ def test_setup_git_implies_persist_token_when_present(tmp_path: Path) -> None:
     assert completed.returncode == 0, completed.stderr
 
     calls = (log_dir / "docker.calls.txt").read_text("utf-8")
-    assert "-e GH_TOKEN=stub-token" in calls
+    assert "-e GH_TOKEN=stub-token" not in calls
+    assert "docker exec -i codex-ws-ws-test bash -lc" in calls
 
 
 @pytest.mark.script_smoke

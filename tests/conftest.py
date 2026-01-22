@@ -46,6 +46,10 @@ def out_dir_smoke() -> Path:
 
 def default_smoke_env(repo: Path) -> dict[str, str]:
     base = os.environ.copy()
+    # Keep smoke tests hermetic: ignore any host-level git config overrides.
+    base.pop("GIT_CONFIG_GLOBAL", None)
+    base.pop("GIT_CONFIG_SYSTEM", None)
+    base["GIT_CONFIG_NOSYSTEM"] = "1"
 
     out_base = out_dir_smoke()
     home = out_base / "home"
@@ -85,6 +89,10 @@ def default_smoke_env(repo: Path) -> dict[str, str]:
 
 def default_env(repo: Path) -> dict[str, str]:
     base = os.environ.copy()
+    # Keep regression tests hermetic: ignore any host-level git config overrides.
+    base.pop("GIT_CONFIG_GLOBAL", None)
+    base.pop("GIT_CONFIG_SYSTEM", None)
+    base["GIT_CONFIG_NOSYSTEM"] = "1"
 
     out_base = out_dir()
     home = out_base / "home"

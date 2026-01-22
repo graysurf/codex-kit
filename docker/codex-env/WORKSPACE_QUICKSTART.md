@@ -15,7 +15,7 @@ For private repos, export a token on the host before running `create`:
 
 ```sh
 export GH_TOKEN=your_token
-./docker/codex-env/bin/codex-workspace create graysurf/codex-kit --name codex-kit --persist-gh-token --setup-git
+./docker/codex-env/bin/codex-workspace create graysurf/codex-kit --name codex-kit --setup-git
 ```
 
 Find workspace names later:

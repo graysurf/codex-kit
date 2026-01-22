@@ -174,16 +174,15 @@ export GH_TOKEN=your_token
 ./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git
 ```
 
-Persist token-based git auth (so `git fetch/push` inside the workspace does not prompt):
+Optional: configure token-based git auth inside the workspace (so `git fetch/push` does not prompt):
 
 ```sh
 export GH_TOKEN=your_token
-./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git --persist-gh-token --setup-git
+./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git --setup-git
 ```
 
 Notes:
-- `--persist-gh-token` injects `GH_TOKEN`/`GITHUB_TOKEN` into the container environment (visible via `docker inspect`).
-- `--setup-git` runs `gh auth setup-git` (or a fallback credential helper) inside the workspace.
+- `--setup-git` configures git auth inside the workspace.
 
 Codex profiles (`codex-use`):
 

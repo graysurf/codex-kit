@@ -31,7 +31,7 @@ Usage:
   codex-workspace --supports <capability>
   codex-workspace up|create [<repo>] [--name <name>] [--no-clone] [--host <host>] [--image <image>] [--no-pull]
                     [--ref <git-ref>] [--dir <path>]
-                    [--persist-gh-token] [--setup-git]
+                    [--setup-git]
                     [--secrets-dir <host-path>] [--secrets-mount <container-path>] [--no-secrets]
                     [--codex-profile <profile>]
                     [--tunnel] [--tunnel-detach]
@@ -53,7 +53,6 @@ Notes:
   - Use `--no-clone` to create a workspace without cloning a repo into /work.
     When `--no-clone` is set, `<repo>` is optional but `--name` is required if no repo is provided.
   - For private repos, export GH_TOKEN (or GITHUB_TOKEN) on the host before running `up`.
-  - For persistent in-container git auth, use `--persist-gh-token --setup-git` (tokens become container env).
   - Secrets are opt-in: pass `--secrets-dir <host-path>` to mount secrets.
     - Recommended: `--secrets-dir $HOME/.config/codex_secrets`
     - When secrets are mounted, codex-workspace sets CODEX_SECRET_DIR in-container to the mount path.
@@ -289,29 +288,42 @@ volume_names() {
 setup_git_auth() {
   local container="$1"
   local host="$2"
+  local token="${3:-}"
 
   docker exec "$container" bash -lc 'command -v git >/dev/null 2>&1' || return 0
 
-  if docker exec "$container" bash -lc 'command -v gh >/dev/null 2>&1'; then
-    if docker exec "$container" bash -lc '[[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]'; then
-      if docker exec "$container" bash -lc 'gh auth setup-git --hostname "$1" --force' -- "$host" >/dev/null 2>&1; then
-        return 0
-      fi
-      if docker exec "$container" bash -lc 'gh auth setup-git --hostname "$1"' -- "$host" >/dev/null 2>&1; then
-        return 0
-      fi
-    fi
-  fi
+  if [[ -n "$token" ]]; then
+    # Prefer gh config-based auth (token stored in container config; not container env).
+    if docker exec "$container" bash -lc 'command -v gh >/dev/null 2>&1'; then
+      printf '%s\n' "$token" | docker exec -i "$container" bash -lc '
+        set -euo pipefail
+        host="${1:-github.com}"
+        IFS= read -r token || exit 0
+        [[ -n "$token" ]] || exit 0
 
-  # Fallback: use an env-based credential helper (requires GH_TOKEN/GITHUB_TOKEN present in the container env).
-  if docker exec "$container" bash -lc '[[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]'; then
-    docker exec "$container" bash -lc '
+        printf "%s\n" "$token" | gh auth login --hostname "$host" --with-token >/dev/null 2>&1 || true
+        gh auth setup-git --hostname "$host" --force >/dev/null 2>&1 || gh auth setup-git --hostname "$host" >/dev/null 2>&1 || true
+        gh config set git_protocol https -h "$host" 2>/dev/null || gh config set git_protocol https 2>/dev/null || true
+      ' -- "$host" >/dev/null 2>&1 || true
+      return 0
+    fi
+
+    # Fallback: git-only credential helper using a token file in the container.
+    printf '%s\n' "$token" | docker exec -i "$container" bash -lc '
       set -euo pipefail
-      host="$1"
+      host="${1:-github.com}"
+      IFS= read -r token || exit 0
+      [[ -n "$token" ]] || exit 0
+
+      token_file="$HOME/.codex-env/gh.token"
+      mkdir -p "${token_file%/*}"
+      printf "%s\n" "$token" >| "$token_file"
+      chmod 600 "$token_file" 2>/dev/null || true
+
       url="https://${host}"
       git config --global "credential.${url}.helper" \
-        "!f() { echo username=x-access-token; echo password=\${GH_TOKEN:-\${GITHUB_TOKEN:-}}; }; f"
-    ' -- "$host" >/dev/null
+        "!f() { echo username=x-access-token; echo password=\$(cat \"$token_file\"); }; f"
+    ' -- "$host" >/dev/null 2>&1 || true
     return 0
   fi
 
@@ -340,7 +352,6 @@ workspace_up() {
   local codex_profile=""
   local start_tunnel="0"
   local tunnel_detach="0"
-  local persist_gh_token="0"
   local setup_git="0"
 
   while [[ $# -gt 0 ]]; do
@@ -359,8 +370,6 @@ workspace_up() {
         repo_ref="${2:-}"; shift 2 ;;
       --dir)
         repo_dir="${2:-}"; shift 2 ;;
-      --persist-gh-token)
-        persist_gh_token="1"; shift ;;
       --setup-git)
         setup_git="1"; shift ;;
       --secrets-dir)
@@ -489,15 +498,11 @@ workspace_up() {
   local gh_token="${GH_TOKEN:-}"
   local github_token="${GITHUB_TOKEN:-}"
 
-  if [[ "$setup_git" == "1" && -n "${gh_token}${github_token}" ]]; then
-    persist_gh_token="1"
-  fi
-
   ensure_image "$image" "$pull"
 
   if container_exists "$container"; then
     echo "workspace exists: $container"
-    if [[ "$persist_gh_token" == "1" || "$setup_git" == "1" || "$secrets_dir_explicit" == "1" || "$secrets_mount_explicit" == "1" || "$no_secrets_explicit" == "1" ]]; then
+    if [[ "$secrets_dir_explicit" == "1" || "$secrets_mount_explicit" == "1" || "$no_secrets_explicit" == "1" ]]; then
       warn "workspace already exists; mounts/env cannot be changed after creation"
       warn "if you need new mounts/env, run: $(basename "$0") rm ${container} && re-run up|create"
     fi
@@ -518,18 +523,13 @@ workspace_up() {
       -v "${vol_codex}:/home/codex/.codex"
 	      -w /work
 	    )
-	    if [[ -n "$owner_repo" ]]; then
-	      run_args+=( --label "codex-kit.repo=$owner_repo" )
-	    fi
+		    if [[ -n "$owner_repo" ]]; then
+		      run_args+=( --label "codex-kit.repo=$owner_repo" )
+		    fi
 
-    if [[ "$persist_gh_token" == "1" ]]; then
-      [[ -n "$gh_token" ]] && run_args+=( -e "GH_TOKEN=$gh_token" )
-      [[ -n "$github_token" ]] && run_args+=( -e "GITHUB_TOKEN=$github_token" )
-    fi
-
-    if [[ "$use_secrets" == "1" && "$secrets_dir_explicit" == "1" ]]; then
-      [[ -n "$secrets_dir" ]] || die "--secrets-dir requires a value"
-      [[ -d "$secrets_dir" ]] || die "secrets dir not found: $secrets_dir"
+	    if [[ "$use_secrets" == "1" && "$secrets_dir_explicit" == "1" ]]; then
+	      [[ -n "$secrets_dir" ]] || die "--secrets-dir requires a value"
+	      [[ -d "$secrets_dir" ]] || die "secrets dir not found: $secrets_dir"
       run_args+=( -v "${secrets_dir}:${secrets_mount}:rw" )
       run_args+=( -e "CODEX_SECRET_DIR=${secrets_mount}" )
     elif [[ -n "$codex_profile" ]]; then
@@ -604,7 +604,8 @@ EOF
   if [[ "$setup_git" == "1" ]]; then
     local setup_host="${host_override:-$host}"
     [[ -n "$setup_host" ]] || setup_host="$DEFAULT_GITHUB_HOST"
-    if setup_git_auth "$container" "$setup_host"; then
+    local token="${gh_token:-$github_token}"
+    if setup_git_auth "$container" "$setup_host" "$token"; then
       :
     else
       warn "failed to configure git auth; git may prompt for credentials"

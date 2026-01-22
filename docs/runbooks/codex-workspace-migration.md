@@ -33,7 +33,7 @@ Owns the core container lifecycle:
 - `capabilities` and `--supports <capability>`: machine-readable feature discovery for wrappers
 - `tunnel`: start VS Code tunnel inside the container (`--detach` supported)
 - Secrets mount flags: `--secrets-dir`, `--secrets-mount`, `--no-secrets`
-- Git auth flags: `--persist-gh-token`, `--setup-git`
+- Git auth flags: `--setup-git`
 - Optional `--codex-profile` (requires secrets)
 
 Notable current defaults (subject to change):
@@ -122,7 +122,7 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 | Create container + volumes | Launcher | Launcher | Canonical |
 | Clone repo into `/work` | Launcher | Launcher | Canonical |
 | Secrets mount contract (`--secrets-dir` required) | Both | Launcher | Launcher has no default; wrapper passes explicit `--secrets-dir` + `--secrets-mount` |
-| Git auth setup (`--persist-gh-token`, `--setup-git`) | Launcher | Launcher | Wrapper selects token source |
+| Git auth setup (`--setup-git`) | Launcher | Launcher | Wrapper selects token source |
 | Codex profile apply (`codex-use`) | Both | Launcher | Wrapper only passes `--codex-profile` |
 | List workspaces (`ls`) | Both | Launcher | Wrapper should call-through (no re-implementation) |
 | Start/stop workspace | Launcher | Launcher | Wrapper may add UX, but must call-through to launcher |
@@ -149,7 +149,7 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
   - [x] Keep `--secrets-mount` default at `/home/codex/codex_secrets` and allow override
   - [x] When secrets are mounted, set `CODEX_SECRET_DIR=<mount>` inside the container
 - [x] Validate `--codex-profile` behavior under the new secrets defaults (and keep failure modes clear).
-- [x] Confirm/adjust git auth behavior (`--persist-gh-token`, `--setup-git`) and document expectations for wrappers.
+- [x] Confirm/adjust git auth behavior (`--setup-git`) and document expectations for wrappers.
 - [x] Ensure `ls` is canonical and stable (filter by label first; fallback prefix scan only when needed).
 - [x] Ensure `start` / `stop` semantics are canonical and stable (wrapper must call-through).
 - [x] Align `tunnel` behavior with wrapper:
