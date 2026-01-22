@@ -31,7 +31,7 @@ Options:
                        Use "-" to read response from stdin.
   --allow-empty        GraphQL only: pass through to `gql-report.sh --allow-empty`
   --dry-run            Print the rewritten command and exit 0 (does not execute)
-  --stdin              Read the command snippet from stdin
+  --stdin              Read the command snippet from stdin (cannot combine with --response -)
   -h, --help           Show help
 
 Examples:
@@ -116,6 +116,10 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$from_stdin" == "1" && "$response_arg" == "-" ]]; then
+  die "--stdin cannot be used with --response - (stdin needed for the response)."
+fi
 
 cmd_input=""
 if [[ "$from_stdin" == "1" ]]; then
