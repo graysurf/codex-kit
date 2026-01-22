@@ -52,3 +52,25 @@ def test_api_report_from_cmd_expands_home_env_config_dir() -> None:
     assert args[config_idx + 1] == str(config_dir)
     assert args[project_idx + 1] == str(project)
     assert args[op_idx + 1] == str(project / "setup" / "graphql" / "operations" / "test.graphql")
+
+
+def test_api_report_from_cmd_rejects_stdin_response_stdin() -> None:
+    repo = repo_root()
+    env = default_env(repo)
+
+    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
+    snippet = f"{gql_script} --config-dir /tmp/setup/graphql setup/graphql/operations/test.graphql"
+
+    cmd = [str(repo / "commands" / "api-report-from-cmd"), "--response", "-", "--stdin"]
+    completed = subprocess.run(
+        cmd,
+        cwd=str(repo),
+        env=env,
+        input=snippet,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert completed.returncode == 2
+    assert "cannot be used with --response -" in completed.stderr
