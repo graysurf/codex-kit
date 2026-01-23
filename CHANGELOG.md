@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.4.0 - 2026-01-23
+
+### Added
+- Planning workflows: `planner`, `plan-harder`, and `parallel-task` skills (plus `docs/plans/` convention).
+
+### Changed
+- None.
+
+### Fixed
+- `git-scope`: use literal prefix matching for tracked filters.
+- `graphql-api-testing`: prevent xh/HTTPie from reading stdin in non-interactive runs.
+
 ## v1.3.3 - 2026-01-22
 
 ### Added
@@ -14,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - `codex-env`: move `CODEX_AUTH_FILE` export into `entrypoint.sh`.
 
 ### Fixed
-- None.
+- `api-report`: resolve `--out`/`--response` paths relative to the derived project root.
 
 ## v1.3.2 - 2026-01-22
 
