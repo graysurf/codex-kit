@@ -163,6 +163,70 @@ add_exec_source() {
 # parse_sources_array <file>
 # Parse a `typeset -a sources=(...)` block from a wrapper manifest.
 # Usage: parse_sources_array <file>
+parse_array_entries() {
+  local rest="$1"
+  local -a tokens=()
+  local token=''
+  local -i i=1
+  local -i in_single=0
+  local -i in_double=0
+  local ch=''
+
+  while (( i <= ${#rest} )); do
+    ch="${rest[i]}"
+    if (( in_single )); then
+      if [[ "$ch" == "'" ]]; then
+        in_single=0
+      else
+        token+="$ch"
+      fi
+    elif (( in_double )); then
+      if [[ "$ch" == "\"" ]]; then
+        in_double=0
+      elif [[ "$ch" == "\\" ]]; then
+        (( i++ ))
+        if (( i <= ${#rest} )); then
+          token+="${rest[i]}"
+        fi
+      else
+        token+="$ch"
+      fi
+    else
+      case "$ch" in
+        "'")
+          in_single=1
+          ;;
+        "\"")
+          in_double=1
+          ;;
+        [[:space:]])
+          if [[ -n "$token" ]]; then
+            tokens+=("$token")
+            token=""
+          fi
+          ;;
+        "#")
+          if [[ -z "$token" ]]; then
+            break
+          fi
+          token+="$ch"
+          ;;
+        "("|")")
+          ;;
+        *)
+          token+="$ch"
+          ;;
+      esac
+    fi
+    (( i++ ))
+  done
+
+  [[ -n "$token" ]] && tokens+=("$token")
+  if (( ${#tokens[@]} > 0 )); then
+    print -rl -- "${tokens[@]}"
+  fi
+}
+
 parse_sources_array() {
   local file="$1"
   local in_sources=0
@@ -183,10 +247,14 @@ parse_sources_array() {
       in_sources=0
     fi
 
-    while [[ "$rest" =~ '\"([^\"]+)\"' ]]; do
-      sources_from_array+=("${match[1]}")
-      rest="${rest[$(( MEND + 1 )),-1]}"
-    done
+    local -a entries=()
+    local entry=''
+    while IFS= read -r entry; do
+      entries+=("$entry")
+    done < <(parse_array_entries "$rest")
+    if (( ${#entries[@]} > 0 )); then
+      sources_from_array+=("${entries[@]}")
+    fi
   done < "$file"
 }
 
@@ -213,10 +281,14 @@ parse_exec_sources_array() {
       in_sources=0
     fi
 
-    while [[ "$rest" =~ '\"([^\"]+)\"' ]]; do
-      exec_sources_from_array+=("${match[1]}")
-      rest="${rest[$(( MEND + 1 )),-1]}"
-    done
+    local -a entries=()
+    local entry=''
+    while IFS= read -r entry; do
+      entries+=("$entry")
+    done < <(parse_array_entries "$rest")
+    if (( ${#entries[@]} > 0 )); then
+      exec_sources_from_array+=("${entries[@]}")
+    fi
   done < "$file"
 }
 
