@@ -246,7 +246,10 @@ parse_sources_array() {
     fi
 
     local -a entries=()
-    IFS=$'\n' entries=($(parse_array_entries "$rest"))
+    local entry=''
+    while IFS= read -r entry; do
+      entries+=("$entry")
+    done < <(parse_array_entries "$rest")
     if (( ${#entries[@]} > 0 )); then
       sources_from_array+=("${entries[@]}")
     fi
@@ -277,7 +280,10 @@ parse_exec_sources_array() {
     fi
 
     local -a entries=()
-    IFS=$'\n' entries=($(parse_array_entries "$rest"))
+    local entry=''
+    while IFS= read -r entry; do
+      entries+=("$entry")
+    done < <(parse_array_entries "$rest")
     if (( ${#entries[@]} > 0 )); then
       exec_sources_from_array+=("${entries[@]}")
     fi
