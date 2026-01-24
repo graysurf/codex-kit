@@ -152,6 +152,7 @@ fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$repo_root"
+export CODEX_HOME="$repo_root"
 
 lint_rc=0
 contract_rc=0

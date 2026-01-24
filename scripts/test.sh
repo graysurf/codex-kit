@@ -39,7 +39,7 @@ if ! "$python" -c "import pytest" >/dev/null 2>&1; then
   exit 1
 fi
 
-export CODEX_HOME="${CODEX_HOME:-$repo_root}"
+export CODEX_HOME="$repo_root"
 set +e
 "$python" -m pytest "$@"
 status=$?
