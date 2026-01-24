@@ -34,11 +34,13 @@ Enforcement:
 
 ### MUST: Template placement rules
 
-In codex-kit:
+In codex-kit, within a skill folder:
 
-- Markdown “templates” meant to be copied/rendered into files MUST live under `assets/templates/`.
-- Markdown “templates” meant to be read as writing skeletons MUST live under `references/`.
+- Markdown templates meant to be copied/rendered into files MUST live under `assets/templates/`.
+- Markdown templates meant to be read as writing skeletons MUST live under `references/`.
 - Markdown files with `TEMPLATE` in the filename MUST live under `references/` or `assets/templates/`.
+
+Repo-wide templates shared across many skills (not tied to a single skill folder) live under `docs/templates/`.
 
 ## Sharing (_libs_)
 
@@ -65,6 +67,13 @@ Suggested (create only what you use):
 - `_libs/zsh/*.zsh`
 - `_libs/python/*.py`
 - `_libs/md/*.md`
+
+### MUST: `_projects` local-only files follow gitignore; `_libs` stays tracked
+
+- Local-only secrets/config under `skills/_projects/` MUST use `.env` or `.env.*`
+  filenames (gitignored by default).
+- Shared helpers under `skills/_projects/_libs/` are tracked and must follow the
+  `_libs` rules (non-executable; no `scripts/`).
 
 ## Scripts and entrypoints
 
@@ -162,27 +171,35 @@ skills/_projects/tun-group/
 
 ## Adding a new skill
 
-1) Create the folder under the right namespace:
+Checklist (copy/paste into a PR):
 
-- `skills/tools/<area>/<skill-name>/`
-- `skills/workflows/<area>/<skill-name>/`
-- `skills/automation/<skill-name>/`
-- `skills/_projects/<project>/<skill-name>/`
+- [ ] Create the folder under the right namespace:
+  - `skills/tools/<area>/<skill-name>/`
+  - `skills/workflows/<area>/<skill-name>/`
+  - `skills/automation/<skill-name>/`
+  - `skills/_projects/<project>/<skill-name>/`
 
-2) Add `SKILL.md` with a valid `## Contract` section (required headings).
+- [ ] Add `SKILL.md` with a valid `## Contract` section (required headings).
 
-3) Add optional resources:
+- [ ] Add optional resources (no other tracked top-level entries):
+  - Executable entrypoints: `scripts/`
+  - Docs to be read/loaded: `references/`
+  - Scaffolds/templates: `assets/` (Markdown file templates under `assets/templates/`)
 
-- Executable entrypoints: `scripts/`
-- Docs to be read/loaded: `references/`
-- Scaffolds/templates: `assets/` (Markdown file templates under `assets/templates/`)
+- [ ] Shared logic goes under a group `_libs/` folder (non-executable, no
+  `scripts/` inside `_libs/`).
 
-4) If the skill needs shared code, put it under a group `_libs/` folder (non-executable).
+- [ ] Command snippets use `$CODEX_HOME/...` paths that exist, without duplicated
+  `$CODEX_HOME` segments; `_projects` wrapper paths must point at
+  `skills/_projects/<project>/scripts/*.zsh`.
 
-5) Run local validation:
+- [ ] Local-only secrets/config in `_projects` use `.env` or `.env.*`
+  (gitignored); shared helpers live in `skills/_projects/_libs/` (tracked).
 
-- `$CODEX_HOME/scripts/validate_skill_contracts.sh`
-- `$CODEX_HOME/scripts/audit-skill-layout.sh`
-- `$CODEX_HOME/scripts/check.sh --lint`
-- `$CODEX_HOME/scripts/test.sh`
-
+- [ ] Run local validation (all commands exit `0`; no `error:` lines):
+  - `$CODEX_HOME/scripts/validate_skill_contracts.sh`
+  - `$CODEX_HOME/scripts/audit-skill-layout.sh`
+  - `$CODEX_HOME/scripts/audit-skill-paths.sh` (catches `$CODEX_HOME` path
+    mistakes + `_projects` wrapper path bugs)
+  - `$CODEX_HOME/scripts/check.sh --lint`
+  - `$CODEX_HOME/scripts/test.sh`
