@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat >&2 <<'USAGE'
 Usage:
-  scripts/plan_batches.sh --file <plan.md> --sprint <n> [--format json|text]
+  scripts/plan/plan_batches.sh --file <plan.md> --sprint <n> [--format json|text]
 
 Purpose:
   Compute dependency layers (parallel batches) for a sprint within a plan file.
@@ -27,7 +27,7 @@ die() {
   exit 2
 }
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$repo_root"
 
 file=""
@@ -87,7 +87,7 @@ def eprint(msg: str) -> None:
 
 def run_plan_to_json(plan_path: Path) -> dict[str, object]:
     proc = subprocess.run(
-        ["scripts/plan_to_json.sh", "--file", str(plan_path)],
+        ["scripts/plan/plan_to_json.sh", "--file", str(plan_path)],
         text=True,
         capture_output=True,
         check=False,

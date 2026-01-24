@@ -12,7 +12,7 @@ ScriptSpec = dict[str, Any]
 
 def test_validate_plans_passes_for_repo() -> None:
     repo = repo_root()
-    script = "scripts/validate_plans.sh"
+    script = "scripts/plan/validate_plans.sh"
     spec: ScriptSpec = {
         "args": [],
         "timeout_sec": 10,
@@ -28,7 +28,7 @@ def test_validate_plans_fails_for_invalid_fixture() -> None:
     fixture = repo / "tests" / "fixtures" / "plan" / "invalid-plan.md"
     assert fixture.is_file()
 
-    script = "scripts/validate_plans.sh"
+    script = "scripts/plan/validate_plans.sh"
     spec: ScriptSpec = {
         "args": ["--file", fixture.as_posix()],
         "timeout_sec": 10,
@@ -45,7 +45,7 @@ def test_plan_to_json_emits_expected_schema() -> None:
     assert fixture.is_file()
 
     proc = subprocess.run(
-        ["scripts/plan_to_json.sh", "--file", fixture.as_posix()],
+        ["scripts/plan/plan_to_json.sh", "--file", fixture.as_posix()],
         cwd=str(repo),
         text=True,
         capture_output=True,
@@ -69,7 +69,7 @@ def test_plan_batches_computes_parallel_layers() -> None:
     assert fixture.is_file()
 
     proc = subprocess.run(
-        ["scripts/plan_batches.sh", "--file", fixture.as_posix(), "--sprint", "1"],
+        ["scripts/plan/plan_batches.sh", "--file", fixture.as_posix(), "--sprint", "1"],
         cwd=str(repo),
         text=True,
         capture_output=True,

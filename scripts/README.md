@@ -18,9 +18,10 @@ scripts/
 ├── test.sh                               Dev test runner (repo-only).
 ├── check.sh                              Runs selected checks (lint/contracts/semgrep/tests).
 ├── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
-├── validate_plans.sh                     Lints `docs/plans/*-plan.md` plan files (format + executability).
-├── plan_to_json.sh                       Parses plan markdown into stable JSON.
-├── plan_batches.sh                       Computes dependency layers (parallel batches) for a sprint.
+├── plan/                                 Plan tooling (Plan Format v1).
+│   ├── validate_plans.sh                 Lints `docs/plans/*-plan.md` plan files (format + executability).
+│   ├── plan_to_json.sh                   Parses plan markdown into stable JSON.
+│   └── plan_batches.sh                   Computes dependency layers (parallel batches) for a sprint.
 └── audit-skill-layout.sh                 Validates tracked skill directory layout.
 ```
 
@@ -108,7 +109,7 @@ Plan tooling helps keep implementation plans concrete (executable + verifiable) 
 
 ### Plan lint
 
-`$CODEX_HOME/scripts/validate_plans.sh` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
+`$CODEX_HOME/scripts/plan/validate_plans.sh` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
 
 - Sprints: `## Sprint N: <name>`
 - Tasks: `### Task N.M: <name>`
@@ -121,17 +122,17 @@ Plan tooling helps keep implementation plans concrete (executable + verifiable) 
 
 Usage:
 
-- Lint all tracked plans: `$CODEX_HOME/scripts/validate_plans.sh`
-- Lint a specific plan: `$CODEX_HOME/scripts/validate_plans.sh --file docs/plans/<name>-plan.md`
+- Lint all tracked plans: `$CODEX_HOME/scripts/plan/validate_plans.sh`
+- Lint a specific plan: `$CODEX_HOME/scripts/plan/validate_plans.sh --file docs/plans/<name>-plan.md`
 
 ### Plan JSON export
 
-`$CODEX_HOME/scripts/plan_to_json.sh` parses a plan into JSON for tooling to consume:
+`$CODEX_HOME/scripts/plan/plan_to_json.sh` parses a plan into JSON for tooling to consume:
 
-- `plan_to_json.sh --file docs/plans/<name>-plan.md | python3 -m json.tool`
+- `scripts/plan/plan_to_json.sh --file docs/plans/<name>-plan.md | python3 -m json.tool`
 
 ### Parallel batches
 
-`$CODEX_HOME/scripts/plan_batches.sh` computes dependency layers (parallel batches) for a sprint:
+`$CODEX_HOME/scripts/plan/plan_batches.sh` computes dependency layers (parallel batches) for a sprint:
 
-- `plan_batches.sh --file docs/plans/<name>-plan.md --sprint 1 --format text`
+- `scripts/plan/plan_batches.sh --file docs/plans/<name>-plan.md --sprint 1 --format text`

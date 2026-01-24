@@ -10,7 +10,7 @@
 - **Acceptance criteria**:
   - A doc file is updated.
 - **Validation**:
-  - `scripts/validate_plans.sh --file tests/fixtures/plan/valid-plan.md`
+  - `scripts/plan/validate_plans.sh --file tests/fixtures/plan/valid-plan.md`
 
 ### Task 1.2: Second task depends on first
 - **Location**:
@@ -21,7 +21,7 @@
 - **Acceptance criteria**:
   - The dependency relationship is explicit.
 - **Validation**:
-  - `scripts/plan_batches.sh --file tests/fixtures/plan/valid-plan.md --sprint 1`
+  - `scripts/plan/plan_batches.sh --file tests/fixtures/plan/valid-plan.md --sprint 1`
 
 ### Task 1.3: Third task depends on first
 - **Location**:
@@ -32,4 +32,4 @@
 - **Acceptance criteria**:
   - Batch computation produces a parallel layer.
 - **Validation**:
-  - `scripts/plan_batches.sh --file tests/fixtures/plan/valid-plan.md --sprint 1`
+  - `scripts/plan/plan_batches.sh --file tests/fixtures/plan/valid-plan.md --sprint 1`

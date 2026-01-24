@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat >&2 <<'USAGE'
 Usage:
-  scripts/validate_plans.sh [--file <path>]...
+  scripts/plan/validate_plans.sh [--file <path>]...
 
 Purpose:
   Lint plan markdown files under docs/plans/ against Plan Format v1.
@@ -28,7 +28,7 @@ die() {
   exit 2
 }
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$repo_root"
 
 files=()
@@ -96,7 +96,7 @@ def eprint(msg: str) -> None:
 
 def run_plan_to_json(plan_path: Path) -> tuple[int, str, str]:
     proc = subprocess.run(
-        ["scripts/plan_to_json.sh", "--file", str(plan_path)],
+        ["scripts/plan/plan_to_json.sh", "--file", str(plan_path)],
         text=True,
         capture_output=True,
         check=False,

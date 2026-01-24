@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat >&2 <<'USAGE'
 Usage:
-  scripts/plan_to_json.sh --file <plan.md> [--sprint <n>] [--pretty]
+  scripts/plan/plan_to_json.sh --file <plan.md> [--sprint <n>] [--pretty]
 
 Purpose:
   Parse a plan markdown file (Plan Format v1) into a stable JSON schema.
@@ -27,7 +27,7 @@ die() {
   exit 2
 }
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$repo_root"
 
 file=""

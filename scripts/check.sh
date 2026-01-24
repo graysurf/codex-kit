@@ -206,7 +206,7 @@ fi
 if [[ "$run_plans" -eq 1 ]]; then
   echo "lint: validate plans" >&2
   set +e
-  scripts/validate_plans.sh
+  scripts/plan/validate_plans.sh
   plans_rc=$?
   set -e
 

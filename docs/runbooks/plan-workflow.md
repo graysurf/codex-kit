@@ -16,19 +16,19 @@ Use this workflow to create a plan, lint it, inspect JSON output, compute parall
 From repo root:
 
 ```bash
-scripts/validate_plans.sh --file docs/plans/<kebab-case>-plan.md
+scripts/plan/validate_plans.sh --file docs/plans/<kebab-case>-plan.md
 ```
 
 ## 3) Export JSON (for inspection or tooling)
 
 ```bash
-scripts/plan_to_json.sh --file docs/plans/<kebab-case>-plan.md --pretty
+scripts/plan/plan_to_json.sh --file docs/plans/<kebab-case>-plan.md --pretty
 ```
 
 ## 4) Compute parallel batches
 
 ```bash
-scripts/plan_batches.sh --file docs/plans/<kebab-case>-plan.md --sprint 1 --format text
+scripts/plan/plan_batches.sh --file docs/plans/<kebab-case>-plan.md --sprint 1 --format text
 ```
 
 ## 5) Run `/execute-plan-parallel`
