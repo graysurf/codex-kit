@@ -12,6 +12,8 @@ Purpose:
 Rules:
   - `$CODEX_HOME/...` paths must exist relative to the repo root.
   - `$CODEX_HOME/...$CODEX_HOME/...` (duplicated segments) is not allowed.
+  - Runtime output paths under `$CODEX_HOME/out/` and `$CODEX_HOME/tmp/` are
+    allowed and are not required to exist.
 
 Options:
   --file <path>  Validate a specific SKILL.md file (may be repeated)
@@ -83,6 +85,7 @@ repo_root = Path(sys.argv[1]).resolve()
 paths = [Path(p) for p in sys.argv[2:]]
 
 CODEX_RE = re.compile(r"\$CODEX_HOME/[^\s`\"')>]+")
+SKIP_EXISTS_PREFIXES = ("out/", "tmp/")
 
 errors: list[str] = []
 
@@ -108,6 +111,8 @@ for raw_path in paths:
                 continue
 
             rel = token[len("$CODEX_HOME/") :]
+            if rel.startswith(SKIP_EXISTS_PREFIXES):
+                continue
             candidate = repo_root / rel
             if not candidate.exists():
                 e(f"{raw_path}:{lineno}: path not found: {token!r}")

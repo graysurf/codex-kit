@@ -76,6 +76,36 @@ def test_audit_skill_paths_passes_for_repo() -> None:
     assert result.status == "pass", result
 
 
+def test_audit_skill_paths_allows_out_paths(tmp_path: Path) -> None:
+    fixture = tmp_path / "out-skill.md"
+    fixture.write_text(
+        "\n".join(
+            [
+                "# Fixture Skill",
+                "",
+                "Some output path examples:",
+                "",
+                "- `$CODEX_HOME/out/_fixtures/audit-skill-paths-nonexistent.txt`",
+                "- `$CODEX_HOME/tmp/_fixtures/audit-skill-paths-nonexistent.txt`",
+                "",
+            ]
+        )
+        + "\n",
+        "utf-8",
+    )
+
+    repo = repo_root()
+    script = "scripts/audit-skill-paths.sh"
+    spec: ScriptSpec = {
+        "args": ["--file", str(fixture)],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
+    }
+    result = run_smoke_script(script, "audit-skill-paths-out-allowed", spec, repo, cwd=repo)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+
 def test_audit_skill_paths_fails_for_nested_codex_home(tmp_path: Path) -> None:
     fixture = tmp_path / "bad-skill.md"
     fixture.write_text(
