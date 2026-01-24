@@ -91,11 +91,12 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 1. Create a new branch: `fix/<severity>-<slug>` using the fixed severity levels.
 2. Implement the fix with minimal scope; avoid refactors.
-3. Add or update tests when possible; run lint/test/build commands when present (see Validation commands). If validation fails, follow Retry policy.
+3. Add or update tests when possible; set up the repo’s test/build environment per its docs, then run lint/test/build commands (see Validation commands fallback). Treat validation as a gate: if validation fails, do not commit/open a PR; follow Retry policy.
 4. Update the issues list with status.
 
 ## Validation commands
 
+- Prefer the repo’s documented commands (README/DEVELOPMENT/CONTRIBUTING/CI). Use the below as fallback heuristics.
 - package.json scripts: `lint`, `test`, `build` (npm, pnpm, yarn, or bun)
 - Makefile targets: `lint`, `test`, `build`
 - Justfile targets: `lint`, `test`, `build`

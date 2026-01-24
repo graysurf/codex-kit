@@ -35,7 +35,7 @@ Failure modes:
 
 - No matching bug-type PR found, or PR body does not include a parseable `## Issues Found` table.
 - Missing tooling (`gh`/`git`/`python3`) or `gh` not authenticated.
-- Dirty working tree, merge conflicts, or failing tests prevent a safe push.
+- Dirty working tree, merge conflicts, or failing tests prevent a safe commit/push.
 - High-risk areas (auth/billing/migrations/deploy) should stop or be skipped.
 
 ## Workflow
@@ -56,7 +56,9 @@ Failure modes:
 
 4. Implement the minimal fix + validation:
    - Prefer small, targeted diffs; avoid refactors.
-   - Run the most relevant checks (`$CODEX_HOME/scripts/check.sh --lint`, `$CODEX_HOME/scripts/test.sh`, etc.) when available.
+   - Follow the target repo’s testing/build docs and CI workflow: install required tooling/deps, then run the most relevant lint/test/build commands.
+   - If docs are missing/unclear, infer likely commands from common entrypoints (package.json scripts, Makefile/Justfile/Taskfile, language defaults).
+   - Treat validation as a gate: if checks fail, do not commit/push; fix and re-run (or stop and report). If checks cannot be run, document why in the PR comment.
 
 5. Commit + push:
    - Use `semantic-commit-autostage` (end-to-end automation) unless the user explicitly wants manual staging.

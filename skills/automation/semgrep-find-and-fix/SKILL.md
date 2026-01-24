@@ -73,7 +73,7 @@ If none exist, stop and report: "No Semgrep config found; add one of the support
    - Pick a single fix target (or one closely related group) for this run.
    - If fixes are unsafe/unclear, choose a report-only PR instead.
 5. Choose one output path:
-   - Fix PR: implement the minimal fix + tests; commit; open PR.
+   - Fix PR: implement the minimal fix; follow the repo’s testing/build docs to install required tooling/deps and run relevant lint/test/build checks. Ensure they pass before commit/open PR. If checks cannot be run, document why in the PR `## Testing` section.
    - Report-only PR: add a report file summarizing the most severe findings; open PR.
 6. Noise controls (config-layer; use sparingly):
    - Prefer `.semgrepignore`, `paths` include/exclude, and rule disable lists over adding `nosem` to code.
