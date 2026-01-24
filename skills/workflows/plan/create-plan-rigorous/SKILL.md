@@ -59,7 +59,7 @@ Failure modes:
 
 5) Lint the plan (format + executability)
 
-- Run: `scripts/validate_plans.sh --file docs/plans/<slug>-plan.md`
+- Run: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/<slug>-plan.md`
 - Fix until it passes (no placeholders in required fields; explicit validation commands; dependency IDs exist).
 
 6) Subagent review
