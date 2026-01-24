@@ -734,15 +734,19 @@ if [[ -n "$(git status --porcelain=v1)" ]]; then
     git add "docs/progress/README.md"
   fi
   codex_home="${CODEX_HOME:-}"
-  if [[ -z "$codex_home" ]]; then
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    codex_home="$(cd "${script_dir}/../../../../../.." && pwd -P)"
-  fi
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-  commit_helper="${codex_home%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+  commit_helper=""
+  if [[ -n "$codex_home" ]]; then
+    commit_helper="${codex_home%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+  fi
+  if [[ -z "$commit_helper" || ! -x "$commit_helper" ]]; then
+    codex_home="$(cd "${script_dir}/../../../../../.." && pwd -P)"
+    commit_helper="${codex_home%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+  fi
   if [[ ! -x "$commit_helper" ]]; then
     echo "error: commit helper not found or not executable: $commit_helper" >&2
-    echo "hint: set CODEX_HOME to your codex-kit repo root" >&2
+    echo "hint: set CODEX_HOME to your codex-kit repo root (or run from the codex-kit checkout)" >&2
     exit 1
   fi
 

@@ -195,11 +195,28 @@ fi
 json_upsert "sandbox_base_branch" "$sandbox_base_branch"
 
 codex_home="${CODEX_HOME:-$repo_root}"
-commit_helper="${codex_home%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
-handoff_script="${codex_home%/}/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh"
-close_script="${codex_home%/}/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
-create_progress_file_script="${codex_home%/}/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh"
-create_worktrees_script="${codex_home%/}/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh"
+commit_helper=""
+handoff_script=""
+close_script=""
+create_progress_file_script=""
+create_worktrees_script=""
+
+resolve_tools() {
+  local root="${1:-}"
+  commit_helper="${root%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+  handoff_script="${root%/}/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh"
+  close_script="${root%/}/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
+  create_progress_file_script="${root%/}/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh"
+  create_worktrees_script="${root%/}/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh"
+}
+
+resolve_tools "$codex_home"
+if [[ ! -x "$commit_helper" || ! -x "$handoff_script" || ! -x "$close_script" || ! -x "$create_progress_file_script" || ! -x "$create_worktrees_script" ]]; then
+  # CODEX_HOME is often a global Codex config dir; fall back to the current repo root unless
+  # the caller intentionally pointed CODEX_HOME at a codex-kit checkout that contains these scripts.
+  resolve_tools "$repo_root"
+  codex_home="$repo_root"
+fi
 
 for p in "$commit_helper" "$handoff_script" "$close_script" "$create_progress_file_script" "$create_worktrees_script"; do
   [[ -x "$p" ]] || die "required helper script not executable: $p"
