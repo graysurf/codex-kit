@@ -1,17 +1,17 @@
 ---
-name: plan-harder
-description: Create an extra-thorough implementation plan (sprints + atomic tasks) and get a subagent review. Use when the user explicitly says "plan harder".
+name: create-plan-rigorous
+description: Create an extra-thorough implementation plan (sprints + atomic tasks) and get a subagent review. Use when the user wants a more rigorous plan than usual.
 ---
 
-# Plan Harder
+# Create Plan (Rigorous)
 
-Same as `planner`, but more rigorous: add per-task complexity notes, explicitly track dependencies, and get a subagent review before finalizing.
+Same as `create-plan`, but more rigorous: add per-task complexity notes, explicitly track dependencies, and get a subagent review before finalizing.
 
 ## Contract
 
 Prereqs:
 
-- User explicitly requests “plan harder” (or clearly wants a more rigorous plan than normal).
+- User explicitly requests a more rigorous plan than normal.
 - You can spawn a review subagent.
 
 Inputs:
@@ -48,7 +48,7 @@ Failure modes:
 
 3) Draft the plan (do not implement)
 
-- Same structure as `planner`, plus:
+- Same structure as `create-plan`, plus:
   - Add a per-task **Complexity** score (1–10).
   - Explicitly list dependencies and parallelizable tasks.
   - Add a “Rollback plan” that is operationally plausible.
@@ -57,14 +57,24 @@ Failure modes:
 
 - Path: `docs/plans/<slug>-plan.md` (kebab-case, end with `-plan.md`).
 
-5) Subagent review
+5) Lint the plan (format + executability)
+
+- Run: `scripts/validate_plans.sh --file docs/plans/<slug>-plan.md`
+- Fix until it passes (no placeholders in required fields; explicit validation commands; dependency IDs exist).
+
+6) Subagent review
 
 - Spawn a subagent to review the saved plan file.
 - Give it: the plan path + the original request + any constraints.
 - Explicitly instruct it: “Do not ask questions; only provide critique and improvements.”
+- Review rubric for the subagent:
+  - Check for missing required task fields (`Location`, `Description`, `Dependencies`, `Acceptance criteria`, `Validation`).
+  - Check for placeholder tokens left behind (`<...>`, `TODO`, `TBD`) in required fields.
+  - Check task atomicity (single responsibility) and parallelization opportunities (dependency clarity, minimal file overlap).
+  - Check that validation is runnable and matches acceptance criteria.
 - Incorporate useful feedback into the plan (keep changes minimal and coherent).
 
-6) Final gotchas pass
+7) Final gotchas pass
 
 - Ensure the plan has clear success criteria, validation commands, and risk mitigation.
 

@@ -47,8 +47,9 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 1.1: Map workflow invariants + edge cases
 
 - **Complexity**: 4
-- **Location**: `docs/workflows/progress-pr-workflow.md` (new)
-- **Description**:
+- **Location**:
+  - `docs/workflows/progress-pr-workflow.md`
+- **Description**: Draft a contract-style doc for the progress PR workflow invariants and failure modes.
   - Write a concise “contract-style” doc for the full flow across skills:
     - progress PR creation (file + PR body link rules)
     - handoff (merge planning PR + patch Progress link to base branch)
@@ -67,9 +68,10 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 7
 - **Location**:
-  - `tests/test_script_smoke_worktree_helpers.py` (new)
-  - `tests/fixtures/worktree-specs/*.tsv` (new fixtures)
-- **Description**:
+  - `tests/test_script_smoke_worktree_helpers.py`
+  - `tests/fixtures/worktree-specs/worktree-basic.tsv`
+  - `tests/fixtures/worktree-specs/worktree-invalid.tsv`
+- **Description**: Add fixture-based tests for the worktree helper scripts (create + cleanup).
   - Build a local fixture repo (similar to `tests/test_script_smoke_gh_workflows.py`):
     - create a work tree + bare `origin.git`
     - create a baseline branch (default `main`)
@@ -95,8 +97,9 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 1.3: Decide (and document) what stays “real-gh only”
 
 - **Complexity**: 3
-- **Location**: `docs/workflows/progress-pr-workflow.md` (from Task 1.1)
-- **Description**:
+- **Location**:
+  - `docs/workflows/progress-pr-workflow.md`
+- **Description**: Document which behaviors must be validated against real GitHub vs CI fixtures/stubs.
   - Explicitly separate:
     - behaviors we can validate in CI with fixtures + `tests/stubs/bin/gh`
     - behaviors we must validate against real GitHub (`gh pr create`, merge policies, base retargeting)
@@ -122,8 +125,9 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 2.1: Align `close_progress_pr.sh` with semantic commit policy
 
 - **Complexity**: 6
-- **Location**: `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
-- **Description**:
+- **Location**:
+  - `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
+- **Description**: Remove direct `git commit` usage and align with the semantic commit helper.
   - Remove direct `git commit ...` usage.
   - Prefer calling the existing semantic-commit helper script:
     - `skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`
@@ -131,7 +135,9 @@ Primary success criteria: we can reliably create/merge/close a planning progress
     - commit only when there are staged changes
     - keep commit message stable (`docs(progress): archive <slug>`)
   - Ensure tests using fixture repos continue to pass.
-- **Dependencies**: Task 1.1 (invariants) and Task 1.2 (tests may need updates)
+- **Dependencies**:
+  - Task 1.1
+  - Task 1.2
 - **Parallelizable**: yes (with Tasks 2.2–2.3, but watch for merge conflicts)
 - **Acceptance criteria**:
   - `close_progress_pr.sh` no longer contains `git commit` invocations.
@@ -142,8 +148,9 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 2.2: Harden `create_worktrees_from_tsv.sh` for real-world usage
 
 - **Complexity**: 7
-- **Location**: `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh`
-- **Description** (expected improvements; adjust based on Sprint 3 findings):
+- **Location**:
+  - `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh`
+- **Description**: Improve preflight checks and add safe/portable flags (adjust based on Sprint 3 findings).
   - Add clearer preflight errors:
     - detect un-fetched `start_point` and fetch from `origin` when needed (best-effort)
     - detect existing branch name collisions and fail with actionable guidance
@@ -163,8 +170,9 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 2.3: Make `cleanup_worktrees.sh` safer (and test it)
 
 - **Complexity**: 5
-- **Location**: `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh`
-- **Description**:
+- **Location**:
+  - `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh`
+- **Description**: Add confirmation guards and a dry-run mode, and cover behavior with fixture tests.
   - Add a `--dry-run` mode that prints removals.
   - Add a `--yes` confirmation gate for destructive removals (default to dry-run or fail without `--yes`).
   - Keep the existing `--prefix` behavior, but reduce footguns.
@@ -181,14 +189,21 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 4
 - **Location**:
-  - `skills/workflows/pr/progress/*/SKILL.md`
+  - `skills/workflows/pr/progress/create-progress-pr/SKILL.md`
+  - `skills/workflows/pr/progress/handoff-progress-pr/SKILL.md`
+  - `skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md`
+  - `skills/workflows/pr/progress/close-progress-pr/SKILL.md`
+  - `skills/workflows/pr/progress/progress-addendum/SKILL.md`
   - `docs/workflows/progress-pr-workflow.md`
-- **Description**:
+- **Description**: Update progress workflow docs to match the hardened scripts and intended evidence/links.
   - Ensure the skill docs:
     - reference the correct helper scripts + flags
     - clearly document the “stacked PR base” rules and the “after PR1 merges” retargeting workflow
     - explicitly call out where evidence should be recorded (PR body sections / comments)
-- **Dependencies**: Tasks 2.1–2.3
+- **Dependencies**:
+  - Task 2.1
+  - Task 2.2
+  - Task 2.3
 - **Parallelizable**: yes (but easiest after scripts settle)
 - **Acceptance criteria**:
   - No contradictions between SKILLs (especially Progress link rules).
@@ -200,9 +215,9 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 8
 - **Location**:
-  - `scripts/e2e/progress_pr_workflow.sh` (new)
-  - `docs/workflows/progress-pr-workflow.md` (wire into the runbook)
-- **Description**:
+  - `scripts/e2e/progress_pr_workflow.sh`
+  - `docs/workflows/progress-pr-workflow.md`
+- **Description**: Add an opt-in real-`gh` E2E driver script with safety gates and durable artifacts.
   - Create a single entrypoint script that performs the Sprint 3 flow end-to-end using real GitHub:
     - hard safety gates:
       - refuse to run when `CI=true`
@@ -213,7 +228,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
     - support sandbox selection:
       - Option A: create a temporary repo (default), OR
       - Option B: use a temporary base branch in an existing repo
-    - support stepwise execution (so `/parallel-task` can run it incrementally), e.g.:
+    - support stepwise execution (so `/execute-plan-parallel` can run it incrementally), e.g.:
       - `--phase plan` (create planning progress PR)
       - `--phase handoff`
       - `--phase worktrees`
@@ -223,7 +238,10 @@ Primary success criteria: we can reliably create/merge/close a planning progress
     - create planning progress PR → handoff merge → create 2 stacked PRs via worktrees → merge → close progress
     - provide a deterministic cleanup mode that removes worktrees and deletes sandbox resources (after evidence capture)
   - Keep it “boringly bash”: explicit preflight checks, explicit failure messages, and durable artifacts in `out/`.
-- **Dependencies**: Tasks 2.1–2.3
+- **Dependencies**:
+  - Task 2.1
+  - Task 2.2
+  - Task 2.3
 - **Parallelizable**: no
 - **Acceptance criteria**:
   - Script exits non-zero with actionable errors when guards/prereqs fail.
@@ -236,8 +254,10 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 2.6: Add a static policy check for forbidden `git commit` in progress scripts
 
 - **Complexity**: 3
-- **Location**: `tests/test_no_direct_git_commit_in_progress_scripts.py` (new) OR `scripts/check.sh` (extend)
-- **Description**:
+- **Location**:
+  - `tests/test_no_direct_git_commit_in_progress_scripts.py`
+  - `scripts/check.sh`
+- **Description**: Add a static check that fails if progress scripts invoke `git commit` directly.
   - Add a small automated check that fails if any file under `skills/workflows/pr/progress/**/scripts/` contains a direct `git commit` invocation (exceptions must be explicit and justified).
 - **Dependencies**: Task 2.1
 - **Parallelizable**: yes
@@ -251,7 +271,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 **Goal**: run the full workflow against real GitHub using `gh`, capture evidence + logs, and identify gaps that CI tests can’t detect.
 
 **Demo/Validation**:
-- Command(s): documented in Task 3.2–3.6
+- Command(s): documented in Task 3.3–3.7
 - Verify:
   - Planning progress PR is merged and its Progress link points to `blob/<base>/docs/progress/...` (survives head-branch deletion).
   - Two implementation PRs exist:
@@ -262,43 +282,47 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 3.1: Pick a sandbox target and record it
 
 - **Complexity**: 3
-- **Location**: `out/e2e/progress-pr-workflow/<run-id>/run.json` (new artifact)
-- **Description**:
+- **Location**:
+  - `out/e2e/progress-pr-workflow/$RUN_ID/run.json`
+- **Description**: Choose a sandbox target and record run metadata (repo/branch, PR IDs) in `run.json`.
   - Choose one:
     - **Option A (recommended)**: create a temporary GitHub repo (private) for the E2E run.
     - **Option B**: create a temporary base branch (e.g. `test/progress-e2e-<run-id>`) in `graysurf/codex-kit`.
   - Record the decision and identifiers in `out/` (repo URL, base branch, run-id, created PR numbers).
-- **Dependencies**: Sprint 2 completed (so we test the improved flow)
+- **Dependencies**:
+  - Task 2.5
 - **Parallelizable**: no
 - **Acceptance criteria**:
-  - Artifact exists under `out/e2e/progress-pr-workflow/<run-id>/`.
+  - Artifact exists under `out/e2e/progress-pr-workflow/$RUN_ID/`.
   - Artifact includes enough info to clean up (repo name or branch name).
 - **Validation**:
-  - `ls out/e2e/progress-pr-workflow/<run-id>/run.json`
+  - `ls out/e2e/progress-pr-workflow/$RUN_ID/run.json`
 
-### Task 3.1a: Preflight GitHub policy checks (mergeability, required reviews/checks)
+### Task 3.2: Preflight GitHub policy checks (mergeability, required reviews/checks)
 
 - **Complexity**: 4
-- **Location**: recorded into `out/e2e/progress-pr-workflow/<run-id>/run.json`
-- **Description**:
+- **Location**:
+  - `out/e2e/progress-pr-workflow/$RUN_ID/run.json`
+- **Description**: Record mergeability and required-check signals for PRs before attempting merges.
   - Before attempting any merges, run and record:
     - `gh pr checks <pr>`
     - `gh pr view <pr> --json mergeable,mergeStateStatus,reviewDecision -q '[.mergeable,.mergeStateStatus,.reviewDecision] | @tsv'`
   - If blocked by policy, stop and record the blocking reason (don’t bypass).
-- **Dependencies**: Task 3.1 (have run-id + output dir)
+- **Dependencies**:
+  - Task 3.1
 - **Parallelizable**: no
 - **Acceptance criteria**:
   - We can distinguish “script bug” vs “repo policy blocked” from the recorded evidence.
 - **Validation**:
   - Evidence is present in `run.json` for each PR that was attempted to merge.
 
-### Task 3.2: Create a planning progress PR via real `gh`
+### Task 3.3: Create a planning progress PR via real `gh`
 
 - **Complexity**: 7
 - **Location**:
-  - Sandbox repo working copy (Option A) OR this repo (Option B)
-  - Generated: `docs/progress/<YYYYMMDD>_<slug>.md`
-- **Description**:
+  - `scripts/e2e/progress_pr_workflow.sh`
+  - `docs/progress/YYYYMMDD_slug.md`
+- **Description**: Create a planning progress PR via real `gh` and record its identifiers in `run.json`.
   - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase plan` (writes PR URLs into `run.json`).
   - Manual fallback (if running without the driver script):
   - Use `create_progress_file.sh` to scaffold a progress file.
@@ -307,39 +331,42 @@ Primary success criteria: we can reliably create/merge/close a planning progress
   - Create the PR via `gh pr create` (draft), ensuring PR body contains:
     - `## Progress` with a full blob URL to the progress file on the head branch.
     - `## Implementation PRs` section with the intended PR split (PRs TBD).
-- **Dependencies**: Task 3.1
+- **Dependencies**:
+  - Task 3.1
 - **Parallelizable**: no
 - **Acceptance criteria**:
   - PR is visible on GitHub and contains exactly one `docs/progress/...` link under `## Progress`.
   - Placeholder check passes: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no matches.
 - **Validation**:
-  - `gh pr view <planning_pr> --json url,body -q .url`
+  - `gh pr view "$PLANNING_PR" --json url,body -q .url`
   - `rg -n "\\[\\[.*\\]\\]" docs/progress -S`
 
-### Task 3.3: Handoff/merge the planning PR and patch its Progress link
+### Task 3.4: Handoff/merge the planning PR and patch its Progress link
 
 - **Complexity**: 5
-- **Location**: `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh` (used)
-- **Description**:
+- **Location**:
+  - `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`
+- **Description**: Merge the planning PR and patch its Progress link to the base branch.
   - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase handoff`
   - Manual fallback:
   - Run the handoff script to merge the planning PR and patch the PR body progress link to base branch.
   - Confirm the head branch deletion does not break the Progress link.
-- **Dependencies**: Task 3.2
+- **Dependencies**:
+  - Task 3.3
 - **Parallelizable**: no
 - **Acceptance criteria**:
   - Planning PR state is `MERGED`.
-  - Planning PR body `## Progress` link points to `blob/<base-branch>/docs/progress/<file>.md`.
+  - Planning PR body `## Progress` link points to `blob/$BASE_BRANCH/docs/progress/$PROGRESS_FILE`.
 - **Validation**:
-  - `gh pr view <planning_pr> --json state,body -q '[.state, .body] | @tsv'`
+  - `gh pr view "$PLANNING_PR" --json state,body -q '[.state, .body] | @tsv'`
 
-### Task 3.4: Create two worktrees + branches from a TSV spec
+### Task 3.5: Create two worktrees + branches from a TSV spec
 
 - **Complexity**: 6
 - **Location**:
-  - TSV spec: `out/e2e/progress-pr-workflow/<run-id>/pr-splits.tsv` (new)
-  - Script: `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh`
-- **Description**:
+  - `out/e2e/progress-pr-workflow/$RUN_ID/pr-splits.tsv`
+  - `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh`
+- **Description**: Create two worktrees from a TSV spec and make minimal scaffold commits in each.
   - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase worktrees`
   - Manual fallback:
   - Create a TSV spec with at least:
@@ -347,7 +374,8 @@ Primary success criteria: we can reliably create/merge/close a planning progress
     - PR2 branch (start PR1 branch, gh_base PR1 branch)
   - Run the worktree creation script.
   - Make a “scaffold commit” in each worktree (small safe change).
-- **Dependencies**: Task 3.3
+- **Dependencies**:
+  - Task 3.4
 - **Parallelizable**: partially:
   - spec + worktree creation is sequential
   - **after** worktrees exist, scaffold commits can be parallelized (one per worktree)
@@ -357,12 +385,12 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Validation**:
   - `git worktree list --porcelain`
 
-### Task 3.5: Create two implementation PRs (stacked) via real `gh`
+### Task 3.6: Create two implementation PRs (stacked) via real `gh`
 
 - **Complexity**: 7
 - **Location**:
-  - PR bodies created from `skills/workflows/pr/feature/create-feature-pr/references/PR_TEMPLATE.md` (or equivalent)
-- **Description**:
+  - `skills/workflows/pr/feature/create-feature-pr/references/PR_TEMPLATE.md`
+- **Description**: Create two draft implementation PRs with correct stacked bases and required PR body links.
   - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase prs`
   - Manual fallback:
   - For each branch:
@@ -373,21 +401,22 @@ Primary success criteria: we can reliably create/merge/close a planning progress
     - ensure the PR body includes:
       - `## Progress` linking to `blob/main/docs/progress/<file>.md`
       - `## Planning PR` with `- #<planning_pr_number>`
-- **Dependencies**: Task 3.4
+- **Dependencies**:
+  - Task 3.5
 - **Parallelizable**: yes (one PR per worktree) **after** Task 3.4 finishes
 - **Acceptance criteria**:
   - Two PRs exist, and the base branches are correct.
   - Both PRs reference the same progress file and planning PR number.
 - **Validation**:
-  - `gh pr view <pr1> --json baseRefName,headRefName,body -q '[.baseRefName,.headRefName,.body] | @tsv'`
-  - `gh pr view <pr2> --json baseRefName,headRefName,body -q '[.baseRefName,.headRefName,.body] | @tsv'`
+  - `gh pr view "$PR1" --json baseRefName,headRefName,body -q '[.baseRefName,.headRefName,.body] | @tsv'`
+  - `gh pr view "$PR2" --json baseRefName,headRefName,body -q '[.baseRefName,.headRefName,.body] | @tsv'`
 
-### Task 3.6: Merge PR1, then retarget/merge PR2, then close progress on the final PR
+### Task 3.7: Merge PR1, then retarget/merge PR2, then close progress on the final PR
 
 - **Complexity**: 8
 - **Location**:
-  - `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` (used)
-- **Description**:
+  - `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
+- **Description**: Merge PRs in order and run the close step on the final PR to archive progress and patch links.
   - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase close`
   - Manual fallback:
   - Merge PR1 to base (`main`) and delete head branch.
@@ -398,29 +427,32 @@ Primary success criteria: we can reliably create/merge/close a planning progress
     - archive the progress file
     - patch the PR body `## Progress` link to base branch archived path
     - patch the planning PR body to include Implementation PR links
-- **Dependencies**: Task 3.5
+- **Dependencies**:
+  - Task 3.6
 - **Parallelizable**: no (ordering matters)
 - **Acceptance criteria**:
-  - Progress file is at `docs/progress/archived/<file>.md` on the base branch.
-  - PR2 body `## Progress` links to `blob/<base>/docs/progress/archived/<file>.md`.
+  - Progress file is at `docs/progress/archived/$PROGRESS_FILE` on the base branch.
+  - PR2 body `## Progress` links to `blob/$BASE_BRANCH/docs/progress/archived/$PROGRESS_FILE`.
   - Planning PR body contains `## Implementation PRs` and links to PR1 + PR2.
 - **Validation**:
-  - `gh pr view <pr2> --json state,body -q '[.state, .body] | @tsv'`
-  - `gh pr view <planning_pr> --json body -q .body`
-  - `git show <base>/docs/progress/README.md` contains the archived row for the file.
+  - `gh pr view "$PR2" --json state,body -q '[.state, .body] | @tsv'`
+  - `gh pr view "$PLANNING_PR" --json body -q .body`
+  - `git show "$BASE_BRANCH:docs/progress/README.md" | rg -n "$PROGRESS_FILE" >/dev/null`
 
-### Task 3.7: Cleanup worktrees + sandbox resources
+### Task 3.8: Cleanup worktrees + sandbox resources
 
 - **Complexity**: 4
 - **Location**:
-  - Worktrees: `<repo_root>/../.worktrees/<repo_name>/...`
-  - Sandbox repo/branch as recorded in `out/e2e/progress-pr-workflow/<run-id>/run.json`
-- **Description**:
+  - `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh`
+  - `scripts/e2e/progress_pr_workflow.sh`
+  - `out/e2e/progress-pr-workflow/$RUN_ID/run.json`
+- **Description**: Remove worktrees and delete sandbox resources after evidence capture.
   - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase cleanup`
   - Manual fallback:
   - Remove worktrees and prune.
   - Delete the sandbox repo (Option A) or delete the temporary base branch (Option B) **only after** evidence is captured.
-- **Dependencies**: Task 3.6
+- **Dependencies**:
+  - Task 3.7
 - **Parallelizable**: no
 - **Acceptance criteria**:
   - `git worktree list --porcelain` no longer shows the created worktrees.
@@ -443,11 +475,14 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 ### Task 4.1: Add regression tests for issues found in the live run
 
 - **Complexity**: 6
-- **Location**: `tests/` (new/updated tests), plus any touched scripts under `skills/workflows/pr/progress/**/scripts/`
-- **Description**:
+- **Location**:
+  - `tests/test_progress_pr_workflow_regressions.py`
+  - `tests/test_script_smoke_gh_workflows.py`
+- **Description**: Turn Sprint 3 findings into deterministic fixture tests (and minimal fixes) for CI coverage.
   - For each issue discovered in Sprint 3, add a small fixture test that fails before the fix and passes after.
   - Prefer `tests/stubs/bin/gh` and fixture repos over real-gh for CI coverage.
-- **Dependencies**: Sprint 3 completed
+- **Dependencies**:
+  - Task 3.8
 - **Parallelizable**: yes (one issue/test per subagent)
 - **Acceptance criteria**:
   - Each live-run issue has a corresponding automated test (or an explicit justification for why it cannot be automated).
@@ -459,8 +494,8 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Complexity**: 4
 - **Location**:
   - `docs/workflows/progress-pr-workflow.md`
-  - (Optional) `skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md`
-- **Description**:
+  - `skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md`
+- **Description**: Reduce ambiguity and add a one-page runbook/checklist for the workflow.
   - Reduce ambiguity:
     - exact required PR body sections
     - base/stack rules and “after merge” procedure

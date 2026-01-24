@@ -56,9 +56,9 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | Area | Skill | Description |
 | --- | --- | --- |
 | Conversation | [ask-questions-if-underspecified](./skills/workflows/conversation/ask-questions-if-underspecified/) | Clarify requirements with minimal must-have questions before starting work when a request is underspecified |
-| Planning | [planner](./skills/workflows/plan/planner/) | Create a comprehensive, phased implementation plan and save it under docs/plans/ |
-| Planning | [plan-harder](./skills/workflows/plan/plan-harder/) | Create an extra-thorough implementation plan and get a subagent review |
-| Planning | [parallel-task](./skills/workflows/plan/parallel-task/) | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate |
+| Planning | [create-plan](./skills/workflows/plan/create-plan/) | Create a comprehensive, phased implementation plan and save it under docs/plans/ |
+| Planning | [create-plan-rigorous](./skills/workflows/plan/create-plan-rigorous/) | Create an extra-thorough implementation plan and get a subagent review |
+| Planning | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/) | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate |
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | PR / Progress | [create-progress-pr](./skills/workflows/pr/progress/create-progress-pr/) | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |

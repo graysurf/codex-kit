@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## v1.4.0 - 2026-01-23
 
 ### Added
-- Planning workflows: `planner`, `plan-harder`, and `parallel-task` skills (plus `docs/plans/` convention).
+- Planning workflows: `create-plan`, `create-plan-rigorous`, and `execute-plan-parallel` skills (plus `docs/plans/` convention).
 
 ### Changed
 - None.

@@ -1,9 +1,9 @@
 ---
-name: planner
-description: Create a comprehensive, phased implementation plan and save it under docs/plans/. Use when the user asks to "make a plan", "plan this out", "outline the steps", or "break this down into tasks" (or similar).
+name: create-plan
+description: Create a comprehensive, phased implementation plan and save it under docs/plans/. Use when the user asks for an implementation plan (make a plan, outline the steps, break down tasks, etc.).
 ---
 
-# Planner
+# Create Plan
 
 Create detailed, phased implementation plans (sprints + atomic tasks) for bugs, features, or refactors. This skill produces a plan document only; it does not implement.
 
@@ -57,7 +57,12 @@ Failure modes:
 - Path: `docs/plans/<slug>-plan.md`
 - Slug rules: lowercase kebab-case, 3–6 words, end with `-plan.md`.
 
-5) Review “gotchas”
+5) Lint the plan (format + executability)
+
+- Run: `scripts/validate_plans.sh --file docs/plans/<slug>-plan.md`
+- If it fails: tighten tasks (missing fields, placeholders, unclear validations) until it passes.
+
+6) Review “gotchas”
 
 - After saving, add/adjust a “Risks & gotchas” section: ambiguity, dependencies, migrations, rollout, backwards compatibility, and rollback.
 
@@ -83,9 +88,11 @@ Failure modes:
 - Verify: ...
 
 ### Task 1.1: <Name>
-- **Location**: <file paths>
+- **Location**:
+  - `<file paths>`
 - **Description**: ...
-- **Dependencies**: <task IDs or "none">
+- **Dependencies**:
+  - <task IDs or "none">
 - **Acceptance criteria**:
   - ...
 - **Validation**:

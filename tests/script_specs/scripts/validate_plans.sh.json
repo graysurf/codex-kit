@@ -1,0 +1,12 @@
+{
+  "smoke": [
+    {
+      "name": "fixture",
+      "args": ["--file", "tests/fixtures/plan/valid-plan.md"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0]
+      }
+    }
+  ]
+}
