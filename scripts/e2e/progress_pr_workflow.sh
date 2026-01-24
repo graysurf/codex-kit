@@ -255,12 +255,17 @@ run_phase_plan() {
   slug="e2e-progress-workflow-${run_id}"
   planning_branch="docs/progress/${yyyymmdd}-e2e-${run_id}"
 
-  git fetch origin "$sandbox_base_branch" >/dev/null 2>&1 || true
-  if ! git show-ref --verify --quiet "refs/remotes/origin/${sandbox_base_branch}"; then
-    die "sandbox base branch not found on origin: ${sandbox_base_branch} (run --phase init first)"
+  # Prefer a local sandbox base branch; push does not update refs/remotes/* automatically.
+  if ! git show-ref --verify --quiet "refs/heads/${sandbox_base_branch}"; then
+    set +e
+    git fetch origin "$sandbox_base_branch:${sandbox_base_branch}" >/dev/null 2>&1
+    set -e
+  fi
+  if ! git show-ref --verify --quiet "refs/heads/${sandbox_base_branch}"; then
+    die "sandbox base branch not found locally: ${sandbox_base_branch} (run --phase init first)"
   fi
 
-  git switch -c "$planning_branch" "origin/${sandbox_base_branch}"
+  git switch -c "$planning_branch" "$sandbox_base_branch"
 
   progress_file="$("$create_progress_file_script" --title "$title" --slug "$slug" --date "$yyyymmdd" --status "DRAFT")"
   json_upsert "progress_file" "$progress_file"
