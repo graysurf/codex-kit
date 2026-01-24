@@ -61,6 +61,7 @@ Failure modes:
 
 - **Worktrees root (default)**: `<repo_root>/../.worktrees/<repo_name>/`
   - Example: if repo root is `/work/Rytass/TunGroup`, worktrees go to `/work/Rytass/.worktrees/TunGroup/`
+- **Worktrees root override**: pass `--worktrees-root <path>` to `create_worktrees_from_tsv.sh` when you need a different root.
 - **Worktree path**: `<worktrees_root>/<worktree_name>/`
   - `worktree_name` must be filesystem-safe: replace `/` with `__`.
   - Example: branch `feat/notifications-sprint1` → worktree `feat__notifications-sprint1`
@@ -118,6 +119,9 @@ Create worktrees from a TSV spec (recommended). Example spec:
 Create worktrees:
 
 - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh --spec $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/references/pr-splits.example.tsv`
+- Optional flags:
+  - `--worktrees-root <path>` to override the default worktrees root.
+  - `--dry-run` to print planned worktrees without creating them.
 
 ### Step 2.5 — Create the PRs (draft) after the first commit
 
@@ -179,6 +183,9 @@ Spawn one subagent per worktree/PR. Each subagent must receive:
 - Remove worktrees after PR merge (recommended):
   - `git worktree remove <path>`
   - `git worktree prune`
+- Optional helper (preview first, then confirm):
+  - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --dry-run`
+  - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --yes`
 
 ## Failure modes (and what to do)
 
