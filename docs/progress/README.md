@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-24 | [E2E progress workflow 20260124-135246-9c89db](20260124_e2e-progress-workflow-20260124-135246-9c89db.md) | TBD |
 
 ## Archived
 
