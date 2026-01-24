@@ -6,7 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/75
+- PR: TBD
+- Planning PR: https://github.com/graysurf/codex-kit/pull/75
 - Docs: `docs/plans/skills-layout-governance-plan.md`
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
