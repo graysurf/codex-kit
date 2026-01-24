@@ -110,3 +110,28 @@ def test_api_report_from_cmd_resolves_out_response_relative_to_project_root() ->
 
     assert args[response_idx + 1] == str(project / "out" / "response.json")
     assert args[out_idx + 1] == str(project / "out" / "report.md")
+
+
+def test_api_report_from_cmd_derives_case_with_comma_space() -> None:
+    repo = repo_root()
+    env = default_env(repo)
+    home = Path(env["HOME"])
+
+    project = home / "sample-project-case"
+    config_dir = project / "setup" / "graphql"
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    _run(["git", "init"], cwd=project, env=env)
+
+    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
+    snippet = (
+        f"{gql_script} --config-dir $HOME/sample-project-case/setup/graphql --env local --jwt member "
+        "setup/graphql/operations/test.graphql"
+    )
+
+    cmd = [str(repo / "commands" / "api-report-from-cmd"), "--dry-run", "--stdin"]
+    completed = _run(cmd, cwd=repo, env=env, stdin=snippet)
+
+    args = shlex.split(completed.stdout.strip())
+    case_idx = args.index("--case")
+    assert args[case_idx + 1] == "test (local, member)"

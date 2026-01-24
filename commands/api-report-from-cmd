@@ -279,8 +279,13 @@ derive_case() {
     meta+=("token:$token_name")
   fi
   if [[ ${#meta[@]} -gt 0 ]]; then
-    local joined
-    joined="$(IFS=", "; printf "%s" "${meta[*]}")"
+    local joined=''
+    local sep=''
+    local item=''
+    for item in "${meta[@]}"; do
+      joined+="${sep}${item}"
+      sep=", "
+    done
     printf "%s (%s)" "$base" "$joined"
   else
     printf "%s" "$base"
