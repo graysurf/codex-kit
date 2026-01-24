@@ -211,7 +211,7 @@ resolve_tools() {
 }
 
 resolve_tools "$codex_home"
-if [[ ! -x "$commit_helper" || ! -x "$handoff_script" || ! -x "$close_script" || ! -x "$create_progress_file_script" || ! -x "$create_worktrees_script" ]]; then
+if [[ ! -f "$commit_helper" || ! -f "$handoff_script" || ! -f "$close_script" || ! -f "$create_progress_file_script" || ! -f "$create_worktrees_script" ]]; then
   # CODEX_HOME is often a global Codex config dir; fall back to the current repo root unless
   # the caller intentionally pointed CODEX_HOME at a codex-kit checkout that contains these scripts.
   resolve_tools "$repo_root"
@@ -219,8 +219,17 @@ if [[ ! -x "$commit_helper" || ! -x "$handoff_script" || ! -x "$close_script" ||
 fi
 
 for p in "$commit_helper" "$handoff_script" "$close_script" "$create_progress_file_script" "$create_worktrees_script"; do
-  [[ -x "$p" ]] || die "required helper script not executable: $p"
+  [[ -f "$p" ]] || die "required helper script not found: $p"
 done
+
+run_commit_helper() {
+  if [[ -x "$commit_helper" ]]; then
+    "$commit_helper" "$@"
+    return 0
+  fi
+  require_cmd zsh
+  zsh -f "$commit_helper" "$@"
+}
 
 run_phase_init() {
   echo "==> init: sandbox base branch: ${sandbox_base_branch} (from ${base_branch})" >&2
@@ -308,7 +317,7 @@ PY
     git add "docs/progress/README.md"
   fi
 
-  "$commit_helper" --message "docs(progress): add e2e plan ${run_id}"
+  run_commit_helper --message "docs(progress): add e2e plan ${run_id}"
   git push -u origin "$planning_branch"
 
   progress_url="${repo_url}/blob/${planning_branch}/${progress_file}"
@@ -374,7 +383,7 @@ PY
     git add "docs/progress/README.md"
   fi
 
-  "$commit_helper" --message "docs(progress): link planning pr ${run_id}"
+  run_commit_helper --message "docs(progress): link planning pr ${run_id}"
   git push
 
   json_upsert "planning_pr_url" "$pr_url"
@@ -431,7 +440,7 @@ EOF
   json_upsert "pr_splits_spec" "$spec"
 }
 
-scaffold_commit_in_worktree() {
+  scaffold_commit_in_worktree() {
   local worktree_path="${1:-}"
   local message="${2:-}"
   local run_id_local="${3:-}"
@@ -443,7 +452,7 @@ scaffold_commit_in_worktree() {
   (
     cd "$worktree_path"
     git add "docs/e2e-fixtures/${run_id_local}/"
-    "$commit_helper" --message "test(e2e): ${message}"
+    run_commit_helper --message "test(e2e): ${message}"
     git push -u origin HEAD
   )
 }
