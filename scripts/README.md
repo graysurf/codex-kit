@@ -23,6 +23,7 @@ scripts/
 │   ├── plan_to_json.sh                   Parses plan markdown into stable JSON.
 │   └── plan_batches.sh                   Computes dependency layers (parallel batches) for a sprint.
 └── audit-skill-layout.sh                 Validates tracked skill directory layout.
+└── audit-skill-paths.sh                  Validates `$CODEX_HOME/...` path references inside `skills/**/SKILL.md`.
 ```
 
 ## Bundling wrappers

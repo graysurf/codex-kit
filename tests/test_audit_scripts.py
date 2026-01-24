@@ -63,6 +63,65 @@ def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path) -> 
     assert result.status == "pass", result
 
 
+def test_audit_skill_paths_passes_for_repo() -> None:
+    repo = repo_root()
+    script = "scripts/audit-skill-paths.sh"
+    spec: ScriptSpec = {
+        "args": [],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
+    }
+    result = run_smoke_script(script, "audit-skill-paths-pass", spec, repo, cwd=repo)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+
+def test_audit_skill_paths_fails_for_nested_codex_home(tmp_path: Path) -> None:
+    fixture = tmp_path / "bad-skill.md"
+    fixture.write_text(
+        "\n".join(
+            [
+                "# Fixture Skill",
+                "",
+                "## Contract",
+                "",
+                "Prereqs:",
+                "- N/A",
+                "",
+                "Inputs:",
+                "- N/A",
+                "",
+                "Outputs:",
+                "- N/A",
+                "",
+                "Exit codes:",
+                "- N/A",
+                "",
+                "Failure modes:",
+                "- N/A",
+                "",
+                "Example:",
+                "",
+                "source $CODEX_HOME/skills/_projects/tun-group/$CODEX_HOME/skills/_projects/tun-group/scripts/tun-psql.zsh",
+                "",
+            ]
+        )
+        + "\n",
+        "utf-8",
+    )
+
+    repo = repo_root()
+    script = "scripts/audit-skill-paths.sh"
+    spec = {
+        "args": ["--file", str(fixture)],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [1], "stderr_regex": r"duplicated \$CODEX_HOME"},
+    }
+    result = run_smoke_script(script, "audit-skill-paths-fail", spec, repo, cwd=repo)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+
 def test_validate_progress_index_passes_for_repo() -> None:
     repo = repo_root()
     script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
