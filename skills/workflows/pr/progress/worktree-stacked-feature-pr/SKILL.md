@@ -43,6 +43,18 @@ Outputs:
   - the planning PR (`#<number>`)
 - Worktrees created for each branch, ready for subagent work.
 
+Exit codes:
+
+- `0`: success
+- `1`: validation or workflow failure (see Failure modes)
+
+Failure modes:
+
+- Planning PR is still draft → stop; mark ready first.
+- Planning PR not mergeable / checks failing → stop; fix or explicitly accept bypass.
+- Worktree paths already exist → stop; remove/rename; run `git worktree prune`.
+- Two PRs modify the same files heavily → split into more PRs (Sprint 2a/2b/2c) or serialize.
+
 ## Worktree usage policy (explicit rules)
 
 ### Directory layout
