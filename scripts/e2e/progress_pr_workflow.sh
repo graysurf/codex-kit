@@ -536,15 +536,21 @@ EOF
 run_phase_close() {
   echo "==> close: merge PR1, retarget PR2, close progress on PR2" >&2
 
-  local pr1_number pr2_number pr2_url pr1_branch
+  local pr1_number pr2_number pr1_branch worktrees_root pr2_worktree pr2_path
   pr1_number="$(json_get "pr1_number" 2>/dev/null || true)"
   pr2_number="$(json_get "pr2_number" 2>/dev/null || true)"
-  pr2_url="$(json_get "pr2_url" 2>/dev/null || true)"
   pr1_branch="$(json_get "pr1_branch" 2>/dev/null || true)"
+  worktrees_root="$(json_get "worktrees_root" 2>/dev/null || true)"
+  pr2_worktree="$(json_get "pr2_worktree" 2>/dev/null || true)"
 
   [[ -n "$pr1_number" ]] || die "missing pr1_number in run.json (run --phase prs first)"
   [[ -n "$pr2_number" ]] || die "missing pr2_number in run.json (run --phase prs first)"
   [[ -n "$pr1_branch" ]] || die "missing pr1_branch in run.json"
+  [[ -n "$worktrees_root" ]] || die "missing worktrees_root in run.json"
+  [[ -n "$pr2_worktree" ]] || die "missing pr2_worktree in run.json"
+
+  pr2_path="${worktrees_root}/${pr2_worktree}"
+  [[ -d "$pr2_path" ]] || die "pr2 worktree path not found: $pr2_path"
 
   if [[ "$skip_checks" != "1" ]]; then
     gh pr checks "$pr1_number"
@@ -560,8 +566,10 @@ run_phase_close() {
   gh pr edit "$pr2_number" -B "$sandbox_base_branch"
 
   # Use the canonical closer on the final PR (PR2).
-  gh pr checkout "$pr2_number"
-  bash "$close_script" --pr "$pr2_number"
+  (
+    cd "$pr2_path"
+    bash "$close_script" --pr "$pr2_number"
+  )
 
   json_upsert "close_complete" "true"
 }
