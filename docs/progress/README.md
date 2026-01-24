@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-24 | [Skills structure reorg v2](20260124_skills-structure-reorg-v2.md) | TBD |
 
 ## Archived
 

@@ -31,6 +31,9 @@ log/
 out/
 tmp/
 
+# Local git worktrees (dev-only)
+.worktrees/
+
 # Generated system skills
 skills/.system/
 
