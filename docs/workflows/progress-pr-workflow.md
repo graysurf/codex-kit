@@ -51,6 +51,11 @@ This runbook documents the end-to-end flow across the progress PR skills:
   - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --dry-run`
   - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --yes`
 
+Optional E2E driver (real GitHub):
+
+- Canonical: `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all`
+- Wrapper (compat): `scripts/e2e/progress_pr_workflow.sh --phase all`
+
 ## Invariants (must always hold)
 
 ### Progress PR creation

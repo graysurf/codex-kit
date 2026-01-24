@@ -26,7 +26,9 @@ Links:
   - `$CODEX_HOME/scripts/validate_skill_contracts.sh`
 - Plan tooling and E2E driver have canonical entrypoints under `skills/` and legacy wrappers remain functional:
   - Plan tooling: `validate_plans`, `plan_to_json`, `plan_batches`
-  - Progress workflow E2E driver: `progress_pr_workflow.sh`
+  - Progress workflow E2E driver:
+    - Canonical: `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+    - Wrapper: `scripts/e2e/progress_pr_workflow.sh`
 - `SKILL.md` runnable executable references use `$CODEX_HOME/...` (no CWD-dependent `scripts/...` instructions).
 - Full repo checks pass: `$CODEX_HOME/scripts/check.sh --all`.
 
@@ -39,6 +41,7 @@ Links:
     - Global shared: `skills/_shared/`
   - Script migrations (canonical under `skills/`, keep wrappers under `scripts/`):
     - `scripts/validate_plans.sh`, `scripts/plan_to_json.sh`, `scripts/plan_batches.sh`
+    - `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
     - `scripts/e2e/progress_pr_workflow.sh`
     - `scripts/audit-skill-layout.sh`, `scripts/validate_skill_contracts.sh`
   - Per-skill tests: add `tests/` for every tracked skill and enforce via audits + CI.

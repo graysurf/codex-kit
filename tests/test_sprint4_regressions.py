@@ -63,7 +63,16 @@ def test_pytest_ini_keeps_out_tmp_in_norecursedirs() -> None:
 
 
 def test_e2e_progress_pr_workflow_gh_pr_create_uses_head() -> None:
-    path = repo_root() / "scripts" / "e2e" / "progress_pr_workflow.sh"
+    path = (
+        repo_root()
+        / "skills"
+        / "workflows"
+        / "pr"
+        / "progress"
+        / "progress-pr-workflow-e2e"
+        / "scripts"
+        / "progress_pr_workflow.sh"
+    )
     text = "\n".join(line for _, line in iter_non_comment_lines(path))
 
     for match in re.finditer(r"\\bgh\\s+pr\\s+create\\b", text):
