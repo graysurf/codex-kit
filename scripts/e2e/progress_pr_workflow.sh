@@ -241,12 +241,48 @@ run_phase_plan() {
 
   # Replace any remaining [[...]] tokens to make the file commit-ready for E2E.
   python3 - "$progress_file" <<'PY'
+from __future__ import annotations
+
 import re
 import sys
 
 path = sys.argv[1]
 text = open(path, "r", encoding="utf-8").read()
 text = re.sub(r"\\[\\[.*?\\]\\]", "TBD", text)
+
+lines = text.splitlines()
+
+def find_heading(name: str) -> int | None:
+  for i, line in enumerate(lines):
+    if line.strip() == name:
+      return i
+  return None
+
+steps_idx = find_heading("## Steps (Checklist)")
+if steps_idx is not None:
+  # Mark all checkboxes in Step 0–3 as complete so close-progress-pr can succeed
+  # without requiring Reason: lines for deferred items.
+  current_step: int | None = None
+  step_re = re.compile(r"^\\s*-\\s*\\[[ xX]\\]\\s*(?:~~\\s*)?Step\\s+(?P<num>\\d+):")
+  checkbox_re = re.compile(r"^(?P<indent>\\s*)-\\s*\\[(?P<mark>[ xX])\\]\\s+(?P<rest>.+)$")
+  for i in range(steps_idx + 1, len(lines)):
+    if lines[i].startswith("## "):
+      break
+    m_step = step_re.match(lines[i])
+    if m_step:
+      try:
+        current_step = int(m_step.group("num"))
+      except ValueError:
+        current_step = None
+
+    m = checkbox_re.match(lines[i])
+    if not m:
+      continue
+    if current_step is None or current_step >= 4:
+      continue
+    lines[i] = f"{m.group('indent')}- [x] {m.group('rest')}"
+
+text = "\n".join(lines).rstrip() + "\n"
 open(path, "w", encoding="utf-8").write(text)
 PY
 
