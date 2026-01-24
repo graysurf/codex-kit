@@ -2,6 +2,9 @@
 
 This folder holds shared, non-executable implementation code used by `_projects` skills.
 
+Note: Unlike most of `skills/_projects/` (local-only), this `_libs/` folder is
+versioned so multiple local projects can share safe helpers.
+
 Conventions:
 
 - Keep libraries **non-executable** (no shebang) so they are not treated as script entrypoints.
@@ -16,4 +19,3 @@ Rule of thumb:
 
 - If it must be invoked directly: put it under a project’s `scripts/` (entrypoint).
 - If it’s shared logic across projects: put it here and source/import it from the entrypoint.
-
