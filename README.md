@@ -46,8 +46,8 @@ See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Dock
 
 ## 🛠️ Skills
 
-All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `$CODEX_HOME/scripts/validate_skill_contracts.sh` and CI.
-Tracked skill directory layout (`SKILL.md` + optional `scripts/`, `references/`, `assets/`) is enforced by `$CODEX_HOME/scripts/audit-skill-layout.sh` and CI.
+All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` (wrapper: `$CODEX_HOME/scripts/validate_skill_contracts.sh`) and CI.
+Tracked skill directory layout (`SKILL.md` + optional `scripts/`, `references/`, `assets/`) is enforced by `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` (wrapper: `$CODEX_HOME/scripts/audit-skill-layout.sh`) and CI.
 
 Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/automation/`. Internal/meta skills live under `skills/.system/` (not listed below).
 
@@ -72,6 +72,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | Area | Skill | Description |
 | --- | --- | --- |
 | Browser | [chrome-devtools-site-search](./skills/tools/browser/chrome-devtools-site-search/) | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
+| DevEx | [skill-governance](./skills/tools/devex/skill-governance/) | Audit skill layout and validate SKILL.md contracts |
 | DevEx | [semantic-commit](./skills/tools/devex/semantic-commit/) | Commit staged changes using Semantic Commit format |
 | DevEx | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
 | DevEx | [desktop-notify](./skills/tools/devex/desktop-notify/) | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |

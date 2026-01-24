@@ -24,7 +24,7 @@
   - `$CODEX_HOME/scripts/lint.sh` (shell + python)
     - Shell: route by shebang and run `shellcheck` (bash) + `bash -n` + `zsh -n`
     - Python: `ruff check tests` + `mypy --config-file mypy.ini tests` + `pyright` + syntax-check for tracked `.py` files
-  - `$CODEX_HOME/scripts/validate_skill_contracts.sh`
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` (wrapper: `$CODEX_HOME/scripts/validate_skill_contracts.sh`)
   - `$CODEX_HOME/scripts/semgrep-scan.sh`
   - `$CODEX_HOME/scripts/test.sh` (pytest; prefers `.venv/bin/python`)
 
@@ -38,6 +38,8 @@
     - `shellcheck`, `zsh` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
 - Quick entry points
   - `$CODEX_HOME/scripts/lint.sh` (defaults to shell + python)
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` (canonical; wrapper: `$CODEX_HOME/scripts/validate_skill_contracts.sh`)
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` (canonical; wrapper: `$CODEX_HOME/scripts/audit-skill-layout.sh`)
   - `$CODEX_HOME/scripts/check.sh --lint` (lint only; faster iteration)
   - `$CODEX_HOME/scripts/check.sh --contracts` (skill-contract validation only)
   - `$CODEX_HOME/scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
