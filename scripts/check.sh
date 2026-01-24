@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/check.sh [--lint] [--contracts] [--skills-layout] [--plans] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
+  scripts/check.sh [--lint] [--contracts] [--skills-layout] [--skills-paths] [--plans] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
 
 Runs repo-local lint checks (shell + python), validates skill contracts, runs env-bools audit, optionally runs Semgrep, and runs pytest.
 
@@ -23,6 +23,7 @@ USAGE
 run_lint=0
 run_contracts=0
 run_skill_layout=0
+run_skill_paths=0
 run_plans=0
 run_env_bools=0
 run_tests=0
@@ -91,6 +92,11 @@ while [[ $# -gt 0 ]]; do
   case "${1:-}" in
     --lint)
       run_lint=1
+      run_contracts=1
+      run_skill_layout=1
+      run_skill_paths=1
+      run_plans=1
+      run_env_bools=1
       shift
       ;;
     --contracts)
@@ -103,6 +109,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skills-layout)
       run_skill_layout=1
+      shift
+      ;;
+    --skills-paths)
+      run_skill_paths=1
       shift
       ;;
     --plans)
@@ -121,6 +131,7 @@ while [[ $# -gt 0 ]]; do
       run_lint=1
       run_contracts=1
       run_skill_layout=1
+      run_skill_paths=1
       run_plans=1
       run_env_bools=1
       run_tests=1
@@ -151,7 +162,7 @@ if [[ "$seen_pytest_args" -eq 1 && "$run_tests" -eq 0 ]]; then
   exit 2
 fi
 
-if [[ "$run_lint" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
+if [[ "$run_lint" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_skill_paths" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
   usage
   exit 0
 fi
@@ -163,6 +174,7 @@ export CODEX_HOME="$repo_root"
 lint_rc=0
 contract_rc=0
 skill_layout_rc=0
+skill_paths_rc=0
 plans_rc=0
 env_bools_rc=0
 semgrep_rc=0
@@ -200,6 +212,18 @@ if [[ "$run_skill_layout" -eq 1 ]]; then
 
   if [[ "$skill_layout_rc" -ne 0 ]]; then
     echo "error: audit-skill-layout failed (exit=$skill_layout_rc)" >&2
+  fi
+fi
+
+if [[ "$run_skill_paths" -eq 1 ]]; then
+  echo "lint: audit skill paths" >&2
+  set +e
+  scripts/audit-skill-paths.sh
+  skill_paths_rc=$?
+  set -e
+
+  if [[ "$skill_paths_rc" -ne 0 ]]; then
+    echo "error: audit-skill-paths failed (exit=$skill_paths_rc)" >&2
   fi
 fi
 
@@ -255,6 +279,6 @@ if [[ "$run_tests" -eq 1 ]]; then
   fi
 fi
 
-if [[ "$lint_rc" -ne 0 || "$contract_rc" -ne 0 || "$skill_layout_rc" -ne 0 || "$plans_rc" -ne 0 || "$env_bools_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
+if [[ "$lint_rc" -ne 0 || "$contract_rc" -ne 0 || "$skill_layout_rc" -ne 0 || "$skill_paths_rc" -ne 0 || "$plans_rc" -ne 0 || "$env_bools_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
   exit 1
 fi

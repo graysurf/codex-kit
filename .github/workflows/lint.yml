@@ -49,6 +49,10 @@ jobs:
         run: |
           $CODEX_HOME/scripts/audit-skill-layout.sh
 
+      - name: Validate SKILL.md `$CODEX_HOME` paths
+        run: |
+          $CODEX_HOME/scripts/audit-skill-paths.sh
+
       - name: Smoke test (negative fixture)
         run: |
           set -euo pipefail

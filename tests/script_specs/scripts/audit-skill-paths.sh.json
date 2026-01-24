@@ -1,0 +1,12 @@
+{
+  "smoke": [
+    {
+      "name": "default",
+      "args": [],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0]
+      }
+    }
+  ]
+}
