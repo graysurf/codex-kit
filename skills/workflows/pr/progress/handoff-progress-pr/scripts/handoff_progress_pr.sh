@@ -10,9 +10,10 @@ Usage:
 What it does:
   - Resolves the planning PR number (or uses the current-branch PR)
   - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to --progress-file)
-  - Merges the planning PR (merge commit) and deletes the remote head branch by default
+  - Merges the planning PR (merge commit)
+  - Best-effort deletes the remote head branch via `git push origin --delete` (unless --keep-branch)
   - Patches the planning PR body "## Progress" link to point to the base branch (survives branch deletion)
-  - (Best-effort) Switches to the base branch, pulls, and deletes the local head branch (unless --no-cleanup)
+  - (Best-effort) Switches to the base branch, pulls, and deletes the local head branch (unless --no-cleanup or --keep-branch)
 
 Notes:
   - Requires: gh, git, python3
@@ -219,9 +220,6 @@ if [[ "$patch_only" == "0" ]]; then
   fi
 
   merge_args=("$pr_number" --merge)
-  if [[ "$keep_branch" == "0" ]]; then
-    merge_args+=(--delete-branch)
-  fi
   if gh pr merge --help 2>/dev/null | grep -q -- "--yes"; then
     merge_args+=(--yes)
   fi
@@ -279,6 +277,15 @@ rm -f "$tmp_file"
 
 echo "progress: ${progress_url}" >&2
 
+if [[ "$patch_only" == "0" && "$keep_branch" == "0" ]]; then
+  if [[ "$head_branch" == "$base_branch" ]]; then
+    echo "warning: head branch matches base branch (${head_branch}); skipping remote delete" >&2
+  else
+    git push origin --delete "$head_branch" >/dev/null 2>&1 || \
+      echo "warning: failed to delete remote branch ${head_branch}; delete manually if needed" >&2
+  fi
+fi
+
 if [[ "$patch_only" == "1" || "$no_cleanup" == "1" ]]; then
   exit 0
 fi
@@ -307,6 +314,6 @@ fi
 
 git pull --ff-only || echo "warning: git pull --ff-only failed; verify base branch manually" >&2
 
-if git show-ref --verify --quiet "refs/heads/${head_branch}"; then
+if [[ "$keep_branch" == "0" ]] && git show-ref --verify --quiet "refs/heads/${head_branch}"; then
   git branch -d "$head_branch" || echo "warning: failed to delete local branch ${head_branch}; delete manually if needed" >&2
 fi

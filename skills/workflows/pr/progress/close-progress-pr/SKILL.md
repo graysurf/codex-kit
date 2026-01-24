@@ -18,11 +18,12 @@ Inputs:
 
 - PR number (or current-branch PR).
 - Optional: progress file under `docs/progress/` referenced by the PR (use `--progress-file` when PR body is missing/ambiguous).
+- Optional: `--keep-branch` to keep the remote head branch after merge.
 
 Outputs:
 
 - Progress file finalized (`Status: DONE`), moved to `docs/progress/archived/`, and indexed in `docs/progress/README.md`.
-- PR merged (default merge commit) and branch deleted.
+- PR merged (default merge commit) and head branch deleted (remote; best-effort).
 - PR body `## Progress` link patched to point to base branch (survives branch deletion).
 
 Exit codes:
@@ -91,7 +92,9 @@ If the progress file references a planning PR (explicit `- Planning PR:` or a do
 5. Commit and push these changes to the PR branch
 6. Merge and delete branch
    - Default merge method: merge commit
-   - `gh pr merge <pr> --merge --delete-branch`
+   - `gh pr merge <pr> --merge`
+   - Best-effort delete remote head branch:
+     - `git push origin --delete <headRefName>`
 7. Post-merge: patch PR body links to base branch
    - Get base branch: `gh pr view <pr> --json baseRefName -q .baseRefName`
    - Update `## Progress` to:

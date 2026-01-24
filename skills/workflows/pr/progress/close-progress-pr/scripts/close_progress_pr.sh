@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  close_progress_pr.sh [--pr <number>] [--progress-file <path>] [--no-merge]
+  close_progress_pr.sh [--pr <number>] [--progress-file <path>] [--no-merge] [--keep-branch]
 
 What it does:
   - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to scanning docs/progress by PR URL)
@@ -29,6 +29,7 @@ USAGE
 pr_number=""
 progress_file=""
 merge_pr="1"
+keep_branch="0"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -42,6 +43,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-merge)
       merge_pr="0"
+      shift
+      ;;
+    --keep-branch)
+      keep_branch="1"
       shift
       ;;
     -h|--help)
@@ -733,7 +738,24 @@ if [[ -n "$(git status --porcelain=v1)" ]]; then
   if [[ -f "docs/progress/README.md" ]]; then
     git add "docs/progress/README.md"
   fi
-  git commit -m "docs(progress): archive ${filename%.md}"
+  codex_home="${CODEX_HOME:-}"
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+  commit_helper=""
+  if [[ -n "$codex_home" ]]; then
+    commit_helper="${codex_home%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+  fi
+  if [[ -z "$commit_helper" || ! -x "$commit_helper" ]]; then
+    codex_home="$(cd "${script_dir}/../../../../../.." && pwd -P)"
+    commit_helper="${codex_home%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+  fi
+  if [[ ! -x "$commit_helper" ]]; then
+    echo "error: commit helper not found or not executable: $commit_helper" >&2
+    echo "hint: set CODEX_HOME to your codex-kit repo root (or run from the codex-kit checkout)" >&2
+    exit 1
+  fi
+
+  "$commit_helper" --message "docs(progress): archive ${filename%.md}"
   git push
 fi
 
@@ -742,7 +764,7 @@ if [[ "$merge_pr" == "1" ]]; then
     gh pr ready "$pr_number"
   fi
 
-  merge_args=("$pr_number" --merge --delete-branch)
+  merge_args=("$pr_number" --merge)
   if gh pr merge --help 2>/dev/null | grep -q -- "--yes"; then
     merge_args+=(--yes)
   fi
@@ -891,6 +913,14 @@ PY
 
   echo "merged: ${pr_url}" >&2
   echo "progress: ${progress_url}" >&2
+
+  if [[ "$keep_branch" == "0" ]]; then
+    # Best-effort remote cleanup. `gh pr merge --delete-branch` deletes local + remote branches and
+    # can fail in worktree-heavy workflows; use git to delete only the remote branch.
+    set +e
+    git push origin --delete "$head_branch" >/dev/null 2>&1
+    set -e
+  fi
 else
   echo "progress: ${progress_file}" >&2
 fi

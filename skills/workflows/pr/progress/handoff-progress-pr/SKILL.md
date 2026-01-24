@@ -21,7 +21,7 @@ Inputs:
 
 Outputs:
 
-- Planning PR merged and closed; remote head branch deleted by default.
+- Planning PR merged and closed; remote head branch deleted by default (best-effort via `git push origin --delete`, unless `--keep-branch`).
 - Planning PR body `## Progress` link patched to point to the base branch (survives branch deletion).
 - Implementation guidance: create one or more feature PRs that link back to the planning PR and the progress file.
 
@@ -79,8 +79,10 @@ Recommended pattern for feature PR bodies:
 3. Merge the planning PR (docs-only)
    - Ensure checks pass: `gh pr checks <pr>` (optional but recommended)
    - If draft, mark ready: `gh pr ready <pr>`
-   - Merge (merge commit) and delete the head branch:
-     - `gh pr merge <pr> --merge --delete-branch`
+   - Merge (merge commit):
+     - `gh pr merge <pr> --merge` (add `--yes` when available)
+   - Best-effort delete the remote head branch (unless `--keep-branch`):
+     - `git push origin --delete <headRefName>`
 4. Patch the planning PR body Progress link to base branch
    - Ensure the `## Progress` link points to `blob/<base-branch>/docs/progress/...`
 5. Kick off implementation PR(s)
@@ -93,6 +95,6 @@ Recommended pattern for feature PR bodies:
 
 ## Optional helper script
 
-- Use `$CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh` to merge and patch deterministically:
+- Use `$CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh` to merge and patch deterministically (best-effort remote delete; local cleanup is warning-only):
   - `bash $CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh --pr <number>`
   - If already merged but links are broken: `--patch-only`

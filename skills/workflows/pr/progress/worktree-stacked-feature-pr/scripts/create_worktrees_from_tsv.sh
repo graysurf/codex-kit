@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  create_worktrees_from_tsv.sh --spec <path>
+  create_worktrees_from_tsv.sh --spec <path> [--worktrees-root <path>] [--dry-run]
 
 Spec format (TSV):
   branch<TAB>start_point<TAB>worktree_name<TAB>gh_base
@@ -16,15 +16,29 @@ Rules:
 
 Example:
   feat/notifications-sprint1<TAB>main<TAB>feat__notifications-sprint1<TAB>main
+
+Notes:
+  - If a start_point doesn't resolve locally, this script will try to use `origin/<start_point>` when available
+    (best-effort; it will not create local branches for start points).
 USAGE
 }
 
 spec=""
+worktrees_root_override=""
+dry_run="0"
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
     --spec)
       spec="${2:-}"
       shift 2
+      ;;
+    --worktrees-root)
+      worktrees_root_override="${2:-}"
+      shift 2
+      ;;
+    --dry-run)
+      dry_run="1"
+      shift
       ;;
     -h|--help|"")
       usage
@@ -56,14 +70,52 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 
 repo_root="$(git rev-parse --show-toplevel)"
 repo_name="$(basename "$repo_root")"
-worktrees_root="${repo_root}/../.worktrees/${repo_name}"
+worktrees_root=""
+if [[ -n "$worktrees_root_override" ]]; then
+  if [[ "$worktrees_root_override" == /* ]]; then
+    worktrees_root="$worktrees_root_override"
+  else
+    worktrees_root="${repo_root}/${worktrees_root_override}"
+  fi
+else
+  worktrees_root="${repo_root}/../.worktrees/${repo_name}"
+fi
 
 mkdir -p "$worktrees_root"
 
 echo "Repo root:        $repo_root"
 echo "Worktrees root:   $worktrees_root"
 echo "Spec:             $spec"
+echo "Dry run:          $dry_run"
 echo
+
+resolve_start_point() {
+  local start_point="${1:-}"
+  if [[ -z "$start_point" ]]; then
+    return 1
+  fi
+
+  if git rev-parse --verify --quiet "${start_point}^{commit}" >/dev/null; then
+    printf "%s" "$start_point"
+    return 0
+  fi
+
+  if git show-ref --verify --quiet "refs/remotes/origin/${start_point}"; then
+    printf "%s" "origin/${start_point}"
+    return 0
+  fi
+
+  set +e
+  git fetch origin "$start_point" >/dev/null 2>&1
+  set -e
+
+  if git show-ref --verify --quiet "refs/remotes/origin/${start_point}"; then
+    printf "%s" "origin/${start_point}"
+    return 0
+  fi
+
+  return 1
+}
 
 while IFS=$'\t' read -r branch start_point worktree_name gh_base; do
   [[ -z "${branch:-}" ]] && continue
@@ -88,10 +140,28 @@ while IFS=$'\t' read -r branch start_point worktree_name gh_base; do
     exit 1
   fi
 
-  git worktree add -b "$branch" "$path" "$start_point"
+  if git show-ref --verify --quiet "refs/heads/${branch}"; then
+    echo "error: branch already exists: ${branch}" >&2
+    exit 1
+  fi
+
+  resolved_start_point="$(resolve_start_point "$start_point" || true)"
+  if [[ -z "$resolved_start_point" ]]; then
+    echo "error: start_point does not resolve to a commit: ${start_point}" >&2
+    echo "hint: fetch/create it first, or use an explicit ref (e.g. origin/main)" >&2
+    exit 1
+  fi
+  echo "  start_ref:   ${resolved_start_point}"
+
+  if [[ "$dry_run" == "1" ]]; then
+    echo "  (dry-run) skipping git worktree add"
+    echo
+    continue
+  fi
+
+  git worktree add -b "$branch" "$path" "$resolved_start_point"
   echo
 done <"$spec"
 
 echo "Done. Current worktrees:"
 git worktree list --porcelain
-
