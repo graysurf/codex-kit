@@ -429,11 +429,9 @@ run_phase_worktrees() {
   pr2_wt="feat__e2e-${run_id}-pr2"
 
   spec="${out_dir}/pr-splits.tsv"
-  cat >"$spec" <<EOF
-# branch\tstart_point\tworktree_name\tgh_base
-${pr1_branch}\t${sandbox_base_branch}\t${pr1_wt}\t${sandbox_base_branch}
-${pr2_branch}\t${pr1_branch}\t${pr2_wt}\t${pr1_branch}
-EOF
+  printf "# branch\tstart_point\tworktree_name\tgh_base\n" >"$spec"
+  printf "%s\t%s\t%s\t%s\n" "$pr1_branch" "$sandbox_base_branch" "$pr1_wt" "$sandbox_base_branch" >>"$spec"
+  printf "%s\t%s\t%s\t%s\n" "$pr2_branch" "$pr1_branch" "$pr2_wt" "$pr1_branch" >>"$spec"
 
   bash "$create_worktrees_script" --spec "$spec" --worktrees-root "$worktrees_root"
 
