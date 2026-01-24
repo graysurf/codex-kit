@@ -54,7 +54,7 @@ If information is missing, ask brief targeted questions. If still unknown, use `
 ## Templates (default vs project)
 
 - Default (preferred):
-  - PR body template: `references/PR_TEMPLATE.md`
+- PR body template: `references/PR_TEMPLATE.md`
   - Progress templates:
     - `assets/templates/PROGRESS_TEMPLATE.md`
     - `references/PROGRESS_GLOSSARY.md`
@@ -121,6 +121,11 @@ Upstream reference (example):
 - Push and open a PR with `gh` (draft by default unless the user asks otherwise).
 - PR body must include a full GitHub blob URL link to the progress file (PR bodies resolve relative links under `/pull/`):
   - `[docs/progress/<file>.md](https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/<file>.md)`
+
+- PR body should include an `## Implementation PRs` section:
+  - List the planned implementation PR split (even if it is just one PR).
+  - Use `PR: TBD` until the implementation PRs exist, then update the section with real PR links.
+  - This is especially important when the progress plan will be implemented via multiple stacked PRs.
 
 If using the project’s PR template, patch the body to include the Progress link (do not assume the project template already has it).
 

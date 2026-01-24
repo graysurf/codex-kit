@@ -63,6 +63,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | PR / Progress | [create-progress-pr](./skills/workflows/pr/progress/create-progress-pr/) | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |
 | PR / Progress | [handoff-progress-pr](./skills/workflows/pr/progress/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
+| PR / Progress | [worktree-stacked-feature-pr](./skills/workflows/pr/progress/worktree-stacked-feature-pr/) | Handoff a progress planning PR, then create multiple stacked feature PRs using git worktrees and parallel subagents (one PR per sprint/phase) |
 | PR / Progress | [close-progress-pr](./skills/workflows/pr/progress/close-progress-pr/) | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
 | PR / Progress | [progress-addendum](./skills/workflows/pr/progress/progress-addendum/) | Add an append-only Addendum section to DONE progress files (top-of-file), with audit + template scripts to keep archived docs from going stale. |
 

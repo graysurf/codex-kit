@@ -1,0 +1,12 @@
+# branch	start_point	worktree_name	gh_base
+#
+# Notes:
+# - `branch` should be a full branch name (e.g. feat/...).
+# - `start_point` is where the branch is created from (e.g. main, or another branch for stacking).
+# - `worktree_name` must be filesystem-safe (recommended: replace "/" with "__").
+# - `gh_base` is the PR base branch to use when opening the PR (main for PR1; PR1 branch for PR2).
+#
+# Example: 2 stacked PRs (Sprint 1, then Sprint 2–4 stacked on Sprint 1)
+feat/notifications-sprint1	main	feat__notifications-sprint1	main
+feat/notifications-sprint2-4	feat/notifications-sprint1	feat__notifications-sprint2-4	feat/notifications-sprint1
+

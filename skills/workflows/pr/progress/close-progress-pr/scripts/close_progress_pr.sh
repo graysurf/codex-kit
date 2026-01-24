@@ -18,7 +18,7 @@ What it does:
   - Commits + pushes the changes on the PR head branch
   - Merges the PR (merge commit) and deletes the head branch (unless --no-merge)
   - Patches the PR body "## Progress" link to point to the base branch
-  - If the progress file has "Links -> Planning PR", patches that PR body to include an "## Implementation" section linking to this PR
+  - If the progress file references a planning PR, patches that PR body to include an "## Implementation PRs" entry for this PR
 
 Notes:
   - Requires: gh, git, python3
@@ -239,6 +239,70 @@ if [[ ! -f "$progress_file" ]]; then
     echo "error: progress file does not exist in repo: $progress_file" >&2
     exit 1
   fi
+fi
+
+planning_pr_number=""
+set +e
+planning_pr_number_from_progress="$(python3 - "$progress_file" "$pr_number" <<'PY'
+import re
+import sys
+from urllib.parse import urlparse
+
+path, current_pr = sys.argv[1], sys.argv[2]
+with open(path, "r", encoding="utf-8") as f:
+  text = f.read()
+
+def parse_pr_num(value: str):
+  value = value.strip()
+  if value in ("TBD", "None"):
+    return None
+
+  # Prefer URL in markdown link or raw URL.
+  u = re.search(r"https?://[^ )]+", value)
+  if u:
+    pr_path = urlparse(u.group(0)).path
+    m_num = re.search(r"/pull/(?P<num>\\d+)", pr_path)
+    if m_num:
+      return m_num.group("num")
+    return None
+
+  # Fallback: "#123" or "org/repo#123"
+  m_num = re.search(r"#(?P<num>\\d+)", value)
+  if m_num:
+    return m_num.group("num")
+  return None
+
+# Prefer explicit Planning PR if present.
+m = re.search(r"^\\s*-\\s*Planning PR:\\s*(?P<value>.+?)\\s*$", text, re.M)
+if m:
+  num = parse_pr_num(m.group("value"))
+  if num:
+    print(num)
+    raise SystemExit(0)
+  raise SystemExit(1)
+
+# Fallback: use Links -> PR (common for docs-only planning PRs created by create-progress-pr).
+m = re.search(r"^\\s*-\\s*PR:\\s*(?P<value>.+?)\\s*$", text, re.M)
+if not m:
+  raise SystemExit(1)
+
+num = parse_pr_num(m.group("value"))
+if not num or num == current_pr:
+  raise SystemExit(1)
+
+print(num)
+PY
+)"
+rc=$?
+set -e
+
+if [[ "$rc" == "2" ]]; then
+  echo "error: cannot parse planning PR number from ${progress_file}" >&2
+  exit 1
+fi
+
+if [[ "$rc" == "0" && -n "$planning_pr_number_from_progress" ]]; then
+  planning_pr_number="$planning_pr_number_from_progress"
 fi
 
 filename="$(basename "$progress_file")"
@@ -731,42 +795,7 @@ PY
   gh pr edit "$pr_number" --body-file "$tmp_file"
   rm -f "$tmp_file"
 
-  set +e
-  planning_pr_number="$(python3 - "$progress_file" <<'PY'
-import re
-import sys
-from urllib.parse import urlparse
-
-path = sys.argv[1]
-with open(path, "r", encoding="utf-8") as f:
-  text = f.read()
-
-m = re.search(r"^\\s*-\\s*Planning PR:\\s*(?P<value>.+?)\\s*$", text, re.M)
-if not m:
-  raise SystemExit(1)
-
-value = m.group("value").strip()
-u = re.search(r"https?://[^ )]+", value)
-if not u:
-  raise SystemExit(2)
-
-pr_path = urlparse(u.group(0)).path
-m_num = re.search(r"/pull/(?P<num>\\d+)", pr_path)
-if not m_num:
-  raise SystemExit(2)
-
-print(m_num.group("num"))
-PY
-)"
-  rc=$?
-  set -e
-
-  if [[ "$rc" == "2" ]]; then
-    echo "error: cannot parse 'Links -> Planning PR' from ${progress_file}" >&2
-    exit 1
-  fi
-
-  if [[ "$rc" == "0" && -n "$planning_pr_number" && "$planning_pr_number" != "$pr_number" ]]; then
+  if [[ -n "$planning_pr_number" && "$planning_pr_number" != "$pr_number" ]]; then
     planning_tmp_file="$(mktemp)"
     gh pr view "$planning_pr_number" --json body -q .body >"$planning_tmp_file"
 
@@ -802,15 +831,7 @@ def render_progress_section():
     "",
   ]
 
-def render_implementation_section():
-  return [
-    "## Implementation",
-    f"- #{impl_num}",
-    "",
-  ]
-
 progress_section = render_progress_section()
-impl_section = render_implementation_section()
 
 start, end = find_section("## Progress")
 if start is None:
@@ -820,11 +841,45 @@ else:
   lines = lines[:start] + progress_section + lines[end:]
   progress_end = start + len(progress_section)
 
-start, end = find_section("## Implementation")
-if start is None:
-  lines = lines[:progress_end] + impl_section + lines[progress_end:]
-else:
-  lines = lines[:start] + impl_section + lines[end:]
+def section_has_pr_ref(section_lines):
+  needles = [f"#{impl_num}", f"/pull/{impl_num}"]
+  return any(any(n in line for n in needles) for line in section_lines)
+
+def upsert_implementation_prs_section():
+  # Prefer the newer heading, but support legacy.
+  preferred = "## Implementation PRs"
+  legacy = "## Implementation"
+
+  start, end = find_section(preferred)
+  heading = preferred
+  if start is None:
+    start, end = find_section(legacy)
+    heading = legacy
+
+  entry = f"- [#{impl_num}]({impl_url})"
+
+  if start is None:
+    impl_section = [
+      preferred,
+      entry,
+      "",
+    ]
+    lines[:] = lines[:progress_end] + impl_section + lines[progress_end:]
+    return
+
+  if section_has_pr_ref(lines[start:end]):
+    return
+
+  insert_at = end
+  while insert_at > start + 1 and lines[insert_at - 1].strip() == "":
+    insert_at -= 1
+  lines.insert(insert_at, entry)
+
+  # Ensure a blank line before the next heading.
+  if insert_at + 1 < len(lines) and lines[insert_at + 1].startswith("## "):
+    lines.insert(insert_at + 1, "")
+
+upsert_implementation_prs_section()
 
 with open(body_path, "w", encoding="utf-8") as f:
   f.write("\n".join(lines).rstrip() + "\n")

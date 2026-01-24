@@ -12,6 +12,7 @@ Prereqs:
 - Run inside the target git repo with a clean working tree.
 - `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
 - Target PR body contains a `docs/progress/...` link under `## Progress` (preferred; not `None`), or you pass `--progress-file`, or the progress file contains the PR URL.
+- If the progress is implemented via multiple PRs (stacked/split), run this on the **final** PR when the progress should be marked `DONE`.
 
 Inputs:
 
@@ -55,7 +56,10 @@ Patch the PR body `## Progress` link to point to the base branch (usually `main`
 
 ## Key rule: Planning PRs should link to the implementation PR
 
-If the progress file includes a `Links -> Planning PR` entry, ensure that planning PR body includes an `## Implementation` section linking to the implementation PR (this PR).
+If the progress file references a planning PR (explicit `- Planning PR:` or a docs-only progress PR under `Links -> PR`), ensure that planning PR body includes:
+
+- `## Implementation PRs` (preferred), or legacy `## Implementation`
+- A link to this PR (append if missing; do not overwrite existing entries)
 
 ## Workflow
 
@@ -93,10 +97,10 @@ If the progress file includes a `Links -> Planning PR` entry, ensure that planni
    - Update `## Progress` to:
      - `https://github.com/<owner>/<repo>/blob/<baseRefName>/docs/progress/archived/<file>.md`
 8. Post-merge: patch planning PR (when present)
-   - Extract planning PR from the progress file `Links -> Planning PR`
+   - Extract planning PR from the progress file (`Links -> Planning PR` when present; otherwise infer from the pre-close `Links -> PR` if it points to a docs-only planning PR)
    - Ensure the planning PR body contains:
-     - `## Implementation`
-       - `- #<feature_pr_number>`
+     - `## Implementation PRs` (preferred) or legacy `## Implementation`
+       - Includes `- [#<feature_pr_number>](<feature_pr_url>)` (append if missing; do not overwrite existing entries)
 
 ## Optional helper script
 
