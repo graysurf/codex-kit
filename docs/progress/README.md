@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-24 | [Skills layout governance (v2)](20260124_skills-layout-governance-v2.md) | [#75](https://github.com/graysurf/codex-kit/pull/75) |
 
 ## Archived
 
