@@ -279,7 +279,7 @@ import sys
 
 path = sys.argv[1]
 text = open(path, "r", encoding="utf-8").read()
-text = re.sub(r"\\[\\[.*?\\]\\]", "TBD", text)
+text = re.sub(r"\[\[.*?\]\]", "TBD", text)
 
 lines = text.splitlines()
 
