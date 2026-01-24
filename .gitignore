@@ -1,6 +1,9 @@
 # OS metadata
 .DS_Store
 
+# Local git worktrees
+.worktrees/
+
 # Codex configuration
 config.toml
 

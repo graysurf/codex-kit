@@ -15,3 +15,8 @@ Rule of thumb:
 
 - If it must be invoked directly: put it under a specific skill’s `scripts/` (entrypoint).
 - If it’s shared logic: put it here and source/import it from the entrypoint.
+
+Related patterns:
+
+- `skills/tools/_libs/` and `skills/workflows/_libs/` follow the same conventions for their respective skill families.
+- `skills/_projects/_libs/` is reserved for shared helpers across `_projects` skills.
