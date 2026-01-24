@@ -2,18 +2,18 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-24 | 2026-01-24 |
+| DONE | 2026-01-24 | 2026-01-24 |
 
 Links:
 
-- PR: TBD
+- PR: https://github.com/graysurf/codex-kit/pull/79
 - Planning PR: https://github.com/graysurf/codex-kit/pull/75
 - Implementation PRs:
   - https://github.com/graysurf/codex-kit/pull/76
   - https://github.com/graysurf/codex-kit/pull/77
   - https://github.com/graysurf/codex-kit/pull/78
-- Docs: `docs/plans/skills-layout-governance-plan.md`
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Docs: [docs/plans/skills-layout-governance-plan.md](../../plans/skills-layout-governance-plan.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
 
