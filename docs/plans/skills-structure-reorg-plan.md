@@ -41,7 +41,8 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
   - `scripts/plan_to_json.sh`
   - `scripts/plan_batches.sh`
 - E2E driver:
-  - `scripts/e2e/progress_pr_workflow.sh`
+  - Canonical: `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+  - Wrapper: `scripts/e2e/progress_pr_workflow.sh`
 - Skill governance (candidate migration):
   - `scripts/validate_skill_contracts.sh`
   - `scripts/audit-skill-layout.sh`
@@ -294,7 +295,7 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Dependencies**: Task 4.1
 - **Acceptance criteria**:
   - Tests pass without requiring real GitHub access.
-  - The existing regression test continues to protect the wrapper path.
+  - The existing regression test continues to protect the canonical driver path (wrapper remains callable).
 - **Validation**:
   - `scripts/test.sh -k progress_pr_workflow_driver`
 

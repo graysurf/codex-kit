@@ -215,7 +215,8 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 8
 - **Location**:
-  - `scripts/e2e/progress_pr_workflow.sh`
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+  - Wrapper (compat): `scripts/e2e/progress_pr_workflow.sh`
   - `docs/workflows/progress-pr-workflow.md`
 - **Description**: Add an opt-in real-`gh` E2E driver script with safety gates and durable artifacts.
   - Create a single entrypoint script that performs the Sprint 3 flow end-to-end using real GitHub:
@@ -248,8 +249,8 @@ Primary success criteria: we can reliably create/merge/close a planning progress
   - Script always produces `run.json` (even on failure) with the last completed step and any created PR URLs.
   - Script never runs in CI (guard enforced).
 - **Validation**:
-  - `bash -n scripts/e2e/progress_pr_workflow.sh`
-  - `scripts/e2e/progress_pr_workflow.sh --help` documents required env vars and cleanup.
+  - `bash -n $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --help` documents required env vars and cleanup.
 
 ### Task 2.6: Add a static policy check for forbidden `git commit` in progress scripts
 
@@ -320,10 +321,10 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 7
 - **Location**:
-  - `scripts/e2e/progress_pr_workflow.sh`
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
   - `docs/progress/YYYYMMDD_slug.md`
 - **Description**: Create a planning progress PR via real `gh` and record its identifiers in `run.json`.
-  - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase plan` (writes PR URLs into `run.json`).
+  - Preferred: `E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --run-id <run-id> --phase plan` (writes PR URLs into `run.json`).
   - Manual fallback (if running without the driver script):
   - Use `create_progress_file.sh` to scaffold a progress file.
   - Fill all `[[...]]` placeholders (`TBD`/`None` where appropriate).
@@ -347,7 +348,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Location**:
   - `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`
 - **Description**: Merge the planning PR and patch its Progress link to the base branch.
-  - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase handoff`
+  - Preferred: `E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --run-id <run-id> --phase handoff`
   - Manual fallback:
   - Run the handoff script to merge the planning PR and patch the PR body progress link to base branch.
   - Confirm the head branch deletion does not break the Progress link.
@@ -367,7 +368,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
   - `out/e2e/progress-pr-workflow/$RUN_ID/pr-splits.tsv`
   - `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh`
 - **Description**: Create two worktrees from a TSV spec and make minimal scaffold commits in each.
-  - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase worktrees`
+  - Preferred: `E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --run-id <run-id> --phase worktrees`
   - Manual fallback:
   - Create a TSV spec with at least:
     - PR1 branch (start `main`, gh_base `main`)
@@ -391,7 +392,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Location**:
   - `skills/workflows/pr/feature/create-feature-pr/references/PR_TEMPLATE.md`
 - **Description**: Create two draft implementation PRs with correct stacked bases and required PR body links.
-  - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase prs`
+  - Preferred: `E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --run-id <run-id> --phase prs`
   - Manual fallback:
   - For each branch:
     - push the branch
@@ -417,7 +418,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Location**:
   - `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
 - **Description**: Merge PRs in order and run the close step on the final PR to archive progress and patch links.
-  - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase close`
+  - Preferred: `E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --run-id <run-id> --phase close`
   - Manual fallback:
   - Merge PR1 to base (`main`) and delete head branch.
   - For PR2:
@@ -444,10 +445,10 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Complexity**: 4
 - **Location**:
   - `skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh`
-  - `scripts/e2e/progress_pr_workflow.sh`
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
   - `out/e2e/progress-pr-workflow/$RUN_ID/run.json`
 - **Description**: Remove worktrees and delete sandbox resources after evidence capture.
-  - Preferred: `E2E_ALLOW_REAL_GH=1 scripts/e2e/progress_pr_workflow.sh --run-id <run-id> --phase cleanup`
+  - Preferred: `E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --run-id <run-id> --phase cleanup`
   - Manual fallback:
   - Remove worktrees and prune.
   - Delete the sandbox repo (Option A) or delete the temporary base branch (Option B) **only after** evidence is captured.
