@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.5.0 - 2026-01-24
+
+### Added
+- Progress PR workflows: `worktree-stacked-feature-pr` and hardened progress PR automation for worktrees.
+- Plan toolchain: plan lint/parse/batches scripts and `scripts/check.sh --plans` to keep plans executable and parallelizable.
+
+### Changed
+- CI: consolidate publish workflows into a single pipeline.
+- Scripts: set `CODEX_HOME` to repo root by default for more resilient runs.
+- Plans: remove internal dogfood/review planning docs (keep format + toolchain docs).
+
+### Fixed
+- Progress PR workflows: worktree-safety and idempotency fixes across close/handoff flows.
+- `bundle-wrapper`: improve parsing of array-style arguments.
+- Tests: fix git commit ban regex enforcement.
+
 ## v1.4.0 - 2026-01-23
 
 ### Added
