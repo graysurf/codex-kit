@@ -7,7 +7,7 @@ sql_skill_repo_root() {
     return 1
   fi
 
-  local root=""
+  local root=''
   root="$(git -C "$start_dir" rev-parse --show-toplevel 2>/dev/null || true)"
   if [[ -n "$root" && -d "$root" ]]; then
     printf '%s\n' "$root"
@@ -19,7 +19,7 @@ sql_skill_repo_root() {
     return 0
   fi
 
-  local dir=""
+  local dir=''
   dir="$(cd "$start_dir" && pwd -P)"
   while [[ -n "$dir" && "$dir" != "/" ]]; do
     if [[ -d "$dir/skills/tools/sql" && -d "$dir/skills" ]]; then
@@ -82,7 +82,7 @@ sql_skill_maybe_add_brew_prefix_bin() {
   [[ -n "$formula" ]] || return 0
   command -v brew >/dev/null 2>&1 || return 0
 
-  local prefix=""
+  local prefix=''
   prefix="$(brew --prefix "$formula" 2>/dev/null || true)"
   [[ -n "$prefix" ]] || return 0
   sql_skill_path_maybe_prepend "${prefix}/bin"
