@@ -101,6 +101,11 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-dev.txt
 
+      - name: Install image processing deps (ImageMagick + WebP + JPEG tools)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick webp libjpeg-progs
+
       - name: Install pytest deps
         run: |
           python -m pip install --upgrade pip
