@@ -17,11 +17,7 @@ scripts/
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
 ├── check.sh                              Runs selected checks (lint/contracts/semgrep/tests).
-├── validate_skill_contracts.sh           Lints `skills/**/SKILL.md` contracts.
-├── validate_plans.sh                     Lints `docs/plans/*-plan.md` plan files (format + executability).
-├── plan_to_json.sh                       Parses plan markdown into stable JSON.
-├── plan_batches.sh                       Computes dependency layers (parallel batches) for a sprint.
-└── audit-skill-layout.sh                 Validates tracked skill directory layout.
+└── audit-env-bools.zsh                   Audits boolean env var conventions (zsh).
 ```
 
 ## Bundling wrappers
@@ -51,7 +47,7 @@ Notes:
 
 ### Skill contract lint
 
-`$CODEX_HOME/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
+`$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
 
 Requirements (inside `## Contract`, in order):
 
@@ -63,8 +59,8 @@ Requirements (inside `## Contract`, in order):
 
 Usage:
 
-- Validate all tracked skills: `$CODEX_HOME/scripts/validate_skill_contracts.sh`
-- Validate a specific file: `$CODEX_HOME/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
+- Validate all tracked skills: `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+- Validate a specific file: `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
 
 Exit codes:
 
@@ -73,7 +69,7 @@ Exit codes:
 
 ### Skill layout audit
 
-`$CODEX_HOME/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
+`$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
 
 - `SKILL.md` at the skill root
 - Optional: `scripts/`, `references/`, `assets/`
@@ -108,7 +104,7 @@ Plan tooling helps keep implementation plans concrete (executable + verifiable) 
 
 ### Plan lint
 
-`$CODEX_HOME/scripts/validate_plans.sh` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
+`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
 
 - Sprints: `## Sprint N: <name>`
 - Tasks: `### Task N.M: <name>`
@@ -121,17 +117,17 @@ Plan tooling helps keep implementation plans concrete (executable + verifiable) 
 
 Usage:
 
-- Lint all tracked plans: `$CODEX_HOME/scripts/validate_plans.sh`
-- Lint a specific plan: `$CODEX_HOME/scripts/validate_plans.sh --file docs/plans/<name>-plan.md`
+- Lint all tracked plans: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
+- Lint a specific plan: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/<name>-plan.md`
 
 ### Plan JSON export
 
-`$CODEX_HOME/scripts/plan_to_json.sh` parses a plan into JSON for tooling to consume:
+`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh` parses a plan into JSON for tooling to consume:
 
-- `plan_to_json.sh --file docs/plans/<name>-plan.md | python3 -m json.tool`
+- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh --file docs/plans/<name>-plan.md | python3 -m json.tool`
 
 ### Parallel batches
 
-`$CODEX_HOME/scripts/plan_batches.sh` computes dependency layers (parallel batches) for a sprint:
+`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh` computes dependency layers (parallel batches) for a sprint:
 
-- `plan_batches.sh --file docs/plans/<name>-plan.md --sprint 1 --format text`
+- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh --file docs/plans/<name>-plan.md --sprint 1 --format text`

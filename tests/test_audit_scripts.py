@@ -11,7 +11,7 @@ ScriptSpec = dict[str, Any]
 
 def test_validate_skill_contracts_passes_for_repo() -> None:
     repo = repo_root()
-    script = "scripts/validate_skill_contracts.sh"
+    script = "skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh"
     spec: ScriptSpec = {
         "args": [],
         "timeout_sec": 10,
@@ -52,7 +52,7 @@ def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path) -> 
     )
 
     repo = repo_root()
-    script = "scripts/validate_skill_contracts.sh"
+    script = "skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh"
     spec: ScriptSpec = {
         "args": ["--file", str(fixture)],
         "timeout_sec": 10,

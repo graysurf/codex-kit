@@ -37,9 +37,6 @@ Artifacts:
 Examples:
   E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all
   E2E_ALLOW_REAL_GH=1 $CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase cleanup --run-id 20260124-120000-abc123
-
-Compatibility wrapper:
-  scripts/e2e/progress_pr_workflow.sh --phase <name> [options]
 USAGE
 }
 

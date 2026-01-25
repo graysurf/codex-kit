@@ -42,7 +42,3 @@ Failure modes:
 - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
 - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
 - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
-
-## Compatibility
-
-- Legacy wrappers remain at `scripts/validate_plans.sh`, `scripts/plan_to_json.sh`, `scripts/plan_batches.sh`.

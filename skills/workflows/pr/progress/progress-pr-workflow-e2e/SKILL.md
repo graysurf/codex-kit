@@ -49,10 +49,6 @@ Canonical entrypoint:
 
 - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all`
 
-Compatibility wrapper:
-
-- `scripts/e2e/progress_pr_workflow.sh --phase all`
-
 ## Notes
 
 - This driver touches real GitHub resources. Use a sandbox repo or sandbox base branch.

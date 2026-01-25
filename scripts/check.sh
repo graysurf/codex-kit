@@ -182,7 +182,7 @@ fi
 if [[ "$run_contracts" -eq 1 ]]; then
   echo "lint: validate skill contracts" >&2
   set +e
-  scripts/validate_skill_contracts.sh
+  "${CODEX_HOME}/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh"
   contract_rc=$?
   set -e
 
@@ -194,7 +194,7 @@ fi
 if [[ "$run_skill_layout" -eq 1 ]]; then
   echo "lint: audit skill layout" >&2
   set +e
-  scripts/audit-skill-layout.sh
+  "${CODEX_HOME}/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh"
   skill_layout_rc=$?
   set -e
 
@@ -206,7 +206,7 @@ fi
 if [[ "$run_plans" -eq 1 ]]; then
   echo "lint: validate plans" >&2
   set +e
-  scripts/validate_plans.sh
+  "${CODEX_HOME}/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh"
   plans_rc=$?
   set -e
 

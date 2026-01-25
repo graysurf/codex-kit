@@ -17,18 +17,20 @@ Links:
 ## Goal
 
 - Define and enforce a v2 `skills/` anatomy (shared `_shared/`, per-skill `tests/`, and executable path rules).
-- Migrate skill-related tooling out of repo-root `scripts/` into canonical `skills/**/scripts/` locations while keeping backwards-compatible wrappers.
+- Consolidate skill-related tooling under canonical `skills/**/scripts/` locations.
 
 ## Acceptance Criteria
 
 - Tracked skills follow v2 layout rules and pass audits:
-  - `$CODEX_HOME/scripts/audit-skill-layout.sh`
-  - `$CODEX_HOME/scripts/validate_skill_contracts.sh`
-- Plan tooling and E2E driver have canonical entrypoints under `skills/` and legacy wrappers remain functional:
-  - Plan tooling: `validate_plans`, `plan_to_json`, `plan_batches`
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+- Plan tooling and E2E driver have canonical entrypoints under `skills/`:
+  - Plan tooling:
+    - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
+    - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
+    - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
   - Progress workflow E2E driver:
-    - Canonical: `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-    - Wrapper: `scripts/e2e/progress_pr_workflow.sh`
+    - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
 - `SKILL.md` runnable executable references use `$CODEX_HOME/...` (no CWD-dependent `scripts/...` instructions).
 - Full repo checks pass: `$CODEX_HOME/scripts/check.sh --all`.
 
@@ -36,18 +38,20 @@ Links:
 
 - In-scope:
   - Tracked skills under `skills/workflows/`, `skills/tools/`, and `skills/automation/`.
-  - Shared layout rules and folders:
+- Shared layout rules and folders:
     - Category shared: `skills/<category>/<area>/_shared/`
     - Global shared: `skills/_shared/`
-  - Script migrations (canonical under `skills/`, keep wrappers under `scripts/`):
-    - `scripts/validate_plans.sh`, `scripts/plan_to_json.sh`, `scripts/plan_batches.sh`
+  - Canonical script entrypoints under `skills/`:
+    - `skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
+    - `skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+    - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
+    - `skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
+    - `skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
     - `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-    - `scripts/e2e/progress_pr_workflow.sh`
-    - `scripts/audit-skill-layout.sh`, `scripts/validate_skill_contracts.sh`
   - Per-skill tests: add `tests/` for every tracked skill and enforce via audits + CI.
 - Out-of-scope:
   - Local-only skills under `skills/_projects/` (ignored by git) and generated skills under `skills/.system/` (ignored by git).
-  - Functional redesign of skills beyond path/reference/validation updates (except when required for safety/compat).
+  - Functional redesign of skills beyond path/reference/validation updates (except when required for safety).
 
 ## I/O Contract
 
@@ -61,7 +65,7 @@ Links:
 
 ### Output
 
-- Canonical skill tooling under `skills/**/scripts/`, with legacy wrappers preserved under `scripts/`.
+- Canonical skill tooling under `skills/**/scripts/`.
 - Enforced v2 skill layout rules (including per-skill tests) via repo checks and CI.
 
 ### Intermediate Artifacts
@@ -76,7 +80,6 @@ Links:
 
 - Reduce ambiguity and drift when adding skills by enforcing a single directory anatomy.
 - Improve portability by ensuring runnable instructions use `$CODEX_HOME/...` absolute paths.
-- Keep changes safe by preserving backwards-compatible wrappers and avoiding sudden breakage.
 
 ### Risks / Uncertainties
 
@@ -84,8 +87,6 @@ Links:
   - Mitigation: forbid `_shared/scripts/` and keep shared code under `_shared/lib/` or `_shared/python/`.
 - Risk: Python import paths for `skills/**/tests/` become brittle.
   - Mitigation: define a stable import strategy (package init + tests) and validate in CI.
-- Risk: wrapper drift (two competing implementations).
-  - Mitigation: wrappers must be thin and delegate to canonical scripts.
 
 ## Steps (Checklist)
 
@@ -105,11 +106,11 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Minimal verification commands are defined:
       - `$CODEX_HOME/scripts/check.sh --all`
       - `$CODEX_HOME/scripts/test.sh -m script_smoke`
-      - `$CODEX_HOME/scripts/audit-skill-layout.sh`
+      - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
 - [x] Step 1: MVP (governance + docs baseline)
   - Work Items:
     - [x] Create/land the planning docs (this progress file + plan file) and open the planning PR.
-    - [x] Add governance skill + wrappers (no breaking changes).
+    - [x] Add governance skill and audits.
   - Artifacts:
     - `docs/progress/archived/20260124_skills-structure-reorg-v2.md`
     - `docs/plans/skills-structure-reorg-plan.md`
@@ -119,14 +120,14 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
       - `$CODEX_HOME/scripts/check.sh --contracts --skills-layout`
 - [x] Step 2: Expansion / integration (migrations + tests)
   - Work Items:
-    - [x] Migrate plan tooling and progress E2E driver into `skills/` with wrappers preserved.
+    - [x] Migrate plan tooling and progress E2E driver into `skills/`.
     - [x] Add per-skill tests for all tracked skills; enforce via audit + CI.
   - Artifacts:
     - `skills/workflows/plan/plan-tooling/`
     - `skills/workflows/pr/progress/progress-pr-workflow-e2e/`
     - `skills/**/tests/`
   - Exit Criteria:
-    - [x] Legacy entrypoints remain functional (wrappers delegate correctly).
+    - [x] Canonical entrypoints are the only supported executable paths.
     - [x] `scripts/check.sh --all` passes.
 - [x] Step 3: Validation / testing
   - Work Items:

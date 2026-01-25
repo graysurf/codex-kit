@@ -156,16 +156,19 @@ def load_script_specs(spec_root: Path) -> dict[str, dict[str, Any]]:
 
 
 def discover_scripts() -> list[str]:
+    repo = repo_root()
     tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
     scripts: list[str] = []
     for p in tracked:
         if p.endswith(".md"):
             continue
+        if not (repo / p).is_file():
+            continue
         if p.startswith("scripts/") or (p.startswith("skills/") and "/scripts/" in p):
             scripts.append(p)
         if p.startswith("commands/"):
             scripts.append(p)
-    return sorted(scripts)
+    return sorted(set(scripts))
 
 
 def write_summary_json(results: list[ScriptRunResult], out_base: Path | None = None) -> Path:

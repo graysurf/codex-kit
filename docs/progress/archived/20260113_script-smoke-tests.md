@@ -187,7 +187,7 @@ Tracked script entrypoints (via `git ls-files`):
 | `$CODEX_HOME/scripts/db-connect/psql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `psql` to validate argv/env wiring |
 | `$CODEX_HOME/scripts/env.zsh` | `zsh -f` | regression (`--help`) | `help-only` | environment helper; keep lightweight |
 | `$CODEX_HOME/scripts/test.sh` | `bash` | regression (`--help`) | `help-only` | runs deps/tests; avoid running in CI smoke |
-| `$CODEX_HOME/scripts/validate_skill_contracts.sh` | `bash` | functional pytest | `pytest-fixture` | already covered by `tests/test_audit_scripts.py` |
+| `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` | `bash` | functional pytest | `pytest-fixture` | already covered by `tests/test_audit_scripts.py` |
 | `$CODEX_HOME/skills/_projects/finance-report/scripts/fr-psql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `psql` and validate flags |
 | `$CODEX_HOME/skills/_projects/megabank/scripts/mb-mssql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `sqlcmd` and validate flags |
 | `$CODEX_HOME/skills/_projects/qburger/scripts/qb-mysql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `mysql` and validate flags |

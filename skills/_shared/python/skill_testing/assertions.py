@@ -20,7 +20,15 @@ def assert_skill_contract(skill_root: Path) -> None:
     if not skill_md.is_file():
         raise AssertionError(f"missing SKILL.md: {skill_md}")
 
-    script = repo_root() / "scripts" / "validate_skill_contracts.sh"
+    script = (
+        repo_root()
+        / "skills"
+        / "tools"
+        / "devex"
+        / "skill-governance"
+        / "scripts"
+        / "validate_skill_contracts.sh"
+    )
     if not script.is_file():
         raise AssertionError(f"missing validator script: {script}")
 

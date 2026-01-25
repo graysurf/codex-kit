@@ -35,7 +35,7 @@ Links:
   - Wire `pytest` into GitHub Actions so PRs and pushes run `$CODEX_HOME/scripts/test.sh`.
   - Add lightweight validations for non-code assets:
     - `prompts/*.md` YAML front matter is parseable and includes required keys (exact key set TBD).
-    - `skills/**/SKILL.md` contract lint remains enforced (via `$CODEX_HOME/scripts/validate_skill_contracts.sh` and/or direct parsing).
+    - `skills/**/SKILL.md` contract lint remains enforced (via `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` and/or direct parsing).
 - Out-of-scope:
   - End-to-end integration tests that require real external services, credentials, or network access.
   - Large refactors of scripts unrelated to testability (only minimal changes to support safe invocations, when needed).

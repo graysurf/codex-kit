@@ -207,7 +207,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Parallelizable**: yes (but easiest after scripts settle)
 - **Acceptance criteria**:
   - No contradictions between SKILLs (especially Progress link rules).
-  - `scripts/validate_skill_contracts.sh` passes.
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` passes.
 - **Validation**:
   - `scripts/check.sh --contracts`
 
@@ -216,7 +216,6 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Complexity**: 8
 - **Location**:
   - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-  - Wrapper (compat): `scripts/e2e/progress_pr_workflow.sh`
   - `docs/workflows/progress-pr-workflow.md`
 - **Description**: Add an opt-in real-`gh` E2E driver script with safety gates and durable artifacts.
   - Create a single entrypoint script that performs the Sprint 3 flow end-to-end using real GitHub:

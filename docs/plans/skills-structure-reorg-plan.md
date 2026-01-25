@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plan formalizes a v2 directory anatomy for `skills/` (including shared code/docs and per-skill tests), then migrates skill-related tooling currently living under `scripts/` into the appropriate skill folders while keeping compatibility wrappers. It also updates docs, audits, and pytest coverage so “adding a new skill” is governed by enforceable rules rather than convention.
+This plan formalizes a v2 directory anatomy for `skills/` (including shared code/docs and per-skill tests), then standardizes on canonical skill entrypoints under `skills/**/scripts/` and removes legacy entrypoints. It also updates docs, audits, and pytest coverage so “adding a new skill” is governed by enforceable rules rather than convention.
 
 Primary success criteria: new and existing skills follow a single, auditable structure; plan tooling + E2E drivers live under `skills/`; and every tracked skill has tests.
 
@@ -13,18 +13,19 @@ Primary success criteria: new and existing skills follow a single, auditable str
   - Introduce shared directories:
     - Category shared: `skills/<category>/<area>/_shared/`
     - Global shared: `skills/_shared/`
-  - Migrate plan-related scripts from `scripts/` into `skills/workflows/plan/` (keeping wrappers).
-  - Migrate E2E scripts from `scripts/e2e/` into `skills/` (keeping wrappers).
+  - Ensure plan tooling entrypoints live under `skills/workflows/plan/plan-tooling/scripts/`.
+  - Ensure real-GitHub E2E drivers live under dedicated skills (e.g., `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/`).
+  - Remove legacy entrypoints and update all runnable instructions to canonical `$CODEX_HOME/...` paths.
   - Add per-skill `tests/` for **all tracked skills** and enforce via audit + CI.
   - Update docs/tests to prefer `$CODEX_HOME/...` absolute paths for executable entrypoints.
 - Out of scope:
-  - Rewriting skill behavior beyond path/reference updates (no functional redesign unless required for safety/compat).
+  - Rewriting skill behavior beyond path/reference updates (no functional redesign unless required for safety).
   - Refactoring `.worktrees/` contents (local worktrees are treated as disposable).
   - Enforcing layout for ignored local skills under `skills/_projects/` and generated skills under `skills/.system/` (documented, best-effort only).
 
 ## Assumptions
 
-1. Compatibility policy: keep old paths working via thin wrappers (no breaking changes without a deprecation window).
+1. Breaking change policy: canonical skill entrypoints only (no legacy script entrypoints).
 2. Shared code policy: prefer category-level `_shared/` first; use `skills/_shared/` only for truly cross-category reuse.
 3. Test policy: every tracked skill must have tests (minimal smoke tests are acceptable for doc-only skills).
 4. Documentation policy: in `SKILL.md`, executable paths use `$CODEX_HOME/...` (repo-relative links are allowed for non-executables).
@@ -32,20 +33,19 @@ Primary success criteria: new and existing skills follow a single, auditable str
 ## Current inventory (2026-01-24 snapshot)
 
 Tracked skills (git): 23  
-Local-only skills (ignored by git): `skills/_projects/**` (project DB wrappers) and `skills/.system/**` (generated system skills).
+Local-only skills (ignored by git): `skills/_projects/**` (project DB helpers) and `skills/.system/**` (generated system skills).
 
-Root scripts currently in `scripts/` that are skill-related and targeted for migration:
+Canonical skill entrypoints (v2):
 
 - Plan tooling:
-  - `scripts/validate_plans.sh`
-  - `scripts/plan_to_json.sh`
-  - `scripts/plan_batches.sh`
+  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
+  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
+  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
 - E2E driver:
-  - Canonical: `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-  - Wrapper: `scripts/e2e/progress_pr_workflow.sh`
-- Skill governance (candidate migration):
-  - `scripts/validate_skill_contracts.sh`
-  - `scripts/audit-skill-layout.sh`
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+- Skill governance:
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
 
 ## Sprint 1: Define v2 skill anatomy + shared layout
 
@@ -53,9 +53,9 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 
 **Demo/Validation**:
 - Command(s):
-  - `scripts/validate_plans.sh --file docs/plans/skills-structure-reorg-plan.md`
+  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/skills-structure-reorg-plan.md`
 - Verify:
-  - Plan lints cleanly and contains a complete migration map.
+  - Plan lints cleanly and contains a complete tooling index.
 
 ### Task 1.1: Write the v2 skills anatomy specification
 
@@ -82,21 +82,22 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Validation**:
   - `test -f docs/skills/SKILLS_ANATOMY_V2.md`
 
-### Task 1.2: Add a migration map (skills + scripts)
+### Task 1.2: Add a tooling index (canonical entrypoints)
 
 - **Complexity**: 5
 - **Location**:
-  - `docs/skills/MIGRATION_MAP_V2.md`
-- **Description**: Document where each existing `scripts/` entrypoint will live under `skills/` and what wrappers remain.
-  - Include a mapping table:
-    - Old path → new canonical path → wrapper policy
-  - Include per-category shared reuse guidance (what goes to `_shared/` vs per-skill).
+  - `docs/skills/TOOLING_INDEX_V2.md`
+- **Description**: Document canonical executable entrypoints under `skills/**/scripts/` (single source of truth).
+  - Include at least:
+    - skill governance entrypoints
+    - plan tooling entrypoints
+    - real-GitHub E2E driver entrypoints
 - **Dependencies**: Task 1.1
 - **Acceptance criteria**:
-  - Map includes plan tooling scripts and the progress workflow E2E driver.
-  - Map states the compatibility mechanism (wrappers) and deprecation policy.
+  - Index includes plan tooling scripts and the progress workflow E2E driver.
+  - Index only lists canonical `$CODEX_HOME/...` executable paths.
 - **Validation**:
-  - `test -f docs/skills/MIGRATION_MAP_V2.md`
+  - `test -f docs/skills/TOOLING_INDEX_V2.md`
 
 ### Task 1.3: Create shared directory skeletons (category + global)
 
@@ -113,9 +114,9 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Validation**:
   - `test -f skills/_shared/README.md`
 
-## Sprint 2: Skill governance v2 (audits + wrappers, no breakages)
+## Sprint 2: Skill governance v2 (audits + path rules)
 
-**Goal**: enforce v2 anatomy mechanically (including required `tests/`) while keeping existing developer entrypoints working.
+**Goal**: enforce v2 anatomy mechanically (including required `tests/`) and validate runnable path rules in `SKILL.md`.
 
 **Demo/Validation**:
 - Command(s):
@@ -137,7 +138,6 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
   - Task 1.2
 - **Acceptance criteria**:
   - Canonical scripts live under `skills/tools/devex/skill-governance/scripts/`.
-  - Existing paths `scripts/audit-skill-layout.sh` and `scripts/validate_skill_contracts.sh` still work via wrappers.
 - **Validation**:
   - `bash -n skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
   - `bash -n skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
@@ -165,7 +165,7 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Dependencies**: Task 2.1
 - **Acceptance criteria**:
   - Validator detects common footguns (e.g., `scripts/...` in runnable instructions inside `SKILL.md`).
-  - Validator is wired into `scripts/check.sh --all` (via wrappers if needed).
+  - Validator is wired into `scripts/check.sh --all`.
 - **Validation**:
   - `scripts/check.sh --lint --contracts --skills-layout`
 
@@ -175,13 +175,12 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Location**:
   - `README.md`
   - `DEVELOPMENT.md`
-- **Description**: Update docs to reflect new canonical governance paths (while noting wrappers remain).
+- **Description**: Update docs to reflect new canonical governance paths.
 - **Dependencies**:
   - Task 2.1
   - Task 2.2
 - **Acceptance criteria**:
   - Docs reference `$CODEX_HOME/skills/tools/devex/skill-governance/...` as canonical.
-  - Docs preserve backwards-compatible commands where appropriate.
 - **Validation**:
   - `rg -n \"skill-governance\" README.md DEVELOPMENT.md`
 
@@ -191,25 +190,24 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Location**:
   - `skills/workflows/plan/create-plan/SKILL.md`
   - `docs/workflows/progress-pr-workflow.md`
-- **Description**: Do a repo-wide scan for runnable `scripts/...` instructions and rewrite them to canonical `$CODEX_HOME/...` paths (keeping wrappers).
+- **Description**: Do a repo-wide scan for runnable instructions and rewrite them to canonical `$CODEX_HOME/...` paths.
 - **Dependencies**:
   - Task 2.3
   - Task 2.4
 - **Acceptance criteria**:
   - Tracked `SKILL.md` files contain no runnable instructions that depend on the current working directory.
-  - Docs that mention executable entrypoints prefer `$CODEX_HOME/...` (legacy paths may be kept as “compat” notes).
 - **Validation**:
-  - `rg -n \"\\bscripts/\" skills/**/SKILL.md docs | cat`
+  - `rg -n \"scripts/(validate_plans|plan_to_json|plan_batches|audit-skill-layout|validate_skill_contracts)\\.sh|scripts/e2e/progress_pr_workflow\\.sh\" -S skills docs tests`
 
 ## Sprint 3: Plan tooling migration into `skills/workflows/plan`
 
-**Goal**: move plan tooling scripts out of `scripts/` into `skills/workflows/plan/` and update planning skills/docs accordingly.
+**Goal**: standardize plan tooling under `skills/workflows/plan/plan-tooling/scripts/` and update planning skills/docs accordingly.
 
 **Demo/Validation**:
 - Command(s):
   - `scripts/test.sh -m script_smoke -k plan`
 - Verify:
-  - Plan tooling scripts work via both canonical paths and legacy wrappers.
+  - Plan tooling scripts work via the canonical entrypoints.
 
 ### Task 3.1: Create a plan-tooling skill and move the scripts
 
@@ -219,13 +217,12 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
   - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
   - `skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
   - `skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
-- **Description**: Make plan tooling canonical under `skills/workflows/plan/plan-tooling/scripts/` and keep thin wrappers under `scripts/`.
+- **Description**: Make plan tooling canonical under `skills/workflows/plan/plan-tooling/scripts/`.
 - **Dependencies**:
   - Task 1.2
   - Task 2.1
 - **Acceptance criteria**:
   - Canonical scripts run from any CWD when `CODEX_HOME` is set.
-  - `scripts/validate_plans.sh`, `scripts/plan_to_json.sh`, and `scripts/plan_batches.sh` remain functional wrappers.
 - **Validation**:
   - `scripts/test.sh -m script_smoke -k plan_to_json`
 
@@ -260,13 +257,13 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 
 ## Sprint 4: E2E drivers under skills (progress workflow)
 
-**Goal**: move real-GitHub E2E scripts under `skills/` (with wrappers under `scripts/e2e/`) and document their usage.
+**Goal**: move real-GitHub E2E scripts under `skills/` and document their usage.
 
 **Demo/Validation**:
 - Command(s):
   - `scripts/test.sh -m script_regression -k progress_pr_workflow`
 - Verify:
-  - The legacy `scripts/e2e/` entrypoint remains callable.
+  - The E2E driver is callable via the canonical skill entrypoint.
 
 ### Task 4.1: Create an E2E skill for the progress PR workflow driver
 
@@ -274,13 +271,11 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Location**:
   - `skills/workflows/pr/progress/progress-pr-workflow-e2e/SKILL.md`
   - `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-  - `scripts/e2e/progress_pr_workflow.sh`
-- **Description**: Move the canonical E2E driver into a dedicated skill and keep `scripts/e2e/progress_pr_workflow.sh` as a wrapper.
+- **Description**: Move the canonical E2E driver into a dedicated skill.
 - **Dependencies**:
   - Task 1.2
   - Task 2.1
 - **Acceptance criteria**:
-  - Wrapper preserves argv/exit codes and clearly points to the canonical script.
   - Script keeps existing safety gates (never runs in CI by default).
 - **Validation**:
   - `scripts/test.sh -m script_regression -k progress_pr_workflow`
@@ -295,7 +290,7 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Dependencies**: Task 4.1
 - **Acceptance criteria**:
   - Tests pass without requiring real GitHub access.
-  - The existing regression test continues to protect the canonical driver path (wrapper remains callable).
+  - The existing regression test continues to protect the canonical driver path.
 - **Validation**:
   - `scripts/test.sh -k progress_pr_workflow_driver`
 
@@ -307,7 +302,7 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - Command(s):
   - `scripts/check.sh --all`
 - Verify:
-  - `scripts/audit-skill-layout.sh` enforces tests and passes.
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` enforces tests and passes.
   - Skill-local tests run in CI and locally.
 
 ### Task 5.1: Add a shared pytest helper for skill-local tests
@@ -316,7 +311,7 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 - **Location**:
   - `skills/_shared/python/skill_testing/__init__.py`
   - `skills/_shared/python/skill_testing/assertions.py`
-- **Description**: Provide reusable test helpers (contract lint, executable existence, wrapper integrity) for skill-local tests.
+- **Description**: Provide reusable test helpers (contract lint, executable existence) for skill-local tests.
 - **Dependencies**:
   - Task 2.3
 - **Acceptance criteria**:
@@ -405,7 +400,7 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
   - Task 5.4
   - Task 5.5
 - **Acceptance criteria**:
-  - `scripts/audit-skill-layout.sh` reports no tracked skills missing tests.
+  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` reports no tracked skills missing tests.
   - The added tests are minimal and use the shared helper (no duplicated harness logic).
 - **Validation**:
   - `scripts/check.sh --skills-layout`
@@ -433,20 +428,18 @@ Root scripts currently in `scripts/` that are skill-related and targeted for mig
 ## Testing Strategy
 
 - Unit (Python): skill-local tests under `skills/**/tests/` using a shared helper under `skills/_shared/python/`.
-- Integration (scripts): keep existing script regression/smoke harness in `tests/` and add canonical-path coverage where wrappers exist.
+- Integration (scripts): keep existing script regression/smoke harness in `tests/` and add canonical-path coverage for key entrypoints.
 - E2E (real GitHub): keep E2E drivers guarded (`CI=true` refusal + explicit opt-in env var) and write artifacts under `out/e2e/`.
 
 ## Risks & gotchas
 
 - Tooling discovery: repo tests treat any `skills/**/scripts/**` as runnable entrypoints, so shared code must not live under a `scripts/` directory.
 - Python import paths: adding `skills/_shared/python/` requires a stable import strategy (documented and tested).
-- Wrapper drift: wrappers must be thin and must not become a second implementation.
 - Local-only skills: ignored folders (`skills/_projects/`, `skills/.system/`) cannot be enforced via git-based audits; document best-effort guidance.
 
 ## Rollback plan
 
-- Revert canonical moves (keep implementations under `scripts/`) and keep the wrappers as the primary entrypoints.
-- Revert path rewrites in `SKILL.md` and docs (restore the last known-good references).
+- Revert the entrypoint standardization changes (restore the previous file layout and runnable instructions).
 - Disable v2 enforcement in CI and `scripts/check.sh` (restore the previous audit behavior and remove new validators from `--all`).
 - Remove or quarantine newly-added `skills/**/tests/` if the per-skill testing model proves too heavy for CI time budgets.
 - Keep the v2 docs as informational until the migration is retried.

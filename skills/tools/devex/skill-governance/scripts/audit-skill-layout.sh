@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/audit-skill-layout.sh [--help]
+  $CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh [--help]
 
 Validates that each tracked skill directory contains only the allowed top-level
 entries:
