@@ -52,7 +52,7 @@ Tracked skill directory layout (`SKILL.md` + required `tests/` + optional `scrip
 
 ### Skill management
 
-See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills using canonical entrypoints under [skills/tools/skill-management/](skills/tools/skill-management).
+See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills using canonical entrypoints.
 
 Core skills are grouped under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and [skills/automation/](skills/automation). Internal/meta skills live under `skills/.system/` (not listed below).
 
