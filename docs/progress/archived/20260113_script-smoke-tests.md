@@ -182,9 +182,9 @@ Tracked script entrypoints (via `git ls-files`):
 | `$CODEX_HOME/scripts/chrome-devtools-mcp.sh` | `bash` | regression (spec: dry-run) | `spec-smoke` | keep `CHROME_DEVTOOLS_DRY_RUN=true` |
 | `commands/git-scope` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate output format |
 | `commands/git-commit-context-json` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate output format |
-| `$CODEX_HOME/scripts/db-connect/mssql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `sqlcmd` to validate argv/env wiring |
-| `$CODEX_HOME/scripts/db-connect/mysql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `mysql` to validate argv/env wiring |
-| `$CODEX_HOME/scripts/db-connect/psql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `psql` to validate argv/env wiring |
+| `$CODEX_HOME/skills/tools/sql/sql-mssql/scripts/sql-mssql.sh` | `bash` | regression (`--help`) | `spec-smoke` | stub `sqlcmd` to validate argv/env wiring |
+| `$CODEX_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh` | `bash` | regression (`--help`) | `spec-smoke` | stub `mysql` to validate argv/env wiring |
+| `$CODEX_HOME/skills/tools/sql/sql-postgres/scripts/sql-postgres.sh` | `bash` | regression (`--help`) | `spec-smoke` | stub `psql` to validate argv/env wiring |
 | `$CODEX_HOME/scripts/env.zsh` | `zsh -f` | regression (`--help`) | `help-only` | environment helper; keep lightweight |
 | `$CODEX_HOME/scripts/test.sh` | `bash` | regression (`--help`) | `help-only` | runs deps/tests; avoid running in CI smoke |
 | `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` | `bash` | functional pytest | `pytest-fixture` | already covered by `tests/test_audit_scripts.py` |
@@ -238,7 +238,7 @@ Planned PRs:
 
 | PR | Scope | Target scripts (primary) | Notes |
 | --- | --- | --- | --- |
-| #23 | DB client stubs (`psql`, `mysql`, `sqlcmd`) | `scripts/db-connect/*.zsh`, `skills/_projects/*/scripts/*` | Add strict stubs first; fixture-based coverage may follow in a later PR. |
+| #23 | DB client stubs (`psql`, `mysql`, `sqlcmd`) | `skills/tools/sql/sql-*/scripts/*.sh`, `skills/_projects/*/scripts/*` | Add strict stubs first; fixture-based coverage may follow in a later PR. |
 | #25 | Smoke specs: Chrome devtools + history tools | `$CODEX_HOME/scripts/chrome-devtools-mcp.sh`, `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-history.sh` | Use dry-run + history fixtures under `tests/fixtures/`. |
 | #24 | Smoke specs: desktop notifications | `skills/tools/devex/desktop-notify/scripts/*.sh` | Add notifier stubs (`terminal-notifier` / `notify-send`) and validate wrapper behavior. |
 | #26 | Smoke specs: release workflow audits | `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh`, `.../release-scaffold-entry.sh` | Write outputs to `out/tests/script-smoke/**` and verify artifacts. |

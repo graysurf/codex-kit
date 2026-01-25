@@ -1,21 +1,14 @@
 {
   "smoke": [
     {
-      "name": "codex-mssql-run",
-      "command": [
-        "zsh",
-        "-f",
-        "-c",
-        "source scripts/db-connect/mssql.zsh; codex_mssql_run TEST /dev/null -Q 'select 1;'"
-      ],
+      "name": "sql-mssql-query",
+      "args": ["--prefix", "TEST", "--env-file", "/dev/null", "--query", "select 1;"],
       "env": {
         "TEST_MSSQL_HOST": "127.0.0.1",
         "TEST_MSSQL_PORT": "1433",
         "TEST_MSSQL_USER": "user",
         "TEST_MSSQL_PASSWORD": "password",
-        "TEST_MSSQL_DB": "db",
-        "TEST_MSSQL_TRUST_CERT": "true",
-        "TEST_MSSQL_SCHEMA": "dbo"
+        "TEST_MSSQL_DB": "db"
       },
       "timeout_sec": 10,
       "expect": {
@@ -25,3 +18,4 @@
     }
   ]
 }
+

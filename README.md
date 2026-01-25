@@ -82,6 +82,9 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | DevEx | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
 | DevEx | [desktop-notify](./skills/tools/devex/desktop-notify/) | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |
 | Media | [image-processing](./skills/tools/media/image-processing/) | Process images (convert/resize/crop/optimize) via ImageMagick |
+| SQL | [sql-postgres](./skills/tools/sql/sql-postgres/) | Run PostgreSQL queries via psql using a prefix + env file convention |
+| SQL | [sql-mysql](./skills/tools/sql/sql-mysql/) | Run MySQL queries via mysql client using a prefix + env file convention |
+| SQL | [sql-mssql](./skills/tools/sql/sql-mssql/) | Run SQL Server queries via sqlcmd using a prefix + env file convention |
 | Testing | [api-test-runner](./skills/tools/testing/api-test-runner/) | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results |
 | Testing | [graphql-api-testing](./skills/tools/testing/graphql-api-testing/) | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
 | Testing | [rest-api-testing](./skills/tools/testing/rest-api-testing/) | Test REST APIs with repeatable, file-based requests and generate API test reports |

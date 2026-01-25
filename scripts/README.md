@@ -8,7 +8,6 @@ Repo-local helpers for codex-kit (command entrypoints live in `commands/` at the
 commands/                                 Standalone command entrypoints used by skills and docs.
 scripts/
 ├── build/                                Tooling to generate bundled commands.
-├── db-connect/                           DB connection helpers (psql/mysql/mssql wrappers).
 ├── chrome-devtools-mcp.sh                Launcher for the chrome-devtools MCP server.
 ├── env.zsh                               Environment defaults shared by repo scripts.
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.

@@ -1,13 +1,8 @@
 {
   "smoke": [
     {
-      "name": "codex-mysql-run",
-      "command": [
-        "zsh",
-        "-f",
-        "-c",
-        "source scripts/db-connect/mysql.zsh; codex_mysql_run TEST /dev/null -e 'select 1;'"
-      ],
+      "name": "sql-mysql-query",
+      "args": ["--prefix", "TEST", "--env-file", "/dev/null", "--query", "select 1;"],
       "env": {
         "TEST_MYSQL_HOST": "127.0.0.1",
         "TEST_MYSQL_PORT": "3306",
@@ -23,3 +18,4 @@
     }
   ]
 }
+

@@ -1,13 +1,8 @@
 {
   "smoke": [
     {
-      "name": "codex-psql-run",
-      "command": [
-        "zsh",
-        "-f",
-        "-c",
-        "source scripts/db-connect/psql.zsh; codex_psql_run TEST /dev/null --command 'select 1;'"
-      ],
+      "name": "sql-postgres-query",
+      "args": ["--prefix", "TEST", "--env-file", "/dev/null", "--query", "select 1;"],
       "env": {
         "TEST_PGHOST": "127.0.0.1",
         "TEST_PGPORT": "5432",
@@ -23,3 +18,4 @@
     }
   ]
 }
+
