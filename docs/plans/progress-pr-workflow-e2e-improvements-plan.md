@@ -207,7 +207,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Parallelizable**: yes (but easiest after scripts settle)
 - **Acceptance criteria**:
   - No contradictions between SKILLs (especially Progress link rules).
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` passes.
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` passes.
 - **Validation**:
   - `scripts/check.sh --contracts`
 

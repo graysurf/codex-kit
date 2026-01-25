@@ -64,7 +64,7 @@ Forbidden:
 Example:
 
 ```bash
-$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh
+$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh
 ```
 
 ## Naming conventions

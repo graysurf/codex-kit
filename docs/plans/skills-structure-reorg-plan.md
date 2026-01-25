@@ -44,8 +44,8 @@ Canonical skill entrypoints (v2):
 - E2E driver:
   - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
 - Skill governance:
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 
 ## Sprint 1: Define v2 skill anatomy + shared layout
 
@@ -129,24 +129,24 @@ Canonical skill entrypoints (v2):
 
 - **Complexity**: 7
 - **Location**:
-  - `skills/tools/devex/skill-governance/SKILL.md`
-  - `skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
-  - `skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+  - `skills/tools/skill-management/skill-governance/SKILL.md`
+  - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - **Description**: Move skill-governance scripts into a dedicated skill folder with `$CODEX_HOME/...` canonical paths.
 - **Dependencies**:
   - Task 1.1
   - Task 1.2
 - **Acceptance criteria**:
-  - Canonical scripts live under `skills/tools/devex/skill-governance/scripts/`.
+  - Canonical scripts live under `skills/tools/skill-management/skill-governance/scripts/`.
 - **Validation**:
-  - `bash -n skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
-  - `bash -n skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+  - `bash -n skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `bash -n skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 
 ### Task 2.2: Update the layout audit to v2 (tests + lib allowed)
 
 - **Complexity**: 6
 - **Location**:
-  - `skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
+  - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - **Description**: Extend the skill layout audit to allow v2 top-level entries and require `tests/` for tracked skills.
 - **Dependencies**: Task 2.1
 - **Acceptance criteria**:
@@ -159,7 +159,7 @@ Canonical skill entrypoints (v2):
 
 - **Complexity**: 5
 - **Location**:
-  - `skills/tools/devex/skill-governance/scripts/validate_skill_paths.sh`
+  - `skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`
   - `tests/test_audit_scripts.py`
 - **Description**: Add a repo check that enforces `$CODEX_HOME/...` absolute paths for executable entrypoints referenced in `SKILL.md`.
 - **Dependencies**: Task 2.1
@@ -180,7 +180,7 @@ Canonical skill entrypoints (v2):
   - Task 2.1
   - Task 2.2
 - **Acceptance criteria**:
-  - Docs reference `$CODEX_HOME/skills/tools/devex/skill-governance/...` as canonical.
+  - Docs reference `$CODEX_HOME/skills/tools/skill-management/skill-governance/...` as canonical.
 - **Validation**:
   - `rg -n \"skill-governance\" README.md DEVELOPMENT.md`
 
@@ -302,7 +302,7 @@ Canonical skill entrypoints (v2):
 - Command(s):
   - `scripts/check.sh --all`
 - Verify:
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` enforces tests and passes.
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces tests and passes.
   - Skill-local tests run in CI and locally.
 
 ### Task 5.1: Add a shared pytest helper for skill-local tests
@@ -400,7 +400,7 @@ Canonical skill entrypoints (v2):
   - Task 5.4
   - Task 5.5
 - **Acceptance criteria**:
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` reports no tracked skills missing tests.
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` reports no tracked skills missing tests.
   - The added tests are minimal and use the shared helper (no duplicated harness logic).
 - **Validation**:
   - `scripts/check.sh --skills-layout`

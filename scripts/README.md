@@ -47,7 +47,7 @@ Notes:
 
 ### Skill contract lint
 
-`$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
+`$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
 
 Requirements (inside `## Contract`, in order):
 
@@ -59,8 +59,8 @@ Requirements (inside `## Contract`, in order):
 
 Usage:
 
-- Validate all tracked skills: `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
-- Validate a specific file: `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
+- Validate all tracked skills: `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+- Validate a specific file: `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
 
 Exit codes:
 
@@ -69,9 +69,10 @@ Exit codes:
 
 ### Skill layout audit
 
-`$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
+`$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
 
 - `SKILL.md` at the skill root
+- Required: `tests/`
 - Optional: `scripts/`, `references/`, `assets/`
 - No other tracked top-level entries
 - Markdown files with `TEMPLATE` in the filename must live under `references/` or `assets/templates/` within the skill

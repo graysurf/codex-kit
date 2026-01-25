@@ -22,8 +22,8 @@ Links:
 ## Acceptance Criteria
 
 - Tracked skills follow v2 layout rules and pass audits:
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Plan tooling and E2E driver have canonical entrypoints under `skills/`:
   - Plan tooling:
     - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
@@ -42,8 +42,8 @@ Links:
     - Category shared: `skills/<category>/<area>/_shared/`
     - Global shared: `skills/_shared/`
   - Canonical script entrypoints under `skills/`:
-    - `skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
-    - `skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+    - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+    - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
     - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
     - `skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
     - `skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
@@ -106,7 +106,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Minimal verification commands are defined:
       - `$CODEX_HOME/scripts/check.sh --all`
       - `$CODEX_HOME/scripts/test.sh -m script_smoke`
-      - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
+      - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - [x] Step 1: MVP (governance + docs baseline)
   - Work Items:
     - [x] Create/land the planning docs (this progress file + plan file) and open the planning PR.

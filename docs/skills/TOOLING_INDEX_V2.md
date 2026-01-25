@@ -5,11 +5,18 @@ This doc lists canonical executable entrypoints that live under `skills/**/scrip
 ## Skill governance
 
 - Validate SKILL.md contract format:
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Audit tracked skill directory layout:
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - Validate runnable path rules in SKILL.md:
-  - `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_paths.sh`
+  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`
+
+## Skill management
+
+- Create a new skill skeleton (validated):
+  - `$CODEX_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh`
+- Remove a skill and purge references (breaking change):
+  - `$CODEX_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh`
 
 ## Plan tooling (Plan Format v1)
 

@@ -16,7 +16,7 @@ Prereqs:
 
 Inputs:
 
-- `audit-skill-layout.sh`: no args (optional `--help`).
+- `audit-skill-layout.sh`: optional `--skill-dir <path>` (or `--help`).
 - `validate_skill_contracts.sh`: optional `--file <path>` (repeatable).
 - `validate_skill_paths.sh`: optional `--help` (placeholder until v2 enforcement).
 
@@ -40,10 +40,6 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/audit-skill-layout.sh`
-- `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_contracts.sh`
-- `$CODEX_HOME/skills/tools/devex/skill-governance/scripts/validate_skill_paths.sh`
-
-## Compatibility
-
-Legacy wrappers remain available under `$CODEX_HOME/scripts/`.
+- `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+- `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+- `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`

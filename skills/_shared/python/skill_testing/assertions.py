@@ -24,7 +24,7 @@ def assert_skill_contract(skill_root: Path) -> None:
         repo_root()
         / "skills"
         / "tools"
-        / "devex"
+        / "skill-management"
         / "skill-governance"
         / "scripts"
         / "validate_skill_contracts.sh"
