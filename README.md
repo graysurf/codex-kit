@@ -12,6 +12,7 @@ intentionally excluded via `.gitignore`.
 ├── skills/     # skills (tools/, workflows/, automation/, _projects/, .system/)
 ├── commands/   # CLI wrappers
 ├── scripts/    # loader + helper scripts
+├── docker/     # Docker images + env tooling
 ├── docs/       # docs, templates, progress logs
 ├── tests/      # pytest regression/smoke tests
 └── AGENTS.md   # global agent rules (response/tooling)
