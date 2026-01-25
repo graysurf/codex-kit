@@ -31,6 +31,7 @@ $CODEX_HOME/scripts/test.sh -m script_smoke
 - Discovers tracked script entrypoints via `git ls-files`:
   - `scripts/**`
   - `skills/**/scripts/**`
+  - `commands/**`
 - Executes each script via its shebang interpreter (e.g. `bash`, `zsh -f`).
 - Default invocation is safe-mode `--help` (override per script via JSON spec).
 - Uses a hermetic-ish environment:
@@ -40,6 +41,8 @@ $CODEX_HOME/scripts/test.sh -m script_smoke
 - Writes evidence (untracked) under:
   - `out/tests/script-regression/summary.json`
   - `out/tests/script-regression/logs/**`
+  - `out/tests/script-coverage/summary.md`
+  - `out/tests/script-coverage/summary.json`
 
 ## Script smoke tests
 
@@ -71,10 +74,11 @@ Fields:
 
 ### Smoke cases
 
-Specs can also include an optional `smoke` section (list of cases) which powers the `script_smoke` marker.
+Specs can also include an optional `smoke` section (list of cases, or `{ "cases": [...] }`) which powers the `script_smoke` marker.
 
 Each smoke case supports the same fields as regression (`args`, `env`, `timeout_sec`, `expect`) plus:
 
+- `command`: optional full argv list (cannot be combined with `args`)
 - `artifacts`: list of repo-relative paths that must exist after the case runs
 
 Example:

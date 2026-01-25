@@ -18,7 +18,7 @@ $CODEX_HOME/scripts/test.sh -m script_smoke
 
 - Runs selected script entrypoints through deeper smoke cases (beyond `--help`).
 - Smoke cases are either:
-  - Spec-driven (preferred): `tests/script_specs/<script_relpath>.json` includes a `smoke` list.
+  - Spec-driven (preferred): `tests/script_specs/<script_relpath>.json` includes a `smoke` list (or `{ "cases": [...] }`).
   - Fixture-driven: pytest builds temporary repos/files (used for scripts that mutate git state, etc.).
 - Writes evidence (untracked) under:
   - `out/tests/script-smoke/summary.json`
@@ -30,10 +30,11 @@ Create or extend a per-script spec at:
 
 `tests/script_specs/<script_relpath>.json`
 
-Add a `smoke` array of cases:
+Add a `smoke` array of cases (or `{ "cases": [...] }`):
 
 - `name`: string (used in log filenames)
 - `args`: list of CLI args (default: `[]`)
+- `command`: optional full argv list (cannot be combined with `args`)
 - `env`: env var overrides (values are strings; use `null` to unset)
 - `timeout_sec`: number (default: `10`)
 - `expect`:

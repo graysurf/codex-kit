@@ -1,7 +1,7 @@
 # Progress PR Workflow (Runbook)
 
 Status: Draft  
-Last updated: 2026-01-24
+Last updated: 2026-01-25
 
 This runbook documents the end-to-end flow across the progress PR skills:
 
@@ -18,11 +18,12 @@ This runbook documents the end-to-end flow across the progress PR skills:
 - Run inside the target repo root.
 - `gh auth status` succeeds.
 - Clean working tree in the primary checkout.
+- `python3` available on `PATH` (progress tooling + E2E driver).
 
 2) Create the planning progress PR (docs-only):
 
 - Follow `skills/workflows/pr/progress/create-progress-pr/SKILL.md`.
-- Ensure the PR body includes a Progress link with a full GitHub blob URL:
+- Ensure the PR body includes a `## Progress` link with a full GitHub blob URL:
   - `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/<file>.md`
 
 3) Handoff (merge planning PR and patch Progress link):
@@ -31,13 +32,15 @@ This runbook documents the end-to-end flow across the progress PR skills:
 
 4) Create worktrees and stacked branches from a spec:
 
-- `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh --spec <path/to/pr-splits.tsv>`
+- `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh --spec $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/references/pr-splits.example.tsv`
+- Replace the example spec with your project TSV when ready.
 - Optional flags:
   - `--worktrees-root <path>` to override the default worktrees root.
   - `--dry-run` to print planned worktrees without creating them.
 
 5) Open implementation PRs (draft) from each worktree:
 
+- Create at least one commit per branch before opening PRs (use `semantic-commit` / `semantic-commit-autostage`; no direct `git commit`).
 - PR1 base: `main`
 - PR2+ base: PR1 branch (stacked) until PR1 merges.
 - Include in each PR body:
@@ -53,6 +56,7 @@ This runbook documents the end-to-end flow across the progress PR skills:
 
 Optional E2E driver (real GitHub):
 
+- Requires `E2E_ALLOW_REAL_GH=1` and `CI` not set to `true`.
 - Canonical: `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all`
 
 ## Invariants (must always hold)
@@ -89,7 +93,7 @@ Optional E2E driver (real GitHub):
 | Area | CI (fixtures + gh stub) | Real GitHub (required) |
 | --- | --- | --- |
 | Progress file formatting + placeholder removal | `rg`/validation scripts ensure no `[[...]]` tokens | N/A |
-| Progress index table updates | `validate_progress_index.sh` | Confirm index link renders on GitHub |
+| Progress index table updates | `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh` | Confirm index link renders on GitHub |
 | Worktree helper scripts | Fixture tests verify `create_worktrees_from_tsv.sh` and `cleanup_worktrees.sh` behavior | Optional spot-check with real repo paths |
 | PR creation + merge | Stubbed `gh` validates arguments | Must create/merge real PRs |
 | Progress link patching | Stubbed `gh pr edit` flow | Must verify PR body links resolve in GitHub UI |
@@ -98,7 +102,7 @@ Optional E2E driver (real GitHub):
 
 ## Evidence checklist (real GitHub run)
 
-Capture these artifacts under `out/e2e/progress-pr-workflow/`:
+Capture these artifacts under `out/e2e/progress-pr-workflow/<run-id>/` (created by the E2E driver):
 
 - Planning PR URL (merged) with patched Progress link to `blob/<base-branch>/...`.
 - Implementation PR URLs (draft or open) with correct base branches.
