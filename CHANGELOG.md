@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.0.1 - 2026-01-25
+
+### Added
+- None.
+
+### Changed
+- Docs: clarify workflow docs.
+- Docs: document `image-processing` skill.
+
+### Fixed
+- None.
+
 ## v2.0.0 - 2026-01-25
 
 ### Added
