@@ -43,11 +43,11 @@ jobs:
 
       - name: Validate skill contract sections
         run: |
-          $CODEX_HOME/scripts/validate_skill_contracts.sh
+          $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh
 
       - name: Validate skill directory layout
         run: |
-          $CODEX_HOME/scripts/audit-skill-layout.sh
+          $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh
 
       - name: Smoke test (negative fixture)
         run: |
@@ -72,7 +72,7 @@ jobs:
           - N/A
           MD
 
-          if $CODEX_HOME/scripts/validate_skill_contracts.sh --file "$tmp"; then
+          if $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file "$tmp"; then
             echo "Expected validate_skill_contracts.sh to fail for missing 'Failure modes:'." >&2
             exit 1
           fi
