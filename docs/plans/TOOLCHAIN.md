@@ -4,6 +4,12 @@
 
 From repo root:
 
+0) Scaffold a new plan file (optional)
+
+```bash
+$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh --slug <kebab-case> --title "<task name>"
+```
+
 1) Lint plans (format + “executable task” heuristics)
 
 ```bash

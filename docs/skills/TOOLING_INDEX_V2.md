@@ -20,6 +20,8 @@ This doc lists canonical executable entrypoints that live under `skills/**/scrip
 
 ## Plan tooling (Plan Format v1)
 
+- Scaffold a new plan file:
+  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh`
 - Lint plans:
   - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
 - Parse plan → JSON:

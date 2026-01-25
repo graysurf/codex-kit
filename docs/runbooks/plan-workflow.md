@@ -8,6 +8,8 @@ Use this workflow to create a plan, lint it, inspect JSON output, compute parall
 ## 1) Create the plan
 
 - Create `docs/plans/<kebab-case>-plan.md`.
+- Optional: scaffold from the shared plan template:
+  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh --slug <kebab-case> --title "<task name>"`
 - Follow Plan Format v1: `docs/plans/FORMAT.md`.
 - If you want Codex to draft the plan, use the `create-plan` or `create-plan-rigorous` workflow and save the result under `docs/plans/`.
 

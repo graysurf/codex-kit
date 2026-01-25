@@ -37,8 +37,11 @@ Failure modes:
 - Missing plan file, invalid format, or dependency cycles.
 - Missing `python3`/`git` dependencies.
 
-## Scripts (only entrypoints)
+## Scripts (entrypoints)
+
+Supported entrypoints for this skill (may include the implementation).
 
 - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
 - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
 - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
+- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh`

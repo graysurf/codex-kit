@@ -122,6 +122,12 @@ Usage:
 - Lint all tracked plans: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
 - Lint a specific plan: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/<name>-plan.md`
 
+### Plan scaffolding
+
+`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh` creates a new `docs/plans/*-plan.md` file from the shared template:
+
+- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh --slug <kebab-case> --title "<task name>"`
+
 ### Plan JSON export
 
 `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh` parses a plan into JSON for tooling to consume:

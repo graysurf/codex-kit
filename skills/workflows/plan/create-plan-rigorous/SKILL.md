@@ -49,7 +49,7 @@ Failure modes:
 3) Draft the plan (do not implement)
 
 - Same structure as `create-plan`, plus:
-  - Add a per-task **Complexity** score (1–10).
+  - Fill a per-task **Complexity** score (1–10).
   - Explicitly list dependencies and parallelizable tasks.
   - Add a “Rollback plan” that is operationally plausible.
 
@@ -78,10 +78,12 @@ Failure modes:
 
 - Ensure the plan has clear success criteria, validation commands, and risk mitigation.
 
-## Plan Template (delta)
+## Plan Template
 
-Add this field to each task:
+Shared template (single source of truth):
 
-```markdown
-- **Complexity**: <1-10>
-```
+- `skills/workflows/plan/_shared/assets/plan-template.md`
+
+Rigorous requirement:
+
+- Fill `Complexity` for every task (int 1–10).

@@ -68,47 +68,10 @@ Failure modes:
 
 ## Plan Template
 
-```markdown
-# Plan: <Task name>
+Shared template (single source of truth):
 
-## Overview
-<2–5 sentences: what changes, what stays the same, approach>
+- `skills/workflows/plan/_shared/assets/plan-template.md`
 
-## Scope
-- In scope: ...
-- Out of scope: ...
+Optional scaffold helper (creates a placeholder plan; fill it before linting):
 
-## Assumptions (if any)
-1. ...
-
-## Sprint 1: <Name>
-**Goal**: ...
-**Demo/Validation**:
-- Command(s): ...
-- Verify: ...
-
-### Task 1.1: <Name>
-- **Location**:
-  - `<file paths>`
-- **Description**: ...
-- **Dependencies**:
-  - <task IDs or "none">
-- **Acceptance criteria**:
-  - ...
-- **Validation**:
-  - ...
-
-## Sprint 2: <Name>
-...
-
-## Testing Strategy
-- Unit: ...
-- Integration: ...
-- E2E/manual: ...
-
-## Risks & gotchas
-- ...
-
-## Rollback plan
-- ...
-```
+- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh --slug <kebab-case> --title "<task name>"`

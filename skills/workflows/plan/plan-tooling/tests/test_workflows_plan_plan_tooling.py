@@ -18,5 +18,6 @@ def test_workflows_plan_plan_tooling_entrypoints_exist() -> None:
             "scripts/validate_plans.sh",
             "scripts/plan_to_json.sh",
             "scripts/plan_batches.sh",
+            "scripts/scaffold_plan.sh",
         ],
     )
