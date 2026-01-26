@@ -43,8 +43,8 @@ Failure modes:
 
 ## Output and clarification rules
 
-- Use `references/OUTPUT_TEMPLATE.md` when a release is published.
-- Use `references/OUTPUT_TEMPLATE_BLOCKED.md` when blocked (audit/check fails or unclear step).
+- Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` when a release is published.
+- Use `references/ASSISTANT_RESPONSE_TEMPLATE_BLOCKED.md` when blocked (audit/check fails or unclear step).
 - If a release is published, the response must include, in order:
   1. Release content
   2. Release link

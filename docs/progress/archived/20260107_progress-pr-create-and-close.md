@@ -112,7 +112,7 @@ Links:
     - `skills/workflows/pr/progress/create-progress-pr/references/PR_TEMPLATE.md`
     - `skills/workflows/pr/progress/create-progress-pr/assets/templates/PROGRESS_TEMPLATE.md`
     - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_GLOSSARY.md`
-    - `skills/workflows/pr/progress/create-progress-pr/references/OUTPUT_TEMPLATE.md`
+    - `skills/workflows/pr/progress/create-progress-pr/references/ASSISTANT_RESPONSE_TEMPLATE.md`
     - `$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`
     - `$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/render_progress_pr.sh`
   - Exit Criteria:
@@ -134,7 +134,7 @@ Links:
     - `skills/workflows/pr/feature/close-feature-pr/SKILL.md`
     - `$CODEX_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`
     - `skills/workflows/pr/feature/create-feature-pr/SKILL.md`
-    - `skills/workflows/pr/feature/create-feature-pr/references/OUTPUT_TEMPLATE.md`
+    - `skills/workflows/pr/feature/create-feature-pr/references/ASSISTANT_RESPONSE_TEMPLATE.md`
     - `README.md`
   - Exit Criteria:
     - [x] `bash -n $CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` passes.

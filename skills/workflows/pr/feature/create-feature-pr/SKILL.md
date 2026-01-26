@@ -72,5 +72,5 @@ Failure modes:
 
 ## Output
 
-- Use `references/OUTPUT_TEMPLATE.md` as the response format.
+- Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format.
 - Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --output` to generate the output template quickly.

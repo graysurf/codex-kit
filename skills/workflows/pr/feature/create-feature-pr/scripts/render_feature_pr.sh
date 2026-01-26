@@ -18,7 +18,7 @@ case "${1:-}" in
     cat "${skill_dir}/references/PR_TEMPLATE.md"
     ;;
   --output)
-    cat "${skill_dir}/references/OUTPUT_TEMPLATE.md"
+    cat "${skill_dir}/references/ASSISTANT_RESPONSE_TEMPLATE.md"
     ;;
   -h|--help|"")
     usage

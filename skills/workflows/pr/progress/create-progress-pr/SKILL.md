@@ -133,6 +133,6 @@ After PR creation, replace `TBD` PR links in both the progress file and `docs/pr
 
 ## Output (chat response)
 
-- Use `skills/workflows/pr/progress/_shared/references/OUTPUT_TEMPLATE.md` as the response format.
+- Use `skills/workflows/pr/progress/_shared/references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format.
 - Use `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --output` to generate the output template quickly.
 - If there are no open questions or next steps, write `None` under those sections (do not leave them blank).

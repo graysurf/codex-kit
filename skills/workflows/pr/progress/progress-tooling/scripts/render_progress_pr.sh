@@ -120,7 +120,7 @@ case "$mode" in
     fi
     ;;
   --output)
-    cat "${shared_dir}/references/OUTPUT_TEMPLATE.md"
+    cat "${shared_dir}/references/ASSISTANT_RESPONSE_TEMPLATE.md"
     ;;
   *)
     echo "error: unknown mode: $mode" >&2

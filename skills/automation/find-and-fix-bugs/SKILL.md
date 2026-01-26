@@ -130,7 +130,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 ## Output and clarification rules
 
-- Use `references/OUTPUT_TEMPLATE.md` as the response format.
+- Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format.
 - The response must include, in order:
   1. Issues list
   2. `git-scope` output

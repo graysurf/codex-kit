@@ -36,13 +36,13 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `skills/workflows/pr/progress/_shared/assets/templates/PROGRESS_TEMPLATE.md`
   - `skills/workflows/pr/progress/_shared/references/PROGRESS_GLOSSARY.md`
   - `skills/workflows/pr/progress/_shared/references/PR_TEMPLATE.md`
-  - `skills/workflows/pr/progress/_shared/references/OUTPUT_TEMPLATE.md`
+  - `skills/workflows/pr/progress/_shared/references/ASSISTANT_RESPONSE_TEMPLATE.md`
   - `docs/templates/PROGRESS_TEMPLATE.md`
   - `docs/templates/PROGRESS_GLOSSARY.md`
   - `skills/workflows/pr/progress/create-progress-pr/assets/templates/PROGRESS_TEMPLATE.md`
   - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_GLOSSARY.md`
   - `skills/workflows/pr/progress/create-progress-pr/references/PR_TEMPLATE.md`
-  - `skills/workflows/pr/progress/create-progress-pr/references/OUTPUT_TEMPLATE.md`
+  - `skills/workflows/pr/progress/create-progress-pr/references/ASSISTANT_RESPONSE_TEMPLATE.md`
 - **Description**: Relocate progress workflow templates from `create-progress-pr/` into `skills/workflows/pr/progress/_shared/`. Update `docs/templates/PROGRESS_TEMPLATE.md` and `docs/templates/PROGRESS_GLOSSARY.md` symlinks so they target the new shared paths. Keep the content identical after the move.
 - **Dependencies**: none
 - **Complexity**: 6
@@ -67,7 +67,7 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `skills/workflows/pr/progress/create-progress-pr/assets/templates/PROGRESS_TEMPLATE.md`
   - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_GLOSSARY.md`
   - `skills/workflows/pr/progress/create-progress-pr/references/PR_TEMPLATE.md`
-  - `skills/workflows/pr/progress/create-progress-pr/references/OUTPUT_TEMPLATE.md`
+  - `skills/workflows/pr/progress/create-progress-pr/references/ASSISTANT_RESPONSE_TEMPLATE.md`
 - **Description**: Update `create-progress-pr` docs and helper scripts so default (non-project) template reads come from `skills/workflows/pr/progress/_shared/...` rather than local copies. Remove the old local template files (or replace them with non-authoritative shims) and ensure no in-scope code/docs still references the old paths.
 - **Dependencies**:
   - Task 1.1
