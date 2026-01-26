@@ -277,7 +277,7 @@ _git_scope_render_tree() {
 
   if [[ "${#file_list[@]}" -eq 0 ]]; then
     printf "⚠️ No files to render as tree\n"
-    return 1
+    return 0
   fi
 
   printf "\n📂 Directory tree:\n"
@@ -320,7 +320,7 @@ _git_scope_render_with_type() {
 
   if [[ -z "$input" ]]; then
     printf "⚠️  No matching files\n"
-    return 1
+    return 0
   fi
 
   typeset color_reset="$(_git_scope_color_reset)"

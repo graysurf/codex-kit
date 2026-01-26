@@ -8,6 +8,15 @@
         "exit_codes": [0],
         "stdout_regex": "docs/progress/archived/20260113_script-smoke-tests\\.md"
       }
+    },
+    {
+      "name": "staged-empty",
+      "args": ["staged", "--no-color"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "No matching files"
+      }
     }
   ]
 }
