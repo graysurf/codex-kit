@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.1.1 - 2026-01-26
+
+### Added
+- Docs: add `docker/codex-workspace-launcher/README.md`.
+- Tests: add script-spec smoke coverage for more commands and skill scripts.
+
+### Changed
+- Docs: consolidate progress templates and refresh progress PR workflow docs.
+- Skills: rename assistant response template references.
+- `git-scope`: re-bundle from zsh-kit.
+
+### Fixed
+- `git-scope`: exit 0 when no matches are found.
+
 ## v2.1.0 - 2026-01-25
 
 ### Added
