@@ -61,7 +61,7 @@ Canonical skill entrypoints (v2):
 
 - **Complexity**: 6
 - **Location**:
-  - `docs/skills/SKILLS_ANATOMY_V2.md`
+  - `docs/runbooks/skills/SKILLS_ANATOMY_V2.md`
 - **Description**: Define the v2 directory rules for skills, shared code, and per-skill tests.
   - Specify allowed top-level entries inside a skill directory:
     - `SKILL.md` (required)
@@ -80,13 +80,13 @@ Canonical skill entrypoints (v2):
   - Doc clearly distinguishes skill entrypoints vs shared non-entrypoint code.
   - Doc includes at least one “golden path” example for a new skill and for shared code reuse.
 - **Validation**:
-  - `test -f docs/skills/SKILLS_ANATOMY_V2.md`
+  - `test -f docs/runbooks/skills/SKILLS_ANATOMY_V2.md`
 
 ### Task 1.2: Add a tooling index (canonical entrypoints)
 
 - **Complexity**: 5
 - **Location**:
-  - `docs/skills/TOOLING_INDEX_V2.md`
+  - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
 - **Description**: Document canonical executable entrypoints under `skills/**/scripts/` (single source of truth).
   - Include at least:
     - skill governance entrypoints
@@ -97,7 +97,7 @@ Canonical skill entrypoints (v2):
   - Index includes plan tooling scripts and the progress workflow E2E driver.
   - Index only lists canonical `$CODEX_HOME/...` executable paths.
 - **Validation**:
-  - `test -f docs/skills/TOOLING_INDEX_V2.md`
+  - `test -f docs/runbooks/skills/TOOLING_INDEX_V2.md`
 
 ### Task 1.3: Create shared directory skeletons (category + global)
 

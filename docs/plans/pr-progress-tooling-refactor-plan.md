@@ -103,8 +103,8 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `skills/workflows/pr/progress/create-progress-pr/tests/test_workflows_pr_progress_create_progress_pr.py`
   - `skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh`
   - `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-  - `docs/skills/TOOLING_INDEX_V2.md`
-- **Description**: Add a new `progress-tooling` skill that owns the progress helper scripts (scaffold, render, validate). Move the scripts from `create-progress-pr/scripts/` into `progress-tooling/scripts/` and update all references (including E2E and addendum scripts) to use the new canonical `$CODEX_HOME/.../progress-tooling/scripts/...` paths. Update tests so entrypoint assertions match the new layout, and register the new tooling entrypoints in `docs/skills/TOOLING_INDEX_V2.md`.
+  - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
+- **Description**: Add a new `progress-tooling` skill that owns the progress helper scripts (scaffold, render, validate). Move the scripts from `create-progress-pr/scripts/` into `progress-tooling/scripts/` and update all references (including E2E and addendum scripts) to use the new canonical `$CODEX_HOME/.../progress-tooling/scripts/...` paths. Update tests so entrypoint assertions match the new layout, and register the new tooling entrypoints in `docs/runbooks/skills/TOOLING_INDEX_V2.md`.
 - **Dependencies**:
   - Task 1.2
 - **Complexity**: 7
@@ -112,7 +112,7 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `progress-tooling` has a valid `SKILL.md` contract and tests verifying its scripts exist.
   - `create-progress-pr` no longer owns shared helper scripts; its documentation points to `progress-tooling` entrypoints.
   - `progress_addendum.sh` and the progress E2E driver reference the new tooling script paths.
-  - `docs/skills/TOOLING_INDEX_V2.md` includes the new progress tooling entrypoints.
+  - `docs/runbooks/skills/TOOLING_INDEX_V2.md` includes the new progress tooling entrypoints.
 - **Validation**:
   - `$CODEX_HOME/scripts/lint.sh --shell`
   - `$CODEX_HOME/scripts/test.sh -k workflows_pr_progress`
