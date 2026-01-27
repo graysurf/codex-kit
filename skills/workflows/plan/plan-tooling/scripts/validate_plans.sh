@@ -95,7 +95,7 @@ from pathlib import Path
 
 
 TASK_ID_RE = re.compile(r"^Task [0-9]+\.[0-9]+$")
-PLACEHOLDER_RE = re.compile(r"(<[^>]+>|\\bTBD\\b|\\bTODO\\b)", re.IGNORECASE)
+PLACEHOLDER_RE = re.compile(r"(<[^>]+>|\bTBD\b|\bTODO\b)", re.IGNORECASE)
 
 
 def eprint(msg: str) -> None:
