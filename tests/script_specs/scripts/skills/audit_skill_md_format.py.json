@@ -1,0 +1,14 @@
+{
+  "smoke": [
+    {
+      "name": "summary-ok",
+      "args": ["--format", "summary"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\\A\\Z",
+        "stderr_regex": "(?ms)(?=.*^skills/audit_skill_md_format: checked \\d+ SKILL\\.md files$)(?=.*^skills/audit_skill_md_format: ok \\(no violations\\)$)"
+      }
+    }
+  ]
+}
