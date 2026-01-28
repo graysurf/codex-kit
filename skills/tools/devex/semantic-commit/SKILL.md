@@ -48,6 +48,7 @@ Failure modes:
 - Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`
   - Prefer piping the full multi-line message via stdin
 - Do not call other helper commands directly; treat these scripts as the stable interface
+- **Do not run any other repo-inspection commands** (especially `git status`, `git diff`, `git show`, `rg`, or reading repo files like `cat path/to/file`); the only source of truth is `staged_context.sh` output
 
 ## Workflow
 
@@ -56,6 +57,7 @@ Rules:
 - **Never** run `git add` on your own; **do not** stage files the user has not explicitly staged
 - For end-to-end automation flows that must stage changes without user intervention, use `semantic-commit-autostage` instead
 - Use staged changes only; do not infer from unstaged/untracked files
+- Do not run any extra repo-inspection commands; if more context is needed, ask the user to adjust what is staged or describe intent
 - If `staged_context.sh` fails, report its error output and do not proceed to committing
 
 ## Follow Semantic Commit format
@@ -91,9 +93,9 @@ Rules:
 
 ## Input completeness
 
-- Full-file reads are not required for commit message generation
-- Base the message on staged context only
-- Only read full files if the diff/context is insufficient to describe the change accurately
+- Full-file reads are not allowed for commit message generation
+- Base the message on `staged_context.sh` output only
+- If the staged context is insufficient to describe the change accurately, ask a concise clarifying question (do not run additional commands)
 
 ## Example
 

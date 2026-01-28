@@ -52,6 +52,7 @@ Failure modes:
 - Get staged context (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`
 - Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`
   - Prefer piping the full multi-line message via stdin
+- **Do not run any other repo-inspection commands** (especially `git status`, `git diff`, `git show`, `rg`, or reading repo files like `cat path/to/file`); the only source of truth is `staged_context.sh` output (after autostage)
 
 ## Workflow
 
@@ -60,6 +61,8 @@ Rules:
 - This skill **may** run `git add` (autostage). Use only when the user asked for end-to-end automation and will not stage files manually.
 - For review-first flows where the user stages a subset, use `semantic-commit` instead.
 - Prefer starting from a clean working tree to avoid staging unrelated local changes.
+- After autostage, do not run any extra repo-inspection commands; generate the commit message from `staged_context.sh` output only
+- If `staged_context.sh` exits `2`, treat it as "no changes to stage/commit" and stop
 
 ## Follow Semantic Commit format
 
@@ -91,6 +94,12 @@ Rules:
 - Commit by piping the full message into semantic-commit `commit_with_message.sh` (it preserves formatting)
 - Capture the exit status in `rc` or `exit_code` (do not use `status`)
 - If the commit fails, report the error and do not claim success
+
+## Input completeness
+
+- Full-file reads are not allowed for commit message generation
+- Base the message on `staged_context.sh` output only
+- If the staged context is insufficient to describe the change accurately, ask a concise clarifying question (do not run additional commands)
 
 ## Output and clarification rules
 
