@@ -705,14 +705,17 @@ extract_root_field_name() {
 		{
 			line = $0
 			sub(/\r$/, "", line)
-			sub(/^[[:space:]]+/, "", line)
-			if (line ~ /^#/) next
+			if (line ~ /^[[:space:]]*#/) next
 			if (!in_sel) {
-				if (index(line, "{") > 0) {
+				pos = index(line, "{")
+				if (pos > 0) {
 					in_sel = 1
+					line = substr(line, pos + 1)
+				} else {
+					next
 				}
-				next
 			}
+			sub(/^[[:space:]]+/, "", line)
 			if (line ~ /^$/) next
 			if (line ~ /^}/) next
 			if (match(line, /^[_A-Za-z][_0-9A-Za-z]*/)) {

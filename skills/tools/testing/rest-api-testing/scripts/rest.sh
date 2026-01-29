@@ -445,7 +445,8 @@ user_accept_present="$(jq -r '
     end
 ' "$request_file")"
 
-mapfile -t user_headers < <(jq -r '
+user_headers_raw="$(
+	jq -r '
   .headers? as $h
   | if $h == null then
       empty
@@ -471,7 +472,14 @@ mapfile -t user_headers < <(jq -r '
           end
         end
     end
-' "$request_file")
+' "$request_file"
+)" || die "Invalid headers in request file: $request_file"
+
+if [[ -n "$user_headers_raw" ]]; then
+	mapfile -t user_headers <<<"$user_headers_raw"
+else
+	user_headers=()
+fi
 
 body_present="$(jq -r 'has("body")' "$request_file")"
 body_json=""
@@ -484,7 +492,7 @@ if [[ "$multipart_present" == "true" && "$body_present" == "true" ]]; then
 	die "Request cannot include both body and multipart."
 fi
 
-mapfile -t multipart_parts < <(
+multipart_parts_raw="$(
 	jq -c '
 		if has("multipart") and .multipart != null then
 			if (.multipart | type) != "array" then
@@ -496,7 +504,13 @@ mapfile -t multipart_parts < <(
 			empty
 		end
 	' "$request_file"
-)
+)" || die "Invalid multipart definition in request file: $request_file"
+
+if [[ -n "$multipart_parts_raw" ]]; then
+	mapfile -t multipart_parts <<<"$multipart_parts_raw"
+else
+	multipart_parts=()
+fi
 
 expect_present="$(jq -r 'has("expect")' "$request_file")"
 expect_status=""
@@ -950,6 +964,7 @@ ok=true
 		[[ -n "$cleanup_template" ]] || die "cleanup.pathTemplate is required"
 
 		cleanup_path="$cleanup_template"
+		cleanup_vars_raw="$(jq -r '(.cleanup.vars? // {}) | keys[]' "$request_file")" || die "cleanup.vars must be an object"
 		while IFS= read -r var_key; do
 			[[ -n "$var_key" ]] || continue
 			var_expr="$(jq -r --arg key "$var_key" '.cleanup.vars[$key]' "$request_file")"
@@ -957,7 +972,7 @@ ok=true
 			var_value="$(trim "$var_value")"
 			[[ -n "$var_value" && "$var_value" != "null" ]] || die "cleanup var '$var_key' is empty"
 			cleanup_path="${cleanup_path//\{\{$var_key\}\}/$var_value}"
-		done < <(jq -r '(.cleanup.vars? // {}) | keys[]' "$request_file")
+		done <<<"$cleanup_vars_raw"
 
 		[[ "$cleanup_path" == /* ]] || die "cleanup.pathTemplate must resolve to an absolute path (starts with /)"
 
