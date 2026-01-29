@@ -36,6 +36,7 @@ Failure modes:
 - Not in a git repo or no staged changes.
 - `git-commit-context-json` not found (falls back to raw `git diff`).
 - `git commit` fails (hooks, conflicts, or repo state issues).
+- Commit message validation fails (header/body rules are hard-fail).
 
 ## Setup
 
@@ -59,6 +60,7 @@ Rules:
 - Use staged changes only; do not infer from unstaged/untracked files
 - Do not run any extra repo-inspection commands; if more context is needed, ask the user to adjust what is staged or describe intent
 - If `staged_context.sh` fails, report its error output and do not proceed to committing
+- Treat header/body validation errors as hard failures; report the error and do not claim success
 
 ## Follow Semantic Commit format
 

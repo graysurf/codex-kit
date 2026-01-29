@@ -93,6 +93,71 @@ resolve_codex_command() {
   print -r -- "$candidate"
 }
 
+fail_validation() {
+  local message="${1:-}"
+  if [[ -n "$message" ]]; then
+    echo "error: $message" >&2
+  else
+    echo "error: commit message validation failed" >&2
+  fi
+  exit 1
+}
+
+validate_commit_message() {
+  local file="$1"
+  local -a lines=()
+  local line=""
+  local header=""
+  local header_regex='^[a-z][a-z0-9-]*(\([a-z0-9._-]+\))?: .+$'
+  local body_exists=0
+  local i=0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    lines+=("$line")
+  done < "$file"
+
+  if (( ${#lines[@]} == 0 )); then
+    fail_validation "commit message is empty"
+  fi
+
+  header="${lines[1]}"
+  if [[ -z "$header" ]]; then
+    fail_validation "commit header is empty"
+  fi
+  if (( ${#header} > 100 )); then
+    fail_validation "commit header exceeds 100 characters (max 100)"
+  fi
+  if [[ ! "$header" =~ $header_regex ]]; then
+    fail_validation "invalid header format (expected 'type(scope): subject' or 'type: subject' with lowercase type)"
+  fi
+
+  for (( i=2; i<=${#lines[@]}; i++ )); do
+    if [[ -n "${lines[$i]}" ]]; then
+      body_exists=1
+      break
+    fi
+  done
+
+  if (( body_exists )); then
+    if [[ -n "${lines[2]:-}" ]]; then
+      fail_validation "commit body must be separated from header by a blank line"
+    fi
+
+    for (( i=3; i<=${#lines[@]}; i++ )); do
+      line="${lines[$i]}"
+      if [[ -z "$line" ]]; then
+        fail_validation "commit body line $i is empty; body lines must start with '- ' followed by uppercase letter"
+      fi
+      if (( ${#line} > 100 )); then
+        fail_validation "commit body line $i exceeds 100 characters (max 100)"
+      fi
+      if [[ ! "$line" =~ "^- [A-Z]" ]]; then
+        fail_validation "commit body line $i must start with '- ' followed by uppercase letter"
+      fi
+    done
+  fi
+}
+
 tmpfile="$(mktemp 2>/dev/null || true)"
 if [[ -z "$tmpfile" ]]; then
   tmpfile="$(mktemp -t codex-commit-msg.XXXXXX 2>/dev/null || true)"
@@ -128,6 +193,8 @@ if [[ ! -s "$tmpfile" ]]; then
   echo "error: commit message is empty" >&2
   exit 1
 fi
+
+validate_commit_message "$tmpfile"
 
 if command git commit -F "$tmpfile" >/dev/null; then
   :

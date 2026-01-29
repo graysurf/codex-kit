@@ -39,6 +39,7 @@ Failure modes:
 - `git add` fails (pathspec errors, permissions).
 - `git commit` fails (hooks, conflicts, or repo state issues).
 - `git-commit-context-json` not found (falls back to raw `git diff`).
+- Commit message validation fails (header/body rules are hard-fail).
 
 ## Setup
 
@@ -63,6 +64,7 @@ Rules:
 - Prefer starting from a clean working tree to avoid staging unrelated local changes.
 - After autostage, do not run any extra repo-inspection commands; generate the commit message from `staged_context.sh` output only
 - If `staged_context.sh` exits `2`, treat it as "no changes to stage/commit" and stop
+- Treat header/body validation errors as hard failures; report the error and do not claim success
 
 ## Follow Semantic Commit format
 
