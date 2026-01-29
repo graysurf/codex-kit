@@ -106,8 +106,8 @@ fail_validation() {
 validate_commit_message() {
   local file="$1"
   local -a lines=()
-  local line=""
-  local header=""
+  local line=''
+  local header=''
   local header_regex='^[a-z][a-z0-9-]*(\([a-z0-9._-]+\))?: .+$'
   local body_exists=0
   local i=0
