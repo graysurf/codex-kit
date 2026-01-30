@@ -52,7 +52,6 @@ Failure modes:
 - Get staged context (stdout): `semantic-commit staged-context`
 - Commit with a prepared message, then print a commit summary (stdout): `semantic-commit commit`
   - Prefer piping the full multi-line message via stdin
-- Do not call or rely on `git-commit-context-json`; the workflow must use `semantic-commit` only
 - **Do not run any other repo-inspection commands** (especially `git status`, `git diff`, `git show`, `rg`, or reading repo files like `cat path/to/file`); the only source of truth is `semantic-commit staged-context` output (after autostage)
 
 ## Workflow
