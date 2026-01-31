@@ -104,7 +104,7 @@ Plan tooling helps keep implementation plans concrete (executable + verifiable) 
 
 ### Plan lint
 
-`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
+`$CODEX_COMMANDS_PATH/plan-tooling validate` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
 
 - Sprints: `## Sprint N: <name>`
 - Tasks: `### Task N.M: <name>`
@@ -117,23 +117,23 @@ Plan tooling helps keep implementation plans concrete (executable + verifiable) 
 
 Usage:
 
-- Lint all tracked plans: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
-- Lint a specific plan: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/<name>-plan.md`
+- Lint all tracked plans: `$CODEX_COMMANDS_PATH/plan-tooling validate`
+- Lint a specific plan: `$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/<name>-plan.md`
 
 ### Plan scaffolding
 
-`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh` creates a new `docs/plans/*-plan.md` file from the shared template:
+`$CODEX_COMMANDS_PATH/plan-tooling scaffold` creates a new `docs/plans/*-plan.md` file from the shared template:
 
-- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh --slug <kebab-case> --title "<task name>"`
+- `$CODEX_COMMANDS_PATH/plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
 
 ### Plan JSON export
 
-`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh` parses a plan into JSON for tooling to consume:
+`$CODEX_COMMANDS_PATH/plan-tooling to-json` parses a plan into JSON for tooling to consume:
 
-- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh --file docs/plans/<name>-plan.md | python3 -m json.tool`
+- `$CODEX_COMMANDS_PATH/plan-tooling to-json --file docs/plans/<name>-plan.md | python3 -m json.tool`
 
 ### Parallel batches
 
-`$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh` computes dependency layers (parallel batches) for a sprint:
+`$CODEX_COMMANDS_PATH/plan-tooling batches` computes dependency layers (parallel batches) for a sprint:
 
-- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh --file docs/plans/<name>-plan.md --sprint 1 --format text`
+- `$CODEX_COMMANDS_PATH/plan-tooling batches --file docs/plans/<name>-plan.md --sprint 1 --format text`

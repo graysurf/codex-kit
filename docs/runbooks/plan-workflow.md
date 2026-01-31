@@ -9,7 +9,7 @@ Use this workflow to create a plan, lint it, inspect JSON output, compute parall
 
 - Create `docs/plans/<kebab-case>-plan.md`.
 - Optional: scaffold from the shared plan template:
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh --slug <kebab-case> --title "<task name>"`
+  - `$CODEX_COMMANDS_PATH/plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
 - Follow Plan Format v1: `docs/plans/FORMAT.md`.
 - If you want Codex to draft the plan, use the `create-plan` or `create-plan-rigorous` workflow and save the result under `docs/plans/`.
 
@@ -18,19 +18,19 @@ Use this workflow to create a plan, lint it, inspect JSON output, compute parall
 From repo root:
 
 ```bash
-$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/<kebab-case>-plan.md
+$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/<kebab-case>-plan.md
 ```
 
 ## 3) Export JSON (for inspection or tooling)
 
 ```bash
-$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh --file docs/plans/<kebab-case>-plan.md --pretty
+$CODEX_COMMANDS_PATH/plan-tooling to-json --file docs/plans/<kebab-case>-plan.md --pretty
 ```
 
 ## 4) Compute parallel batches
 
 ```bash
-$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh --file docs/plans/<kebab-case>-plan.md --sprint 1 --format text
+$CODEX_COMMANDS_PATH/plan-tooling batches --file docs/plans/<kebab-case>-plan.md --sprint 1 --format text
 ```
 
 ## 5) Run `/execute-plan-parallel`

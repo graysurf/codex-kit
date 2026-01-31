@@ -59,7 +59,7 @@ Failure modes:
 
 5) Lint the plan (format + executability)
 
-- Run: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/<slug>-plan.md`
+- Run: `$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/<slug>-plan.md`
 - If it fails: tighten tasks (missing fields, placeholders, unclear validations) until it passes.
 
 6) Review “gotchas”
@@ -74,4 +74,4 @@ Shared template (single source of truth):
 
 Optional scaffold helper (creates a placeholder plan; fill it before linting):
 
-- `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh --slug <kebab-case> --title "<task name>"`
+- `$CODEX_COMMANDS_PATH/plan-tooling scaffold --slug <kebab-case> --title "<task name>"`

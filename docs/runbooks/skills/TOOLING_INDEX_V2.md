@@ -1,6 +1,6 @@
 # Skills Tooling Index v2
 
-This doc lists canonical executable entrypoints that live under `skills/**/scripts/`.
+This doc lists canonical executable entrypoints (under `skills/**/scripts/` and `commands/`).
 
 ## SKILL.md format
 
@@ -26,13 +26,13 @@ This doc lists canonical executable entrypoints that live under `skills/**/scrip
 ## Plan tooling (Plan Format v1)
 
 - Scaffold a new plan file:
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/scaffold_plan.sh`
+  - `$CODEX_COMMANDS_PATH/plan-tooling scaffold`
 - Lint plans:
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
+  - `$CODEX_COMMANDS_PATH/plan-tooling validate`
 - Parse plan → JSON:
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
+  - `$CODEX_COMMANDS_PATH/plan-tooling to-json`
 - Compute dependency batches:
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
+  - `$CODEX_COMMANDS_PATH/plan-tooling batches`
 
 ## Progress tooling (Progress PR workflow)
 

@@ -26,16 +26,16 @@ Each task must include the following fields (exact labels):
 ```md
 ### Task 1.2: Add plan linter
 - **Location**:
-  - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
+  - `commands/plan-tooling`
   - `scripts/README.md`
 - **Description**: Add a plan linter script that enforces Plan Format v1 for docs/plans/*-plan.md.
 - **Dependencies**:
   - Task 1.1
 - **Acceptance criteria**:
-  - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh` exits 0 on valid plans.
-  - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh` exits non-zero with `error:` lines on invalid plans.
+  - `commands/plan-tooling validate` exits 0 on valid plans.
+  - `commands/plan-tooling validate` exits non-zero with `error:` lines on invalid plans.
 - **Validation**:
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/example-plan.md`
+  - `$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/example-plan.md`
 ```
 
 ## Field rules (linted)
@@ -63,9 +63,9 @@ Each task must include the following fields (exact labels):
 
 Tooling only reads sprint/task headings and task fields. Any other sections (e.g. `## Overview`, `## Risks`, `## Execution Notes`) are ignored as long as task headings remain valid.
 
-## JSON schema (skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh)
+## JSON schema (`commands/plan-tooling to-json`)
 
-`skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh` emits JSON with:
+`commands/plan-tooling to-json` emits JSON with:
 
 - `title` (string)
 - `file` (string, repo-relative if possible)

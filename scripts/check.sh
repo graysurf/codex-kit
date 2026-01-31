@@ -206,7 +206,8 @@ fi
 if [[ "$run_plans" -eq 1 ]]; then
   echo "lint: validate plans" >&2
   set +e
-  "${CODEX_HOME}/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh"
+  commands_dir="${CODEX_COMMANDS_PATH:-${CODEX_HOME}/commands}"
+  "${commands_dir}/plan-tooling" validate
   plans_rc=$?
   set -e
 

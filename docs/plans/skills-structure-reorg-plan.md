@@ -13,7 +13,7 @@ Primary success criteria: new and existing skills follow a single, auditable str
   - Introduce shared directories:
     - Category shared: `skills/<category>/<area>/_shared/`
     - Global shared: `skills/_shared/`
-  - Ensure plan tooling entrypoints live under `skills/workflows/plan/plan-tooling/scripts/`.
+- Ensure plan tooling entrypoints live under `commands/plan-tooling`.
   - Ensure real-GitHub E2E drivers live under dedicated skills (e.g., `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/`).
   - Remove legacy entrypoints and update all runnable instructions to canonical `$CODEX_HOME/...` paths.
   - Add per-skill `tests/` for **all tracked skills** and enforce via audit + CI.
@@ -38,9 +38,9 @@ Local-only skills (ignored by git): `skills/_projects/**` (project DB helpers) a
 Canonical skill entrypoints (v2):
 
 - Plan tooling:
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
+  - `$CODEX_COMMANDS_PATH/plan-tooling validate`
+  - `$CODEX_COMMANDS_PATH/plan-tooling to-json`
+  - `$CODEX_COMMANDS_PATH/plan-tooling batches`
 - E2E driver:
   - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
 - Skill governance:
@@ -53,7 +53,7 @@ Canonical skill entrypoints (v2):
 
 **Demo/Validation**:
 - Command(s):
-  - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file docs/plans/skills-structure-reorg-plan.md`
+  - `$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/skills-structure-reorg-plan.md`
 - Verify:
   - Plan lints cleanly and contains a complete tooling index.
 
@@ -190,34 +190,31 @@ Canonical skill entrypoints (v2):
 - **Location**:
   - `skills/workflows/plan/create-plan/SKILL.md`
   - `docs/runbooks/progress-pr-workflow.md`
-- **Description**: Do a repo-wide scan for runnable instructions and rewrite them to canonical `$CODEX_HOME/...` paths.
+- **Description**: Do a repo-wide scan for runnable instructions and rewrite them to canonical `$CODEX_COMMANDS_PATH/...` (binaries) or `$CODEX_HOME/...` (repo scripts) paths.
 - **Dependencies**:
   - Task 2.3
   - Task 2.4
 - **Acceptance criteria**:
   - Tracked `SKILL.md` files contain no runnable instructions that depend on the current working directory.
 - **Validation**:
-  - `rg -n \"scripts/(validate_plans|plan_to_json|plan_batches|audit-skill-layout|validate_skill_contracts)\\.sh|scripts/e2e/progress_pr_workflow\\.sh\" -S skills docs tests`
+  - `rg -n \"plan-tooling/scripts|validate_plans\\.sh|plan_to_json\\.sh|plan_batches\\.sh|scaffold_plan\\.sh|scripts/e2e/progress_pr_workflow\\.sh\" -S skills docs tests`
 
 ## Sprint 3: Plan tooling migration into `skills/workflows/plan`
 
-**Goal**: standardize plan tooling under `skills/workflows/plan/plan-tooling/scripts/` and update planning skills/docs accordingly.
+**Goal**: standardize plan tooling under `commands/plan-tooling` and update planning skills/docs accordingly.
 
 **Demo/Validation**:
 - Command(s):
   - `scripts/test.sh -m script_smoke -k plan`
 - Verify:
-  - Plan tooling scripts work via the canonical entrypoints.
+  - Plan tooling works via the canonical entrypoints.
 
 ### Task 3.1: Create a plan-tooling skill and move the scripts
 
 - **Complexity**: 7
 - **Location**:
-  - `skills/workflows/plan/plan-tooling/SKILL.md`
-  - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
-  - `skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
-  - `skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
-- **Description**: Make plan tooling canonical under `skills/workflows/plan/plan-tooling/scripts/`.
+  - `commands/plan-tooling`
+- **Description**: Make plan tooling canonical under `commands/plan-tooling`.
 - **Dependencies**:
   - Task 1.2
   - Task 2.1
@@ -233,10 +230,10 @@ Canonical skill entrypoints (v2):
   - `skills/workflows/plan/create-plan/SKILL.md`
   - `skills/workflows/plan/create-plan-rigorous/SKILL.md`
   - `skills/workflows/plan/execute-plan-parallel/SKILL.md`
-- **Description**: Replace runnable instructions that reference `scripts/...` with canonical `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/...`.
+- **Description**: Replace runnable instructions that reference `skills/**/scripts/...` with canonical `$CODEX_COMMANDS_PATH/plan-tooling ...`.
 - **Dependencies**: Task 3.1
 - **Acceptance criteria**:
-  - SKILL.md runnable commands use `$CODEX_HOME/...` absolute paths for executables.
+  - SKILL.md runnable commands use `$CODEX_COMMANDS_PATH/...` for executables.
   - The docs still describe the same workflow; only paths change.
 - **Validation**:
   - `scripts/check.sh --contracts`
@@ -245,7 +242,7 @@ Canonical skill entrypoints (v2):
 
 - **Complexity**: 6
 - **Location**:
-  - `skills/workflows/plan/plan-tooling/tests/test_plan_tooling_smoke.py`
+  - `tests/test_plan_scripts.py`
   - `tests/fixtures/plan/valid-plan.md`
 - **Description**: Add tests under the skill to validate canonical paths, outputs, and failure modes.
 - **Dependencies**: Task 3.1

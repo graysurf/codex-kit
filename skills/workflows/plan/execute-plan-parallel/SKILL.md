@@ -45,9 +45,9 @@ Failure modes:
 2) Read and parse the plan
 
 - Prefer using repo tooling (avoid parsing drift):
-  - Lint: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh --file <plan.md>`
-  - Parse JSON: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh --file <plan.md> [--sprint <n>]`
-  - Compute batches: `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh --file <plan.md> --sprint <n>`
+  - Lint: `$CODEX_COMMANDS_PATH/plan-tooling validate --file <plan.md>`
+  - Parse JSON: `$CODEX_COMMANDS_PATH/plan-tooling to-json --file <plan.md> [--sprint <n>]`
+  - Compute batches: `$CODEX_COMMANDS_PATH/plan-tooling batches --file <plan.md> --sprint <n>`
 - Locate the selected sprint/phase section (e.g., `## Sprint 1:`).
 - Extract tasks (e.g., `### Task 1.1:`).
 - For each task, capture:
@@ -59,7 +59,7 @@ Failure modes:
 
 3) Launch parallel subagents for unblocked tasks
 
-- Batch-launch subagents for tasks that have no unmet dependencies (use `plan_batches.sh` output when available).
+- Batch-launch subagents for tasks that have no unmet dependencies (use `plan-tooling batches` output when available).
 - Provide each subagent the task text, relevant context, and strict scope: “implement this task only”.
 - Require each subagent to report:
   - Files modified/created

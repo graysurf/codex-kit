@@ -48,7 +48,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Plan workflows: shared Plan Format v1 template at `skills/workflows/plan/_shared/assets/plan-template.md`.
-- Plan tooling: `scaffold_plan.sh` helper to generate `docs/plans/*-plan.md` from the shared template.
+- Plan tooling: `plan-tooling scaffold` helper to generate `docs/plans/*-plan.md` from the shared template.
 
 ### Changed
 - `create-plan` / `create-plan-rigorous`: reference the shared plan template and requirements.

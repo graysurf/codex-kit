@@ -26,9 +26,9 @@ Links:
   - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Plan tooling and E2E driver have canonical entrypoints under `skills/`:
   - Plan tooling:
-    - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
-    - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
-    - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
+    - `$CODEX_COMMANDS_PATH/plan-tooling validate`
+    - `$CODEX_COMMANDS_PATH/plan-tooling to-json`
+    - `$CODEX_COMMANDS_PATH/plan-tooling batches`
   - Progress workflow E2E driver:
     - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
 - `SKILL.md` runnable executable references use `$CODEX_HOME/...` (no CWD-dependent `scripts/...` instructions).
@@ -44,9 +44,7 @@ Links:
   - Canonical script entrypoints under `skills/`:
     - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
     - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-    - `skills/workflows/plan/plan-tooling/scripts/validate_plans.sh`
-    - `skills/workflows/plan/plan-tooling/scripts/plan_to_json.sh`
-    - `skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
+    - `commands/plan-tooling`
     - `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
   - Per-skill tests: add `tests/` for every tracked skill and enforce via audits + CI.
 - Out-of-scope:
@@ -123,7 +121,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Migrate plan tooling and progress E2E driver into `skills/`.
     - [x] Add per-skill tests for all tracked skills; enforce via audit + CI.
   - Artifacts:
-    - `skills/workflows/plan/plan-tooling/`
+    - `commands/plan-tooling`
     - `skills/workflows/pr/progress/progress-pr-workflow-e2e/`
     - `skills/**/tests/`
   - Exit Criteria:
