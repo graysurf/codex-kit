@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import shlex
 import subprocess
@@ -13,12 +14,15 @@ from .conftest import SCRIPT_RUN_RESULTS, ScriptRunResult, default_env, discover
 
 
 def parse_shebang(script_path: Path) -> list[str]:
-    first = script_path.read_text("utf-8", errors="ignore").splitlines()[:1]
-    if not first:
+    try:
+        with script_path.open("rb") as handle:
+            first = handle.readline(4096)
+    except OSError:
         return []
-    line = first[0].strip()
-    if not line.startswith("#!"):
+    if not first.startswith(b"#!"):
         return []
+
+    line = first.decode("utf-8", errors="ignore").strip()
 
     tokens = shlex.split(line[2:].strip())
     if not tokens:
@@ -79,10 +83,12 @@ def run_script(script: str, spec: dict[str, Any], repo: Path) -> ScriptRunResult
                 env[str(key)] = str(value)
 
     shebang = parse_shebang(script_path)
-    if not shebang:
-        raise ValueError(f"missing shebang: {script}")
-
-    argv = shebang + [str(script_path)] + list(args)
+    if shebang:
+        argv = shebang + [str(script_path)] + list(args)
+    else:
+        if not os.access(script_path, os.X_OK):
+            raise ValueError(f"missing shebang: {script}")
+        argv = [str(script_path)] + list(args)
 
     expect = spec.get("expect", {})
     if expect and not isinstance(expect, dict):
