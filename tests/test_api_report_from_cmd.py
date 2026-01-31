@@ -30,9 +30,9 @@ def test_api_report_from_cmd_expands_home_env_config_dir() -> None:
 
     _run(["git", "init"], cwd=project, env=env)
 
-    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
+    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "bin" / "api-gql"
     snippet = (
-        f"{gql_script} --config-dir $HOME/sample-project/setup/graphql --env local "
+        f"{gql_script} call --config-dir $HOME/sample-project/setup/graphql --env local "
         "setup/graphql/operations/test.graphql "
         "setup/graphql/operations/test.variables.json"
     )
@@ -58,8 +58,8 @@ def test_api_report_from_cmd_rejects_stdin_response_stdin() -> None:
     repo = repo_root()
     env = default_env(repo)
 
-    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
-    snippet = f"{gql_script} --config-dir /tmp/setup/graphql setup/graphql/operations/test.graphql"
+    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "bin" / "api-gql"
+    snippet = f"{gql_script} call --config-dir /tmp/setup/graphql setup/graphql/operations/test.graphql"
 
     cmd = [str(repo / "commands" / "api-report-from-cmd"), "--response", "-", "--stdin"]
     completed = subprocess.run(
@@ -87,9 +87,9 @@ def test_api_report_from_cmd_resolves_out_response_relative_to_project_root() ->
 
     _run(["git", "init"], cwd=project, env=env)
 
-    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
+    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "bin" / "api-gql"
     snippet = (
-        f"{gql_script} --config-dir $HOME/sample-project/setup/graphql --env local "
+        f"{gql_script} call --config-dir $HOME/sample-project/setup/graphql --env local "
         "setup/graphql/operations/test.graphql"
     )
 
@@ -123,9 +123,9 @@ def test_api_report_from_cmd_derives_case_with_comma_space() -> None:
 
     _run(["git", "init"], cwd=project, env=env)
 
-    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
+    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "bin" / "api-gql"
     snippet = (
-        f"{gql_script} --config-dir $HOME/sample-project-case/setup/graphql --env local --jwt member "
+        f"{gql_script} call --config-dir $HOME/sample-project-case/setup/graphql --env local --jwt member "
         "setup/graphql/operations/test.graphql"
     )
 

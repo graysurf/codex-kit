@@ -15,9 +15,6 @@ def test_tools_testing_graphql_api_testing_entrypoints_exist() -> None:
     assert_entrypoints_exist(
         skill_root,
         [
-            "scripts/gql.sh",
-            "scripts/gql-report.sh",
-            "scripts/gql-history.sh",
-            "scripts/gql-schema.sh",
+            "bin/api-gql",
         ],
     )

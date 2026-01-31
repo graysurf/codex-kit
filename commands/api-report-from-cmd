@@ -21,15 +21,15 @@ Usage:
   api-report-from-cmd [options] --stdin
 
 Purpose:
-  Rewrite a saved `gql.sh` / `rest.sh` command snippet into the corresponding
-  report generator (`gql-report.sh` / `rest-report.sh`) and run it.
+  Rewrite a saved `api-gql`/`gql.sh` or `api-rest`/`rest.sh` command snippet into the corresponding
+  report generator (`api-gql report` / `api-rest report`) and run it.
 
 Options:
   --case <name>        Override the report case name (default: derived from op/request + env/jwt/token)
   --out <path>         Pass through to the report script as --out
   --response <file>    Use an existing response file (no network); passed to the report script as --response
                        Use "-" to read response from stdin.
-  --allow-empty        GraphQL only: pass through to `gql-report.sh --allow-empty`
+  --allow-empty        GraphQL only: pass through to `api-gql report --allow-empty`
   --dry-run            Print the rewritten command and exit 0 (does not execute)
   --stdin              Read the command snippet from stdin (cannot combine with --response -)
   -h, --help           Show help
@@ -37,7 +37,7 @@ Options:
 Examples:
   # Convert a gql-history snippet into a report (runs the API call)
   api-report-from-cmd '
-  $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+  $CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql call \
     --config-dir /path/to/repo/setup/graphql \
     --env local \
     --jwt member \
@@ -48,7 +48,7 @@ Examples:
 
   # Same, but generate from an existing response snapshot (no API call)
   api-report-from-cmd --response out/response.json '
-  $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+  $CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql call \
     --config-dir /path/to/repo/setup/graphql \
     --env local \
     --jwt member \
@@ -162,10 +162,10 @@ script_base="$(basename "$script")"
 
 kind=""
 case "$script_base" in
-  gql.sh) kind="graphql" ;;
-  rest.sh) kind="rest" ;;
+  api-gql|gql.sh) kind="graphql" ;;
+  api-rest|rest.sh) kind="rest" ;;
   *)
-    die "unsupported script (expected gql.sh or rest.sh): $script"
+    die "unsupported script (expected api-gql/gql.sh or api-rest/rest.sh): $script"
     ;;
 esac
 
@@ -177,6 +177,11 @@ token_name=""
 positional=()
 
 i=1
+if [[ "$script_base" == "api-gql" || "$script_base" == "api-rest" ]]; then
+  if [[ "${tokens[1]:-}" == "call" ]]; then
+    i=2
+  fi
+fi
 while [[ $i -lt ${#tokens[@]} ]]; do
   t="${tokens[$i]}"
   case "$t" in
@@ -298,9 +303,15 @@ if [[ "$kind" == "graphql" ]]; then
   op="${positional[0]:-}"
   vars="${positional[1]:-}"
   [[ -n "$op" ]] || die "missing positional operation file"
-
-  report_script="$(dirname "$script")/gql-report.sh"
-  [[ -x "$report_script" ]] || die "gql-report.sh not found or not executable: $report_script"
+  report_bin="$script"
+  if [[ "$script_base" == "gql.sh" ]]; then
+    report_bin="${CODEX_HOME%/}/skills/tools/testing/graphql-api-testing/bin/api-gql"
+  fi
+  if [[ "$report_bin" == */* ]]; then
+    [[ -x "$report_bin" ]] || die "api-gql not found or not executable: $report_bin"
+  else
+    command -v "$report_bin" >/dev/null 2>&1 || die "api-gql not found on PATH: $report_bin"
+  fi
 
   op_abs="$(resolve_in_project "$op")"
   vars_abs="$(resolve_in_project "$vars")"
@@ -312,7 +323,7 @@ if [[ "$kind" == "graphql" ]]; then
     case_name="$(derive_case "$base")"
   fi
 
-  report_cmd+=("$report_script" --case "$case_name" --op "$op_abs")
+  report_cmd+=("$report_bin" report --case "$case_name" --op "$op_abs")
   [[ -n "$vars" ]] && report_cmd+=(--vars "$vars_abs")
   [[ -n "$out_arg" ]] && report_cmd+=(--out "$out_arg")
   [[ -n "$project_root" ]] && report_cmd+=(--project-root "$project_root")
@@ -329,9 +340,15 @@ if [[ "$kind" == "graphql" ]]; then
 elif [[ "$kind" == "rest" ]]; then
   req="${positional[0]:-}"
   [[ -n "$req" ]] || die "missing positional request file"
-
-  report_script="$(dirname "$script")/rest-report.sh"
-  [[ -x "$report_script" ]] || die "rest-report.sh not found or not executable: $report_script"
+  report_bin="$script"
+  if [[ "$script_base" == "rest.sh" ]]; then
+    report_bin="${CODEX_HOME%/}/skills/tools/testing/rest-api-testing/bin/api-rest"
+  fi
+  if [[ "$report_bin" == */* ]]; then
+    [[ -x "$report_bin" ]] || die "api-rest not found or not executable: $report_bin"
+  else
+    command -v "$report_bin" >/dev/null 2>&1 || die "api-rest not found on PATH: $report_bin"
+  fi
 
   req_abs="$(resolve_in_project "$req")"
 
@@ -342,7 +359,7 @@ elif [[ "$kind" == "rest" ]]; then
     case_name="$(derive_case "$base")"
   fi
 
-  report_cmd+=("$report_script" --case "$case_name" --request "$req_abs")
+  report_cmd+=("$report_bin" report --case "$case_name" --request "$req_abs")
   [[ -n "$out_arg" ]] && report_cmd+=(--out "$out_arg")
   [[ -n "$project_root" ]] && report_cmd+=(--project-root "$project_root")
   [[ -n "$config_dir" ]] && report_cmd+=(--config-dir "$config_dir")

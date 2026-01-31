@@ -5,7 +5,7 @@
 ## Command
 
 ```bash
-"$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh" \
+"$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql" call \
   --env <ENV_NAME> \
   --jwt <JWT_NAME> \
   setup/graphql/operations/<OPERATION_NAME>.graphql \

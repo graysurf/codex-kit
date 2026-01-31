@@ -1,6 +1,6 @@
 ---
 name: api-test-runner
-description: Run CI-friendly API test suites (REST + GraphQL) from a single manifest, delegating to rest.sh/gql.sh and emitting JSON (+ optional JUnit) results. Use when the user asks to reduce CI boilerplate and provide a simple, composable suite runner for other tools (pytest/node/LLM) to call.
+description: Run CI-friendly API test suites (REST + GraphQL) from a single manifest, using the bundled api-test binary and emitting JSON (+ optional JUnit) results. Use when the user asks to reduce CI boilerplate and provide a simple, composable suite runner for other tools (pytest/node/LLM) to call.
 ---
 
 # API Test Runner (REST + GraphQL)
@@ -9,9 +9,8 @@ description: Run CI-friendly API test suites (REST + GraphQL) from a single mani
 
 Prereqs:
 
-- `bash` and `jq` available on `PATH`.
-- REST runner: `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh` (requires `curl`).
-- GraphQL runner: `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh` (requires `xh`/`http`/`curl`).
+- `$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test` available (or `api-test` on `PATH`).
+- `jq` recommended for ad-hoc assertions/formatting (optional).
 
 Inputs:
 
@@ -34,15 +33,14 @@ Exit codes:
 Failure modes:
 
 - Missing/invalid suite or case files (JSON schema errors, missing request/op files).
-- Missing dependencies (`jq`, `curl`, or no supported GraphQL HTTP client).
 - Auth missing/invalid (401/403) or write-capable case blocked by safety defaults.
 
 ## Goal
 
 Run a suite of API checks in CI (and locally) via a single manifest file, reusing existing callers:
 
-- REST: `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh`
-- GraphQL: `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`
+- REST: `$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest`
+- GraphQL: `$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql`
 
 The runner:
 
@@ -68,19 +66,19 @@ cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
 Run a canonical suite:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --out out/api-test-runner/results.json
+$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run --suite smoke-demo --out out/api-test-runner/results.json
 ```
 
 Emit JUnit for CI reporters:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --junit out/api-test-runner/junit.xml
+$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run --suite smoke-demo --junit out/api-test-runner/junit.xml
 ```
 
 Generate a human-friendly summary (CI logs + `$GITHUB_STEP_SUMMARY`), based on the results JSON:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test summary \
   --in out/api-test-runner/results.json \
   --out out/api-test-runner/summary.md \
   --slow 5
@@ -89,7 +87,7 @@ $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
 Hide skipped cases (optional):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test summary \
   --in out/api-test-runner/results.json \
   --hide-skipped
 ```
@@ -108,8 +106,8 @@ Runner entrypoints:
 
 Notes:
 
-- REST cases point at `*.request.json` (same schema used by `rest.sh`).
-- GraphQL cases point at `*.graphql` + variables `*.json` (same inputs used by `gql.sh`).
+- REST cases point at `*.request.json` (same inputs used by `api-rest call`).
+- GraphQL cases point at `*.graphql` + variables `*.json` (same inputs used by `api-gql call`).
 - Suite manifest location is independent from REST/GraphQL `configDir` (those can live under `tests/rest`, `tests/graphql`, etc).
 - GraphQL write safety: if an operation file contains a `mutation` definition, the runner treats it as write-capable and requires `allowWrite=true` on the case.
 - GraphQL default validation: when `allowErrors=false` and `expect.jq` is omitted, the runner requires `.data` to be a non-null object.
@@ -175,7 +173,7 @@ Notes:
 Notes:
 
 - `defaults.*` are optional; per-case fields override `defaults`.
-- `defaults.noHistory` (and case `noHistory`) map to `--no-history` on underlying `rest.sh` / `gql.sh`.
+- `defaults.noHistory` (and case `noHistory`) map to `--no-history` on underlying `api-rest call` / `api-gql call`.
 - `defaults.rest.configDir` / `defaults.graphql.configDir` default to `setup/rest` / `setup/graphql`.
 - For REST and GraphQL endpoint selection, prefer `url` for CI determinism (avoids env preset drift).
 - `rest-flow` runs `loginRequest` first, extracts a token (via `tokenJq`), then runs `request` with `ACCESS_TOKEN=<token>` (token is not printed in command snippets).
@@ -245,7 +243,7 @@ REST cleanup example (delete by key extracted from the response):
 }
 ```
 
-Note: `rest.sh` also supports per-request cleanup blocks; case-level `cleanup` is an alternative that can cover both REST + GraphQL in one suite.
+Note: `api-rest` also supports per-request cleanup blocks; case-level `cleanup` is an alternative that can cover both REST + GraphQL in one suite.
 
 ## CI auth (GitHub Secrets / JWT login)
 
@@ -354,7 +352,7 @@ Control:
 Generic shell (write JSON + JUnit as CI artifacts):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
+$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run \
   --suite smoke \
   --out out/api-test-runner/results.json \
   --junit out/api-test-runner/junit.xml
@@ -400,7 +398,7 @@ steps:
       CODEX_HOME: ${{ github.workspace }}
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
     run: |
-      $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
+      $CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run \
         --suite my-suite \
         --tag staging \
         --tag "shard:${{ matrix.shard }}" \

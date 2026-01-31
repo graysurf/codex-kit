@@ -15,8 +15,6 @@ def test_tools_testing_rest_api_testing_entrypoints_exist() -> None:
     assert_entrypoints_exist(
         skill_root,
         [
-            "scripts/rest.sh",
-            "scripts/rest-report.sh",
-            "scripts/rest-history.sh",
+            "bin/api-rest",
         ],
     )

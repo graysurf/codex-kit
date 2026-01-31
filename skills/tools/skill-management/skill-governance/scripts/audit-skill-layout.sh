@@ -10,6 +10,7 @@ Validates that each tracked skill directory contains only the allowed top-level
 entries:
   - SKILL.md
   - scripts/    (optional)
+  - bin/        (optional)
   - references/ (optional)
   - assets/     (optional)
   - tests/      (required)
@@ -76,7 +77,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ALLOWED_TOP_LEVEL = {"SKILL.md", "scripts", "references", "assets", "tests"}
+ALLOWED_TOP_LEVEL = {"SKILL.md", "scripts", "bin", "references", "assets", "tests"}
 ALLOWED_TEMPLATE_PREFIXES = (("references",), ("assets", "templates"))
 IGNORED_UNTRACKED_TOP_LEVEL = {".DS_Store", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
 

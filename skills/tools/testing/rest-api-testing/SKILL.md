@@ -1,6 +1,6 @@
 ---
 name: rest-api-testing
-description: Test REST APIs with repeatable, file-based requests under <project>/setup/rest, with per-project endpoint and Bearer token presets, using the bundled rest.sh (curl + jq). Use when the user asks to manually call REST endpoints, replay requests reliably, add CI-friendly assertions, and record API test reports.
+description: Test REST APIs with repeatable, file-based requests under <project>/setup/rest, with per-project endpoint and Bearer token presets, using the bundled api-rest binary. Use when the user asks to manually call REST endpoints, replay requests reliably, add CI-friendly assertions, and record API test reports.
 ---
 
 # REST API Testing
@@ -9,20 +9,21 @@ description: Test REST APIs with repeatable, file-based requests under <project>
 
 Prereqs:
 
-- `bash` and `curl` available on `PATH` (`jq` recommended for pretty-printing/assertions).
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest` available (or `api-rest` on `PATH`).
+- `jq` recommended for pretty-printing/assertions (optional).
 - `setup/rest/` exists (or bootstrap from template) with requests and optional endpoint/token presets.
 
 Inputs:
 
 - Request file path: `setup/rest/requests/<name>.request.json`.
-- Optional flags/env: `--env`, `--url`, `--token`, `--config-dir`, `--no-history` (plus `REST_URL`, `ACCESS_TOKEN`,
+- Optional flags/env (runner): `--env`, `--url`, `--token`, `--config-dir`, `--no-history` (plus `REST_URL`, `ACCESS_TOKEN`,
   `REST_JWT_VALIDATE_ENABLED`, `REST_JWT_VALIDATE_STRICT`, `REST_JWT_VALIDATE_LEEWAY_SECONDS`).
 
 Outputs:
 
 - Response JSON (or raw response) printed to stdout; errors printed to stderr.
 - Optional history file under `setup/rest/.rest_history` (gitignored; disabled via `--no-history`).
-- Optional markdown report via `$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh`.
+- Optional markdown report via `api-rest report`.
 
 Exit codes:
 
@@ -49,7 +50,7 @@ Make REST API calls reproducible and CI-friendly via:
 Call an existing request (JSON only):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest call \
   --env local \
   setup/rest/requests/<request>.request.json \
 | jq .
@@ -59,46 +60,46 @@ If the endpoint requires auth, pass a token profile (from `setup/rest/tokens.loc
 
 ```bash
 # Token profile (requires REST_TOKEN_<NAME> to be non-empty in setup/rest/tokens.local.env)
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --env local --token default setup/rest/requests/<request>.request.json | jq .
+$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest call --env local --token default setup/rest/requests/<request>.request.json | jq .
 
 # Or: one-off token (useful for CI)
 REST_URL="https://<host>" ACCESS_TOKEN="<token>" \
-  $CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --url "$REST_URL" setup/rest/requests/<request>.request.json | jq .
+  $CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest call --url "$REST_URL" setup/rest/requests/<request>.request.json | jq .
 ```
 
 Replay the last run (history):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-history.sh --command-only
+$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest history --command-only
 ```
 
 Generate a report (includes a replayable `## Command` by default):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest report \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env local \
   --run
 ```
 
-Generate a report from a copied `rest.sh` command snippet (no manual rewriting):
+Generate a report from a copied `api-rest`/`rest.sh` command snippet (no manual rewriting):
 
 ```bash
-$CODEX_HOME/commands/api-report-from-cmd '<paste a rest.sh command snippet>'
+$CODEX_HOME/commands/api-report-from-cmd '<paste an api-rest/rest.sh command snippet>'
 ```
 
 If your repo bootstrapped `setup/rest/` from the template, you can also use:
 
-- `setup/rest/api-report-from-cmd.sh '<paste a rest.sh command snippet>'`
+- `setup/rest/api-report-from-cmd.sh '<paste an api-rest/rest.sh command snippet>'`
 
 ## Flow (decision tree)
 
 - If `setup/rest/prompt.md` exists → read it first for project-specific context.
 - No `setup/rest/` yet → bootstrap from template:
   - `cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/`
-- Have request file → run with `rest.sh`.
-- Need a markdown report → use `rest-report.sh --run` (or `--response`).
+- Have request file → run with `api-rest call`.
+- Need a markdown report → use `api-rest report --run` (or `--response`).
 
 ## Notes (defaults)
 

@@ -5,7 +5,7 @@
 ## Command
 
 ```bash
-"$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh" \
+"$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest" call \
   --env <ENV_NAME> \
   setup/rest/requests/<REQUEST_NAME>.request.json \
 | jq .

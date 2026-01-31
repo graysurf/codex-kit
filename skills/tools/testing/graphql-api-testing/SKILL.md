@@ -1,6 +1,6 @@
 ---
 name: graphql-api-testing
-description: Test GraphQL APIs with repeatable, file-based operations and variables under <project>/setup/graphql, with per-project endpoint presets in setup/graphql/endpoints.env, using the bundled gql.sh (xh/httpie/curl + jq). Use when the user asks to manually call GraphQL queries/mutations, fetch JWTs, replay requests reliably, and record API test reports.
+description: Test GraphQL APIs with repeatable, file-based operations and variables under <project>/setup/graphql, with per-project endpoint presets in setup/graphql/endpoints.env, using the bundled api-gql binary. Use when the user asks to manually call GraphQL queries/mutations, fetch JWTs, replay requests reliably, and record API test reports.
 ---
 
 # GraphQL API Testing
@@ -9,8 +9,8 @@ description: Test GraphQL APIs with repeatable, file-based operations and variab
 
 Prereqs:
 
-- `bash` and `jq` available on `PATH`.
-- HTTP client: `xh` or `http` or `curl`.
+- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql` available (or `api-gql` on `PATH`).
+- `jq` recommended for pretty-printing/assertions (optional).
 - `setup/graphql/` exists (or bootstrap from template) with operations, vars, and optional endpoint/jwt presets.
 
 Inputs:
@@ -23,7 +23,7 @@ Outputs:
 
 - Response JSON printed to stdout; errors printed to stderr.
 - Optional history file under `setup/graphql/.gql_history` (gitignored; disabled via `--no-history`).
-- Optional markdown report via `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`.
+- Optional markdown report via `api-gql report`.
 
 Exit codes:
 
@@ -32,7 +32,6 @@ Exit codes:
 
 Failure modes:
 
-- Missing supported HTTP client (`xh`/`http`/`curl`).
 - Invalid GraphQL/variables JSON, or missing config files.
 - Auth missing/invalid (JWT) or network/timeout/connection failures.
 
@@ -51,7 +50,7 @@ Make GraphQL API calls reproducible via:
 Call an existing operation:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql call \
   --env local \
   --jwt default \
   setup/graphql/operations/<operation>.graphql \
@@ -62,7 +61,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
 Generate a report (includes a replayable `## Command` by default):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql report \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -71,26 +70,26 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
   --run
 ```
 
-Generate a report from a copied `gql.sh` command snippet (no manual rewriting):
+Generate a report from a copied `api-gql`/`gql.sh` command snippet (no manual rewriting):
 
 ```bash
-$CODEX_HOME/commands/api-report-from-cmd '<paste a gql.sh command snippet>'
+$CODEX_HOME/commands/api-report-from-cmd '<paste an api-gql/gql.sh command snippet>'
 ```
 
 If your repo bootstrapped `setup/graphql/` from the template, you can also use:
 
-- `setup/graphql/api-report-from-cmd.sh '<paste a gql.sh command snippet>'`
+- `setup/graphql/api-report-from-cmd.sh '<paste an api-gql/gql.sh command snippet>'`
 
 Replay the last run (history):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-history.sh --command-only
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql history --command-only
 ```
 
 Resolve committed schema SDL (for LLMs to author new operations):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql schema --config-dir setup/graphql
 ```
 
 ## Flow (decision tree)
@@ -98,9 +97,9 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --con
 - If `setup/graphql/prompt.md` exists → read it first for project-specific context.
 - No `setup/graphql/` yet → bootstrap from template:
 - `cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql" setup/`
-- Have schema but no operation yet → resolve schema (`gql-schema.sh`) then add `setup/graphql/operations/<name>.graphql` + variables json.
-- Have operation → run with `gql.sh`.
-- Need a markdown report → use `gql-report.sh --run` (or `--response`).
+- Have schema but no operation yet → resolve schema (`api-gql schema`) then add `setup/graphql/operations/<name>.graphql` + variables json.
+- Have operation → run with `api-gql call`.
+- Need a markdown report → use `api-gql report --run` (or `--response`).
 
 ## Notes (defaults)
 
@@ -111,12 +110,12 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-schema.sh --con
 
 ## CI / E2E (optional)
 
-In CI, use `gql.sh` as the runner and `jq -e` as assertions (exit code is the contract):
+In CI, use `api-gql call` as the runner and `jq -e` as assertions (exit code is the contract):
 
 ```bash
 set -euo pipefail
 
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh \
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql call \
   --config-dir setup/graphql \
   --env staging \
   --jwt ci \

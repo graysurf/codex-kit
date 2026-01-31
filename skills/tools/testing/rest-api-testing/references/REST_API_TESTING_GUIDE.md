@@ -19,7 +19,7 @@ This guide documents how to run manual API tests for a REST server and how to re
 
 ## Recommended tools
 
-- CLI (repeatable calls): `xh` / HTTPie (`http`) / `curl`, plus `jq` for formatting and assertions.
+- CLI (repeatable calls): `api-rest` (bundled with Codex Kit), plus `jq` for formatting and assertions.
 - GUI clients (optional): Insomnia / Postman / Bruno (good for saved environments + collections).
 
 ## Project setup (per repo)
@@ -47,7 +47,7 @@ mkdir -p setup
 cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/
 ```
 
-The template includes a helper to turn a copied `rest.sh` history command into a report:
+The template includes a helper to turn a copied `api-rest`/`rest.sh` history command into a report:
 
 - `setup/rest/api-report-from-cmd.sh` (requires `python3` or `python`)
 
@@ -108,7 +108,7 @@ REST_TOKEN_ADMIN="<admin token>"
 Tip: if you are not running from the repo root, add `--config-dir setup/rest` to the commands below.
 
 ```bash
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest call \
   --env local \
   setup/rest/requests/<request>.request.json \
 | jq .
@@ -145,7 +145,7 @@ Notes:
 ```bash
 export REST_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
 
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest report \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env <local|staging|dev> \
@@ -156,15 +156,15 @@ Report output contract (recommended):
 
 - `$CODEX_HOME/skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
 
-If you already have a `rest.sh` command snippet (e.g. from `setup/rest/.rest_history`), you can generate the report without manually rewriting it:
+If you already have an `api-rest`/`rest.sh` command snippet (e.g. from `setup/rest/.rest_history`), you can generate the report without manually rewriting it:
 
 ```bash
-setup/rest/api-report-from-cmd.sh '<paste a rest.sh command snippet>'
+setup/rest/api-report-from-cmd.sh '<paste an api-rest/rest.sh command snippet>'
 ```
 
 7) CI / E2E usage (recommended pattern)
 
-If a request file includes `expect`, `rest.sh` should exit non-zero on assertion failure. This makes it suitable for CI.
+If a request file includes `expect`, `api-rest call` should exit non-zero on assertion failure. This makes it suitable for CI.
 
 Minimal pattern:
 
@@ -177,7 +177,7 @@ Example (single request):
 ```bash
 REST_URL="https://<host>" \
 ACCESS_TOKEN="${ACCESS_TOKEN:-}" \
-$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
+$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest call \
   --url "$REST_URL" \
   --config-dir setup/rest \
   setup/rest/requests/health.request.json
@@ -185,5 +185,5 @@ $CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh \
 
 ## Notes for stability
 
-- Prefer “files + script” over ad-hoc one-liners: it reduces drift and quoting mistakes.
+- Prefer “files + CLI” over ad-hoc one-liners: it reduces drift and quoting mistakes.
 - Keep secrets out of request files; use `*.local.*` for local-only overrides.
