@@ -5,14 +5,14 @@ description: Process images (convert/resize/crop/optimize) via ImageMagick
 
 # Image Processing
 
-Translate a user’s natural-language request into a safe invocation of the bundled wrapper script.
+Translate a user’s natural-language request into a safe invocation of the `image-processing` CLI.
 
 ## Contract
 
 Prereqs:
 
 - Run inside a git work tree (recommended; enables stable `out/` paths).
-- `python3` available on `PATH`.
+- `image-processing` binary available in `PATH` (built from `/Users/terry/Project/graysurf/nils-cli/crates/image-processing`).
 - ImageMagick:
   - `magick` (preferred), or
   - `convert` + `identify`.
@@ -47,7 +47,7 @@ Exit codes:
 
 Failure modes:
 
-- Missing required tools (`python3`, ImageMagick).
+- Missing required tools (`image-processing` binary, ImageMagick).
 - Invalid or ambiguous flags (missing output mode, missing required params).
 - Output collisions in batch mode (multiple inputs map to the same output).
 - Output already exists without `--overwrite`.
@@ -73,8 +73,8 @@ Failure modes:
    - Do not run commands until the user answers or explicitly approves assumptions.
 
 2) Single entrypoint (do not bypass)
-   - Only run: `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh`
-   - Do not call ImageMagick binaries directly unless debugging the skill itself.
+   - Only run: `image-processing` (must be in `PATH`)
+   - Do not call ImageMagick binaries directly unless debugging the `image-processing` CLI itself.
 
 3) Output mode gate (exactly one)
    - For output-producing subcommands, require exactly one of:
@@ -86,10 +86,6 @@ Failure modes:
    - After a successful run, respond using:
      - `skills/tools/media/image-processing/references/ASSISTANT_RESPONSE_TEMPLATE.md`
    - Include clickable output path(s) and a one-sentence “next prompt” that repeats the same task with concrete paths/options.
-
-## Scripts (only entrypoint)
-
-- `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh`
 
 ## References
 

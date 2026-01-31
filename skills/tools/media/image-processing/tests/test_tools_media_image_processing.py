@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from skills._shared.python.skill_testing import assert_entrypoints_exist, assert_skill_contract
+from skills._shared.python.skill_testing import assert_skill_contract
 
 
 def test_tools_media_image_processing_contract() -> None:
@@ -17,9 +17,8 @@ def test_tools_media_image_processing_contract() -> None:
     assert_skill_contract(skill_root)
 
 
-def test_tools_media_image_processing_entrypoints_exist() -> None:
-    skill_root = Path(__file__).resolve().parents[1]
-    assert_entrypoints_exist(skill_root, ["scripts/image-processing.sh"])
+def test_tools_media_image_processing_binary_in_path() -> None:
+    assert shutil.which("image-processing") is not None
 
 
 def _repo_root() -> Path:
@@ -31,10 +30,6 @@ def _repo_root() -> Path:
 
 def _skill_root() -> Path:
     return Path(__file__).resolve().parents[1]
-
-
-def _script_path() -> Path:
-    return _skill_root() / "scripts" / "image-processing.sh"
 
 
 def _fixtures_dir() -> Path:
@@ -57,8 +52,14 @@ def _unique_out_dir(case: str) -> Path:
 
 
 def _run(args: list[str]) -> subprocess.CompletedProcess[str]:
+    if shutil.which("image-processing") is None:
+        raise AssertionError(
+            "image-processing CLI not found in PATH. Install from "
+            "`/Users/terry/Project/graysurf/nils-cli/crates/image-processing` "
+            "and ensure the install directory is in PATH."
+        )
     return subprocess.run(
-        [str(_script_path()), *args],
+        ["image-processing", *args],
         text=True,
         capture_output=True,
     )

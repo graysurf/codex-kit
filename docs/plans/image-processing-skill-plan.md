@@ -43,7 +43,7 @@ Users will describe requests in natural language. When anything is ambiguous, th
    - Aspect ratio implies “crop” vs “pad”
    - Whether overwriting is acceptable
    - Whether `--in-place` is intended
-4. Assistant executes the script.
+4. Assistant executes the `image-processing` CLI.
 5. Assistant responds using the skill’s fixed completion template:
    - Output path(s) as clickable file/folder links
    - Suggested reusable prompt for next time
@@ -51,7 +51,7 @@ Users will describe requests in natural language. When anything is ambiguous, th
 ## Proposed CLI (v1)
 
 Entrypoint:
-- `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh`
+- `image-processing`
 
 Common flags (shared):
 - `--in PATH` (repeatable; file or directory)
@@ -147,12 +147,11 @@ This is an assistant response template (documented in the skill) used after a su
 - **Complexity**: 3
 - **Location**:
   - `skills/tools/media/image-processing/SKILL.md`
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
   - `skills/tools/media/image-processing/tests/test_tools_media_image_processing.py`
 - **Description**: Use the existing `create-skill` scaffolder to generate the skill skeleton at `skills/tools/media/image-processing/`, then update the generated metadata (title/description) to match this skill’s purpose.
 - **Dependencies**: none
 - **Acceptance criteria**:
-  - The new directory exists with `SKILL.md`, `scripts/`, and `tests/`.
+  - The new directory exists with `SKILL.md`, `references/`, and `tests/`.
   - Skill contract validation passes for the new `SKILL.md`.
   - Skill layout audit passes for the new skill directory.
 - **Validation**:
@@ -181,9 +180,9 @@ This is an assistant response template (documented in the skill) used after a su
 
 - **Complexity**: 6
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
-- **Description**: Implement subcommand dispatch, common flag parsing, tool detection/preflight, and a `--json` run summary that is emitted as JSON-only on stdout and written under `out/image-processing/`. Ensure safe defaults (no overwrite; output mode required; in-place requires `--yes`) and a clear `--dry-run` mode.
+- **Description**: Ensure `image-processing` is installed in `PATH` (from `/Users/terry/Project/graysurf/nils-cli/crates/image-processing`), then document and validate its v1 subcommands/flags and `--json` run summary behavior.
 - **Dependencies**:
   - Task 1.1
 - **Acceptance criteria**:
@@ -195,9 +194,9 @@ This is an assistant response template (documented in the skill) used after a su
   - `--json` emits valid JSON (stdout contains JSON only; any human output goes to stderr) and writes `out/image-processing/runs/.../summary.json`.
   - Missing required tools fails with exit code 1 and an actionable error message (including the detected/required commands).
 - **Validation**:
-  - `bash -n skills/tools/media/image-processing/scripts/image-processing.sh`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh --help`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh convert --help`
+  - `command -v image-processing`
+  - `image-processing --help`
+  - `image-processing convert --help`
 
 ### Task 1.4: Add tiny fixture images for tests and validation
 
@@ -208,7 +207,7 @@ This is an assistant response template (documented in the skill) used after a su
   - `skills/tools/media/image-processing/assets/fixtures/fixture_80x60.webp`
   - `skills/tools/media/image-processing/assets/fixtures/fixture_80x60_alpha.png`
   - `skills/tools/media/image-processing/assets/fixtures/fixture_80x60_exif_orientation_6.jpg`
-- **Description**: Add small deterministic fixture images (including a non-square image and an alpha PNG) to support script validation and functional tests without relying on external downloads.
+- **Description**: Add small deterministic fixture images (including a non-square image and an alpha PNG) to support CLI validation and functional tests without relying on external downloads.
 - **Dependencies**:
   - Task 1.1
 - **Acceptance criteria**:
@@ -228,7 +227,7 @@ This is an assistant response template (documented in the skill) used after a su
 
 - **Complexity**: 7
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Implement shared logic to expand `--in` paths into a stable list of input files, apply optional `--glob` filtering, and map each input to an output path according to `--out`, `--out-dir`, `--overwrite`, and `--in-place` rules. Ensure collisions are detected and reported.
 - **Dependencies**:
@@ -241,13 +240,13 @@ This is an assistant response template (documented in the skill) used after a su
   - Outputs are deterministic and collisions are handled (fail or skip unless `--overwrite`).
   - `--in-place` requires `--yes` and is clearly summarized.
 - **Validation**:
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh convert --in skills/tools/media/image-processing/assets/fixtures --recursive --glob '*.png' --to webp --out-dir out/image-processing/validate --dry-run --json`
+  - `image-processing convert --in skills/tools/media/image-processing/assets/fixtures --recursive --glob '*.png' --to webp --out-dir out/image-processing/validate --dry-run --json`
 
 ### Task 2.2: Implement `convert` (PNG/JPG/WebP)
 
 - **Complexity**: 6
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Implement format conversion with ImageMagick as the primary backend, supporting `png`, `jpg`, and `webp` targets. Add `--quality` where applicable and require `--background` when converting an alpha input into a format that cannot represent alpha (e.g., PNG to JPG).
 - **Dependencies**:
@@ -261,16 +260,16 @@ This is an assistant response template (documented in the skill) used after a su
   - `--strip-metadata` removes EXIF/XMP/ICC data from outputs (validated via EXIF Orientation on the fixture).
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --to webp --out out/image-processing/validate/fixture_80x60.webp --json`
+  - `image-processing convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --to webp --out out/image-processing/validate/fixture_80x60.webp --json`
   - `identify -format "%m %wx%h\n" out/image-processing/validate/fixture_80x60.webp`
-  - `! $CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60_alpha.png --to jpg --out out/image-processing/validate/fixture_80x60_alpha.jpg --json`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60_alpha.png --to jpg --background white --out out/image-processing/validate/fixture_80x60_alpha.jpg --json`
+  - `! image-processing convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60_alpha.png --to jpg --out out/image-processing/validate/fixture_80x60_alpha.jpg --json`
+  - `image-processing convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60_alpha.png --to jpg --background white --out out/image-processing/validate/fixture_80x60_alpha.jpg --json`
 
 ### Task 2.3: Implement `resize` (scale/width/height/aspect) with default pre-upscale
 
 - **Complexity**: 8
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Implement resize operations that support proportional resizing (`--width`, `--height`), scale factor (`--scale`), and aspect-ratio-driven resizing (`--aspect` with an explicit `--fit contain|cover|stretch`). Default pre-upscale is enabled (2x) and can be disabled with `--no-pre-upscale`. Final output dimensions must match the explicit resize target.
 - **Dependencies**:
@@ -285,14 +284,14 @@ This is an assistant response template (documented in the skill) used after a su
   - `--no-pre-upscale` is supported and documented.
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh resize --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --scale 2 --out out/image-processing/validate/fixture_160x120.png --json`
+  - `image-processing resize --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --scale 2 --out out/image-processing/validate/fixture_160x120.png --json`
   - `identify -format "%wx%h\n" out/image-processing/validate/fixture_160x120.png`
 
 ### Task 2.4: Implement `rotate` (explicit degrees)
 
 - **Complexity**: 5
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Implement rotation by explicit degrees (positive = clockwise). Ensure batch mode works and rotation is reflected in output dimensions for the non-square fixture (e.g., 90 degrees swaps width/height).
 - **Dependencies**:
@@ -304,14 +303,14 @@ This is an assistant response template (documented in the skill) used after a su
   - Rotation behavior is documented with at least one example.
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh rotate --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --degrees 90 --out out/image-processing/validate/fixture_rotated.png --json`
+  - `image-processing rotate --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --degrees 90 --out out/image-processing/validate/fixture_rotated.png --json`
   - `identify -format "%wx%h\n" out/image-processing/validate/fixture_rotated.png`
 
 ### Task 2.5: Add `info` for debug and batch reporting
 
 - **Complexity**: 4
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Add an `info` subcommand that prints image metadata useful for validation and debugging (format, dimensions, alpha presence, and orientation when available). Support `--json` so the assistant can include details in notes when needed.
 - **Dependencies**:
@@ -322,13 +321,13 @@ This is an assistant response template (documented in the skill) used after a su
   - Output includes format and dimensions for fixture images.
   - Batch `info` produces one record per input.
 - **Validation**:
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh info --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --json`
+  - `image-processing info --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --json`
 
 ### Task 2.6: Implement `auto-orient` (EXIF) with safe defaults
 
 - **Complexity**: 6
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Implement EXIF-based auto-orientation for common “phone photo” cases. Provide a dedicated `auto-orient` subcommand and make auto-orient enabled by default for all subcommands that write output files. Support `--no-auto-orient` to disable. Ensure that `auto-orient` results are reflected in the JSON summary and that orientation metadata is normalized/cleared after applying it.
 - **Dependencies**:
@@ -341,14 +340,14 @@ This is an assistant response template (documented in the skill) used after a su
   - Behavior is documented with at least one example and a “when to disable” note.
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh auto-orient --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60_exif_orientation_6.jpg --out out/image-processing/validate/fixture_auto_oriented.jpg --json`
+  - `image-processing auto-orient --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60_exif_orientation_6.jpg --out out/image-processing/validate/fixture_auto_oriented.jpg --json`
   - `identify -format "%wx%h %[EXIF:Orientation]\n" out/image-processing/validate/fixture_auto_oriented.jpg`
 
 ### Task 2.7: Implement `flip` / `flop` (mirror)
 
 - **Complexity**: 4
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Add `flip` and `flop` subcommands (vertical/horizontal mirror). Ensure they work in batch mode and obey output safety rules. Include the executed commands in the JSON summary.
 - **Dependencies**:
@@ -360,8 +359,8 @@ This is an assistant response template (documented in the skill) used after a su
   - Behavior is documented with at least one example for each.
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh flip --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --out out/image-processing/validate/fixture_flip.png --json`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh flop --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --out out/image-processing/validate/fixture_flop.png --json`
+  - `image-processing flip --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --out out/image-processing/validate/fixture_flip.png --json`
+  - `image-processing flop --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --out out/image-processing/validate/fixture_flop.png --json`
   - `identify -format "%wx%h\n" out/image-processing/validate/fixture_flip.png`
   - `identify -format "%wx%h\n" out/image-processing/validate/fixture_flop.png`
 
@@ -373,7 +372,7 @@ This is an assistant response template (documented in the skill) used after a su
 
 - **Complexity**: 7
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Add a `crop` subcommand supporting (a) explicit rect crop, (b) center crop by target dimensions, and (c) aspect crop (e.g., 1:1, 16:9) using an explicit gravity/anchor. Do not guess: require enough flags to unambiguously define the crop region.
 - **Dependencies**:
@@ -385,14 +384,14 @@ This is an assistant response template (documented in the skill) used after a su
   - Output mapping and overwrite/in-place safety rules are enforced.
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh crop --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --aspect 1:1 --out out/image-processing/validate/fixture_square.png --json`
+  - `image-processing crop --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --aspect 1:1 --out out/image-processing/validate/fixture_square.png --json`
   - `identify -format "%wx%h\n" out/image-processing/validate/fixture_square.png`
 
 ### Task 3.2: Implement `pad` / `extent` (canvas)
 
 - **Complexity**: 6
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Add a `pad` subcommand to extend the canvas to a target width/height (extent). Do not guess: if the target dimensions are smaller than the input, fail (user should use `crop` or `resize --fit cover`). Use `--background` when output cannot support transparency.
 - **Dependencies**:
@@ -404,14 +403,14 @@ This is an assistant response template (documented in the skill) used after a su
   - Output mapping and overwrite/in-place safety rules are enforced.
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh pad --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --width 100 --height 100 --out out/image-processing/validate/fixture_padded.png --json`
+  - `image-processing pad --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --width 100 --height 100 --out out/image-processing/validate/fixture_padded.png --json`
   - `identify -format "%wx%h\n" out/image-processing/validate/fixture_padded.png`
 
 ### Task 3.3: Add `--report` (Markdown) with before/after size deltas
 
 - **Complexity**: 6
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
   - `skills/tools/media/image-processing/references/ASSISTANT_RESPONSE_TEMPLATE.md`
 - **Description**: Implement `--report` to write a Markdown report for the run under `out/image-processing/runs/.../report.md` and include its path in the JSON summary. The report must include inputs, outputs, executed commands, and before/after file sizes (and % savings) when outputs exist.
@@ -426,14 +425,14 @@ This is an assistant response template (documented in the skill) used after a su
   - Report paths live under `out/` (never `/tmp`).
 - **Validation**:
   - `rm -rf out/image-processing/validate && mkdir -p out/image-processing/validate`
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --to webp --out out/image-processing/validate/fixture_80x60.webp --report --json > out/image-processing/validate/summary.json`
+  - `image-processing convert --in skills/tools/media/image-processing/assets/fixtures/fixture_80x60.png --to webp --out out/image-processing/validate/fixture_80x60.webp --report --json > out/image-processing/validate/summary.json`
   - `python3 -c 'import json,os; j=json.load(open(\"out/image-processing/validate/summary.json\")); p=j.get(\"report_path\"); assert p and p.startswith(\"out/\") and os.path.isfile(p)'`
 
 ### Task 3.4: Implement `optimize` (JPEG/WebP) with capability detection
 
 - **Complexity**: 7
 - **Location**:
-  - `skills/tools/media/image-processing/scripts/image-processing.sh`
+  - `image-processing`
   - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - **Description**: Add an `optimize` subcommand that re-encodes JPEG/WebP with better encoders when available (`cjpeg`, `cwebp`) and falls back to ImageMagick when they are not. Support quality and (where applicable) progressive JPEG and WebP lossless/lossy options. Include encoder selection in the JSON summary.
 - **Dependencies**:
@@ -444,7 +443,7 @@ This is an assistant response template (documented in the skill) used after a su
   - The summary JSON reports which encoder was used per file.
   - Missing optional encoders does not fail the run (it falls back).
 - **Validation**:
-  - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh optimize --help`
+  - `image-processing optimize --help`
 
 ## Sprint 4: Functional tests + docs polish
 
