@@ -3,9 +3,9 @@ name: Lint
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main, native-skills]
+    branches: [main]
   push:
-    branches: [main, native-skills]
+    branches: [main]
 
 permissions:
   contents: read
