@@ -44,34 +44,6 @@ repo_root_from_script() {
   print -r -- "$root_dir"
 }
 
-# list_scan_files0 <root_dir>
-# Print NUL-separated absolute file paths to scan (tracked files excluding docs/progress).
-list_scan_files0() {
-  emulate -L zsh
-  setopt pipe_fail err_return nounset
-
-  typeset root_dir="$1"
-  typeset rel=''
-
-  if command -v git >/dev/null 2>&1 && git -C "$root_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    while IFS= read -r -d '' rel; do
-      [[ -n "$rel" ]] || continue
-
-      case "$rel" in
-        docs/progress/*) continue ;;
-        out/*) continue ;;
-        tmp/*) continue ;;
-        scripts/audit-env-bools.zsh) continue ;;
-      esac
-
-      print -rn -- "$root_dir/$rel"$'\0'
-    done < <(git -C "$root_dir" ls-files -z)
-  else
-    print -u2 -r -- "error: cannot list tracked files (git not available); run inside a git repo"
-    return 2
-  fi
-}
-
 # scan_hits <root_dir> <pattern> [ci]
 # Print matching lines with file + line numbers using grep across tracked files.
 scan_hits() {
@@ -82,23 +54,26 @@ scan_hits() {
   typeset pattern="$2"
   typeset ci="${3:-0}"
   typeset -a grep_args=()
-  typeset tmpfile='' scan_status=0
+  typeset scan_status=0
 
   if [[ "$ci" == "1" ]]; then
-    grep_args=(-niE -I -- "$pattern")
+    grep_args=(-niE -I)
   else
-    grep_args=(-nE -I -- "$pattern")
+    grep_args=(-nE -I)
   fi
 
-  tmpfile="$(command mktemp -t audit-env-bools.XXXXXX)"
-  list_scan_files0 "$root_dir" > "$tmpfile"
-  if (( $? != 0 )); then
-    rm -f "$tmpfile"
+  if ! command -v git >/dev/null 2>&1; then
+    print -u2 -r -- "error: git not available; run inside a git repo"
     return 2
   fi
 
-  command xargs -0 command grep "${grep_args[@]}" < "$tmpfile" 2>/dev/null || scan_status=$?
-  rm -f "$tmpfile"
+  command git -C "$root_dir" grep "${grep_args[@]}" -- "$pattern" -- \
+    . \
+    ':(exclude)docs/progress' \
+    ':(exclude)out' \
+    ':(exclude)tmp' \
+    ':(exclude)scripts/audit-env-bools.zsh' \
+    2>/dev/null || scan_status=$?
 
   if (( scan_status == 1 )); then
     return 0
