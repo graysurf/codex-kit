@@ -44,18 +44,17 @@ repo_root_from_script() {
   print -r -- "$root_dir"
 }
 
-# list_scan_files <root_dir>
-# Print the absolute file paths to scan (tracked files excluding docs/progress).
-list_scan_files() {
+# list_scan_files0 <root_dir>
+# Print NUL-separated absolute file paths to scan (tracked files excluding docs/progress).
+list_scan_files0() {
   emulate -L zsh
   setopt pipe_fail err_return nounset
 
   typeset root_dir="$1"
-  typeset -a files=()
   typeset rel=''
 
   if command -v git >/dev/null 2>&1 && git -C "$root_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    while IFS= read -r rel; do
+    while IFS= read -r -d '' rel; do
       [[ -n "$rel" ]] || continue
 
       case "$rel" in
@@ -65,47 +64,57 @@ list_scan_files() {
         scripts/audit-env-bools.zsh) continue ;;
       esac
 
-      files+=("$root_dir/$rel")
-    done < <(git -C "$root_dir" ls-files)
+      print -rn -- "$root_dir/$rel"$'\0'
+    done < <(git -C "$root_dir" ls-files -z)
   else
     print -u2 -r -- "error: cannot list tracked files (git not available); run inside a git repo"
     return 2
   fi
-
-  print -rl -- "${files[@]}"
 }
 
-# grep_hits <pattern> <file>
-# Print matching lines with line numbers (grep -nE -I); return 0 when hits exist.
-grep_hits() {
+# scan_hits <root_dir> <pattern> [ci]
+# Print matching lines with file + line numbers using grep across tracked files.
+scan_hits() {
   emulate -L zsh
-  setopt pipe_fail err_return nounset
+  setopt pipe_fail nounset
 
-  typeset pattern="$1"
-  typeset file="$2"
+  typeset root_dir="$1"
+  typeset pattern="$2"
+  typeset ci="${3:-0}"
+  typeset -a grep_args=()
+  typeset tmpfile='' scan_status=0
 
-  command grep -nEI -- "$pattern" "$file" 2>/dev/null
+  if [[ "$ci" == "1" ]]; then
+    grep_args=(-niE -I -- "$pattern")
+  else
+    grep_args=(-nE -I -- "$pattern")
+  fi
+
+  tmpfile="$(command mktemp -t audit-env-bools.XXXXXX)"
+  list_scan_files0 "$root_dir" > "$tmpfile"
+  if (( $? != 0 )); then
+    rm -f "$tmpfile"
+    return 2
+  fi
+
+  command xargs -0 command grep "${grep_args[@]}" < "$tmpfile" 2>/dev/null || scan_status=$?
+  rm -f "$tmpfile"
+
+  if (( scan_status == 1 )); then
+    return 0
+  fi
+  if (( scan_status != 0 )); then
+    return "$scan_status"
+  fi
 }
 
-# grep_hits_ci <pattern> <file>
-# Print matching lines with line numbers (grep -niE -I); return 0 when hits exist.
-grep_hits_ci() {
-  emulate -L zsh
-  setopt pipe_fail err_return nounset
-
-  typeset pattern="$1"
-  typeset file="$2"
-
-  command grep -niEI -- "$pattern" "$file" 2>/dev/null
-}
-
-# check_no_legacy_names <files...>
+# check_no_legacy_names <root_dir>
 # Ensure legacy env names are not referenced (excluding docs/progress/** which is already excluded from file list).
 check_no_legacy_names() {
   emulate -L zsh
   setopt pipe_fail err_return nounset
 
-  typeset -a files=("$@")
+  typeset root_dir="$1"
   typeset -a legacy_strict=(
     CHROME_DEVTOOLS_DRY_RUN
     CHROME_DEVTOOLS_PREFLIGHT
@@ -127,31 +136,39 @@ check_no_legacy_names() {
   )
 
   typeset -i failed=0
-  typeset flag='' file='' hits='' pattern=''
+  typeset flag='' line='' file='' hits='' pattern='' joined='' line_upper='' payload=''
 
-  for flag in "${legacy_strict[@]}"; do
-    pattern="(^|[^[:alnum:]_])${flag}([^[:alnum:]_]|$)"
-    for file in "${files[@]}"; do
-      [[ -r "$file" ]] || continue
-      hits="$(grep_hits "$pattern" "$file" || true)"
-      [[ -n "$hits" ]] || continue
-      failed=1
-      print -u2 -r -- "❌ legacy env name referenced: $flag"
-      print -u2 -r -- "$file"
-      print -u2 -r -- "$hits"
+  joined="${(j:|:)legacy_strict}"
+  pattern="(^|[^[:alnum:]_])(${joined})([^[:alnum:]_]|$)"
+  hits="$(scan_hits "$root_dir" "$pattern" 0)"
+  [[ -n "$hits" ]] || return 0
+
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    file="${line%%:*}"
+    payload="${line#*:}"
+    line_upper="${line:u}"
+    for flag in "${legacy_strict[@]}"; do
+      if [[ "$line_upper" == *"$flag"* ]] && [[ "$line" =~ "(^|[^[:alnum:]_])${flag}([^[:alnum:]_]|$)" ]]; then
+        failed=1
+        print -u2 -r -- "❌ legacy env name referenced: $flag"
+        print -u2 -r -- "$file"
+        print -u2 -r -- "$payload"
+        break
+      fi
     done
-  done
+  done <<< "$hits"
 
   return "$failed"
 }
 
-# check_no_forbidden_values <files...>
+# check_no_forbidden_values <root_dir>
 # Ensure Inventory flags are never assigned to forbidden boolean vocab (0/1/yes/no/on/off).
 check_no_forbidden_values() {
   emulate -L zsh
   setopt pipe_fail err_return nounset
 
-  typeset -a files=("$@")
+  typeset root_dir="$1"
   typeset -a inventory_flags=(
     CHROME_DEVTOOLS_DRY_RUN_ENABLED
     CHROME_DEVTOOLS_PREFLIGHT_ENABLED
@@ -173,20 +190,28 @@ check_no_forbidden_values() {
   )
 
   typeset -i failed=0
-  typeset flag='' file='' hits='' pattern=''
+  typeset flag='' line='' file='' hits='' pattern='' joined='' line_upper='' payload=''
 
-  for flag in "${inventory_flags[@]}"; do
-    pattern="(^|[^[:alnum:]_])${flag}[[:space:]]*[:=][[:space:]]*['\\\"]?(0|1|yes|no|on|off)['\\\"]?([^[:alnum:]_]|$)"
-    for file in "${files[@]}"; do
-      [[ -r "$file" ]] || continue
-      hits="$(grep_hits_ci "$pattern" "$file" || true)"
-      [[ -n "$hits" ]] || continue
-      failed=1
-      print -u2 -r -- "❌ forbidden boolean value for: $flag (only true|false allowed)"
-      print -u2 -r -- "$file"
-      print -u2 -r -- "$hits"
+  joined="${(j:|:)inventory_flags}"
+  pattern="(^|[^[:alnum:]_])(${joined})[[:space:]]*[:=][[:space:]]*['\\\"]?(0|1|yes|no|on|off)['\\\"]?([^[:alnum:]_]|$)"
+  hits="$(scan_hits "$root_dir" "$pattern" 1)"
+  [[ -n "$hits" ]] || return 0
+
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    file="${line%%:*}"
+    payload="${line#*:}"
+    line_upper="${line:u}"
+    for flag in "${inventory_flags[@]}"; do
+      if [[ "$line_upper" == *"$flag"* ]] && [[ "$line_upper" =~ "(^|[^[:alnum:]_])${flag}([[:space:]]*[:=][[:space:]]*['\\\"]?(0|1|YES|NO|ON|OFF)['\\\"]?)([^[:alnum:]_]|$)" ]]; then
+        failed=1
+        print -u2 -r -- "❌ forbidden boolean value for: $flag (only true|false allowed)"
+        print -u2 -r -- "$file"
+        print -u2 -r -- "$payload"
+        break
+      fi
     done
-  done
+  done <<< "$hits"
 
   return "$failed"
 }
@@ -208,15 +233,9 @@ main() {
   typeset root_dir=''
   root_dir="$(repo_root_from_script)"
 
-  typeset -a files=()
-  typeset file=''
-  while IFS= read -r file; do
-    [[ -n "$file" ]] && files+=("$file")
-  done < <(list_scan_files "$root_dir")
-
   typeset -i failed=0
-  check_no_legacy_names "${files[@]}" || failed=1
-  check_no_forbidden_values "${files[@]}" || failed=1
+  check_no_legacy_names "$root_dir" || failed=1
+  check_no_forbidden_values "$root_dir" || failed=1
 
   if (( failed )); then
     return 1
