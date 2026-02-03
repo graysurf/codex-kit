@@ -69,7 +69,7 @@ Principle: prefer purpose-built tools that are fast, repo-aware, and emit struct
 | Tool | Purpose | Use when | Avoid because this exists |
 | --- | --- | --- | --- |
 | `curl` | Low-level HTTP client | Minimal-dependency requests, downloads, simple health checks | Writing one-off scripts/programs just to make a request |
-| `httpie` | Human-friendly HTTP client | Exploring APIs interactively and composing requests quickly | Long, brittle `curl` commands with quoting issues |
+| `httpie` | Human-friendly HTTP client | Exploring APIs interactively and composing requests quickly | Long, brittle `curl` invocations with quoting issues |
 | `xh` | Fast `httpie`-like client | Same workflows as `httpie`, but faster and consistent | Building a custom HTTP wrapper for convenience |
 | `jq` | JSON processor | Filtering/formatting API responses; lightweight assertions | Parsing JSON with `grep`/`sed`/`awk` (fragile) |
 | `yq` | YAML/JSON/XML/CSV processor | Editing CI/config files and structured data safely | Hand-editing structured documents (indentation/type mistakes) |
@@ -84,11 +84,11 @@ Principle: prefer purpose-built tools that are fast, repo-aware, and emit struct
 
 | Tool | Purpose | Use when | Avoid because this exists |
 | --- | --- | --- | --- |
-| `watchexec` | Re-run commands on file changes (gitignore-aware) | Auto-running `pytest`/`pnpm test`/lint during edits | Manually re-running tests and forgetting to validate changes |
-| `entr` | Minimal file watcher | Simple “file changed -> re-run command” workflows | Home-grown polling loops |
+| `watchexec` | Re-run tasks on file changes (gitignore-aware) | Auto-running `pytest`/`pnpm test`/lint during edits | Manually re-running tests and forgetting to validate changes |
+| `entr` | Minimal file watcher | Simple “file changed -> re-run step” workflows | Home-grown polling loops |
 | `ruff` | Fast Python linter/formatter | Formatting and linting Python codebases quickly | Slow multi-tool lint chains with overlapping responsibilities |
 | `ipython` | Enhanced Python REPL | Reproducing/debugging small logic quickly | Editing files + re-running full suites for tiny experiments |
-| `hyperfine` | Benchmark commands | Comparing alternative commands/build steps reliably | Using a single run as a performance conclusion (high variance) |
+| `hyperfine` | Benchmark invocations | Comparing alternative invocations/build steps reliably | Using a single run as a performance conclusion (high variance) |
 
 ---
 

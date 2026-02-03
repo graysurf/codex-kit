@@ -9,7 +9,6 @@ rules:
         - "*.py"
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.comment.fixme
     languages: [generic]
@@ -21,7 +20,6 @@ rules:
         - "*.py"
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.comment.bug
     languages: [generic]
@@ -33,7 +31,6 @@ rules:
         - "*.py"
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.comment.hack
     languages: [generic]
@@ -45,7 +42,6 @@ rules:
         - "*.py"
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.comment.xxx
     languages: [generic]
@@ -57,7 +53,6 @@ rules:
         - "*.py"
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.shell.typeset-empty-string-double-quotes
     languages: [generic]
@@ -68,7 +63,6 @@ rules:
       include:
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.shell.eval
     languages: [generic]
@@ -79,7 +73,6 @@ rules:
       include:
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.shell.curl-pipe-shell
     languages: [generic]
@@ -90,7 +83,6 @@ rules:
       include:
         - "*.sh"
         - "*.zsh"
-        - "/commands/**"
 
   - id: codex-kit.python.subprocess-shell-true
     languages: [python]

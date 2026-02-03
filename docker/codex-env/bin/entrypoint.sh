@@ -7,12 +7,12 @@ codex_src="${CODEX_KIT_DIR:-/opt/codex-kit}"
 
 export CODEX_AUTH_FILE="${CODEX_AUTH_FILE:-${codex_home%/}/auth.json}"
 
-if [[ ! -d "${codex_src%/}/commands" ]]; then
-  echo "error: CODEX_KIT_DIR not found or missing commands: $codex_src" >&2
+if [[ ! -d "${codex_src%/}/skills" || ! -d "${codex_src%/}/scripts" ]]; then
+  echo "error: CODEX_KIT_DIR not found or missing skills/scripts: $codex_src" >&2
   exit 1
 fi
 
-if [[ -d "${codex_home%/}/commands" && -d "${codex_home%/}/skills" ]]; then
+if [[ -d "${codex_home%/}/skills" && -d "${codex_home%/}/scripts" ]]; then
   exec "$@"
 fi
 

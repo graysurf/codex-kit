@@ -5,7 +5,7 @@
 - This file defines the global default behavior for Codex CLI: response style, quality bar, and the minimum set of tool-entry conventions.
 - Scope: when Codex CLI can't find a more specific policy file in the current working directory, it falls back to this file.
 - Override rule: if the current directory (or a closer subdirectory) contains a project/folder-specific `AGENTS.md` (or equivalent), the closest one wins; otherwise fall back to this file.
-- Project-specific specs, workflows, available commands/scripts, and repo structure/index should follow the current project's `DEVELOPMENT`, `README`, `docs`, `prompts`, `skills`, etc. (when present).
+- Project-specific specs, workflows, available scripts/tools, and repo structure/index should follow the current project's `DEVELOPMENT`, `README`, `docs`, `prompts`, `skills`, etc. (when present).
 
 ## Quick navigation
 
@@ -88,7 +88,7 @@
 
   ## Steps / Recommendations
 
-  1. Actionable steps (include commands, checkpoints, and expected output when useful).
+  1. Actionable steps (include CLI steps, checkpoints, and expected output when useful).
   2. If there are branches: If A -> do X; if B -> do Y.
 
   ## Risks / Uncertainty (when needed)
