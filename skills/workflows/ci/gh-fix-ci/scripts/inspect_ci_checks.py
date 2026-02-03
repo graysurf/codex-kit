@@ -6,6 +6,7 @@ import json
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
 from typing import Any, Iterable, Sequence
@@ -42,10 +43,18 @@ FAILURE_MARKERS = (
 
 DEFAULT_MAX_LINES = 160
 DEFAULT_CONTEXT_LINES = 30
+DEFAULT_RUN_LIMIT = 20
 PENDING_LOG_MARKERS = (
     "still in progress",
     "log will be available when it is complete",
 )
+
+
+@dataclass(frozen=True)
+class Target:
+    kind: str  # "pr" or "ref"
+    value: str
+    ref_type: str | None = None  # "branch" or "commit"
 
 
 class GhResult:
@@ -78,14 +87,22 @@ def run_gh_command_raw(args: Sequence[str], cwd: Path) -> tuple[int, bytes, str]
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Inspect failing GitHub PR checks, fetch GitHub Actions logs, and extract a "
-            "failure snippet."
+            "Inspect failing GitHub Actions checks for a PR or branch/commit, fetch logs, "
+            "and extract a failure snippet."
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--repo", default=".", help="Path inside the target Git repository.")
+    target = parser.add_mutually_exclusive_group()
+    target.add_argument("--pr", default=None, help="PR number or URL.")
+    target.add_argument("--ref", default=None, help="Branch name or commit SHA to inspect.")
+    target.add_argument("--branch", default=None, help="Branch name to inspect (alias of --ref).")
+    target.add_argument("--commit", default=None, help="Commit SHA to inspect (alias of --ref).")
     parser.add_argument(
-        "--pr", default=None, help="PR number or URL (defaults to current branch PR)."
+        "--limit",
+        type=int,
+        default=DEFAULT_RUN_LIMIT,
+        help="Max workflow runs to inspect when using branch/commit targets.",
     )
     parser.add_argument("--max-lines", type=int, default=DEFAULT_MAX_LINES)
     parser.add_argument("--context", type=int, default=DEFAULT_CONTEXT_LINES)
@@ -103,17 +120,30 @@ def main() -> int:
     if not ensure_gh_available(repo_root):
         return 1
 
-    pr_value = resolve_pr(args.pr, repo_root)
-    if pr_value is None:
+    target = resolve_target(args, repo_root)
+    if target is None:
         return 1
 
-    checks = fetch_checks(pr_value, repo_root)
+    if target.kind == "pr":
+        checks = fetch_pr_checks(target.value, repo_root)
+    else:
+        checks = fetch_runs_for_ref(
+            target.value,
+            target.ref_type or "branch",
+            repo_root,
+            max(1, args.limit),
+        )
+
     if checks is None:
         return 1
 
+    if not checks:
+        print(f"{format_target_label(target)}: no checks found.")
+        return 0
+
     failing = [c for c in checks if is_failing(c)]
     if not failing:
-        print(f"PR #{pr_value}: no failing checks detected.")
+        print(f"{format_target_label(target)}: no failing checks detected.")
         return 0
 
     results = []
@@ -128,9 +158,9 @@ def main() -> int:
         )
 
     if args.json:
-        print(json.dumps({"pr": pr_value, "results": results}, indent=2))
+        print(json.dumps(build_payload(target, results), indent=2))
     else:
-        render_results(pr_value, results)
+        render_results(target, results)
 
     return 1
 
@@ -159,27 +189,91 @@ def ensure_gh_available(repo_root: Path) -> bool:
     return False
 
 
-def resolve_pr(pr_value: str | None, repo_root: Path) -> str | None:
+def resolve_target(args: argparse.Namespace, repo_root: Path) -> Target | None:
+    if args.pr:
+        return Target("pr", str(args.pr))
+
+    ref_value, ref_type = resolve_ref_from_args(args)
+    if ref_value:
+        return Target("ref", ref_value, ref_type)
+
+    pr_value = resolve_current_pr(repo_root)
     if pr_value:
-        return pr_value
+        return Target("pr", pr_value)
+
+    fallback_ref, fallback_type = resolve_current_ref(repo_root)
+    if fallback_ref:
+        return Target("ref", fallback_ref, fallback_type)
+
+    print("Error: unable to resolve PR or branch/commit target.", file=sys.stderr)
+    return None
+
+
+def resolve_ref_from_args(args: argparse.Namespace) -> tuple[str | None, str | None]:
+    if args.branch:
+        return str(args.branch), "branch"
+    if args.commit:
+        return str(args.commit), "commit"
+    if args.ref:
+        ref = str(args.ref)
+        ref_type = "commit" if is_probable_sha(ref) else "branch"
+        return ref, ref_type
+    return None, None
+
+
+def resolve_current_pr(repo_root: Path) -> str | None:
     result = run_gh_command(["pr", "view", "--json", "number"], cwd=repo_root)
     if result.returncode != 0:
-        message = (result.stderr or result.stdout or "").strip()
-        print(message or "Error: unable to resolve PR.", file=sys.stderr)
         return None
     try:
         data = json.loads(result.stdout or "{}")
     except json.JSONDecodeError:
-        print("Error: unable to parse PR JSON.", file=sys.stderr)
         return None
     number = data.get("number")
     if not number:
-        print("Error: no PR number found.", file=sys.stderr)
         return None
     return str(number)
 
 
-def fetch_checks(pr_value: str, repo_root: Path) -> list[dict[str, Any]] | None:
+def resolve_current_ref(repo_root: Path) -> tuple[str | None, str | None]:
+    branch = current_branch(repo_root)
+    if branch and branch != "HEAD":
+        return branch, "branch"
+    sha = current_commit(repo_root)
+    if sha:
+        return sha, "commit"
+    return None, None
+
+
+def current_branch(repo_root: Path) -> str | None:
+    result = subprocess.run(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
+def current_commit(repo_root: Path) -> str | None:
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
+def is_probable_sha(value: str) -> bool:
+    return bool(re.fullmatch(r"[0-9a-fA-F]{7,40}", value))
+
+
+def fetch_pr_checks(pr_value: str, repo_root: Path) -> list[dict[str, Any]] | None:
     primary_fields = ["name", "state", "conclusion", "detailsUrl", "startedAt", "completedAt"]
     result = run_gh_command(
         ["pr", "checks", pr_value, "--json", ",".join(primary_fields)],
@@ -224,6 +318,57 @@ def fetch_checks(pr_value: str, repo_root: Path) -> list[dict[str, Any]] | None:
     return data
 
 
+def fetch_runs_for_ref(
+    ref_value: str,
+    ref_type: str,
+    repo_root: Path,
+    limit: int,
+) -> list[dict[str, Any]] | None:
+    fields = [
+        "databaseId",
+        "name",
+        "status",
+        "conclusion",
+        "url",
+        "headBranch",
+        "headSha",
+        "workflowName",
+    ]
+    command = ["run", "list", "--json", ",".join(fields), "--limit", str(limit)]
+    if ref_type == "commit":
+        command += ["--commit", ref_value]
+    else:
+        command += ["--branch", ref_value]
+    result = run_gh_command(command, cwd=repo_root)
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout or "").strip()
+        print(message or "Error: gh run list failed.", file=sys.stderr)
+        return None
+    try:
+        runs = json.loads(result.stdout or "[]")
+    except json.JSONDecodeError:
+        print("Error: unable to parse workflow runs JSON.", file=sys.stderr)
+        return None
+    if not isinstance(runs, list):
+        print("Error: unexpected workflow runs JSON shape.", file=sys.stderr)
+        return None
+
+    normalized: list[dict[str, Any]] = []
+    for run in runs:
+        run_id = run.get("databaseId")
+        name = run.get("name") or run.get("workflowName") or ""
+        normalized.append(
+            {
+                "name": name,
+                "state": run.get("status"),
+                "conclusion": run.get("conclusion"),
+                "detailsUrl": run.get("url") or "",
+                "runId": str(run_id) if run_id else None,
+            }
+        )
+    return normalized
+
+
 def is_failing(check: dict[str, Any]) -> bool:
     conclusion = normalize_field(check.get("conclusion"))
     if conclusion in FAILURE_CONCLUSIONS:
@@ -242,8 +387,16 @@ def analyze_check(
     context: int,
 ) -> dict[str, Any]:
     url = check.get("detailsUrl") or check.get("link") or ""
-    run_id = extract_run_id(url)
-    job_id = extract_job_id(url)
+    run_id = check.get("runId")
+    if run_id is not None:
+        run_id = str(run_id)
+    else:
+        run_id = extract_run_id(url)
+    job_id = check.get("jobId")
+    if job_id is not None:
+        job_id = str(job_id)
+    else:
+        job_id = extract_job_id(url)
     base: dict[str, Any] = {
         "name": check.get("name", ""),
         "detailsUrl": url,
@@ -456,9 +609,9 @@ def tail_lines(text: str, max_lines: int) -> str:
     return "\n".join(lines[-max_lines:])
 
 
-def render_results(pr_number: str, results: Iterable[dict[str, Any]]) -> None:
+def render_results(target: Target, results: Iterable[dict[str, Any]]) -> None:
     results_list = list(results)
-    print(f"PR #{pr_number}: {len(results_list)} failing checks analyzed.")
+    print(f"{format_target_label(target)}: {len(results_list)} failing checks analyzed.")
     for result in results_list:
         print("-" * 60)
         print(f"Check: {result.get('name', '')}")
@@ -499,6 +652,28 @@ def render_results(pr_number: str, results: Iterable[dict[str, Any]]) -> None:
         else:
             print("No snippet available.")
     print("-" * 60)
+
+
+def build_payload(target: Target, results: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "target": {"type": target.kind, "value": target.value},
+        "results": list(results),
+    }
+    if target.kind == "pr":
+        payload["pr"] = target.value
+    else:
+        payload["ref"] = target.value
+        payload["refType"] = target.ref_type
+        payload["target"]["refType"] = target.ref_type
+    return payload
+
+
+def format_target_label(target: Target) -> str:
+    if target.kind == "pr":
+        return f"PR #{target.value}"
+    if target.ref_type == "commit":
+        return f"Commit {target.value[:12]}"
+    return f"Branch {target.value}"
 
 
 def indent_block(text: str, prefix: str = "  ") -> str:
