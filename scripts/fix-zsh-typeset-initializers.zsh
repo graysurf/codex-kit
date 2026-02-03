@@ -62,7 +62,7 @@ targets_from_root() {
   }
 
   typeset out=''
-  out="$(command git -C "$root_dir" ls-files -z -- 'scripts/**' 'commands/*' 'skills/**/scripts/**')"
+  out="$(command git -C "$root_dir" ls-files -z -- 'scripts/**' 'skills/**/scripts/**')"
 
   typeset -a candidates=()
   candidates=(${(0)out})

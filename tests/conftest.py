@@ -218,8 +218,6 @@ def script_coverage_out_dir() -> Path:
 
 
 def script_group(script: str) -> str:
-    if script.startswith("commands/"):
-        return "commands"
     if script.startswith("scripts/"):
         return "scripts"
     if script.startswith("skills/") and "/scripts/" in script:

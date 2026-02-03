@@ -30,6 +30,10 @@ export HOMEBREW_NO_INSTALL_CLEANUP=1
 
 os="$(uname -s)"
 
+# codex-kit binaries are provided via Homebrew tap (nils-cli).
+brew tap graysurf/tap
+brew install nils-cli
+
 brew_required_lists=("$required_list")
 brew_optional_lists=("$optional_list")
 apt_required_lists=()

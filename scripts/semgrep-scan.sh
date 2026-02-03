@@ -13,8 +13,8 @@ Profiles:
   local:        .semgrep.yaml only
   recommended:  .semgrep.yaml + p/ci + p/python + p/github-actions
   security:     recommended + p/security-audit + p/secrets + p/supply-chain + p/command-injection
-  shell:        .semgrep.yaml + p/supply-chain + p/command-injection + p/secrets (restricts to *.sh, *.zsh, /commands/**)
-  scripting:    .semgrep.yaml + p/python + p/supply-chain + p/command-injection + p/secrets (restricts to *.py, *.sh, *.zsh, /commands/**)
+  shell:        .semgrep.yaml + p/supply-chain + p/command-injection + p/secrets (restricts to *.sh, *.zsh)
+  scripting:    .semgrep.yaml + p/python + p/supply-chain + p/command-injection + p/secrets (restricts to *.py, *.sh, *.zsh)
 
 Default profile: scripting
 
@@ -95,7 +95,7 @@ case "$profile" in
     for cfg in p/supply-chain p/command-injection p/secrets; do
       configs+=(--config "$cfg")
     done
-    pass_args_base=(--include='*.sh' --include='*.zsh' --include='/commands/**')
+    pass_args_base=(--include='*.sh' --include='*.zsh')
     if ((${#pass_args[@]})); then
       pass_args=("${pass_args_base[@]}" "${pass_args[@]}")
     else
@@ -110,7 +110,6 @@ case "$profile" in
       --include='*.py'
       --include='*.sh'
       --include='*.zsh'
-      --include='/commands/**'
     )
     if ((${#pass_args[@]})); then
       pass_args=("${pass_args_base[@]}" "${pass_args[@]}")

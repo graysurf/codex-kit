@@ -10,7 +10,6 @@ intentionally excluded via `.gitignore`.
 ├── .github/    # CI workflows (GitHub Actions)
 ├── prompts/    # prompt presets
 ├── skills/     # skills (tools/, workflows/, automation/, _projects/, .system/)
-├── commands/   # legacy CLI wrappers (not required with `nils-cli`)
 ├── scripts/    # loader + helper scripts
 ├── docker/     # Docker images + env tooling
 ├── docs/       # docs, templates, progress logs

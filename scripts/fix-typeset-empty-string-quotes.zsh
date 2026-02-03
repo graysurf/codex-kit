@@ -59,7 +59,7 @@ targets_from_root() {
 
   typeset -a targets=()
   typeset out=''
-  out="$(command git -C "$root_dir" ls-files -z -- '*.sh' '*.zsh' 'commands/*')"
+  out="$(command git -C "$root_dir" ls-files -z -- '*.sh' '*.zsh')"
   targets=(${(0)out})
   targets=("${(@)targets:#}")
   targets=("${(@on)targets}")

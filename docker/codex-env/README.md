@@ -61,6 +61,7 @@ docker build -f Dockerfile -t codex-env:linuxbrew \
 
 Notes:
 - Tools are installed from the zsh-kit config lists resolved by `docker/codex-env/bin/install-tools.sh` (OS-specific files are picked based on `uname`).
+- codex-kit binary tools are installed via Homebrew tap: `brew tap graysurf/tap && brew install nils-cli`.
 - The image uses `tini` as PID 1 for signal forwarding and zombie reaping.
 - `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
 - `mitmproxy` is installed via `apt` on Linux (declared in `tools.optional.linux.apt.list`).

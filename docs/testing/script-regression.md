@@ -31,7 +31,6 @@ $CODEX_HOME/scripts/test.sh -m script_smoke
 - Discovers tracked script entrypoints via `git ls-files`:
   - `scripts/**`
   - `skills/**/scripts/**`
-  - `commands/**`
 - Executes each script via its shebang interpreter (e.g. `bash`, `zsh -f`).
 - Default invocation is safe-mode `--help` (override per script via JSON spec).
 - Uses a hermetic-ish environment:

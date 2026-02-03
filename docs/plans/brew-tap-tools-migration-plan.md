@@ -200,8 +200,8 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
 ### Task 3.1: Update Test Harness to Stop Using `CODEX_COMMANDS_PATH`
 - **Location**:
   - `tests/conftest.py`
-  - `tests/script_specs/commands/image-processing.json`
-  - `tests/script_specs/commands/project-resolve.json`
+  - `tests/script_specs/tools/image-processing.json`
+  - `tests/script_specs/tools/project-resolve.json`
   - `tests/test_script_smoke.py`
   - `tests/test_script_smoke_semantic_commit.py`
   - `tests/test_plan_scripts.py`

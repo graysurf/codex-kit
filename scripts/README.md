@@ -1,13 +1,12 @@
 # scripts
 
-Repo-local helpers for codex-kit. Binary tools ship with `nils-cli` and are on PATH after `brew install nils-cli`; any legacy repo-local wrappers under `commands/` should not be required for normal use.
+Repo-local helpers for codex-kit. Binary tools ship with `nils-cli` and are on PATH after `brew install nils-cli`.
 
 ## Structure
 
 ```text
-commands/                                 Legacy repo-local wrappers (not required when using `nils-cli`).
 scripts/
-├── build/                                Tooling to generate bundled commands.
+├── build/                                Tooling to generate bundled scripts.
 ├── chrome-devtools-mcp.sh                Launcher for the chrome-devtools MCP server.
 ├── env.zsh                               Environment defaults shared by repo scripts.
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.

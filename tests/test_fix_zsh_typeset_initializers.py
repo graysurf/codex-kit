@@ -12,7 +12,6 @@ from .conftest import repo_root
 def test_fix_zsh_typeset_initializers_preserves_executable_bit(tmp_path: Path) -> None:
     fixture_root = tmp_path / "repo"
     fixture_root.mkdir(parents=True, exist_ok=True)
-    (fixture_root / "commands").mkdir(parents=True, exist_ok=True)
     (fixture_root / "scripts").mkdir(parents=True, exist_ok=True)
 
     source_script = repo_root() / "scripts" / "fix-zsh-typeset-initializers.zsh"
@@ -20,7 +19,7 @@ def test_fix_zsh_typeset_initializers_preserves_executable_bit(tmp_path: Path) -
     fixer.write_text(source_script.read_text("utf-8"), "utf-8")
     fixer.chmod(0o755)
 
-    target = fixture_root / "commands" / "example"
+    target = fixture_root / "scripts" / "example"
     target.write_text(
         "\n".join(
             [
@@ -44,7 +43,7 @@ def test_fix_zsh_typeset_initializers_preserves_executable_bit(tmp_path: Path) -
     run(["git", "init"])
     run(["git", "config", "user.email", "fixture@example.com"])
     run(["git", "config", "user.name", "Fixture User"])
-    run(["git", "add", "scripts/fix-zsh-typeset-initializers.zsh", "commands/example"])
+    run(["git", "add", "scripts/fix-zsh-typeset-initializers.zsh", "scripts/example"])
     run(["git", "commit", "-m", "init"])
 
     completed = subprocess.run(
