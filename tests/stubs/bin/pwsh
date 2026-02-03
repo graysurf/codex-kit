@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Minimal PowerShell stub for test environments without pwsh installed.
+# Accept any arguments and exit successfully so script regression can proceed.
+exit 0

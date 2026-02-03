@@ -1,3 +1,5 @@
+#!/usr/bin/env swift
+
 import CoreGraphics
 import Foundation
 

@@ -1,4 +1,7 @@
+#!/usr/bin/env pwsh
+
 param(
+  [Alias("h", "help")][switch]$Help,
   [string]$Path,
   [ValidateSet("default", "temp")][string]$Mode = "default",
   [string]$Format = "png",
@@ -6,6 +9,18 @@ param(
   [switch]$ActiveWindow,
   [int]$WindowHandle
 )
+
+if ($Help) {
+  @"
+Usage:
+  take_screenshot.ps1 [-Path <path>] [-Mode default|temp] [-Format png|jpg|jpeg|bmp] [-Region x,y,w,h] [-ActiveWindow] [-WindowHandle <int>]
+
+Examples:
+  take_screenshot.ps1 -Mode temp
+  take_screenshot.ps1 -Path C:\Temp\screenshot.png
+"@ | Write-Output
+  exit 0
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"

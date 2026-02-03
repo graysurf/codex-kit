@@ -68,6 +68,7 @@ def default_smoke_env(repo: Path) -> dict[str, str]:
     base.update(
         {
             "CODEX_HOME": str(repo),
+            "CODEX_COMMANDS_PATH": str(repo / "commands"),
             "HOME": str(home),
             "XDG_CONFIG_HOME": str(xdg_config),
             "XDG_CACHE_HOME": str(xdg_cache),
@@ -111,6 +112,7 @@ def default_env(repo: Path) -> dict[str, str]:
     base.update(
         {
             "CODEX_HOME": str(repo),
+            "CODEX_COMMANDS_PATH": str(repo / "commands"),
             "HOME": str(home),
             "XDG_CONFIG_HOME": str(xdg_config),
             "XDG_CACHE_HOME": str(xdg_cache),
