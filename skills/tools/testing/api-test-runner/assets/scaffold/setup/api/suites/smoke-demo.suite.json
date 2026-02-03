@@ -5,23 +5,23 @@
     "env": "local",
     "noHistory": true,
     "rest": { "url": "http://127.0.0.1:43127" },
-    "graphql": { "url": "https://countries.trevorblades.com/" }
+    "graphql": { "url": "http://127.0.0.1:43127/graphql" }
   },
   "cases": [
     {
       "id": "rest.local.get",
       "type": "rest",
-      "tags": ["public", "demo", "smoke"],
+      "tags": ["local", "demo", "smoke"],
       "request": "setup/rest/requests/local.get.request.json"
     },
     {
-      "id": "graphql.countries.country",
+      "id": "graphql.local.health",
       "type": "graphql",
-      "tags": ["public", "demo", "smoke"],
-      "op": "setup/graphql/operations/country.graphql",
-      "vars": "setup/graphql/operations/country.variables.json",
+      "tags": ["local", "demo", "smoke"],
+      "op": "setup/graphql/operations/health.graphql",
+      "vars": "setup/graphql/operations/health.variables.json",
       "expect": {
-        "jq": "(.data.country.code == \"TW\") and ((.data.country.name | type) == \"string\") and ((.data.country.name | length) > 0)"
+        "jq": ".data.health.ok == true"
       }
     }
   ]

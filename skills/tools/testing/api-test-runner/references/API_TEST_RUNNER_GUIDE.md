@@ -131,11 +131,11 @@ Option B (recommended when JWTs expire): runtime login via a single JSON secret 
 
 ## GitHub Actions
 
-The repo ships a working example workflow using the bundled smoke suite (local REST fixture + public GraphQL):
+The repo ships a working example workflow using the bundled smoke suite (local REST + GraphQL fixture):
 
 - `.github/workflows/api-test-runner.yml`
 
-The bundled smoke suite expects a local REST fixture on `http://127.0.0.1:43127`:
+The bundled smoke suite expects a local fixture on `http://127.0.0.1:43127`:
 
 ```bash
 python3 setup/fixtures/httpbin/server.py --port 43127

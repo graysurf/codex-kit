@@ -57,13 +57,13 @@ mkdir -p setup
 cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" setup/
 ```
 
-Bootstrap a runnable local-fixture smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`, plus a tiny REST fixture):
+Bootstrap a runnable local-fixture smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`, plus a tiny REST + GraphQL fixture):
 
 ```bash
 cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
 ```
 
-Start the local REST fixture (required by `smoke-demo`):
+Start the local fixture (REST + GraphQL; required by `smoke-demo`):
 
 ```bash
 python3 setup/fixtures/httpbin/server.py --port 43127
@@ -366,11 +366,11 @@ api-test run \
   --junit out/api-test-runner/junit.xml
 ```
 
-GitHub Actions (runs the bundled smoke suite; local REST fixture + public GraphQL):
+GitHub Actions (runs the bundled smoke suite; local REST + GraphQL fixture):
 
 - Example workflow file: `.github/workflows/api-test-runner.yml`
 
-The bundled smoke suite expects a local REST fixture on `http://127.0.0.1:43127`:
+The bundled smoke suite expects a local fixture on `http://127.0.0.1:43127`:
 
 ```bash
 python3 setup/fixtures/httpbin/server.py --port 43127

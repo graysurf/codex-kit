@@ -5,6 +5,7 @@ import argparse
 import json
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import cast
 from urllib.parse import parse_qs, urlparse
 
 
@@ -22,6 +23,25 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _read_json(self) -> object | None:
+        raw_len = self.headers.get("content-length", "")
+        try:
+            length = int(raw_len) if raw_len else 0
+        except ValueError:
+            return None
+        payload = self.rfile.read(length) if length > 0 else b""
+        if not payload:
+            return None
+        try:
+            return json.loads(payload.decode("utf-8"))
+        except Exception:
+            return None
+
+    def _as_dict(self, value: object | None) -> dict[str, object] | None:
+        if isinstance(value, dict):
+            return cast(dict[str, object], value)
+        return None
+
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         path = parsed.path
@@ -36,6 +56,28 @@ class Handler(BaseHTTPRequestHandler):
             host = self.headers.get("host", "127.0.0.1")
             url = f"http://{host}{self.path}"
             self._send_json(200, {"args": args, "url": url})
+            return
+
+        self._send_json(404, {"error": "not_found"})
+
+    def do_POST(self) -> None:  # noqa: N802
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        if path == "/graphql":
+            payload = self._as_dict(self._read_json())
+            if payload is None:
+                self._send_json(400, {"error": "invalid_json"})
+                return
+
+            query_value = payload.get("query")
+            query = str(query_value) if query_value is not None else ""
+
+            if "health" in query:
+                self._send_json(200, {"data": {"health": {"ok": True}}})
+                return
+
+            self._send_json(200, {"errors": [{"message": "unknown_operation"}]})
             return
 
         self._send_json(404, {"error": "not_found"})
