@@ -10,7 +10,7 @@ intentionally excluded via `.gitignore`.
 ├── .github/    # CI workflows (GitHub Actions)
 ├── prompts/    # prompt presets
 ├── skills/     # skills (tools/, workflows/, automation/, _projects/, .system/)
-├── commands/   # CLI wrappers
+├── commands/   # legacy CLI wrappers (not required with `nils-cli`)
 ├── scripts/    # loader + helper scripts
 ├── docker/     # Docker images + env tooling
 ├── docs/       # docs, templates, progress logs
@@ -19,6 +19,19 @@ intentionally excluded via `.gitignore`.
 ```
 
 ## ⚙️ Setup
+
+Install required tooling via the Homebrew tap:
+
+```zsh
+brew tap graysurf/tap
+brew install nils-cli
+```
+
+Upgrade when needed:
+
+```zsh
+brew upgrade nils-cli
+```
 
 Set `CODEX_HOME` in `$HOME/.zshenv`:
 

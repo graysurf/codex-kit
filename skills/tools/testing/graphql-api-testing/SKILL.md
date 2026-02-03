@@ -9,7 +9,7 @@ description: Test GraphQL APIs with repeatable, file-based operations and variab
 
 Prereqs:
 
-- `api-gql` available (prefer `$CODEX_COMMANDS_PATH/api-gql`; fallback: `api-gql` on `PATH`).
+- `api-gql` available on `PATH` (install via `brew install nils-cli`).
 - `jq` recommended for pretty-printing/assertions (optional).
 - `setup/graphql/` exists (or bootstrap from template) with operations, vars, and optional endpoint/jwt presets.
 
@@ -50,7 +50,7 @@ Make GraphQL API calls reproducible via:
 Call an existing operation:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql call \
+api-gql call \
   --env local \
   --jwt default \
   setup/graphql/operations/<operation>.graphql \
@@ -61,7 +61,7 @@ $CODEX_COMMANDS_PATH/api-gql call \
 Generate a report (includes a replayable `## Command` by default):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql report \
+api-gql report \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -73,19 +73,19 @@ $CODEX_COMMANDS_PATH/api-gql report \
 Generate a report from a copied `api-gql`/`gql.sh` command snippet (no manual rewriting):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
+api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
 ```
 
 Replay the last run (history):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql history --command-only
+api-gql history --command-only
 ```
 
 Resolve committed schema SDL (for LLMs to author new operations):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql schema --config-dir setup/graphql
+api-gql schema --config-dir setup/graphql
 ```
 
 ## Flow (decision tree)
@@ -111,7 +111,7 @@ In CI, use `api-gql call` as the runner and `jq -e` as assertions (exit code is 
 ```bash
 set -euo pipefail
 
-$CODEX_COMMANDS_PATH/api-gql call \
+api-gql call \
   --config-dir setup/graphql \
   --env staging \
   --jwt ci \

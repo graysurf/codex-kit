@@ -13,6 +13,7 @@ Prereqs:
 
 - User explicitly requests a more rigorous plan than normal.
 - You can spawn a review subagent.
+- `plan-tooling` available on `PATH` for linting (install via `brew install nils-cli`).
 
 Inputs:
 
@@ -59,7 +60,7 @@ Failure modes:
 
 5) Lint the plan (format + executability)
 
-- Run: `$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/<slug>-plan.md`
+- Run: `plan-tooling validate --file docs/plans/<slug>-plan.md`
 - Fix until it passes (no placeholders in required fields; explicit validation commands; dependency IDs exist).
 
 6) Subagent review

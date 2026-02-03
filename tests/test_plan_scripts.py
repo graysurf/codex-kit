@@ -12,9 +12,9 @@ ScriptSpec = dict[str, Any]
 
 def test_validate_plans_passes_for_repo() -> None:
     repo = repo_root()
-    script = "commands/plan-tooling"
+    script = "plan-tooling"
     spec: ScriptSpec = {
-        "command": ["commands/plan-tooling", "validate"],
+        "command": ["plan-tooling", "validate"],
         "args": [],
         "timeout_sec": 10,
         "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
@@ -29,9 +29,9 @@ def test_validate_plans_fails_for_invalid_fixture() -> None:
     fixture = repo / "tests" / "fixtures" / "plan" / "invalid-plan.md"
     assert fixture.is_file()
 
-    script = "commands/plan-tooling"
+    script = "plan-tooling"
     spec: ScriptSpec = {
-        "command": ["commands/plan-tooling", "validate", "--file", fixture.as_posix()],
+        "command": ["plan-tooling", "validate", "--file", fixture.as_posix()],
         "args": [],
         "timeout_sec": 10,
         "expect": {"exit_codes": [1], "stderr_regex": r"missing Validation"},
@@ -47,7 +47,7 @@ def test_plan_to_json_emits_expected_schema() -> None:
     assert fixture.is_file()
 
     proc = subprocess.run(
-        ["commands/plan-tooling", "to-json", "--file", fixture.as_posix()],
+        ["plan-tooling", "to-json", "--file", fixture.as_posix()],
         cwd=str(repo),
         text=True,
         capture_output=True,
@@ -71,7 +71,7 @@ def test_plan_batches_computes_parallel_layers() -> None:
     assert fixture.is_file()
 
     proc = subprocess.run(
-        ["commands/plan-tooling", "batches", "--file", fixture.as_posix(), "--sprint", "1"],
+        ["plan-tooling", "batches", "--file", fixture.as_posix(), "--sprint", "1"],
         cwd=str(repo),
         text=True,
         capture_output=True,

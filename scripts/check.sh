@@ -206,9 +206,14 @@ fi
 if [[ "$run_plans" -eq 1 ]]; then
   echo "lint: validate plans" >&2
   set +e
-  commands_dir="${CODEX_COMMANDS_PATH:-${CODEX_HOME}/commands}"
-  "${commands_dir}/plan-tooling" validate
-  plans_rc=$?
+  plan_tooling="$(command -v plan-tooling || true)"
+  if [[ -z "$plan_tooling" ]]; then
+    echo "error: plan-tooling is required (Homebrew: brew tap graysurf/tap && brew install nils-cli)" >&2
+    plans_rc=1
+  else
+    "$plan_tooling" validate
+    plans_rc=$?
+  fi
   set -e
 
   if [[ "$plans_rc" -ne 0 ]]; then

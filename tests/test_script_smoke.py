@@ -58,20 +58,20 @@ def run_smoke_script(
     *,
     cwd: Path | None = None,
 ) -> ScriptRunResult:
-    script_path = repo / script
-    if not script_path.exists():
-        raise FileNotFoundError(script)
-
     args = spec.get("args", [])
     if not isinstance(args, list) or not all(isinstance(x, str) for x in args):
         raise TypeError(f"spec.args must be a list of strings: {script} ({case})")
 
+    script_path = repo / script
     command = spec.get("command")
     if command is not None:
         if not isinstance(command, list) or not command or not all(isinstance(x, str) for x in command):
             raise TypeError(f"spec.command must be a non-empty list of strings: {script} ({case})")
         if args:
             raise TypeError(f"spec.args must be empty when spec.command is set: {script} ({case})")
+    else:
+        if not script_path.exists():
+            raise FileNotFoundError(script)
 
     timeout_sec = spec.get("timeout_sec", 10)
     if not isinstance(timeout_sec, (int, float)):
@@ -237,12 +237,11 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
     run(["git", "add", "hello.txt"])
 
     repo = repo_root()
-    semantic_commit = repo / "commands" / "semantic-commit"
-    script = "commands/semantic-commit"
+    script = "semantic-commit"
     spec: dict[str, Any] = {
-        "command": [str(semantic_commit), "staged-context"],
+        "command": ["semantic-commit", "staged-context"],
         "timeout_sec": 10,
-        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": str(repo / "commands")},
+        "env": {"CODEX_HOME": None},
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"(?s)===== commit-context\.json =====.*hello\.txt.*===== staged\.patch =====.*diff --git a/hello\.txt b/hello\.txt",
@@ -285,14 +284,12 @@ def test_script_smoke_fixture_semantic_commit_staged_context_cleans_tmp(tmp_path
     tmpdir.mkdir(parents=True, exist_ok=True)
 
     repo = repo_root()
-    semantic_commit = repo / "commands" / "semantic-commit"
-    script = "commands/semantic-commit"
+    script = "semantic-commit"
     spec: dict[str, Any] = {
-        "command": [str(semantic_commit), "staged-context"],
+        "command": ["semantic-commit", "staged-context"],
         "timeout_sec": 10,
         "env": {
             "CODEX_HOME": None,
-            "CODEX_COMMANDS_PATH": str(repo / "commands"),
             "TMPDIR": str(tmpdir),
         },
         "expect": {

@@ -2,7 +2,7 @@
   "smoke": [
     {
       "name": "prefer-readme",
-      "args": ["--repo", ".", "--prefer", "README.md", "--format", "path"],
+      "command": ["scripts/project-resolve", "--repo", ".", "--prefer", "README.md", "--format", "path"],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],

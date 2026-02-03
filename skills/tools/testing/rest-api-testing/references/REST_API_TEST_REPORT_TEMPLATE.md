@@ -5,7 +5,7 @@
 ## Command
 
 ```bash
-"$CODEX_COMMANDS_PATH/api-rest" call \
+api-rest call \
   --env <ENV_NAME> \
   setup/rest/requests/<REQUEST_NAME>.request.json \
 | jq .

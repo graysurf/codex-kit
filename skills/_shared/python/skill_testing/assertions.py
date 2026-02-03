@@ -57,21 +57,13 @@ def assert_entrypoints_exist(skill_root: Path, rel_paths: Iterable[str]) -> None
 
 
 def resolve_codex_command(name: str) -> Path:
-    candidates: list[Path] = []
-
-    if commands_dir := os.environ.get("CODEX_COMMANDS_PATH"):
-        candidates.append(Path(commands_dir) / name)
-
-    if codex_home := os.environ.get("CODEX_HOME"):
-        candidates.append(Path(codex_home) / "commands" / name)
-
-    candidates.append(repo_root() / "commands" / name)
-
-    for candidate in candidates:
-        if candidate.is_file() and os.access(candidate, os.X_OK):
-            return candidate.resolve()
-
     if found := shutil.which(name):
         return Path(found).resolve()
 
-    raise AssertionError(f"{name} not found (set CODEX_COMMANDS_PATH or install {name} on PATH)")
+    if name == "project-resolve":
+        candidate = repo_root() / "scripts" / "project-resolve"
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate.resolve()
+        raise AssertionError(f"{name} not found (install on PATH or use scripts/project-resolve)")
+
+    raise AssertionError(f"{name} not found (install on PATH)")

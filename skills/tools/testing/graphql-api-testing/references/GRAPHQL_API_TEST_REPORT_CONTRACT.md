@@ -17,6 +17,6 @@ Use this contract for the `graphql-api-testing` skill.
 ## Preferred report flow
 
 - Generate a report with a real response (prefer `--run`; or `--response <file>` for replay):
-  - `$CODEX_COMMANDS_PATH/api-gql report`
+  - `api-gql report`
 - Draft/empty reports are blocked unless explicitly allowed (`--allow-empty`).
 - Default output dir is `<project root>/docs`; override with `GQL_REPORT_DIR`.

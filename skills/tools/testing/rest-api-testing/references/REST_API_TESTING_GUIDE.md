@@ -19,7 +19,7 @@ This guide documents how to run manual API tests for a REST server and how to re
 
 ## Recommended tools
 
-- CLI (repeatable calls): `api-rest` (bundled with Codex Kit), plus `jq` for formatting and assertions.
+- CLI (repeatable calls): `api-rest` (install via `brew install nils-cli`), plus `jq` for formatting and assertions.
 - GUI clients (optional): Insomnia / Postman / Bruno (good for saved environments + collections).
 
 ## Project setup (per repo)
@@ -49,7 +49,7 @@ cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/r
 
 The template includes a helper to turn a copied `api-rest`/`rest.sh` history command into a report:
 
-- `$CODEX_COMMANDS_PATH/api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'`
+- `api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'`
 
 ## Request file schema (JSON only)
 
@@ -108,7 +108,7 @@ REST_TOKEN_ADMIN="<admin token>"
 Tip: if you are not running from the repo root, add `--config-dir setup/rest` to the commands below.
 
 ```bash
-$CODEX_COMMANDS_PATH/api-rest call \
+api-rest call \
   --env local \
   setup/rest/requests/<request>.request.json \
 | jq .
@@ -145,7 +145,7 @@ Notes:
 ```bash
 export REST_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
 
-$CODEX_COMMANDS_PATH/api-rest report \
+api-rest report \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env <local|staging|dev> \
@@ -159,7 +159,7 @@ Report output contract (recommended):
 If you already have an `api-rest`/`rest.sh` command snippet (e.g. from `setup/rest/.rest_history`), you can generate the report without manually rewriting it:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
+api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
 ```
 
 7) CI / E2E usage (recommended pattern)
@@ -177,7 +177,7 @@ Example (single request):
 ```bash
 REST_URL="https://<host>" \
 ACCESS_TOKEN="${ACCESS_TOKEN:-}" \
-$CODEX_COMMANDS_PATH/api-rest call \
+api-rest call \
   --url "$REST_URL" \
   --config-dir setup/rest \
   setup/rest/requests/health.request.json

@@ -4,12 +4,13 @@ Status: Active
 Last updated: 2026-01-24
 
 Use this workflow to create a plan, lint it, inspect JSON output, compute parallel batches, and run `/execute-plan-parallel`.
+Install tooling via `brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
 
 ## 1) Create the plan
 
 - Create `docs/plans/<kebab-case>-plan.md`.
 - Optional: scaffold from the shared plan template:
-  - `$CODEX_COMMANDS_PATH/plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
+  - `plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
 - Follow Plan Format v1: `docs/plans/FORMAT.md`.
 - If you want Codex to draft the plan, use the `create-plan` or `create-plan-rigorous` workflow and save the result under `docs/plans/`.
 
@@ -18,19 +19,19 @@ Use this workflow to create a plan, lint it, inspect JSON output, compute parall
 From repo root:
 
 ```bash
-$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/<kebab-case>-plan.md
+plan-tooling validate --file docs/plans/<kebab-case>-plan.md
 ```
 
 ## 3) Export JSON (for inspection or tooling)
 
 ```bash
-$CODEX_COMMANDS_PATH/plan-tooling to-json --file docs/plans/<kebab-case>-plan.md --pretty
+plan-tooling to-json --file docs/plans/<kebab-case>-plan.md --pretty
 ```
 
 ## 4) Compute parallel batches
 
 ```bash
-$CODEX_COMMANDS_PATH/plan-tooling batches --file docs/plans/<kebab-case>-plan.md --sprint 1 --format text
+plan-tooling batches --file docs/plans/<kebab-case>-plan.md --sprint 1 --format text
 ```
 
 ## 5) Run `/execute-plan-parallel`

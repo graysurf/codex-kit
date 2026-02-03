@@ -1,11 +1,11 @@
 # scripts
 
-Repo-local helpers for codex-kit (command entrypoints live in `commands/` at the repo root).
+Repo-local helpers for codex-kit. Binary tools ship with `nils-cli` and are on PATH after `brew install nils-cli`; any legacy repo-local wrappers under `commands/` should not be required for normal use.
 
 ## Structure
 
 ```text
-commands/                                 Standalone command entrypoints used by skills and docs.
+commands/                                 Legacy repo-local wrappers (not required when using `nils-cli`).
 scripts/
 ├── build/                                Tooling to generate bundled commands.
 ├── chrome-devtools-mcp.sh                Launcher for the chrome-devtools MCP server.
@@ -14,6 +14,7 @@ scripts/
 ├── fix-zsh-typeset-initializers.zsh      Adds initializers to bare zsh `typeset/local` declarations.
 ├── fix-shell-style.zsh                   Runs shell style fixers (check/write).
 ├── lint.sh                               Runs shell + python lint/syntax checks.
+├── project-resolve                       Deterministic project path resolver (bundled).
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
 ├── check.sh                              Runs selected checks (lint/contracts/skills-layout/plans/env-bools/semgrep/tests).
@@ -30,8 +31,8 @@ Example (copy mode: project-resolve):
 
 ```zsh
 zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
-  --input "$HOME/.codex/commands/project-resolve" \
-  --output commands/project-resolve
+  --input "$HOME/.codex/scripts/project-resolve" \
+  --output scripts/project-resolve
 ```
 
 Notes:
@@ -101,10 +102,11 @@ Examples:
 ## Plans
 
 Plan tooling helps keep implementation plans concrete (executable + verifiable) and easy to split into parallel subagent tasks.
+Install with `brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
 
 ### Plan lint
 
-`$CODEX_COMMANDS_PATH/plan-tooling validate` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
+`plan-tooling validate` enforces a minimal Plan Format v1 across `docs/plans/*-plan.md`:
 
 - Sprints: `## Sprint N: <name>`
 - Tasks: `### Task N.M: <name>`
@@ -117,23 +119,23 @@ Plan tooling helps keep implementation plans concrete (executable + verifiable) 
 
 Usage:
 
-- Lint all tracked plans: `$CODEX_COMMANDS_PATH/plan-tooling validate`
-- Lint a specific plan: `$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/<name>-plan.md`
+- Lint all tracked plans: `plan-tooling validate`
+- Lint a specific plan: `plan-tooling validate --file docs/plans/<name>-plan.md`
 
 ### Plan scaffolding
 
-`$CODEX_COMMANDS_PATH/plan-tooling scaffold` creates a new `docs/plans/*-plan.md` file from the shared template:
+`plan-tooling scaffold` creates a new `docs/plans/*-plan.md` file from the shared template:
 
-- `$CODEX_COMMANDS_PATH/plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
+- `plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
 
 ### Plan JSON export
 
-`$CODEX_COMMANDS_PATH/plan-tooling to-json` parses a plan into JSON for tooling to consume:
+`plan-tooling to-json` parses a plan into JSON for tooling to consume:
 
-- `$CODEX_COMMANDS_PATH/plan-tooling to-json --file docs/plans/<name>-plan.md | python3 -m json.tool`
+- `plan-tooling to-json --file docs/plans/<name>-plan.md | python3 -m json.tool`
 
 ### Parallel batches
 
-`$CODEX_COMMANDS_PATH/plan-tooling batches` computes dependency layers (parallel batches) for a sprint:
+`plan-tooling batches` computes dependency layers (parallel batches) for a sprint:
 
-- `$CODEX_COMMANDS_PATH/plan-tooling batches --file docs/plans/<name>-plan.md --sprint 1 --format text`
+- `plan-tooling batches --file docs/plans/<name>-plan.md --sprint 1 --format text`

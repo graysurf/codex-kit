@@ -20,7 +20,7 @@ This guide documents how to run manual API tests for a GraphQL server and how to
 ## Recommended tools
 
 - Browser (exploration): open your GraphQL endpoint in a browser to use Apollo Sandbox (docs, autocomplete, history).
-- CLI (repeatable calls): `api-gql` (bundled with Codex Kit), plus `jq` for formatting and extracting fields.
+- CLI (repeatable calls): `api-gql` (install via `brew install nils-cli`), plus `jq` for formatting and extracting fields.
 - GUI clients (optional): Insomnia / Postman / Bruno (good for saved environments + collections).
 
 ## Project setup (per repo)
@@ -68,7 +68,7 @@ cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setu
 
 The template includes a helper to turn a copied `api-gql`/`gql.sh` history command into a report:
 
-- `$CODEX_COMMANDS_PATH/api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'`
+- `api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'`
 
 Then fill local-only files (do not commit):
 
@@ -145,13 +145,13 @@ If the repo commits its GraphQL schema SDL, LLMs can generate operations/variabl
 Resolve the schema file path:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql schema --config-dir setup/graphql
+api-gql schema --config-dir setup/graphql
 ```
 
 Print the schema contents:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql schema --config-dir setup/graphql --cat
+api-gql schema --config-dir setup/graphql --cat
 ```
 
 5) Prepare operation and variables files
@@ -170,19 +170,19 @@ Tip: if you are not running from the repo root, add `--config-dir setup/graphql`
 List envs:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql call --list-envs --config-dir setup/graphql
+api-gql call --list-envs --config-dir setup/graphql
 ```
 
 List JWT profiles:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql call --list-jwts --config-dir setup/graphql
+api-gql call --list-jwts --config-dir setup/graphql
 ```
 
 Unauthenticated call (login):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql call \
+api-gql call \
   --env local \
   setup/graphql/operations/login.graphql \
   setup/graphql/operations/login.variables.json \
@@ -192,7 +192,7 @@ $CODEX_COMMANDS_PATH/api-gql call \
 Authenticated call (select JWT profile; will auto-login if missing):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql call \
+api-gql call \
   --env local \
   --jwt default \
   setup/graphql/operations/<operation>.graphql \
@@ -204,7 +204,7 @@ Manual token export (optional; example path, adjust to your schema):
 
 ```bash
 export ACCESS_TOKEN="$(
-  $CODEX_COMMANDS_PATH/api-gql call \
+  api-gql call \
     --env local \
     setup/graphql/operations/login.graphql \
     setup/graphql/operations/login.variables.json \
@@ -215,7 +215,7 @@ export ACCESS_TOKEN="$(
 Authenticated call (ACCESS_TOKEN):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql call \
+api-gql call \
   --env local \
   setup/graphql/operations/<operation>.graphql \
   setup/graphql/operations/<variables>.json \
@@ -229,7 +229,7 @@ Reports should include real data. If the response is empty and that’s not clea
 ```bash
 export GQL_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
 
-$CODEX_COMMANDS_PATH/api-gql report \
+api-gql report \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -241,7 +241,7 @@ $CODEX_COMMANDS_PATH/api-gql report \
 Use a saved response file instead of running (for replayability):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql report \
+api-gql report \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -253,7 +253,7 @@ If you intentionally expect an empty/no-data result (or want a draft without run
 If you already have an `api-gql`/`gql.sh` command snippet (e.g. from `setup/graphql/.gql_history`), you can generate the report without manually rewriting it:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
+api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
 ```
 
 By default, `api-gql report` includes a copy/pasteable `api-gql` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND_ENABLED=false`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL_ENABLED=false`.
@@ -265,7 +265,7 @@ In CI, use `api-gql call` as the runner and `jq -e` as assertions (exit code is 
 ```bash
 set -euo pipefail
 
-$CODEX_COMMANDS_PATH/api-gql call \
+api-gql call \
   --config-dir setup/graphql \
   --env <local|staging|dev> \
   --jwt <default|admin|...> \
@@ -281,11 +281,11 @@ Notes:
 
 ## Notes for stability
 
-- Prefer “files + template command” (or `$CODEX_COMMANDS_PATH/api-gql`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
+- Prefer “files + template command” (or `api-gql`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
 - If the repo commits its GraphQL schema SDL (recommended: `setup/graphql/schema.gql`), LLMs can generate operations/variables without separate API docs. Resolve it with:
-  - `$CODEX_COMMANDS_PATH/api-gql schema --config-dir setup/graphql`
+  - `api-gql schema --config-dir setup/graphql`
 - `api-gql` keeps a local history file at `setup/graphql/.gql_history` by default; extract the last entry for replay with:
-  - `$CODEX_COMMANDS_PATH/api-gql history --command-only`
+  - `api-gql history --command-only`
 - History defaults and controls:
   - Defaults: enabled, logs both success/failure with exit code; rotates at 10 MB and keeps N old files.
   - One-off disable: `api-gql call --no-history ...`

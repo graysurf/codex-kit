@@ -5,7 +5,7 @@
 ## Command
 
 ```bash
-"$CODEX_COMMANDS_PATH/api-gql" call \
+api-gql call \
   --env <ENV_NAME> \
   --jwt <JWT_NAME> \
   setup/graphql/operations/<OPERATION_NAME>.graphql \

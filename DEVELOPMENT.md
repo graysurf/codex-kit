@@ -36,6 +36,7 @@
     - `.venv/bin/pip install -r requirements-dev.txt`
   - System tools
     - `shellcheck`, `zsh` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
+    - `nils-cli` (Homebrew: `brew tap graysurf/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
 - Quick entry points
   - `$CODEX_HOME/scripts/lint.sh` (defaults to shell + python)
   - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`

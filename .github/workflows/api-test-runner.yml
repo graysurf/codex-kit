@@ -12,14 +12,47 @@ permissions:
 
 jobs:
   smoke-demo:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
     env:
       CODEX_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Homebrew + nils-cli
+        run: |
+          set -euo pipefail
+
+          if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          BREW_BIN="$(command -v brew || true)"
+          if [[ -z "$BREW_BIN" ]]; then
+            if [[ -x /opt/homebrew/bin/brew ]]; then
+              BREW_BIN="/opt/homebrew/bin/brew"
+            elif [[ -x /usr/local/bin/brew ]]; then
+              BREW_BIN="/usr/local/bin/brew"
+            elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+              BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+            fi
+          fi
+
+          if [[ -z "$BREW_BIN" ]]; then
+            echo "error: brew not found after install" >&2
+            exit 1
+          fi
+
+          eval "$("$BREW_BIN" shellenv)"
+          echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
 
       - name: Install jq
         run: |
@@ -36,7 +69,7 @@ jobs:
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          $CODEX_HOME/commands/api-test run \
+          api-test run \
             --suite smoke-demo \
             --out out/api-test-runner/results.json \
             --junit out/api-test-runner/junit.xml
@@ -44,7 +77,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          $CODEX_HOME/commands/api-test summary \
+          api-test summary \
             --in out/api-test-runner/results.json \
             --out out/api-test-runner/summary.md \
             --slow 5
@@ -60,14 +93,47 @@ jobs:
             out/api-test-runner/summary.md
 
   cleanup-fixture:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
     env:
       CODEX_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Homebrew + nils-cli
+        run: |
+          set -euo pipefail
+
+          if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          BREW_BIN="$(command -v brew || true)"
+          if [[ -z "$BREW_BIN" ]]; then
+            if [[ -x /opt/homebrew/bin/brew ]]; then
+              BREW_BIN="/opt/homebrew/bin/brew"
+            elif [[ -x /usr/local/bin/brew ]]; then
+              BREW_BIN="/usr/local/bin/brew"
+            elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+              BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+            fi
+          fi
+
+          if [[ -z "$BREW_BIN" ]]; then
+            echo "error: brew not found after install" >&2
+            exit 1
+          fi
+
+          eval "$("$BREW_BIN" shellenv)"
+          echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
 
       - name: Install jq
         run: |
@@ -98,7 +164,7 @@ jobs:
           done
           curl -fsS "http://127.0.0.1:${port}/health" >/dev/null
 
-          $CODEX_HOME/commands/api-test run \
+          api-test run \
             --suite-file tests/fixtures/api-test-runner/cleanup/cleanup.suite.json \
             --out out/api-test-runner/cleanup/results.json \
             --junit out/api-test-runner/cleanup/junit.xml
@@ -106,7 +172,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          $CODEX_HOME/commands/api-test summary \
+          api-test summary \
             --in out/api-test-runner/cleanup/results.json \
             --out out/api-test-runner/cleanup/summary.md \
             --slow 5
@@ -120,14 +186,47 @@ jobs:
             out/api-test-runner/cleanup/
 
   public-auth-demo:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
     env:
       CODEX_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Homebrew + nils-cli
+        run: |
+          set -euo pipefail
+
+          if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          BREW_BIN="$(command -v brew || true)"
+          if [[ -z "$BREW_BIN" ]]; then
+            if [[ -x /opt/homebrew/bin/brew ]]; then
+              BREW_BIN="/opt/homebrew/bin/brew"
+            elif [[ -x /usr/local/bin/brew ]]; then
+              BREW_BIN="/usr/local/bin/brew"
+            elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+              BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+            fi
+          fi
+
+          if [[ -z "$BREW_BIN" ]]; then
+            echo "error: brew not found after install" >&2
+            exit 1
+          fi
+
+          eval "$("$BREW_BIN" shellenv)"
+          echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
 
       - name: Install jq
         run: |
@@ -145,7 +244,7 @@ jobs:
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          $CODEX_HOME/commands/api-test run \
+          api-test run \
             --suite public-auth-demo \
             --out out/api-test-runner/public-auth-demo.results.json \
             --junit out/api-test-runner/public-auth-demo.junit.xml
@@ -153,7 +252,7 @@ jobs:
       - name: Summarize results
         if: always()
         run: |
-          $CODEX_HOME/commands/api-test summary \
+          api-test summary \
             --in out/api-test-runner/public-auth-demo.results.json \
             --out out/api-test-runner/public-auth-demo.summary.md \
             --slow 5
@@ -171,8 +270,11 @@ jobs:
   auth-secrets-demo:
     # Requires a repo secret named API_TEST_AUTH_JSON (single JSON string).
     # Note: `jobs.<job_id>.if` cannot use `secrets` context, so we gate steps via env instead.
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
     env:
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
       CODEX_HOME: ${{ github.workspace }}
@@ -195,6 +297,37 @@ jobs:
         if: ${{ env.API_TEST_AUTH_JSON != '' }}
         uses: actions/checkout@v4
 
+      - name: Install Homebrew + nils-cli
+        if: ${{ env.API_TEST_AUTH_JSON != '' }}
+        run: |
+          set -euo pipefail
+
+          if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          BREW_BIN="$(command -v brew || true)"
+          if [[ -z "$BREW_BIN" ]]; then
+            if [[ -x /opt/homebrew/bin/brew ]]; then
+              BREW_BIN="/opt/homebrew/bin/brew"
+            elif [[ -x /usr/local/bin/brew ]]; then
+              BREW_BIN="/usr/local/bin/brew"
+            elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+              BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+            fi
+          fi
+
+          if [[ -z "$BREW_BIN" ]]; then
+            echo "error: brew not found after install" >&2
+            exit 1
+          fi
+
+          eval "$("$BREW_BIN" shellenv)"
+          echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
+
       - name: Install jq
         if: ${{ env.API_TEST_AUTH_JSON != '' }}
         run: |
@@ -213,7 +346,7 @@ jobs:
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
-          $CODEX_HOME/commands/api-test run \
+          api-test run \
             --suite auth-secrets-demo \
             --out out/api-test-runner/auth-secrets-demo.results.json \
             --junit out/api-test-runner/auth-secrets-demo.junit.xml
@@ -221,7 +354,7 @@ jobs:
       - name: Summarize results
         if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         run: |
-          $CODEX_HOME/commands/api-test summary \
+          api-test summary \
             --in out/api-test-runner/auth-secrets-demo.results.json \
             --out out/api-test-runner/auth-secrets-demo.summary.md \
             --slow 5

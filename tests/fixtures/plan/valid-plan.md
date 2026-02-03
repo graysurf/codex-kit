@@ -10,7 +10,7 @@
 - **Acceptance criteria**:
   - A doc file is updated.
 - **Validation**:
-  - `$CODEX_COMMANDS_PATH/plan-tooling validate --file tests/fixtures/plan/valid-plan.md`
+  - `plan-tooling validate --file tests/fixtures/plan/valid-plan.md`
 
 ### Task 1.2: Second task depends on first
 - **Location**:
@@ -21,7 +21,7 @@
 - **Acceptance criteria**:
   - The dependency relationship is explicit.
 - **Validation**:
-  - `$CODEX_COMMANDS_PATH/plan-tooling batches --file tests/fixtures/plan/valid-plan.md --sprint 1`
+  - `plan-tooling batches --file tests/fixtures/plan/valid-plan.md --sprint 1`
 
 ### Task 1.3: Third task depends on first
 - **Location**:
@@ -32,4 +32,4 @@
 - **Acceptance criteria**:
   - Batch computation produces a parallel layer.
 - **Validation**:
-  - `$CODEX_COMMANDS_PATH/plan-tooling batches --file tests/fixtures/plan/valid-plan.md --sprint 1`
+  - `plan-tooling batches --file tests/fixtures/plan/valid-plan.md --sprint 1`

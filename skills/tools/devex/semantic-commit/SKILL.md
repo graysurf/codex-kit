@@ -11,8 +11,8 @@ Prereqs:
 
 - Run inside a git work tree.
 - `git` available on `PATH`.
-- `semantic-commit` available (prefer `$CODEX_COMMANDS_PATH/semantic-commit`; fallback: `semantic-commit` on `PATH`).
-- `git-scope` available (prefer `$CODEX_COMMANDS_PATH/git-scope`; fallback: `git-scope` on `PATH`) (required).
+- `semantic-commit` available on `PATH` (install via `brew install nils-cli`).
+- `git-scope` available on `PATH` (install via `brew install nils-cli`) (required).
 
 Inputs:
 

@@ -43,12 +43,12 @@ $CODEX_HOME/scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 
 ## Examples
 
-### Re-bundle an already-bundled command (copy mode)
+### Re-bundle an already-bundled script (copy mode)
 
 ```zsh
 zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
-  --input "$HOME/.codex/commands/project-resolve" \
-  --output commands/project-resolve
+  --input "$HOME/.codex/scripts/project-resolve" \
+  --output scripts/project-resolve
 ```
 
 ### Bundle a minimal wrapper (sources + embedded tool)

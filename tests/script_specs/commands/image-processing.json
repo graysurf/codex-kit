@@ -2,7 +2,7 @@
   "smoke": [
     {
       "name": "help",
-      "command": ["commands/image-processing", "--help"],
+      "command": ["image-processing", "--help"],
       "timeout_sec": 5,
       "expect": {
         "exit_codes": [0],

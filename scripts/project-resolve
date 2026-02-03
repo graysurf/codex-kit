@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Bundled from: $HOME/.codex/commands/project-resolve
-# --- BEGIN commands/project-resolve
+# Bundled from: $HOME/.codex/scripts/project-resolve
+# --- BEGIN scripts/project-resolve
 
 die() {
   echo "project-resolve: $1" >&2
@@ -211,4 +211,4 @@ case "$format" in
     ;;
 esac
 
-# --- END commands/project-resolve
+# --- END scripts/project-resolve

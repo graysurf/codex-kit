@@ -14,6 +14,7 @@ Prereqs:
 - A plan file exists (markdown) with clear task breakdown and dependencies.
 - You can spawn and monitor multiple subagents.
 - The repo has a way to validate changes (tests, lint, build, or a manual checklist).
+- `plan-tooling` available on `PATH` for parsing/linting (install via `brew install nils-cli`).
 
 Inputs:
 
@@ -45,9 +46,9 @@ Failure modes:
 2) Read and parse the plan
 
 - Prefer using repo tooling (avoid parsing drift):
-  - Lint: `$CODEX_COMMANDS_PATH/plan-tooling validate --file <plan.md>`
-  - Parse JSON: `$CODEX_COMMANDS_PATH/plan-tooling to-json --file <plan.md> [--sprint <n>]`
-  - Compute batches: `$CODEX_COMMANDS_PATH/plan-tooling batches --file <plan.md> --sprint <n>`
+  - Lint: `plan-tooling validate --file <plan.md>`
+  - Parse JSON: `plan-tooling to-json --file <plan.md> [--sprint <n>]`
+  - Compute batches: `plan-tooling batches --file <plan.md> --sprint <n>`
 - Locate the selected sprint/phase section (e.g., `## Sprint 1:`).
 - Extract tasks (e.g., `### Task 1.1:`).
 - For each task, capture:

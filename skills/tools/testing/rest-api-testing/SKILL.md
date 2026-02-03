@@ -9,7 +9,7 @@ description: Test REST APIs with repeatable, file-based requests under <project>
 
 Prereqs:
 
-- `api-rest` available (prefer `$CODEX_COMMANDS_PATH/api-rest`; fallback: `api-rest` on `PATH`).
+- `api-rest` available on `PATH` (install via `brew install nils-cli`).
 - `jq` recommended for pretty-printing/assertions (optional).
 - `setup/rest/` exists (or bootstrap from template) with requests and optional endpoint/token presets.
 
@@ -50,7 +50,7 @@ Make REST API calls reproducible and CI-friendly via:
 Call an existing request (JSON only):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-rest call \
+api-rest call \
   --env local \
   setup/rest/requests/<request>.request.json \
 | jq .
@@ -60,23 +60,23 @@ If the endpoint requires auth, pass a token profile (from `setup/rest/tokens.loc
 
 ```bash
 # Token profile (requires REST_TOKEN_<NAME> to be non-empty in setup/rest/tokens.local.env)
-$CODEX_COMMANDS_PATH/api-rest call --env local --token default setup/rest/requests/<request>.request.json | jq .
+api-rest call --env local --token default setup/rest/requests/<request>.request.json | jq .
 
 # Or: one-off token (useful for CI)
 REST_URL="https://<host>" ACCESS_TOKEN="<token>" \
-  $CODEX_COMMANDS_PATH/api-rest call --url "$REST_URL" setup/rest/requests/<request>.request.json | jq .
+  api-rest call --url "$REST_URL" setup/rest/requests/<request>.request.json | jq .
 ```
 
 Replay the last run (history):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-rest history --command-only
+api-rest history --command-only
 ```
 
 Generate a report (includes a replayable `## Command` by default):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-rest report \
+api-rest report \
   --case "<test case name>" \
   --request setup/rest/requests/<request>.request.json \
   --env local \
@@ -86,7 +86,7 @@ $CODEX_COMMANDS_PATH/api-rest report \
 Generate a report from a copied `api-rest`/`rest.sh` command snippet (no manual rewriting):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
+api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
 ```
 
 ## Flow (decision tree)

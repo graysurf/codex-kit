@@ -13,6 +13,7 @@ Prereqs:
 
 - User is asking for an implementation plan (not asking you to build it yet).
 - You can read enough repo context to plan safely (or the user provides constraints).
+- `plan-tooling` available on `PATH` for linting (install via `brew install nils-cli`).
 
 Inputs:
 
@@ -59,7 +60,7 @@ Failure modes:
 
 5) Lint the plan (format + executability)
 
-- Run: `$CODEX_COMMANDS_PATH/plan-tooling validate --file docs/plans/<slug>-plan.md`
+- Run: `plan-tooling validate --file docs/plans/<slug>-plan.md`
 - If it fails: tighten tasks (missing fields, placeholders, unclear validations) until it passes.
 
 6) Review “gotchas”
@@ -74,4 +75,4 @@ Shared template (single source of truth):
 
 Optional scaffold helper (creates a placeholder plan; fill it before linting):
 
-- `$CODEX_COMMANDS_PATH/plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
+- `plan-tooling scaffold --slug <kebab-case> --title "<task name>"`

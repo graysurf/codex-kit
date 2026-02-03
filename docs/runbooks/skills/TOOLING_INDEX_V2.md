@@ -1,6 +1,7 @@
 # Skills Tooling Index v2
 
-This doc lists canonical executable entrypoints (under `skills/**/scripts/` and `commands/`).
+This doc lists canonical executable entrypoints (under `skills/**/scripts/` plus PATH-installed tooling).
+Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
 
 ## SKILL.md format
 
@@ -26,13 +27,13 @@ This doc lists canonical executable entrypoints (under `skills/**/scripts/` and 
 ## Plan tooling (Plan Format v1)
 
 - Scaffold a new plan file:
-  - `$CODEX_COMMANDS_PATH/plan-tooling scaffold`
+  - `plan-tooling scaffold`
 - Lint plans:
-  - `$CODEX_COMMANDS_PATH/plan-tooling validate`
+  - `plan-tooling validate`
 - Parse plan → JSON:
-  - `$CODEX_COMMANDS_PATH/plan-tooling to-json`
+  - `plan-tooling to-json`
 - Compute dependency batches:
-  - `$CODEX_COMMANDS_PATH/plan-tooling batches`
+  - `plan-tooling batches`
 
 ## Progress tooling (Progress PR workflow)
 

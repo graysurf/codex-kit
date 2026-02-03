@@ -12,7 +12,7 @@ Translate a user’s natural-language request into a safe invocation of the `ima
 Prereqs:
 
 - Run inside a git work tree (recommended; enables stable `out/` paths).
-- `image-processing` available (prefer `$CODEX_COMMANDS_PATH/image-processing`; fallback: `image-processing` on `PATH`).
+- `image-processing` available on `PATH` (install via `brew install nils-cli`).
 - ImageMagick:
   - `magick` (preferred), or
   - `convert` + `identify`.
@@ -73,7 +73,7 @@ Failure modes:
    - Do not run commands until the user answers or explicitly approves assumptions.
 
 2) Single entrypoint (do not bypass)
-   - Only run: `image-processing` (prefer `$CODEX_COMMANDS_PATH/image-processing`; fallback: `image-processing` on `PATH`)
+   - Only run: `image-processing` (from `PATH`; install via `brew install nils-cli`)
    - Do not call ImageMagick binaries directly unless debugging the `image-processing` CLI itself.
 
 3) Output mode gate (exactly one)

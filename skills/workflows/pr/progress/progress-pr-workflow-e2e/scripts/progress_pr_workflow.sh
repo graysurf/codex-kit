@@ -45,45 +45,17 @@ die() {
   exit 1
 }
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-
-find_codex_root() {
-  local dir="$script_dir"
-  for _ in {1..10}; do
-    if [[ -d "$dir/commands" && -d "$dir/skills" ]]; then
-      printf "%s\n" "$dir"
-      return 0
-    fi
-    dir="$(cd "${dir%/}/.." && pwd -P)"
-  done
-  return 1
-}
-
-resolve_command() {
-  local name="$1"
-  local candidate=''
-
-  if [[ -n "${CODEX_COMMANDS_PATH:-}" ]]; then
-    candidate="${CODEX_COMMANDS_PATH%/}/$name"
-    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
-  fi
-
-  if [[ -n "${CODEX_HOME:-}" ]]; then
-    candidate="${CODEX_HOME%/}/commands/$name"
-    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
-  fi
-
-  if codex_root="$(find_codex_root 2>/dev/null)"; then
-    candidate="${codex_root%/}/commands/$name"
-    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
-  fi
-
-  command -v "$name" >/dev/null 2>&1 && command -v "$name"
-}
-
 require_cmd() {
   local cmd="${1:-}"
   command -v "$cmd" >/dev/null 2>&1 || die "$cmd is required"
+}
+
+require_nils_cli() {
+  local name="$1"
+  local path=''
+  path="$(command -v "$name" 2>/dev/null || true)"
+  [[ -n "$path" ]] || die "$name is required (install with: brew tap graysurf/tap && brew install nils-cli)"
+  printf "%s\n" "$path"
 }
 
 if [[ "${1-}" == "-h" || "${1-}" == "--help" ]]; then
@@ -256,10 +228,8 @@ for p in "$handoff_script" "$close_script" "$create_progress_file_script" "$crea
   [[ -f "$p" ]] || die "required helper script not found: $p"
 done
 
-SEMANTIC_COMMIT="$(resolve_command semantic-commit)"
-GIT_SCOPE="$(resolve_command git-scope)"
-[[ -n "$SEMANTIC_COMMIT" ]] || die "semantic-commit is required"
-[[ -n "$GIT_SCOPE" ]] || die "git-scope is required"
+SEMANTIC_COMMIT="$(require_nils_cli semantic-commit)"
+GIT_SCOPE="$(require_nils_cli git-scope)"
 
 run_commit_helper() {
   "$SEMANTIC_COMMIT" commit "$@"

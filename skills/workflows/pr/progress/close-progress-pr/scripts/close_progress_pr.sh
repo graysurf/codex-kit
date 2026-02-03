@@ -61,44 +61,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-
-find_codex_root() {
-  local dir="$script_dir"
-  for _ in {1..10}; do
-    if [[ -d "$dir/commands" && -d "$dir/skills" ]]; then
-      printf "%s\n" "$dir"
-      return 0
-    fi
-    dir="$(cd "${dir%/}/.." && pwd -P)"
-  done
-  return 1
-}
-
-resolve_command() {
+require_nils_cli() {
   local name="$1"
-  local candidate=''
-
-  if [[ -n "${CODEX_COMMANDS_PATH:-}" ]]; then
-    candidate="${CODEX_COMMANDS_PATH%/}/$name"
-    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
+  local path=''
+  path="$(command -v "$name" 2>/dev/null || true)"
+  if [[ -z "$path" ]]; then
+    echo "error: $name is required (install with: brew tap graysurf/tap && brew install nils-cli)" >&2
+    exit 1
   fi
-
-  if [[ -n "${CODEX_HOME:-}" ]]; then
-    candidate="${CODEX_HOME%/}/commands/$name"
-    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
-  fi
-
-  if codex_root="$(find_codex_root 2>/dev/null)"; then
-    candidate="${codex_root%/}/commands/$name"
-    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
-  fi
-
-  command -v "$name" >/dev/null 2>&1 && command -v "$name"
+  printf "%s\n" "$path"
 }
 
-semantic_commit="$(resolve_command semantic-commit)"
-git_scope="$(resolve_command git-scope)"
+semantic_commit="$(require_nils_cli semantic-commit)"
+git_scope="$(require_nils_cli git-scope)"
 
 for cmd in gh git python3; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
@@ -106,14 +81,6 @@ for cmd in gh git python3; do
     exit 1
   fi
 done
-if [[ -z "$semantic_commit" ]]; then
-  echo "error: semantic-commit is required" >&2
-  exit 1
-fi
-if [[ -z "$git_scope" ]]; then
-  echo "error: git-scope is required" >&2
-  exit 1
-fi
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "error: must run inside a git work tree" >&2

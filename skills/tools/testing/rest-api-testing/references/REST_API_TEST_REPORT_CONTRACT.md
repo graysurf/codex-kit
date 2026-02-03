@@ -16,5 +16,5 @@ Use this contract for the `rest-api-testing` skill.
 ## Preferred report flow
 
 - Generate a report with a real response (prefer `--run`; or `--response <file>` for replay):
-  - `$CODEX_COMMANDS_PATH/api-rest report`
+  - `api-rest report`
 - Default output dir is `<project root>/docs`; override with `REST_REPORT_DIR`.

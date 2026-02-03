@@ -21,6 +21,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Homebrew + nils-cli
+        run: |
+          set -euo pipefail
+
+          if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          BREW_BIN="$(command -v brew || true)"
+          if [[ -z "$BREW_BIN" ]]; then
+            if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+              BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+            elif [[ -x /opt/homebrew/bin/brew ]]; then
+              BREW_BIN="/opt/homebrew/bin/brew"
+            elif [[ -x /usr/local/bin/brew ]]; then
+              BREW_BIN="/usr/local/bin/brew"
+            fi
+          fi
+
+          if [[ -z "$BREW_BIN" ]]; then
+            echo "error: brew not found after install" >&2
+            exit 1
+          fi
+
+          eval "$("$BREW_BIN" shellenv)"
+          echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
+
       - name: Install zsh (for zsh -n)
         run: |
           if ! command -v zsh >/dev/null 2>&1; then
@@ -86,6 +116,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Homebrew + nils-cli
+        run: |
+          set -euo pipefail
+
+          if ! command -v brew >/dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          BREW_BIN="$(command -v brew || true)"
+          if [[ -z "$BREW_BIN" ]]; then
+            if [[ -x /opt/homebrew/bin/brew ]]; then
+              BREW_BIN="/opt/homebrew/bin/brew"
+            elif [[ -x /usr/local/bin/brew ]]; then
+              BREW_BIN="/usr/local/bin/brew"
+            elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+              BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+            fi
+          fi
+
+          if [[ -z "$BREW_BIN" ]]; then
+            echo "error: brew not found after install" >&2
+            exit 1
+          fi
+
+          eval "$("$BREW_BIN" shellenv)"
+          echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
 
       - name: Ensure zsh (for script shebangs)
         run: |

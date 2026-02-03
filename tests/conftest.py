@@ -63,13 +63,11 @@ def default_smoke_env(repo: Path) -> dict[str, str]:
         p.mkdir(parents=True, exist_ok=True)
 
     stub_bin = repo / "tests" / "stubs" / "bin"
-    commands_bin = repo / "commands"
-    base["PATH"] = os.pathsep.join([str(stub_bin), str(commands_bin), base.get("PATH", "")])
+    base["PATH"] = os.pathsep.join([str(stub_bin), base.get("PATH", "")])
 
     base.update(
         {
             "CODEX_HOME": str(repo),
-            "CODEX_COMMANDS_PATH": str(repo / "commands"),
             "HOME": str(home),
             "XDG_CONFIG_HOME": str(xdg_config),
             "XDG_CACHE_HOME": str(xdg_cache),
@@ -108,13 +106,11 @@ def default_env(repo: Path) -> dict[str, str]:
         p.mkdir(parents=True, exist_ok=True)
 
     stub_bin = repo / "tests" / "stubs" / "bin"
-    commands_bin = repo / "commands"
-    base["PATH"] = os.pathsep.join([str(stub_bin), str(commands_bin), base.get("PATH", "")])
+    base["PATH"] = os.pathsep.join([str(stub_bin), base.get("PATH", "")])
 
     base.update(
         {
             "CODEX_HOME": str(repo),
-            "CODEX_COMMANDS_PATH": str(repo / "commands"),
             "HOME": str(home),
             "XDG_CONFIG_HOME": str(xdg_config),
             "XDG_CACHE_HOME": str(xdg_cache),
@@ -169,8 +165,6 @@ def discover_scripts() -> list[str]:
         if not (repo / p).is_file():
             continue
         if p.startswith("scripts/") or (p.startswith("skills/") and "/scripts/" in p):
-            scripts.append(p)
-        if p.startswith("commands/"):
             scripts.append(p)
     return sorted(set(scripts))
 

@@ -9,7 +9,7 @@ description: Run CI-friendly API test suites (REST + GraphQL) from a single mani
 
 Prereqs:
 
-- `api-test` available (prefer `$CODEX_COMMANDS_PATH/api-test`; fallback: `api-test` on `PATH`).
+- `api-test`, `api-rest`, and `api-gql` available on `PATH` (install via `brew install nils-cli`).
 - `jq` recommended for ad-hoc assertions/formatting (optional).
 
 Inputs:
@@ -39,8 +39,8 @@ Failure modes:
 
 Run a suite of API checks in CI (and locally) via a single manifest file, reusing existing callers:
 
-- REST: `$CODEX_COMMANDS_PATH/api-rest`
-- GraphQL: `$CODEX_COMMANDS_PATH/api-gql`
+- REST: `api-rest`
+- GraphQL: `api-gql`
 
 The runner:
 
@@ -66,19 +66,19 @@ cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
 Run a canonical suite:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-test run --suite smoke-demo --out out/api-test-runner/results.json
+api-test run --suite smoke-demo --out out/api-test-runner/results.json
 ```
 
 Emit JUnit for CI reporters:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-test run --suite smoke-demo --junit out/api-test-runner/junit.xml
+api-test run --suite smoke-demo --junit out/api-test-runner/junit.xml
 ```
 
 Generate a human-friendly summary (CI logs + `$GITHUB_STEP_SUMMARY`), based on the results JSON:
 
 ```bash
-$CODEX_COMMANDS_PATH/api-test summary \
+api-test summary \
   --in out/api-test-runner/results.json \
   --out out/api-test-runner/summary.md \
   --slow 5
@@ -87,7 +87,7 @@ $CODEX_COMMANDS_PATH/api-test summary \
 Hide skipped cases (optional):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-test summary \
+api-test summary \
   --in out/api-test-runner/results.json \
   --hide-skipped
 ```
@@ -352,7 +352,7 @@ Control:
 Generic shell (write JSON + JUnit as CI artifacts):
 
 ```bash
-$CODEX_COMMANDS_PATH/api-test run \
+api-test run \
   --suite smoke \
   --out out/api-test-runner/results.json \
   --junit out/api-test-runner/junit.xml
@@ -398,7 +398,7 @@ steps:
       CODEX_HOME: ${{ github.workspace }}
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
     run: |
-      $CODEX_COMMANDS_PATH/api-test run \
+      api-test run \
         --suite my-suite \
         --tag staging \
         --tag "shard:${{ matrix.shard }}" \

@@ -77,11 +77,12 @@ def test_tools_devex_semantic_commit_staged_context_outputs_bundle_and_ignores_g
                 "git-commit-context-json",
                 "#!/usr/bin/env bash\nset -euo pipefail\necho 'SHOULD_NOT_RUN' >&2\nexit 1\n",
             )
+            path_env = os.pathsep.join([str(tools), os.environ.get("PATH", "")])
 
             proc = _run(
                 [str(semantic_commit), "staged-context"],
                 cwd=repo,
-                env={"CODEX_COMMANDS_PATH": str(tools)},
+                env={"PATH": path_env},
             )
 
         assert proc.returncode == 0, proc.stderr
