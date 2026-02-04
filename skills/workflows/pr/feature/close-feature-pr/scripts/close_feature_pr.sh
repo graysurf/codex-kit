@@ -24,8 +24,8 @@ strip_none_progress_and_planning_sections() {
     return 0
   fi
 
-  local tmp_in=""
-  local tmp_out=""
+  local tmp_in=''
+  local tmp_out=''
   tmp_in="$(mktemp)"
   tmp_out="$(mktemp)"
 
