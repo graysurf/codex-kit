@@ -83,8 +83,8 @@ Use this skill when the user wants end-to-end CI fixing (no manual review pauses
    - Commit using `semantic-commit-autostage` (single commit per iteration unless splitting is clearly beneficial).
    - Push the current branch (update the PR branch when targeting a PR).
    - Wait for CI:
-     - PR: `gh pr checks <pr> --watch --fail-fast --required`
-     - Branch/commit: watch the latest run for the pushed SHA (use `gh run list` then `gh run watch --exit-status`)
+     - PR: `gh pr checks <pr> --watch --interval 10 --required` (wait until required checks finish, then confirm pass/fail)
+     - Branch/commit: watch the latest run for the pushed SHA (use `gh run list` then `gh run watch <run-id> --interval 10 --exit-status`)
    - If CI still fails, inspect again and continue the loop.
 
 ## Notes
