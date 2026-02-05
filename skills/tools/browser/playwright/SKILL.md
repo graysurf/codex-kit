@@ -22,7 +22,7 @@ Inputs:
 Outputs:
 
 - Browser automation actions
-- Artifacts in the working directory (for example, `.playwright-cli/` snapshots, screenshots, traces)
+- Artifacts in `PLAYWRIGHT_MCP_OUTPUT_DIR` if set; otherwise `.playwright-cli/` in the workspace root (Playwright CLI default)
 
 Exit codes:
 
@@ -77,6 +77,15 @@ export PWCLI="$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli
 ```
 
 User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills`).
+
+## Artifact location (required in this repo)
+
+To avoid `.playwright-cli/`, set the output directory explicitly:
+
+```bash
+export PLAYWRIGHT_MCP_OUTPUT_DIR="$PWD/out/playwright/<label>"
+mkdir -p "$PLAYWRIGHT_MCP_OUTPUT_DIR"
+```
 
 ## First-time setup (once per machine)
 
@@ -196,5 +205,5 @@ Open only what you need:
 - Prefer explicit commands over `eval` and `run-code` unless needed.
 - When you do not have a fresh snapshot, use placeholder refs like `eX` and say why; do not bypass refs with `run-code`.
 - Use `--headed` when a visual check will help.
-- When capturing artifacts in this repo, use `out/playwright/` and avoid introducing new top-level artifact folders.
+- When capturing artifacts in this repo, set `PLAYWRIGHT_MCP_OUTPUT_DIR=out/playwright/<label>` so outputs never go to `.playwright-cli/`.
 - Default to CLI commands and workflows, not Playwright test specs.
