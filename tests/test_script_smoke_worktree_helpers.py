@@ -241,6 +241,40 @@ def test_script_smoke_cleanup_worktrees_removes_matching(tmp_path: Path) -> None
 
 
 @pytest.mark.script_smoke
+def test_script_smoke_cleanup_worktrees_handles_space_in_path(tmp_path: Path) -> None:
+    work_tree, _ = init_fixture_repo(tmp_path)
+
+    worktrees_root = work_tree.parent / ".worktrees" / work_tree.name
+    worktrees_root.mkdir(parents=True, exist_ok=True)
+
+    remove_spaced = worktrees_root / "fixture remove spaced"
+    keep = worktrees_root / "fixture_keep"
+
+    git(["worktree", "add", "-b", "feat/remove-spaced", str(remove_spaced), "main"], cwd=work_tree)
+    git(["worktree", "add", "-b", "feat/keep", str(keep), "main"], cwd=work_tree)
+
+    repo = repo_root()
+    prefix = f".worktrees/{work_tree.name}/fixture remove"
+    spec = {"args": ["--prefix", prefix, "--yes"], "timeout_sec": 20}
+    result = run_smoke_script(
+        SCRIPT_CLEANUP_WORKTREES,
+        "cleanup-worktrees-space-path",
+        spec,
+        repo,
+        cwd=work_tree,
+    )
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    assert not remove_spaced.exists(), "expected worktree with spaced path to be removed"
+    assert keep.exists(), "non-matching worktree should remain"
+
+    listing = git_output(["worktree", "list", "--porcelain"], cwd=work_tree)
+    assert str(keep) in listing
+    assert str(remove_spaced) not in listing
+
+
+@pytest.mark.script_smoke
 def test_script_smoke_cleanup_worktrees_default_dry_run(tmp_path: Path) -> None:
     work_tree, _ = init_fixture_repo(tmp_path)
 
