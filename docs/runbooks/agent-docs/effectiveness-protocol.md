@@ -209,4 +209,3 @@ Minimum report sections:
 - Hard-fail inventory (if any)
 - Operator correction examples
 - Rollout decision: `ACCEPT` or `HOLD`
-

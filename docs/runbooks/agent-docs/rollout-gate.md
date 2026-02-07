@@ -39,4 +39,3 @@
 - Trial raw results: `out/agent-docs-rollout/trial-results.json`
 - Trial summary: `out/agent-docs-rollout/trial-summary.md`
 - Pilot decision: `docs/runbooks/agent-docs/nils-cli-adoption-decision.md`
-

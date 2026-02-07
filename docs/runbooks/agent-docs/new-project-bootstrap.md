@@ -52,4 +52,3 @@ $CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
   --project-path "$PROJECT_PATH" \
   --project-required "project-dev:BINARY_DEPENDENCIES.md:External runtime tools"
 ```
-

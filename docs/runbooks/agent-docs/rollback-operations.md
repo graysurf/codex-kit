@@ -43,4 +43,3 @@
    - include root cause, rollback commands, owner, and next remediation date.
 3. Archive failed trial artifacts:
    - `out/agent-docs-rollout/failed-<date>/`
-

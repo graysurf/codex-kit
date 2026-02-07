@@ -43,4 +43,3 @@
 3. Use `--force` only when intentional overwrite is required.
 4. Validate with strict baseline check after apply:
    - `agent-docs baseline --check --target all --strict --format text`
-

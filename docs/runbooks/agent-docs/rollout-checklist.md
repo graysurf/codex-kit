@@ -42,4 +42,3 @@
 1. Rollout gate decision is `go`.
 2. All preflight checks pass in both home and selected project scopes.
 3. Rollback runbook is reviewed and executable by another engineer.
-
