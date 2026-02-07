@@ -12,13 +12,13 @@ Prereqs:
 - macOS host with Accessibility and Automation permissions granted for Terminal and target apps.
 - Homebrew-installed `macos-agent` available on `PATH`.
 - `cliclick` and `osascript` available on `PATH`.
-- Optional for input stability: `im-select`.
 
 Inputs:
 
 - Command entrypoint: `$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh`.
 - Optional env vars:
   - `MACOS_AGENT_REAL_E2E_INPUT_SOURCE` (example: `abc`) for deterministic input source.
+  - `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1` to bypass automatic switch to US/ABC.
 
 Outputs:
 
@@ -44,32 +44,36 @@ Failure modes:
 
 ## Workflow
 
-1. Resolve Homebrew macos-agent binary path:
+1. Auto-switch input source to US/ABC (`ABC`) before running `doctor` / `app-check` / `scenario` / `run`.
+   - This is built into the script to avoid IME-induced typing failures.
+   - If you intentionally need another input method, set `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1`.
+
+2. Resolve Homebrew macos-agent binary path:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where
 ```
 
-2. Run environment readiness checks:
+3. Run environment readiness checks:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor
 ```
 
-3. Run quick app-foreground check (for scheduled sanity jobs):
+4. Run quick app-foreground check (for scheduled sanity jobs):
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Arc --timeout-ms 12000
 ```
 
-4. Run routine scripted actions:
+5. Run routine scripted actions:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh scenario --file /path/to/scenario.json
 ```
 
-5. Pass through any raw macos-agent command:
+6. Pass through any raw macos-agent command:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- --format json windows list --app Finder
@@ -107,7 +111,9 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   - Re-run `doctor` and fix Accessibility/Automation in System Settings.
 
 - text input mismatch or wrong characters
-  - Install `im-select` and set `MACOS_AGENT_REAL_E2E_INPUT_SOURCE=abc`.
+  - The skill script now auto-switches to US/ABC before operational commands.
+  - Keep `ABC` enabled in macOS Input Sources.
+  - If you must keep another IME, set `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1`.
   - Prefer clipboard-paste style flows over character-by-character typing.
 
 - Homebrew macos-agent missing

@@ -12,6 +12,8 @@ Usage:
 
 Notes:
   - Requires Homebrew-installed macos-agent available on PATH.
+  - Automatically switches input source to US/ABC before doctor/app-check/scenario/run.
+  - Set MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1 to bypass the auto-switch.
 USAGE
 }
 
@@ -20,6 +22,57 @@ require_macos() {
     echo "error: macos-agent-ops requires macOS" >&2
     exit 1
   fi
+}
+
+ensure_us_abc_input_source() {
+  local skip_switch="${MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH:-0}"
+  if [[ "$skip_switch" == "1" ]]; then
+    return 0
+  fi
+
+  local current_layout=''
+  current_layout="$(defaults read com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null || true)"
+  if [[ "$current_layout" == "com.apple.keylayout.ABC" || "$current_layout" == "com.apple.keylayout.US" ]]; then
+    return 0
+  fi
+
+  if ! osascript <<'APPLESCRIPT' >/dev/null 2>&1
+tell application "System Events"
+  tell process "TextInputMenuAgent"
+    if (count of menu bars) < 2 then error "TextInputMenuAgent menu bar 2 unavailable"
+    click menu bar item 1 of menu bar 2
+    delay 0.15
+    try
+      click menu item "ABC" of menu 1 of menu bar item 1 of menu bar 2
+    on error
+      click menu bar item 1 of menu bar 2
+      error "menu item ABC not found"
+    end try
+  end tell
+end tell
+APPLESCRIPT
+  then
+    echo "error: failed to switch input source to US/ABC" >&2
+    echo "hint: ensure Accessibility is granted and ABC input source is enabled." >&2
+    echo "hint: set MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1 to bypass." >&2
+    exit 1
+  fi
+
+  local menu_desc=''
+  menu_desc="$(osascript -e 'tell application "System Events" to tell process "TextInputMenuAgent" to get description of menu bar item 1 of menu bar 2' 2>/dev/null || true)"
+  current_layout="$(defaults read com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null || true)"
+
+  if [[ "$menu_desc" == "ABC" || "$menu_desc" == "US" || "$menu_desc" == "U.S." ]]; then
+    return 0
+  fi
+  if [[ "$current_layout" == "com.apple.keylayout.ABC" || "$current_layout" == "com.apple.keylayout.US" ]]; then
+    return 0
+  fi
+
+  echo "error: input source is not US/ABC after switch attempt" >&2
+  echo "current: menu='$menu_desc' layout='$current_layout'" >&2
+  echo "hint: switch to ABC manually from the input menu, then retry." >&2
+  exit 1
 }
 
 resolve_bin() {
@@ -167,15 +220,19 @@ main() {
       resolve_bin
       ;;
     doctor)
+      ensure_us_abc_input_source
       run_doctor
       ;;
     app-check)
+      ensure_us_abc_input_source
       run_app_check "$@"
       ;;
     scenario)
+      ensure_us_abc_input_source
       run_scenario "$@"
       ;;
     run)
+      ensure_us_abc_input_source
       run_passthrough "$@"
       ;;
     -h|--help|help)
