@@ -77,6 +77,21 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh scenario --f
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- --format json windows list --app Finder
 ```
 
+## Screenshot-Based Triage Rules
+
+- During runtime failure triage, the agent SHOULD capture an active-window screenshot before any retry or remediation.
+- For `wait app-active` and `window.activate` timeout failures, screenshot capture SHOULD be treated as a first-line diagnostic step.
+- Screenshot artifacts MUST be written under `$CODEX_HOME/out/` and SHOULD use timestamped filenames for traceability.
+- The agent SHOULD include the screenshot path in the final diagnostic summary, together with the failing command and error message.
+
+Recommended command (via the skill entrypoint):
+
+```bash
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
+  --format json observe screenshot --active-window \
+  --path "$CODEX_HOME/out/macos-agent-failure-$(date +%Y%m%d-%H%M%S).png"
+```
+
 ## Common Errors And Prevention
 
 - `error: timed out waiting for app-active ...`
