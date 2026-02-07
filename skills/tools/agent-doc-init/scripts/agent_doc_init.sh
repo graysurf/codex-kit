@@ -198,10 +198,14 @@ project_entries_requested="${#project_required_entries[@]}"
 project_entries_applied=0
 if (( project_entries_requested > 0 )); then
   for raw in "${project_required_entries[@]}"; do
-    mapfile -t parsed < <(parse_project_required "$raw")
-    context="${parsed[0]}"
-    path="${parsed[1]}"
-    notes="${parsed[2]}"
+    context=""
+    path=""
+    notes=""
+    {
+      IFS= read -r context
+      IFS= read -r path
+      IFS= read -r notes
+    } < <(parse_project_required "$raw")
     if [[ "$dry_run" == "true" ]]; then
       printf 'project_entry_plan context=%s path=%s required=true when=always\n' "$context" "$path"
       continue
