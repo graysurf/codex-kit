@@ -15,7 +15,7 @@ Checks:
   - Git repo present and working tree is clean (or only dirty in allowed paths)
   - Optional: current branch matches --branch
   - Tag <version> does not already exist locally
-  - CHANGELOG.md contains a "## <version> - YYYY-MM-DD" entry with required sections
+  - CHANGELOG.md contains a "## <version> - YYYY-MM-DD" entry (empty None sections removed)
   - GitHub CLI auth status (when gh is installed)
 
 Exit:
@@ -30,7 +30,6 @@ branch=""
 version=""
 changelog="CHANGELOG.md"
 strict=0
-repo_template=""
 allow_dirty_paths=()
 
 while [[ $# -gt 0 ]]; do
@@ -105,11 +104,6 @@ cd "$repo" || die "unable to cd: $repo"
 
 if ! command -v git >/dev/null 2>&1; then
   die "git is required"
-fi
-
-if [[ -f "docs/templates/RELEASE_TEMPLATE.md" ]]; then
-  repo_template="docs/templates/RELEASE_TEMPLATE.md"
-  say_ok "repo template present: $repo_template"
 fi
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -241,14 +235,6 @@ if [[ -f "$changelog" ]]; then
   if [[ -z "$notes" ]]; then
     say_fail "unable to extract notes for $version from $changelog"
   else
-    if [[ -z "$repo_template" ]]; then
-      for section in "### Added" "### Changed" "### Fixed"; do
-        if [[ "$notes" != *$'\n'"$section"$'\n'* ]]; then
-          say_fail "missing required section: $section"
-        fi
-      done
-    fi
-
     if [[ "$notes" == *"- ..."* || "$notes" == *"..."* ]]; then
       if (( strict )); then
         say_fail "placeholder text detected (remove \"...\" placeholders before publishing)"

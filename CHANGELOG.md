@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.3 - 2026-02-07
+
+### Fixed
+- `release-workflow`: harden strict audit allow-dirty array handling under `set -u`.
+- `release-workflow`: handle empty allow-dirty input safely in strict mode.
+
 ## v2.2.2 - 2026-02-07
 
 ### Added

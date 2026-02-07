@@ -22,6 +22,7 @@ Use this guide only when the target repository does not provide its own release 
    - Remove placeholders and scaffolding:
      - Remove any `...` placeholders and `<!-- ... -->` HTML comments.
      - Remove empty sections; keep section order.
+     - For `### Added`, `### Changed`, `### Fixed`: if a section is `None`, remove the whole section (do not write `- None.`).
    - Audit the changelog and stop if it fails:
      - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 
