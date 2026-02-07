@@ -92,7 +92,8 @@ normalize_repo_path() {
 is_allowed_dirty_path() {
   local candidate="${1:-}"
   local allowed=''
-  for allowed in "${allow_dirty_paths[@]}"; do
+  for allowed in "${allow_dirty_paths[@]-}"; do
+    [[ -n "$allowed" ]] || continue
     if [[ "$candidate" == "$allowed" ]]; then
       return 0
     fi
@@ -127,7 +128,8 @@ fi
 
 typeset -a allow_dirty_paths_normalized=()
 repo_root="$(pwd -P)"
-for allow_dirty_path in "${allow_dirty_paths[@]}"; do
+for allow_dirty_path in "${allow_dirty_paths[@]-}"; do
+  [[ -n "$allow_dirty_path" ]] || continue
   normalized_allow_path="$(normalize_repo_path "$allow_dirty_path" "$repo_root")"
   if [[ -z "$normalized_allow_path" || "$normalized_allow_path" == "." ]]; then
     say_fail "invalid --allow-dirty-path value: $allow_dirty_path"
