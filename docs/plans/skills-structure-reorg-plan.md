@@ -354,7 +354,7 @@ Canonical skill entrypoints (v2):
 
 - **Complexity**: 7
 - **Location**:
-  - `skills/tools/browser/chrome-devtools-site-search/tests/test_skill.py`
+  - `skills/tools/browser/chrome-devtools-debug-companion/tests/test_tools_browser_chrome_devtools_debug_companion.py`
   - `skills/tools/devex/semantic-commit/tests/test_skill.py`
   - `skills/tools/testing/rest-api-testing/tests/test_skill.py`
 - **Description**: Add skill-local tests for tools skills, focusing on script entrypoints, `--help` behavior, and deterministic outputs.
