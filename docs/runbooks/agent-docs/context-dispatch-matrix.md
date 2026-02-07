@@ -15,6 +15,16 @@
 | `project-dev` | Any repository implementation flow | edit code, run tests/build, refactor, fix bug, prepare commit/PR | Hard gate for write actions |
 | `skill-dev` | Skill lifecycle work | create/update/remove skills, skill contract/governance checks | Hard gate |
 
+## Runtime intent decision examples
+
+| Example user request | Runtime intent | Why this intent | Required preflight sequence |
+| --- | --- | --- | --- |
+| "Please check whether this repo is ready before we start." | `startup` | Session/readiness check only; no implementation scope yet. | `startup` strict |
+| "Fix the merge-parent bug in `staged` and add tests." | `project implementation` | Requests file edits and test updates in a project repo. | `startup` strict -> `project-dev` strict |
+| "Compare best practices for clap mutually exclusive flags and cite sources." | `technical research` | External lookup and analysis requested; no direct code change required. | `startup` strict -> `task-tools` strict |
+| "Create a new Codex skill with `SKILL.md` and scripts." | `skill authoring` | Scope is skill lifecycle artifacts and governance/contracts. | `startup` strict -> `skill-dev` strict |
+| "Research first, then implement once we pick an option." | staged (`technical research` -> `project implementation`) | Mixed flow: research phase first, implementation phase second. Re-evaluate intent at phase boundary. | Phase 1: `startup` strict -> `task-tools` strict. Phase 2: `startup` strict (if needed) -> `project-dev` strict. |
+
 ## Runtime intent -> context resolution order (with preflight)
 
 | Workflow type | Required preflight commands | Context resolution order | Strictness policy | Missing required docs fallback |
