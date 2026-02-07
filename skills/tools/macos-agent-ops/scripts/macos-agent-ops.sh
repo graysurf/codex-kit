@@ -24,15 +24,40 @@ require_macos() {
   fi
 }
 
+read_input_menu_desc() {
+  osascript -e 'tell application "System Events" to tell process "TextInputMenuAgent" to get description of menu bar item 1 of menu bar 2' 2>/dev/null || true
+}
+
+read_current_layout_id() {
+  defaults read com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null || true
+}
+
+is_us_abc_menu_desc() {
+  local menu_desc="${1:-}"
+  case "$menu_desc" in
+    "ABC"|"US"|"U.S."|"U.S")
+      return 0
+      ;;
+  esac
+  return 1
+}
+
 ensure_us_abc_input_source() {
   local skip_switch="${MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH:-0}"
   if [[ "$skip_switch" == "1" ]]; then
     return 0
   fi
 
+  local menu_desc=''
   local current_layout=''
-  current_layout="$(defaults read com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null || true)"
-  if [[ "$current_layout" == "com.apple.keylayout.ABC" || "$current_layout" == "com.apple.keylayout.US" ]]; then
+  menu_desc="$(read_input_menu_desc)"
+  current_layout="$(read_current_layout_id)"
+
+  if is_us_abc_menu_desc "$menu_desc"; then
+    return 0
+  fi
+  # If the input menu reports a non-US source, trust it and switch.
+  if [[ -z "$menu_desc" ]] && [[ "$current_layout" == "com.apple.keylayout.ABC" || "$current_layout" == "com.apple.keylayout.US" ]]; then
     return 0
   fi
 
@@ -58,14 +83,14 @@ APPLESCRIPT
     exit 1
   fi
 
-  local menu_desc=''
-  menu_desc="$(osascript -e 'tell application "System Events" to tell process "TextInputMenuAgent" to get description of menu bar item 1 of menu bar 2' 2>/dev/null || true)"
-  current_layout="$(defaults read com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null || true)"
+  menu_desc="$(read_input_menu_desc)"
+  current_layout="$(read_current_layout_id)"
 
-  if [[ "$menu_desc" == "ABC" || "$menu_desc" == "US" || "$menu_desc" == "U.S." ]]; then
+  if is_us_abc_menu_desc "$menu_desc"; then
     return 0
   fi
-  if [[ "$current_layout" == "com.apple.keylayout.ABC" || "$current_layout" == "com.apple.keylayout.US" ]]; then
+  # Fallback only when menu probing is unavailable.
+  if [[ -z "$menu_desc" ]] && [[ "$current_layout" == "com.apple.keylayout.ABC" || "$current_layout" == "com.apple.keylayout.US" ]]; then
     return 0
   fi
 
