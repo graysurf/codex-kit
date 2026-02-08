@@ -37,9 +37,9 @@ agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH"
 
 ```bash
 agent-docs resolve --context startup --strict --format checklist
-agent-docs resolve --context task-tools --format checklist
 agent-docs resolve --context project-dev --strict --format checklist
-agent-docs resolve --context skill-dev --format checklist
+agent-docs resolve --context task-tools --strict --format checklist
+agent-docs resolve --context skill-dev --strict --format checklist
 ```
 
 ## Optional project extension registration

@@ -8,7 +8,7 @@
    - `agent-docs resolve --context project-dev --strict --format checklist`
    - `agent-docs resolve --context skill-dev --strict --format checklist`
 2. Validate baseline coverage:
-   - `agent-docs baseline --check --target home --strict --format text`
+   - `agent-docs baseline --check --target all --strict --format text`
 3. Validate trial evidence exists:
    - `test -f out/agent-docs-rollout/trial-results.json`
    - `test -f out/agent-docs-rollout/trial-summary.md`

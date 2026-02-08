@@ -8,7 +8,7 @@
 ## Entry commands
 
 1. `agent-docs resolve --context startup --strict --format checklist`
-2. `agent-docs baseline --check --target home --strict --format text` (only when strict resolve fails)
+2. `agent-docs baseline --check --target all --strict --format text` (only when strict resolve fails)
 
 ## Deterministic flow
 

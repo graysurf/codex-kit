@@ -13,12 +13,12 @@
 - Canonical dispatch contract: `$CODEX_HOME/docs/runbooks/agent-docs/context-dispatch-matrix.md`.
 - Mandatory preflight sequence before edits/tests/commits:
   - Step 1: Determine runtime intent (`startup`, `project implementation`, `technical research`, `skill authoring`).
-  - Step 2: `agent-docs resolve --context startup --strict --format text`
+  - Step 2: `agent-docs resolve --context startup --strict --format checklist`
   - Step 3: Run the strict gate for the active intent:
-    - Project implementation: `agent-docs resolve --context project-dev --strict --format text`
-    - Technical research: `agent-docs resolve --context task-tools --strict --format text`
-    - Skill authoring: `agent-docs resolve --context skill-dev --strict --format text`
-  - Step 4: If external lookups are needed during implementation/skill work, additionally run `agent-docs resolve --context task-tools --format text`.
+    - Project implementation: `agent-docs resolve --context project-dev --strict --format checklist`
+    - Technical research: `agent-docs resolve --context task-tools --strict --format checklist`
+    - Skill authoring: `agent-docs resolve --context skill-dev --strict --format checklist`
+  - Step 4: If external lookups are needed during implementation/skill work, additionally run `agent-docs resolve --context task-tools --format checklist`.
   - Step 5: If any required doc is missing or strict resolve fails, stop write actions and run `agent-docs baseline --check --target all --strict --format text`.
   - Step 6: Proceed with edits/tests/commits only when required preflight docs are `status=present`.
 - New repository bootstrap path (missing baseline docs): follow `$CODEX_HOME/docs/runbooks/agent-docs/new-project-bootstrap.md` and use the canonical entrypoint `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`, then verify with `agent-docs baseline --check --target all --strict --format text`.
