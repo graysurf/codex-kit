@@ -1,64 +1,76 @@
 # Development Guide
 
-## Development (Shell / zsh)
+## Quick Start (Repository Root)
 
-- `stdout`/`stderr`: These scripts are designed for non-interactive use. Keep `stdout` for machine/LLM-parsable output only; send everything else (debug/progress/warn) to `stderr` (zsh: `print -u2 -r -- ...`; bash: `echo ... >&2`).
-- Avoid accidental output (zsh `typeset`/`local`): don't repeatedly declare variables without initial values inside loops (e.g. `typeset key file`). With `unsetopt typeset_silent` (including the default), zsh may print existing values to `stdout` (e.g. `key=''`), creating noise.
-  - Option A (preferred): declare once outside the loop -> `typeset key='' file=''`; inside the loop, only assign (`key=...`).
-  - Option B: if you must declare inside the loop -> always provide an initial value (`typeset key='' file=''`).
-- Quoting rules (zsh; same idea in bash)
-  - Literal strings (no `$var`/`$(cmd)` expansion) -> single quotes: `typeset homebrew_path=''`
-  - Needs expansion -> double quotes and keep quoting: `typeset repo_root="$PWD"`, `print -r -- "$msg"`
-  - Needs escape sequences (e.g. `\n`) -> use `$'...'`
-- Path rules
-  - Prefer absolute paths in docs/examples; use `$CODEX_HOME/...` for repo-local tools (avoid `scripts/...` / `./scripts/...`).
-  - Use `$HOME/...` instead of `~/...` to avoid shell-specific tilde expansion edge cases.
-- Auto-fix (empty strings only): `$CODEX_HOME/scripts/fix-typeset-empty-string-quotes.zsh --check|--write` normalizes `typeset/local ...=""` to `''`.
+1. `python3 -m venv .venv`
+2. `.venv/bin/python -m pip install -r requirements-dev.txt`
+3. `scripts/check.sh --all`
 
-## Testing
+`scripts/...` commands are executable directly from the repo root.
+For absolute-path docs/examples, set `export CODEX_HOME="$(pwd)"` in the current shell.
 
-### Required before committing
+## Required Before Commit
 
-- Run: `$CODEX_HOME/scripts/check.sh --all`
-- `$CODEX_HOME/scripts/check.sh --all` runs:
-  - `$CODEX_HOME/scripts/lint.sh` (shell + python)
-    - Shell: route by shebang and run `shellcheck` (bash) + `bash -n` + `zsh -n`
-    - Python: `ruff check tests` + `mypy --config-file mypy.ini tests` + `pyright` + syntax-check for tracked `.py` files
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-  - `$CODEX_HOME/scripts/semgrep-scan.sh`
-  - `$CODEX_HOME/scripts/test.sh` (pytest; prefers `.venv/bin/python`)
+- Run: `scripts/check.sh --all`
+- `scripts/check.sh --all` currently runs:
+  - `scripts/lint.sh` (shell + python)
+    - shell: shebang-based routing, `shellcheck` (bash) + `bash -n` + `zsh -n`
+    - python: `ruff check tests` + `mypy` + `pyright` + syntax-compile for tracked `.py`
+  - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `plan-tooling validate` (from `nils-cli`)
+  - `zsh -f scripts/audit-env-bools.zsh --check`
+  - `scripts/semgrep-scan.sh`
+  - `scripts/test.sh` (pytest; prefers `.venv/bin/python`)
 
-### Tooling / setup (as needed)
+## Common Commands
 
-- Prereqs
-  - Python
-    - `python3 -m venv .venv`
-    - `.venv/bin/pip install -r requirements-dev.txt`
-  - System tools
-    - `shellcheck`, `zsh` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
-    - `nils-cli` (Homebrew: `brew tap graysurf/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
-- Quick entry points
-  - `$CODEX_HOME/scripts/lint.sh` (defaults to shell + python)
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
-  - `$CODEX_HOME/scripts/check.sh --lint` (lint only; faster iteration)
-  - `$CODEX_HOME/scripts/check.sh --contracts` (skill-contract validation only)
-  - `$CODEX_HOME/scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
-  - `$CODEX_HOME/scripts/check.sh --semgrep` (Semgrep only)
-  - `$CODEX_HOME/scripts/check.sh --all` (full check)
-- `pytest`
-  - Prefer: `$CODEX_HOME/scripts/test.sh` (passes args through to pytest)
-  - Common: `$CODEX_HOME/scripts/test.sh -m script_smoke`, `$CODEX_HOME/scripts/test.sh -m script_regression`
-  - Artifacts: written to `out/tests/` (e.g. `out/tests/script-coverage/summary.md`)
-- `ruff` (Python lint; config: `ruff.toml`)
-  - `source .venv/bin/activate && ruff check tests`
-  - Safe autofix: `source .venv/bin/activate && ruff check --fix tests`
-  - Or via: `$CODEX_HOME/scripts/lint.sh --python`
-- `mypy` (typecheck; config: `mypy.ini`)
-  - `source .venv/bin/activate && mypy --config-file mypy.ini tests`
-  - Or via: `$CODEX_HOME/scripts/lint.sh --python`
-- `pyright` (typecheck; config: `pyrightconfig.json`)
-  - `source .venv/bin/activate && pyright --project pyrightconfig.json`
-  - Or via: `$CODEX_HOME/scripts/lint.sh --python`
-- Shell (bash/zsh)
-  - `$CODEX_HOME/scripts/lint.sh --shell` (requires `shellcheck` and `zsh`)
+- `scripts/check.sh --lint` (lint only; faster loop)
+- `scripts/check.sh --contracts` (skill contract validation only)
+- `scripts/check.sh --skills-layout` (skill layout audit only)
+- `scripts/check.sh --plans` (plan format validation only)
+- `scripts/check.sh --env-bools` (boolean env naming/value audit only)
+- `scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
+- `scripts/check.sh --semgrep` (Semgrep only)
+- `scripts/check.sh --all` (full check suite)
+
+Direct entry points:
+
+- `scripts/lint.sh --shell|--python|--all`
+- `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+- `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+- `scripts/test.sh -m script_smoke`
+- `scripts/test.sh -m script_regression`
+- `scripts/semgrep-scan.sh --profile shell`
+
+Test artifacts:
+
+- `scripts/test.sh` writes script coverage summaries under `out/tests/script-coverage/` when available.
+
+## Prerequisites
+
+- Python 3 + venv
+  - `python3 -m venv .venv`
+  - `.venv/bin/python -m pip install -r requirements-dev.txt`
+  - `requirements-dev.txt` includes `pytest`, `semgrep`, `ruff`, `mypy`, and `pyright`
+- System tools
+  - `git` (required by lint scripts for tracked-file discovery)
+  - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
+  - `nils-cli` (Homebrew: `brew tap graysurf/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
+
+## Shell Script Conventions (Shell / zsh)
+
+- `stdout`/`stderr`: scripts are non-interactive; keep `stdout` machine/LLM-parseable and send debug/progress/warnings to `stderr` (`print -u2 -r -- ...` in zsh, `echo ... >&2` in bash).
+- Avoid accidental output (`typeset`/`local` in zsh): do not repeatedly declare uninitialized variables inside loops (for example `typeset key file`), because zsh can emit old values to `stdout`.
+  - Preferred: declare once outside loop (`typeset key='' file=''`) and only assign inside loop.
+  - Alternative: if declaring inside loop, always initialize (`typeset key='' file=''`).
+- Quoting rules (zsh; same idea in bash):
+  - Literal strings (no expansion): single quotes (`typeset homebrew_path=''`).
+  - Expansion required: double quotes (`typeset repo_root="$PWD"`, `print -r -- "$msg"`).
+  - Escape sequences required: `$'...'`.
+- Path rules:
+  - Prefer absolute paths in docs/examples via `$CODEX_HOME/...`.
+  - Prefer `$HOME/...` over `~/...` to avoid shell-specific tilde expansion edge cases.
+- Auto-fixes:
+  - `scripts/fix-typeset-empty-string-quotes.zsh --check|--write` normalizes `typeset/local ...=""` to `''`.
+  - `scripts/fix-zsh-typeset-initializers.zsh --check|--write` adds missing initializers to bare zsh `typeset/local` declarations.
