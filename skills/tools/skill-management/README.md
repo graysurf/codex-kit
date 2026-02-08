@@ -6,6 +6,8 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
 
 - Create a new skill skeleton (writes files, then validates):
   - `$CODEX_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --skill-dir skills/<category>/<area>/<skill-name>`
+- Create a new project-local skill skeleton under `.codex/skills/`:
+  - `$CODEX_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh --project-path <repo-root> --skill-dir .codex/skills/<skill-name>`
 - Validate contract headings (all tracked skills):
   - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Audit tracked skill layout:
@@ -22,6 +24,10 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
   - Use `--skill-dir` when validating a newly scaffolded skill before `git add`.
 - `create-skill`
   - Scaffolds: `SKILL.md` + `scripts/<skill>.sh` + `tests/` (minimum) and runs the governance validators.
+  - Does not stage/commit; you still need to fill in the real Contract + implementation.
+- `create-project-skill`
+  - Scaffolds project-local skills under `<project>/.codex/skills/` with contract + layout checks.
+  - Supports shorthand `--skill-dir <skill-name>` -> `.codex/skills/<skill-name>`.
   - Does not stage/commit; you still need to fill in the real Contract + implementation.
 - `remove-skill`
   - Deletes the skill directory and purges repo references (breaking change).
