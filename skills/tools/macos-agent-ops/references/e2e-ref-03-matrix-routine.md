@@ -11,17 +11,28 @@ Goal: mirror matrix-style real-app checks from `e2e_real_apps`.
 ## Quick usage
 
 ```bash
-# Run app readiness checks sequentially (manual matrix precheck)
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Arc --timeout-ms 15000
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Spotify --timeout-ms 15000
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder --timeout-ms 12000
+OPS="$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh"
+
+# 0) Stabilize input source once
+"$OPS" input-source --id abc
+
+# 1) Run app readiness checks sequentially (window activate + wait app-active)
+"$OPS" app-check --app Arc --timeout-ms 15000
+"$OPS" app-check --app Spotify --timeout-ms 15000
+"$OPS" app-check --app Finder --timeout-ms 12000
+
+# 2) Run AX probes to validate selector traversal
+"$OPS" ax-check --app Arc --role AXWindow --max-depth 4 --limit 40
+"$OPS" ax-check --app Spotify --role AXWindow --max-depth 4 --limit 40
+"$OPS" ax-check --app Finder --role AXWindow --max-depth 4 --limit 40
 ```
 
 ## Suggested scheduled check pattern
 
 1. Run `doctor` once.
 2. Run the 3 `app-check` commands above.
-3. If any command fails with `wait app-active` timeout, capture current active window screenshot:
+3. Run the 3 `ax-check` commands above.
+4. If any command fails with `wait app-active` timeout, capture current active window screenshot:
 
 ```bash
 BIN="$($CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where)"
@@ -34,3 +45,4 @@ BIN="$($CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where
 - Close Control Center/Spotlight overlays before matrix runs.
 - Avoid keyboard/mouse activity while checks are active.
 - If Spotify launch is flaky, clear stale updater processes before rerun.
+- If typing mismatches appear, rerun `"$OPS" input-source --id abc`.

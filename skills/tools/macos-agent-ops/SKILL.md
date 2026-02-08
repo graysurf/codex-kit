@@ -11,14 +11,16 @@ Prereqs:
 
 - macOS host with Accessibility and Automation permissions granted for Terminal and target apps.
 - Homebrew-installed `macos-agent` available on `PATH`.
-- `cliclick` and `osascript` available on `PATH`.
+- `cliclick`, `osascript`, and `im-select` available on `PATH`.
+- `ABC`/`US` input source enabled in macOS Input Sources.
 
 Inputs:
 
 - Command entrypoint: `$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh`.
 - Optional env vars:
-  - `MACOS_AGENT_REAL_E2E_INPUT_SOURCE` (example: `abc`) for deterministic input source.
-  - `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1` to bypass automatic switch to US/ABC.
+  - `MACOS_AGENT_OPS_INPUT_SOURCE_ID` (preferred; example: `abc`) for deterministic input source target.
+  - `MACOS_AGENT_REAL_E2E_INPUT_SOURCE` (legacy fallback) if `MACOS_AGENT_OPS_INPUT_SOURCE_ID` is unset.
+  - `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1` to bypass automatic input source switch.
 
 Outputs:
 
@@ -34,9 +36,10 @@ Exit codes:
 Failure modes:
 
 - `wait app-active` timeouts because focus was stolen (Control Center/Spotlight/notifications).
-- `window.activate` timeout when app update/relauncher is stuck (commonly Spotify).
+- `window.activate` failure when app relaunch/update state is stuck; wrapper now uses `--reopen-on-fail`.
+- missing `im-select` causes `input-source` failure before keyboard-input actions.
 - `not authorized` / Apple Events denial from TCC permissions.
-- typed text mismatch when non-English input method is active.
+- AX target mismatch (selector too broad / stale node id) during `ax` operations.
 
 ## Scripts (only entrypoints)
 
@@ -44,47 +47,69 @@ Failure modes:
 
 ## Workflow
 
-1. Auto-switch input source to US/ABC (`ABC`) before running `doctor` / `app-check` / `scenario` / `run`.
-   - This is built into the script to avoid IME-induced typing failures.
-   - If you intentionally need another input method, set `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1`.
-
-2. Resolve Homebrew macos-agent binary path:
+1. Resolve Homebrew `macos-agent` binary path:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where
 ```
 
-3. Run environment readiness checks:
+2. Ensure deterministic input source (default target: `abc`):
+
+```bash
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source
+# or explicit source id
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source --id com.apple.keylayout.ABC
+```
+
+3. Run readiness checks (`preflight` + AX list smoke check):
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor
+# optional target for AX smoke
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor --ax-app Arc
 ```
 
-4. Run quick app-foreground check (for scheduled sanity jobs):
+4. Run quick app foreground check with reopen recovery:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Arc --timeout-ms 12000
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Arc --timeout-ms 15000
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --bundle-id com.google.Chrome
 ```
 
-5. Run routine scripted actions:
+5. Run AX-only health check (AX tree probe):
+
+```bash
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXWindow
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXTextField --title-contains Search
+```
+
+6. Run routine scripted actions:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh scenario --file /path/to/scenario.json
 ```
 
-6. Pass through any raw macos-agent command:
+7. Pass through raw macos-agent commands (AX-first by default):
 
 ```bash
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- --format json windows list --app Finder
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
+  --format json ax list --app Arc --role AXButton --max-depth 8 --limit 50
+
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
+  --format json ax click --app Arc --role AXButton --title-contains "Play" --allow-coordinate-fallback
+
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
+  --format json ax type --app Arc --role AXTextField --text "youtube.com" --paste --submit \
+  --allow-keyboard-fallback
 ```
 
 ## Screenshot-Based Triage Rules
 
-- During runtime failure triage, the agent SHOULD capture an active-window screenshot before any retry or remediation.
-- For `wait app-active` and `window.activate` timeout failures, screenshot capture SHOULD be treated as a first-line diagnostic step.
-- Screenshot artifacts MUST be written under `$CODEX_HOME/out/` and SHOULD use timestamped filenames for traceability.
-- The agent SHOULD include the screenshot path in the final diagnostic summary, together with the failing command and error message.
+- During runtime failure triage, the agent SHOULD capture an active-window screenshot before retry/remediation.
+- For `wait app-active` and `window.activate` failures, screenshot capture SHOULD be first-line diagnostics.
+- Screenshot artifacts MUST be written under `$CODEX_HOME/out/` and SHOULD use timestamped filenames.
+- The agent SHOULD include screenshot path + failing command + error message in the final diagnostic summary.
 
 Recommended command (via the skill entrypoint):
 
@@ -96,25 +121,28 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
 
 ## Common Errors And Prevention
 
+- `error: input source mismatch after switch attempt ...`
+  - Run `.../macos-agent-ops.sh input-source --id abc` and verify `current` is `com.apple.keylayout.ABC` or `...US`.
+  - Ensure `im-select` is installed: `brew install im-select`.
+  - If you intentionally need non-ABC IME, set `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1`.
+
 - `error: timed out waiting for app-active ...`
-  - Keep hands off keyboard/mouse while running.
-  - Close Control Center/Spotlight overlays and disable noisy notifications.
+  - Keep hands off keyboard/mouse while checks are running.
+  - Close Control Center/Spotlight overlays and reduce notification interruptions.
   - Increase timeout (`--timeout-ms 12000` or higher) for slow app transitions.
 
-- `error: window.activate via osascript timed out ...` (especially Spotify)
-  - Kill stale updater/relauncher processes and relaunch the app once before rerunning:
-    - `pkill -f '/sp_relauncher upgrade ' || true`
-    - `pkill -x Spotify || true`
-    - `open -a Spotify`
+- `window activate failed ...`
+  - Wrapper already uses `--reopen-on-fail`; rerun once to allow quit/relaunch recovery.
+  - For flaky apps (e.g., Spotify updater), kill stale relauncher and retry.
 
 - `not authorized` / Apple Events failures
   - Re-run `doctor` and fix Accessibility/Automation in System Settings.
 
-- text input mismatch or wrong characters
-  - The skill script now auto-switches to US/ABC before operational commands.
-  - Keep `ABC` enabled in macOS Input Sources.
-  - If you must keep another IME, set `MACOS_AGENT_OPS_SKIP_INPUT_SOURCE_SWITCH=1`.
-  - Prefer clipboard-paste style flows over character-by-character typing.
+- AX selector flakiness (`ax.click` / `ax.type`)
+  - Narrow selectors (`--role`, `--title-contains`, `--identifier-contains`) and prefer `--node-id`.
+  - Enable fallback flags only when necessary:
+    - `ax click`: `--allow-coordinate-fallback`
+    - `ax type`: `--allow-keyboard-fallback`
 
 - Homebrew macos-agent missing
   - Install and link with Homebrew: `brew install macos-agent`.

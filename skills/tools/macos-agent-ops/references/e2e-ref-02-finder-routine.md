@@ -10,17 +10,22 @@ Goal: mirror core behavior from Finder scenario in `e2e_real_apps`.
 ## Quick usage
 
 ```bash
-BIN="$($CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where)"
+OPS="$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh"
+BIN="$($OPS where)"
 
-# 1) Activate Finder and verify app-active
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder
+# 1) Ensure input source + app foreground readiness
+"$OPS" input-source --id abc
+"$OPS" app-check --app Finder
 
 # 2) New window and navigate home
 "$BIN" --format json input hotkey --mods cmd --key n
 "$BIN" --format json wait window-present --app Finder --timeout-ms 10000 --poll-ms 60
 "$BIN" --format json input hotkey --mods cmd,shift --key h
 
-# 3) Capture evidence
+# 3) AX probe for deterministic selector checks
+"$OPS" ax-check --app Finder --role AXWindow --max-depth 3 --limit 20
+
+# 4) Capture evidence
 "$BIN" --format json observe screenshot --active-window \
   --path "$CODEX_HOME/out/finder-routine-active-window.png"
 ```
@@ -29,4 +34,6 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --
 
 - Window activation failures.
 - Window presence polling instability.
+- Input source drift before keyboard actions.
+- AX tree lookup regressions before selector-driven flows.
 - Screenshot capture permission regressions.

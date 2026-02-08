@@ -24,3 +24,12 @@ def test_tools_macos_agent_ops_references_exist() -> None:
     ]
     for rel in expected:
         assert (skill_root / rel).is_file(), f"missing reference file: {rel}"
+
+
+def test_tools_macos_agent_ops_docs_include_latest_cli_usage() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    content = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "macos-agent-ops.sh input-source" in content
+    assert "macos-agent-ops.sh ax-check" in content
+    assert "--reopen-on-fail" in content
+    assert "im-select" in content

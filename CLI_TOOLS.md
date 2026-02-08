@@ -22,6 +22,7 @@ Principle: prefer purpose-built tools that are fast, repo-aware, and emit struct
 - API: HTTP/API + structured data (`xh`/`httpie`, `jq`, `yq`)
 - Test: test iteration + feedback loops (`watchexec`, `ruff`)
 - Toolchain: runtimes + CLI installation (`node`, `pnpm`, `pipx`, `direnv`)
+- macOS Automation: UI/input-source automation (`hs`, `im-select`)
 - Media: image processing (`imagemagick`, `vips`)
 - Ops: logs + system triage (`lnav`, `btop`, `ncdu`)
 - Defaults: recommended default picks
@@ -100,6 +101,15 @@ Principle: prefer purpose-built tools that are fast, repo-aware, and emit struct
 | `pnpm` | Fast, reproducible package manager | Installing dependencies and running Node project scripts | `npm install` drift and slower installs |
 | `pipx` | Install Python CLIs in isolated envs | Installing Python CLI tools without polluting global site-packages | `pip install --user` (global conflicts and upgrades pain) |
 | `direnv` | Per-directory environment loading | Auto-loading `.envrc` per project | Manual `export` workflows and cross-project env leaks |
+
+---
+
+## macOS UI automation and input source
+
+| Tool | Purpose | Use when | Avoid because this exists |
+| --- | --- | --- | --- |
+| `hs` (Hammerspoon CLI) | Scriptable macOS UI automation backend | AX-based app/window/node automation and richer UI interaction flows | AppleScript-only fallbacks for complex AX flows |
+| `im-select` | Input source query/switch helper | Enforcing deterministic keyboard input source before typing automation | Clicking input menu UI manually (fragile and environment-dependent) |
 
 ---
 
