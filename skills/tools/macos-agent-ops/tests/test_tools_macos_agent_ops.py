@@ -33,3 +33,12 @@ def test_tools_macos_agent_ops_docs_include_latest_cli_usage() -> None:
     assert "macos-agent-ops.sh ax-check" in content
     assert "--reopen-on-fail" in content
     assert "im-select" in content
+    assert "wait ax-present" in content
+    assert "wait ax-unique" in content
+    assert "--gate-app-active" in content
+    assert "--postcondition-attribute" in content
+    assert "--match-strategy" in content
+    assert "--selector-explain" in content
+    assert "--selector-padding" in content
+    assert "debug bundle" in content
+    assert "--error-format json" in content
