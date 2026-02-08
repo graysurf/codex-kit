@@ -1,30 +1,40 @@
 # Playwright CLI Reference
 
-Use the wrapper script unless the CLI is already installed globally:
+## Setup Preconditions
+
+- `bash` and `npx` are required for non-help commands.
+- First package fetch needs network access (`@playwright/cli@latest`).
+- Browser-dependent commands require Playwright browser binaries.
+- Optional: set `PLAYWRIGHT_MCP_OUTPUT_DIR` when artifact output path must be deterministic.
+
+## Canonical Wrapper Invocation
+
+Use the canonical wrapper entrypoint:
+
+```bash
+export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+"$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help
+"$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://example.com --headed
+```
+
+Or set a reusable alias:
 
 ```bash
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 export PWCLI="$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh"
-"$PWCLI" --help
-```
-
-User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills`).
-
-Optional convenience alias:
-
-```bash
 alias pwcli="$PWCLI"
+pwcli --help
 ```
 
-Optional global install:
+Wrapper runtime for non-help commands:
 
 ```bash
-npm install -g @playwright/cli@latest
-playwright-cli --help
-playwright-cli install-skills
+npx --yes --package @playwright/cli@latest playwright-cli ...
 ```
 
-## Setup
+## Core Commands
+
+Bootstrap:
 
 ```bash
 pwcli install-browser
@@ -32,101 +42,51 @@ pwcli install-skills
 pwcli config --help
 ```
 
-## Core
+Page + element interaction:
 
 ```bash
 pwcli open https://example.com
-pwcli close
 pwcli snapshot
 pwcli click e3
-pwcli dblclick e7
-pwcli type "search terms"
-pwcli press Enter
 pwcli fill e5 "user@example.com"
-pwcli drag e2 e8
-pwcli hover e4
-pwcli select e9 "option-value"
-pwcli upload ./document.pdf
-pwcli check e12
-pwcli uncheck e12
+pwcli press Enter
 pwcli eval "document.title"
-pwcli eval "el => el.textContent" e5
-pwcli dialog-accept
-pwcli dialog-accept "confirmation text"
-pwcli dialog-dismiss
-pwcli resize 1920 1080
+pwcli screenshot
 ```
 
-## Navigation
+Navigation + tabs:
 
 ```bash
 pwcli go-back
-pwcli go-forward
 pwcli reload
+pwcli tab-list
+pwcli tab-new https://example.com/docs
+pwcli tab-select 1
 ```
 
-## Keyboard
+Diagnostics + artifacts:
 
 ```bash
-pwcli press Enter
-pwcli press ArrowDown
-pwcli keydown Shift
-pwcli keyup Shift
-```
-
-## Mouse
-
-```bash
-pwcli mousemove 150 300
-pwcli mousedown
-pwcli mousedown right
-pwcli mouseup
-pwcli mouseup right
-pwcli mousewheel 0 100
-```
-
-## Save as
-
-```bash
-pwcli screenshot
-pwcli screenshot e5
+pwcli console warning
+pwcli network
+pwcli tracing-start
+pwcli tracing-stop
 pwcli pdf
 ```
 
-## Tabs
+## Session Behavior
 
-```bash
-pwcli tab-list
-pwcli tab-new
-pwcli tab-new https://example.com/page
-pwcli tab-close
-pwcli tab-close 2
-pwcli tab-select 0
-```
+- `--session` / `--session=<name>` is passed through unchanged.
+- If `--session` is omitted and `PLAYWRIGHT_CLI_SESSION` is set, the wrapper injects `--session "$PLAYWRIGHT_CLI_SESSION"` before forwarding args.
+- `--help` / `-h` is handled locally by the wrapper (no `npx`, Node, or network needed).
 
-## DevTools
+## Troubleshooting
 
-```bash
-pwcli console
-pwcli console warning
-pwcli network
-pwcli run-code "await page.waitForTimeout(1000)"
-pwcli tracing-start
-pwcli tracing-stop
-```
-
-## Sessions
-
-Use a named session to isolate work:
-
-```bash
-pwcli --session todo open https://demo.playwright.dev/todomvc
-pwcli --session todo snapshot
-```
-
-Or set an environment variable once:
-
-```bash
-export PLAYWRIGHT_CLI_SESSION=todo
-pwcli open https://demo.playwright.dev/todomvc
-```
+- `Error: npx is required but not found on PATH.`:
+  install Node.js/npm and ensure `npx` is on `PATH`.
+- First-run fetch fails:
+  allow access to npm registry and retry.
+- Browser launch commands fail:
+  run `pwcli install-browser`.
+- Element refs become stale:
+  run `pwcli snapshot` again after navigation or major DOM changes.
