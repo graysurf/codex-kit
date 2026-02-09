@@ -12,99 +12,97 @@ Prereqs:
 - Run inside a git work tree.
 - `git` available on `PATH`.
 - `semantic-commit` available on `PATH` (install via `brew install nils-cli`).
-- `git-scope` available on `PATH` (install via `brew install nils-cli`) (required).
+- `git-scope` is optional; default summary mode falls back to `git show` when unavailable.
 
 Inputs:
 
-- Unstaged changes in the working tree (this skill will stage them via `git add`).
-- Prepared commit message via stdin (preferred), `--message`, or `--message-file` for `semantic-commit commit`.
+- Unstaged changes in the working tree (this skill stages them via `git add`).
+- Prepared commit message via `--message`, `--message-file`, or stdin (`--automation` disables stdin fallback).
+- Optional target repository via `--repo <path>`.
 
 Outputs:
 
-- Staged changes via `git add` (this skill autostages).
-- `semantic-commit staged-context`: prints staged diff context to stdout.
-- `semantic-commit commit`: creates a git commit and prints a commit summary to stdout.
+- Staged changes via `git add` (`-A` or `-u`).
+- `semantic-commit staged-context`: staged diff context for message generation.
+- `semantic-commit commit`: validation result and commit summary (unless disabled).
+- Optional recovery file from `--message-out <path>`.
 
 Exit codes:
 
-- `0`: success
-- `2`: no changes to stage/commit
-- non-zero: invalid usage / missing prerequisites / git failures
+- `0`: success (including validate-only and dry-run checks).
+- `1`: usage/operational failure (`git add`/git commit/hook/conflict/repo issues).
+- `2`: no changes to stage/commit.
+- `3`: commit message missing/empty.
+- `4`: commit message validation failed.
+- `5`: required dependency missing (for example, `git`).
 
 Failure modes:
 
 - Not in a git repo.
-- `git-scope` missing or fails.
-- Dirty starting state includes unrelated changes; autostage may include unintended files (start from a clean tree).
-- `git add` fails (pathspec errors, permissions).
-- `git commit` fails (hooks, conflicts, or repo state issues).
-- Commit message validation fails (header/body rules are hard-fail).
+- Dirty tree includes unrelated work: `git add -A` may stage unintended files.
+- `git add` failure (pathspec/permission/submodule state).
+- No staged changes after autostage (`exit 2`).
+- Automation mode without explicit message source (`exit 3`).
+- Invalid message format (`exit 4`).
+- `git commit` failure (`exit 1`).
 
 ## Setup
 
-- Run inside the target git repo
-- Prefer using the `semantic-commit` commands below; they resolve required commands directly
+- Use this skill only when full autostage is intended and safe.
+- If user expects review-first partial staging, switch to `semantic-commit` (non-autostage).
 
 ## Commands (only entrypoints)
 
-- Autostage (all changes): `git add -A`
-- Autostage (tracked-only): `git add -u`
-- Get staged context (stdout): `semantic-commit staged-context`
-- Commit with a prepared message, then print a commit summary (stdout): `semantic-commit commit`
-  - Prefer piping the full multi-line message via stdin
-- **Do not run any other repo-inspection commands** (especially `git status`, `git diff`, `git show`, `rg`, or reading repo files like `cat path/to/file`); the only source of truth is `semantic-commit staged-context` output (after autostage)
+- Autostage all changes: `git add -A`
+- Autostage tracked-only changes: `git add -u`
+- Get staged context:
+  - `semantic-commit staged-context [--format <bundle|json|patch>] [--json] [--repo <path>]`
+- Commit / validate prepared message:
+  - `semantic-commit commit [--message <text>|--message-file <path>] [options]`
+  - Useful options: `--automation`, `--validate-only`, `--dry-run`, `--message-out`, `--summary`, `--no-summary`, `--repo`, `--no-progress`, `--quiet`
 
 ## Workflow
 
 Rules:
 
-- This skill **may** run `git add` (autostage). Use only when the user asked for end-to-end automation and will not stage files manually.
-- For review-first flows where the user stages a subset, use `semantic-commit` instead.
-- Prefer starting from a clean working tree to avoid staging unrelated local changes.
-- After autostage, do not run any extra repo-inspection commands; generate the commit message from `semantic-commit staged-context` output only
-- If `semantic-commit staged-context` exits `2`, treat it as "no changes to stage/commit" and stop
-- Treat header/body validation errors as hard failures; report the error and do not claim success
+- Use `git add -A` by default; use `git add -u` only when untracked files must stay uncommitted.
+- Generate the message from `semantic-commit staged-context` output only.
+- For non-interactive reliability, prefer `--automation` with `--message` or `--message-file`.
+
+Recommended flow:
+
+1. Choose stage mode (`git add -A` or `git add -u`) and run it.
+2. Run `semantic-commit staged-context --format bundle`.
+3. Draft semantic message from staged context.
+4. Run `semantic-commit commit --validate-only ...`.
+5. Optionally run `semantic-commit commit --dry-run ...`.
+6. Run `semantic-commit commit ...` for the real commit.
+7. Report command, exit code, stdout, stderr.
 
 ## Follow Semantic Commit format
 
-Use the exact header format:
+Use one of:
 
-type(scope): subject
-
-Rules:
-
-- Use a valid type (feat, fix, refactor, chore, etc.)
-- Use a concise scope that matches the changed area
-- Keep the subject lowercase and concise
-- Keep the full header under 100 characters
-
-## Write the body correctly
+- `type(scope): subject`
+- `type: subject`
 
 Rules:
 
-- Insert one blank line between header and body
-- Start every body line with "- " and a capitalized word
-- Keep each line under 100 characters
-- Keep bullets concise and group related changes
-- Do not insert blank lines between body items
-- For small or trivial changes, the body is optional; if included, use a single bullet and avoid restating the subject
+- Type must be lowercase.
+- Header length must be `<= 100` characters.
+- If body exists: blank line after header, then only `- ` bullets with uppercase first letter.
+- Body lines must be `<= 100` characters.
 
-## Commit execution
+## Error handling matrix
 
-- Generate the full commit message from `semantic-commit staged-context` output
-- Commit by piping the full message into `semantic-commit commit` (it preserves formatting)
-- Capture the exit status in `rc` or `exit_code` (do not use `status`)
-- If the commit fails, report the error and do not claim success
-
-## Input completeness
-
-- Full-file reads are not allowed for commit message generation
-- Base the message on `semantic-commit staged-context` output only
-- If the staged context is insufficient to describe the change accurately, ask a concise clarifying question (do not run additional commands)
+- `exit 2`: autostage produced no commitable delta.
+- `exit 3`: missing/empty message (common with `--automation` + no `--message`).
+- `exit 4`: semantic format validation failed.
+- `exit 1`: operational failure (`git add`/`git commit`/hook conflict); report stderr verbatim.
+- `git-scope` warning only: fallback to `git show` is expected behavior.
 
 ## Output and clarification rules
 
-- If type, scope, or change summary is missing, ask a concise clarifying question and do not commit
-- Always run `semantic-commit commit` for committing (it will print the commit summary on success)
-- On command failure: include exit code + stderr in the response, and do not claim success
-- On success: include the command stdout (commit summary) in a code block
+- On failure: include the failing command, exit code, and key stderr.
+- On success: include commit summary stdout in a code block.
+- If staged context and user intent conflict (mixed unrelated changes), stop and ask whether to proceed with broad autostage.

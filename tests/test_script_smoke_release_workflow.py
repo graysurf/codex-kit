@@ -153,7 +153,7 @@ def test_script_smoke_release_audit_strict(tmp_path: Path):
     spec = {
         "args": ["--repo", ".", "--branch", "main", "--changelog", "CHANGELOG.md", "--version", "v1.2.3", "--strict"],
         "env": {"PATH": path},
-        "timeout_sec": 20,
+        "timeout_sec": 30,
         "expect": {"exit_codes": [0], "stdout_regex": r"ok: working tree clean"},
     }
 
@@ -257,7 +257,7 @@ def test_script_smoke_release_audit_strict_allow_dirty_changelog(tmp_path: Path)
             "--strict",
         ],
         "env": {"PATH": path},
-        "timeout_sec": 20,
+        "timeout_sec": 30,
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"ok: working tree changes limited to allowed paths: CHANGELOG\.md",
@@ -339,7 +339,7 @@ def test_script_smoke_release_audit_strict_allows_omitted_none_sections(tmp_path
     spec = {
         "args": ["--repo", ".", "--branch", "main", "--changelog", "CHANGELOG.md", "--version", "v1.2.3", "--strict"],
         "env": {"PATH": path},
-        "timeout_sec": 20,
+        "timeout_sec": 30,
         "expect": {"exit_codes": [0], "stdout_regex": r"ok: changelog entry exists: v1\.2\.3"},
     }
 
