@@ -96,6 +96,8 @@ append_rc 'export PATH="$HOME/.local/bin:$PATH"'
 export PATH="$HOME/.local/bin:$PATH"
 
 # Linuxbrew bootstrap (only needed here for nils-cli)
+append_rc 'export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"'
+export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
 if [[ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
   NONINTERACTIVE=1 /bin/bash -lc "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
@@ -130,6 +132,7 @@ $SUDO apt-get update
 $SUDO apt-get upgrade -y
 
 if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
   brew update
   brew upgrade nils-cli || brew upgrade
@@ -141,7 +144,7 @@ fi
 Run:
 
 ```bash
-for c in git rg fd jq fzf tree magick ffmpeg nils; do
+for c in brew git rg fd jq fzf tree magick ffmpeg nils; do
   if command -v "$c" >/dev/null 2>&1; then
     echo "[OK]   $c -> $(command -v "$c")"
   else
