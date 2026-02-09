@@ -44,6 +44,8 @@ chmod +x setup-codex-cloud-minimal.sh
 
 ```bash
 source "$HOME/.bashrc"
+source "$HOME/.profile" 2>/dev/null || true
+source "$HOME/.bash_profile" 2>/dev/null || true
 ```
 
 ```bash
@@ -54,8 +56,26 @@ SUDO=""
 command -v sudo >/dev/null 2>&1 && SUDO="sudo"
 export DEBIAN_FRONTEND=noninteractive
 
-append_rc() {
-  grep -qxF "$1" "$HOME/.bashrc" 2>/dev/null || echo "$1" >>"$HOME/.bashrc"
+append_line() {
+  local file="$1"
+  local line="$2"
+  grep -qxF "$line" "$file" 2>/dev/null || echo "$line" >>"$file"
+}
+
+append_shell_rc() {
+  local line="$1"
+  append_line "$HOME/.bashrc" "$line"
+  append_line "$HOME/.profile" "$line"
+  append_line "$HOME/.bash_profile" "$line"
+}
+
+resolve_brew_bin() {
+  command -v brew >/dev/null 2>&1 && command -v brew && return 0
+  [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]] && echo "/home/linuxbrew/.linuxbrew/bin/brew" && return 0
+  [[ -x "$HOME/.linuxbrew/bin/brew" ]] && echo "$HOME/.linuxbrew/bin/brew" && return 0
+  [[ -x /opt/homebrew/bin/brew ]] && echo "/opt/homebrew/bin/brew" && return 0
+  [[ -x /usr/local/bin/brew ]] && echo "/usr/local/bin/brew" && return 0
+  return 1
 }
 
 install_optional_apt() {
@@ -92,17 +112,19 @@ fi
 if ! command -v delta >/dev/null 2>&1 && command -v git-delta >/dev/null 2>&1; then
   ln -sf "$(command -v git-delta)" "$HOME/.local/bin/delta"
 fi
-append_rc 'export PATH="$HOME/.local/bin:$PATH"'
+append_shell_rc 'export PATH="$HOME/.local/bin:$PATH"'
 export PATH="$HOME/.local/bin:$PATH"
 
 # Linuxbrew bootstrap (only needed here for nils-cli)
-append_rc 'export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"'
-export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
-if [[ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+if ! BREW_BIN="$(resolve_brew_bin)"; then
   NONINTERACTIVE=1 /bin/bash -lc "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  BREW_BIN="$(resolve_brew_bin)"
 fi
-append_rc 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+BREW_PREFIX="$("$BREW_BIN" --prefix)"
+append_shell_rc "export PATH=\"$BREW_PREFIX/bin:$BREW_PREFIX/sbin:\$PATH\""
+export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+append_shell_rc "eval \"\$($BREW_BIN shellenv)\""
+eval "$("$BREW_BIN" shellenv)"
 
 # nils-cli is required
 HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew tap graysurf/tap
@@ -128,12 +150,22 @@ set -euo pipefail
 SUDO=""
 command -v sudo >/dev/null 2>&1 && SUDO="sudo"
 
+resolve_brew_bin() {
+  command -v brew >/dev/null 2>&1 && command -v brew && return 0
+  [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]] && echo "/home/linuxbrew/.linuxbrew/bin/brew" && return 0
+  [[ -x "$HOME/.linuxbrew/bin/brew" ]] && echo "$HOME/.linuxbrew/bin/brew" && return 0
+  [[ -x /opt/homebrew/bin/brew ]] && echo "/opt/homebrew/bin/brew" && return 0
+  [[ -x /usr/local/bin/brew ]] && echo "/usr/local/bin/brew" && return 0
+  return 1
+}
+
 $SUDO apt-get update
 $SUDO apt-get upgrade -y
 
-if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
-  export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+if BREW_BIN="$(resolve_brew_bin)"; then
+  BREW_PREFIX="$("$BREW_BIN" --prefix)"
+  export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+  eval "$("$BREW_BIN" shellenv)"
   brew update
   brew upgrade nils-cli || brew upgrade
 fi
@@ -144,7 +176,7 @@ fi
 Run:
 
 ```bash
-for c in brew git rg fd jq fzf tree magick ffmpeg nils; do
+for c in brew git rg fd jq fzf tree magick ffmpeg nils agent-docs; do
   if command -v "$c" >/dev/null 2>&1; then
     echo "[OK]   $c -> $(command -v "$c")"
   else
@@ -169,6 +201,7 @@ Expected outcome:
 
 - Core commands return `[OK]`.
 - `nils` is available.
+- `agent-docs` is available.
 - `codex` is available when codex-agent commands are needed.
 
 ## Usage Summary
