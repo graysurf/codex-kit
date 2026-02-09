@@ -44,6 +44,7 @@ Failure modes:
 - AX target mismatch (selector too broad / stale node id) during `ax` operations.
 - AX gate failures (`--gate-*`) when app/window/selector readiness conditions are not met.
 - AX postcondition failures (`--postcondition-*`) when state does not change as expected after mutation.
+- `observe screenshot --if-changed-baseline` path missing or unreadable.
 - trace directory validation failures when using `--trace`/`--trace-dir` and path is not writable.
 
 ## Scripts (only entrypoints)
@@ -72,9 +73,17 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor
 # optional target for AX smoke
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor --ax-app Arc
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor --ax-bundle-id com.google.Chrome
 ```
 
-4. Run quick app foreground check with reopen recovery:
+4. Inspect unified permission state directly (`screen_recording` / `accessibility` / `automation` / `ready`):
+
+```bash
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
+  --format json preflight --include-probes
+```
+
+5. Run quick app foreground check with reopen recovery:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder
@@ -82,14 +91,14 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --bundle-id com.google.Chrome
 ```
 
-5. Run AX-only health check (AX tree probe):
+6. Run AX-only health check (AX tree probe):
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXWindow
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXTextField --title-contains Search
 ```
 
-6. Use AX wait primitives before mutation to stabilize dynamic UI:
+7. Use AX wait primitives before mutation to stabilize dynamic UI:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -101,7 +110,7 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --selector-explain --timeout-ms 2500 --poll-ms 80
 ```
 
-7. Run robust mutating AX actions with gating + postconditions:
+8. Run robust mutating AX actions with gating + postconditions:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -122,7 +131,7 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --postcondition-timeout-ms 2000 --allow-keyboard-fallback
 ```
 
-8. Use selector-frame screenshots for visual proof of target alignment:
+9. Use selector-frame screenshots for visual proof of target alignment:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -131,7 +140,16 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --path "$CODEX_HOME/out/macos-agent-selector-$(date +%Y%m%d-%H%M%S).png"
 ```
 
-9. Use one-shot debug bundle for triage artifacts:
+10. Use diff-aware screenshots to avoid noisy artifacts when nothing changed:
+
+```bash
+$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
+  --format json observe screenshot --active-window \
+  --path "$CODEX_HOME/out/macos-agent-state.png" \
+  --if-changed --if-changed-threshold 2
+```
+
+11. Use one-shot debug bundle for triage artifacts:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -139,13 +157,13 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --output-dir "$CODEX_HOME/out/macos-agent-debug-$(date +%Y%m%d-%H%M%S)"
 ```
 
-10. Run routine scripted scenarios:
+12. Run routine scripted scenarios:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh scenario --file /path/to/scenario.json
 ```
 
-11. Pass through raw macos-agent commands with JSON errors + trace when needed:
+13. Pass through raw macos-agent commands with JSON errors + trace when needed:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -205,6 +223,10 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   - Verify you are asserting the correct target/attribute (`AXValue`, focus state, etc.).
   - Increase postcondition timeout on animation-heavy apps (`--postcondition-timeout-ms`).
 
+- `error: --if-changed-baseline path does not exist ...`
+  - Verify baseline path exists before running capture.
+  - If baseline is optional, remove `--if-changed-baseline` and let current output file be baseline.
+
 - trace directory is not writable (`trace.write` errors)
   - Use a writable custom path with `--trace-dir`.
   - Prefer `$CODEX_HOME/out/...` for reproducible artifacts.
@@ -219,6 +241,7 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   - `input type --submit` (instead of legacy `--enter`)
 - Keep `--error-format json` enabled in automation loops when you need machine-parseable failures.
 - Use `debug bundle` first when a run fails and root cause is unclear.
+- Parse preflight JSON permissions (`screen_recording` / `accessibility` / `automation` / `ready`) before mutating runs.
 
 ## References
 

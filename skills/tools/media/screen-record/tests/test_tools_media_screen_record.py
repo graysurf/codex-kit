@@ -28,6 +28,24 @@ def test_tools_media_screen_record_command_exists() -> None:
     resolve_codex_command("screen-record")
 
 
+def test_tools_media_screen_record_docs_include_latest_capture_modes() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    skill_doc = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    guide_doc = (skill_root / "references" / "SCREEN_RECORD_GUIDE.md").read_text(encoding="utf-8")
+
+    assert "--screenshot" in skill_doc
+    assert "--image-format" in skill_doc
+    assert "--if-changed" in skill_doc
+    assert "--metadata-out" in skill_doc
+    assert "--diagnostics-out" in skill_doc
+    assert "--portal" in skill_doc
+
+    assert "--screenshot --active-window" in guide_doc
+    assert "--if-changed-threshold" in guide_doc
+    assert "--metadata-out" in guide_doc
+    assert "--diagnostics-out" in guide_doc
+
+
 def test_screen_record_help() -> None:
     proc = _run(["--help"])
     assert proc.returncode == 0
