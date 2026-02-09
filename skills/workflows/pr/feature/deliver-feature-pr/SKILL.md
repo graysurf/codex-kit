@@ -1,6 +1,6 @@
 ---
 name: deliver-feature-pr
-description: Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR.
+description: "Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR."
 ---
 
 # Deliver Feature PR
