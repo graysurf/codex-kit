@@ -1,40 +1,46 @@
-# Codex Cloud Setup Runbook
+# Codex Cloud Setup Runbook (Ubuntu Minimal Binary Profile)
 
 Status: Active  
 Last updated: 2026-02-09
 
-Use this runbook to provision a Codex Cloud-ready Ubuntu environment aligned with the `docker/codex-env` conventions in this repository.
+Use this runbook to provision a Codex Cloud Ubuntu environment with only the CLI binaries needed for agent workflows.  
+This profile intentionally avoids `zsh-kit` and skips large optional bootstrap bundles (for example `nvim`).
+
+## Dependency Sources
+
+This runbook is derived from:
+
+1. [CLI_TOOLS.md](../../CLI_TOOLS.md)
+2. [graysurf/nils-cli/BINARY_DEPENDENCIES.md](https://github.com/graysurf/nils-cli/blob/main/BINARY_DEPENDENCIES.md)
 
 ## Scope
 
 This setup does the following:
 
-- Installs base system dependencies
-- Installs Homebrew and `nils-cli`
-- Installs `zsh-kit` to `/opt/zsh-kit` on branch `nils-cli`
-- Clones or syncs `codex-kit` to `$HOME/.codex` on branch `main`
-- Applies shell environment variables (idempotent append to `$HOME/.bashrc`)
-- Runs optional tool-install and zsh-plugin prefetch scripts when available
-- Installs Rust toolchain (`rustup-init` preferred, `rustup` fallback)
+- Installs Ubuntu-native binary dependencies for Codex agent and `nils-cli` workflows
+- Installs Linuxbrew only to install/upgrade `nils-cli`
+- Adds Ubuntu command-name compatibility links (`fdfind` -> `fd`, `batcat` -> `bat`, `git-delta` -> `delta`)
+- Does not install `zsh-kit`
+- Does not run `install-tools.sh` or other broad optional bundles
 
 ## Prerequisites
 
-- Ubuntu 24.04 (or compatible Debian/Ubuntu image)
-- Internet access to GitHub/Homebrew endpoints
+- Ubuntu 24.04 (or compatible Debian/Ubuntu)
+- Internet access to Ubuntu package mirrors, GitHub, and Homebrew endpoints
 - User with `sudo` privileges (script auto-falls back if `sudo` is unavailable)
 
 ## One-Time Setup
 
-1. Create a file named `setup-codex-cloud.sh`.
+1. Create `setup-codex-cloud-minimal.sh`.
 2. Paste the script below.
 3. Run:
 
 ```bash
-chmod +x setup-codex-cloud.sh
-./setup-codex-cloud.sh
+chmod +x setup-codex-cloud-minimal.sh
+./setup-codex-cloud-minimal.sh
 ```
 
-4. Reload your shell after completion:
+4. Reload shell startup config:
 
 ```bash
 source "$HOME/.bashrc"
@@ -46,131 +52,124 @@ set -euo pipefail
 
 SUDO=""
 command -v sudo >/dev/null 2>&1 && SUDO="sudo"
-
 export DEBIAN_FRONTEND=noninteractive
 
-append_rc() { grep -qxF "$1" ~/.bashrc 2>/dev/null || echo "$1" >> ~/.bashrc; }
+append_rc() {
+  grep -qxF "$1" "$HOME/.bashrc" 2>/dev/null || echo "$1" >>"$HOME/.bashrc"
+}
 
-# --- Base deps (include sudo because install-tools.sh expects it) ---
+install_optional_apt() {
+  local pkg="$1"
+  if apt-cache show "$pkg" >/dev/null 2>&1; then
+    $SUDO apt-get install -y --no-install-recommends "$pkg"
+  else
+    echo "skip: apt package '$pkg' not available in current sources" >&2
+  fi
+}
+
+# Ubuntu-native core binaries from CLI_TOOLS.md + BINARY_DEPENDENCIES.md
 $SUDO apt-get update
 $SUDO apt-get install -y --no-install-recommends \
-  ca-certificates curl file git openssh-client gnupg locales tzdata zsh \
-  python3 python3-venv python3-pip build-essential procps rsync unzip xz-utils sudo \
-  && $SUDO rm -rf /var/lib/apt/lists/*
+  ca-certificates curl git file jq tree fzf ripgrep fd-find \
+  imagemagick ffmpeg python3 python3-venv python3-pip \
+  build-essential procps rsync unzip xz-utils tzdata
 
-# --- Homebrew ---
+# Optional but useful binaries when available in current apt sources
+for pkg in yq bat git-delta gh; do
+  install_optional_apt "$pkg"
+done
+
+$SUDO rm -rf /var/lib/apt/lists/*
+
+# Ubuntu command-name compatibility shims
+mkdir -p "$HOME/.local/bin"
+if ! command -v fd >/dev/null 2>&1 && command -v fdfind >/dev/null 2>&1; then
+  ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+fi
+if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
+  ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+fi
+if ! command -v delta >/dev/null 2>&1 && command -v git-delta >/dev/null 2>&1; then
+  ln -sf "$(command -v git-delta)" "$HOME/.local/bin/delta"
+fi
+append_rc 'export PATH="$HOME/.local/bin:$PATH"'
+export PATH="$HOME/.local/bin:$PATH"
+
+# Linuxbrew bootstrap (only needed here for nils-cli)
 if [[ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
   NONINTERACTIVE=1 /bin/bash -lc "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
-/home/linuxbrew/.linuxbrew/bin/brew --version
-
-BREW_SHELLENV='eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
-append_rc "$BREW_SHELLENV"
+append_rc 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
-# --- nils-cli (graysurf/tap) ---
+# nils-cli is required
 HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew tap graysurf/tap
 HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install nils-cli
 
-# --- zsh-kit -> /opt/zsh-kit (Method A: match Dockerfile expectations) ---
-$SUDO mkdir -p /opt
-if [[ -d /opt/zsh-kit/.git ]]; then
-  $SUDO git -C /opt/zsh-kit fetch origin --tags
-else
-  $SUDO git clone https://github.com/graysurf/zsh-kit.git /opt/zsh-kit
-fi
-$SUDO git -C /opt/zsh-kit checkout nils-cli
-
-# Optional: if origin/nils-cli exists, hard reset to it (keeps it up to date)
-if $SUDO git -C /opt/zsh-kit show-ref --verify --quiet refs/remotes/origin/nils-cli; then
-  $SUDO git -C /opt/zsh-kit reset --hard origin/nils-cli
+# codex binary is required for codex-agent commands in nils-cli.
+# Codex Cloud images normally provide it; warn if missing.
+if ! command -v codex >/dev/null 2>&1; then
+  echo "warn: 'codex' binary not found. Install Codex from official distribution." >&2
 fi
 
-# --- codex-kit -> ~/.codex (keep synced to origin/main) ---
-if [[ -d "$HOME/.codex/.git" ]]; then
-  git -C "$HOME/.codex" fetch origin
-  git -C "$HOME/.codex" checkout main
-  git -C "$HOME/.codex" reset --hard origin/main
-else
-  git clone https://github.com/graysurf/codex-kit.git "$HOME/.codex"
-fi
-
-# --- Environment (aligned with Dockerfile); append to bashrc idempotently ---
-append_rc 'export ZSH_KIT_DIR="/opt/zsh-kit"'
-append_rc 'export CODEX_KIT_DIR="$HOME/.codex"'
-append_rc 'export ZDOTDIR="/opt/zsh-kit"'
-append_rc 'export ZSH_FEATURES="codex,opencode"'
-append_rc 'export ZSH_BOOT_WEATHER_ENABLED=false'
-append_rc 'export ZSH_BOOT_QUOTE_ENABLED=false'
-append_rc 'export CODEX_HOME="$HOME/.codex"'
-
-# Export for current run (so install-tools.sh sees them)
-export ZSH_KIT_DIR="/opt/zsh-kit"
-export CODEX_KIT_DIR="$HOME/.codex"
-export ZDOTDIR="/opt/zsh-kit"
-export ZSH_FEATURES="codex,opencode"
-export ZSH_BOOT_WEATHER_ENABLED=false
-export ZSH_BOOT_QUOTE_ENABLED=false
-export CODEX_HOME="$HOME/.codex"
-
-# --- Optional install / prefetch scripts (run if present & executable) ---
-if [[ -x "$HOME/.codex/docker/codex-env/bin/install-tools.sh" ]]; then
-  INSTALL_OPTIONAL_TOOLS=1 INSTALL_VSCODE=1 "$HOME/.codex/docker/codex-env/bin/install-tools.sh"
-fi
-
-if [[ -x "$HOME/.codex/docker/codex-env/bin/prefetch-zsh-plugins.sh" ]]; then
-  ZSH_PLUGIN_FETCH_RETRIES=5 "$HOME/.codex/docker/codex-env/bin/prefetch-zsh-plugins.sh"
-fi
-
-# --- Rust (prefer rustup-init; fallback to rustup) ---
-if HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install rustup-init; then
-  rustup-init -y
-else
-  HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install rustup
-  append_rc 'export PATH="$(brew --prefix rustup)/bin:$PATH"'
-  export PATH="$(brew --prefix rustup)/bin:$PATH"
-  rustup default stable
-fi
-
-rustc --version && cargo --version
+echo "setup complete"
 ```
 
 ## Maintenance Script
 
-Run this periodically (for example weekly) to update Homebrew packages and resync `codex-kit`:
+Run this periodically (for example weekly) to keep Ubuntu packages and `nils-cli` current:
 
 ```bash
 #!/usr/bin/env bash
-brew update && brew upgrade
-git -C ~/.codex fetch origin && git -C ~/.codex checkout main && git -C ~/.codex reset --hard origin/main
+set -euo pipefail
+
+SUDO=""
+command -v sudo >/dev/null 2>&1 && SUDO="sudo"
+
+$SUDO apt-get update
+$SUDO apt-get upgrade -y
+
+if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  brew update
+  brew upgrade nils-cli || brew upgrade
+fi
 ```
 
 ## Verification
 
-Run the following commands:
+Run:
 
 ```bash
-brew --version
-nils --version || nils-cli --version
-echo "$CODEX_HOME"
-zsh --version
-rustc --version
-cargo --version
+for c in git rg fd jq fzf tree magick ffmpeg nils; do
+  if command -v "$c" >/dev/null 2>&1; then
+    echo "[OK]   $c -> $(command -v "$c")"
+  else
+    echo "[MISS] $c"
+  fi
+done
+
+if command -v yq >/dev/null 2>&1; then
+  echo "[OK]   yq -> $(command -v yq)"
+else
+  echo "[INFO] yq is optional in this profile"
+fi
+
+if command -v codex >/dev/null 2>&1; then
+  echo "[OK]   codex -> $(command -v codex)"
+else
+  echo "[WARN] codex missing (required only for codex-agent commands)"
+fi
 ```
 
 Expected outcome:
 
-- All commands return successfully.
-- `CODEX_HOME` prints `$HOME/.codex`.
+- Core commands return `[OK]`.
+- `nils` is available.
+- `codex` is available when codex-agent commands are needed.
 
 ## Usage Summary
 
-- First-time machine setup: run the One-Time Setup script.
+- First-time setup: run the One-Time Setup script.
 - Ongoing upkeep: run the Maintenance Script.
-- If environment variables are not visible in current shell, run `source "$HOME/.bashrc"`.
-
-## Operational Notes
-
-- The setup and maintenance flows intentionally use `git reset --hard` for branch alignment.
-- Any uncommitted local changes under `$HOME/.codex` or `/opt/zsh-kit` will be discarded.
-- If you maintain local customizations, back up or branch before running these scripts.
+- This profile is intentionally minimal and binary-focused for Codex Cloud agent execution.
