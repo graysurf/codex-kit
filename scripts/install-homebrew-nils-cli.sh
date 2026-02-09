@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat <<'EOF'
+Usage: install-homebrew-nils-cli.sh
+
+Install Homebrew if needed, then install nils-cli via Homebrew with retries.
+Intended for CI bootstrap steps.
+EOF
+  exit 0
+fi
+
+if [[ "$#" -gt 0 ]]; then
+  echo "error: unsupported arguments: $*" >&2
+  echo "hint: use --help" >&2
+  exit 2
+fi
+
 retry() {
   local attempts="$1"
   local delay_secs="$2"
