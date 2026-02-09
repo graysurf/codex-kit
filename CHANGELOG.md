@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.5 - 2026-02-09
+
+### Changed
+- Align `screen-record` skill contract and guide with current CLI behavior: screenshot mode, selector/mode gates, diagnostics flags (`--metadata-out`, `--diagnostics-out`), and `--if-changed*`.
+- Refresh `screen-record` assistant response template to distinguish recording vs screenshot completion details.
+- Expand `macos-agent-ops` workflow docs with permission preflight (`preflight --include-probes`) and diff-aware screenshot triage patterns.
+
+### Fixed
+- Add doc-guard tests for `screen-record` and `macos-agent-ops` skills so key CLI usage examples do not drift.
+
 ## v2.2.4 - 2026-02-09
 
 ### Added
