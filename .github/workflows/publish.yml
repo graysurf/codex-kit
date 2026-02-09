@@ -263,4 +263,3 @@ jobs:
             -t "${image}:${sha_tag}" \
             "${image}:${sha_tag}-amd64" \
             "${image}:${sha_tag}-arm64"
-
