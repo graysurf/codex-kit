@@ -66,7 +66,7 @@ RUN if [[ "${INSTALL_NILS_CLI}" == "1" ]]; then \
   fi
 
 ARG ZSH_KIT_REPO="https://github.com/graysurf/zsh-kit.git"
-ARG ZSH_KIT_REF="main"
+ARG ZSH_KIT_REF="nils-cli"
 ARG CODEX_KIT_REPO="https://github.com/graysurf/codex-kit.git"
 ARG CODEX_KIT_REF="main"
 
