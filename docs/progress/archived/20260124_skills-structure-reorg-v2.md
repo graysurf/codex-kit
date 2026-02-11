@@ -7,7 +7,7 @@
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/80
-- Docs: [docs/plans/skills-structure-reorg-plan.md](../plans/skills-structure-reorg-plan.md)
+- Docs: [docs/plans/skills-structure-reorg-plan.md](../../plans/skills-structure-reorg-plan.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
