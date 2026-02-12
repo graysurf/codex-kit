@@ -1,6 +1,6 @@
 ---
 name: create-feature-pr
-description: Create a new feature branch, implement feature work, commit with semantic-commit, and open a PR with gh using standardized templates. Use when the user asks to develop a new feature, start a feature branch, or open a feature PR; also when asked to draft a feature PR based on the latest commit message.
+description: Create a new feature branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates.
 ---
 
 # Create Feature PR
@@ -15,12 +15,16 @@ Prereqs:
 
 Inputs:
 
-- Feature summary + acceptance criteria (preferred) or inferred from the latest commit subject.
+- Required: feature summary + acceptance criteria.
+- Optional: kickoff artifacts already prepared (for example plan/progress/scaffold/docs files) to commit before opening the PR.
 - Optional: related progress file path under `docs/progress/` to link in the PR body.
+- Optional: related planning PR number.
 
 Outputs:
 
-- A new branch `feat/<slug>`, one or more commits, and a GitHub PR created via `gh`.
+- A new branch `feat/<slug>`, one or more commits, and a GitHub draft PR created via `gh`.
+- PR title/body describe the target feature outcome (not a kickoff commit subject).
+- When kickoff artifacts already exist, they can be committed first and used to open the draft PR before implementation code lands.
 - PR body populated from `references/PR_TEMPLATE.md` (include a full GitHub URL to the progress file when provided).
 
 Exit codes:
@@ -31,46 +35,69 @@ Failure modes:
 
 - Dirty working tree or wrong base branch.
 - Missing `gh` auth or insufficient permissions to push/create PR.
+- Missing feature summary/acceptance criteria (cannot produce an outcome-oriented PR).
+- PR title/body follows a housekeeping commit subject (for example `Add plan file`) instead of the feature outcome.
 - PR body missing required sections; if using a progress file, missing/invalid progress link.
+
+## Preflight (mandatory)
+
+1. Confirm runtime intent:
+   - `kickoff-only`: open draft implementation PR now, implementation continues later.
+   - `kickoff+implementation`: open draft PR now and continue implementation in the same turn.
+2. Collect required feature context:
+   - feature summary + acceptance criteria (required before PR creation).
+   - optional progress file URL and/or planning PR number.
+3. If summary/criteria are missing:
+   - ask for a 1-2 sentence feature outcome and expected behavior.
+   - do not derive PR title/body from `git log -1 --pretty=%B`.
+4. Confirm kickoff artifacts in scope (if present) and commit them before opening the PR.
 
 ## Inputs
 
 - Prefer explicit user feature description and acceptance criteria.
-- If missing, read the latest commit message: `git log -1 --pretty=%B`.
 - If still unclear, ask for a 1-2 sentence feature summary and expected behavior.
+- Do not use a latest commit subject as PR narrative input; commits like `Add plan file` are not valid PR title/body sources.
+- Existing plan/progress/scaffold files can be committed first, then used to open the draft PR.
 
 ## Branch naming
 
 - Prefix: `feat/`.
-- Build the slug from the feature summary or latest commit subject.
+- Build the slug from the feature summary.
 - Slug rules: lowercase; replace non-alphanumeric with hyphens; collapse hyphens; trim to 3-6 words.
 - If a ticket ID like ABC-123 appears, prefix it: `feat/abc-123-<slug>`.
 
 ## Workflow
 
-1. Confirm the working tree is clean; stash or commit if needed.
-2. Determine the base branch (default `origin/HEAD`); ask if unclear.
-3. Create the branch: `git checkout -b feat/<slug>`.
-4. Implement the feature with minimal scope; avoid unrelated refactors.
-5. Add or update tests when reasonable; run available lint/test/build commands.
-6. Commit using `semantic-commit-autostage` by default; use `semantic-commit` only when the user has explicitly staged a reviewed subset.
-7. Push the branch and open a PR with `gh pr create` using `references/PR_TEMPLATE.md`.
+1. Run preflight (above) and stop if feature summary/acceptance criteria remain missing.
+2. Confirm the working tree is clean; stash or commit unrelated changes if needed.
+3. Determine the base branch (default `origin/HEAD`); ask if unclear.
+4. Create the branch: `git checkout -b feat/<slug>`.
+5. If kickoff artifacts already exist (plan/progress/scaffold/docs), commit them first:
+   - use `semantic-commit-autostage` by default.
+   - use `semantic-commit` only when the user has explicitly staged a reviewed subset.
+6. Generate PR body from `references/PR_TEMPLATE.md`.
+7. Push the branch and open a draft PR immediately:
+   - `gh pr create --draft ...`
+8. Continue implementation on the same PR (code + tests), updating PR body/testing notes as progress changes.
 
 ## PR rules
 
-- Title: capitalize the first word; reflect the feature outcome; do not reuse the commit subject verbatim.
+- Title: capitalize the first word; reflect the feature outcome; never mirror a housekeeping commit subject.
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the PR title.
+- Body narrative (`Summary`, `Changes`, `Risk / Notes`) must describe the intended feature outcome even when the first commit is kickoff-only.
+- Always include `## Status` and initialize new draft PRs with kickoff status.
 - Progress (optional):
   - If a progress file exists, add `## Progress` and include a full GitHub URL (e.g. `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/...`) because PR bodies resolve relative links under `/pull/`.
   - If no progress file, omit the `## Progress` section entirely (do not write `None`).
 - Planning PR (optional):
   - If this feature work follows a planning PR, add `## Planning PR` and reference it as `- #<number>` (no extra text/URL).
   - If no planning PR, omit the `## Planning PR` section entirely (do not write `None`).
-- Always include Summary, Changes, Testing, and Risk/Notes sections.
+- Always include Status, Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
 - Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr` to generate the PR body quickly.
   - Add `--progress-url <full-github-url>` only when a progress file exists.
   - Add `--planning-pr <number>` only when this feature follows a planning PR.
+- Open draft PRs by default; only open non-draft when the user explicitly requests it.
 
 ## Output
 
