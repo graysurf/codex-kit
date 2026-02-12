@@ -52,8 +52,7 @@ def test_render_feature_pr_omits_optional_sections_when_missing() -> None:
     assert result.returncode == 0, result.stderr
     assert "## Progress" not in result.stdout
     assert "## Planning PR" not in result.stdout
-    assert "## Status" in result.stdout
-    assert "- kickoff: implementation in progress (draft PR)" in result.stdout
+    assert "## Status" not in result.stdout
     assert "## Summary" in result.stdout
     assert "## Changes" in result.stdout
 

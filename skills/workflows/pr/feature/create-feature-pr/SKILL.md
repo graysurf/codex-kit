@@ -84,7 +84,6 @@ Failure modes:
 - Title: capitalize the first word; reflect the feature outcome; never mirror a housekeeping commit subject.
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the PR title.
 - Body narrative (`Summary`, `Changes`, `Risk / Notes`) must describe the intended feature outcome even when the first commit is kickoff-only.
-- Always include `## Status` and initialize new draft PRs with kickoff status.
 - Progress (optional):
   - Use this section only when the feature PR is derived from a progress PR.
   - Generate by passing `--from-progress-pr` plus either:
@@ -95,7 +94,7 @@ Failure modes:
   - Use this section only when the feature PR is derived from a progress PR.
   - If this feature work follows a planning PR, add `## Planning PR` and reference it as `- #<number>` (no extra text/URL).
   - If no planning PR, omit the `## Planning PR` section entirely (do not write `None`).
-- Always include Status, Summary, Changes, Testing, and Risk/Notes sections.
+- Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
 - Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr` to generate the PR body quickly.
   - Non-progress flow: run with `--pr` only (no `Progress`/`Planning PR` sections).
