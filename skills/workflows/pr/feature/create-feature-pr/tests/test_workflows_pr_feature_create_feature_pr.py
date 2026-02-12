@@ -44,6 +44,7 @@ def test_render_feature_pr_omits_optional_sections_when_missing() -> None:
 def test_render_feature_pr_includes_optional_sections_when_provided() -> None:
     result = _run_render(
         "--pr",
+        "--from-progress-pr",
         "--progress-url",
         "https://github.com/org/repo/blob/feat-branch/docs/progress/20260206_slug.md",
         "--planning-pr",
@@ -56,6 +57,35 @@ def test_render_feature_pr_includes_optional_sections_when_provided() -> None:
     assert "https://github.com/org/repo/blob/feat-branch/docs/progress/20260206_slug.md" in result.stdout
 
 
+def test_render_feature_pr_rejects_optional_flags_without_from_progress_pr() -> None:
+    result = _run_render(
+        "--pr",
+        "--progress-url",
+        "https://github.com/org/repo/blob/feat-branch/docs/progress/20260206_slug.md",
+        "--planning-pr",
+        "#123",
+    )
+    assert result.returncode == 1
+    assert "--from-progress-pr" in result.stderr
+
+
+def test_render_feature_pr_builds_progress_url_from_progress_file() -> None:
+    result = _run_render(
+        "--pr",
+        "--from-progress-pr",
+        "--progress-file",
+        "docs/progress/20260206_slug.md",
+        "--planning-pr",
+        "123",
+    )
+    assert result.returncode == 0, result.stderr
+    assert "## Progress" in result.stdout
+    assert "## Planning PR" in result.stdout
+    assert "- #123" in result.stdout
+    assert "https://github.com/" in result.stdout
+    assert "/docs/progress/20260206_slug.md" in result.stdout
+
+
 def test_create_feature_pr_skill_avoids_commit_subject_narrative() -> None:
     text = _skill_md_text()
     assert "do not derive PR title/body from `git log -1 --pretty=%B`." in text
@@ -66,3 +96,9 @@ def test_create_feature_pr_skill_opens_draft_pr_by_default() -> None:
     text = _skill_md_text()
     assert "`gh pr create --draft ...`" in text
     assert "Open draft PRs by default; only open non-draft when the user explicitly requests it." in text
+
+
+def test_create_feature_pr_skill_scopes_progress_sections_to_progress_flow() -> None:
+    text = _skill_md_text()
+    assert "Use this section only when the feature PR is derived from a progress PR." in text
+    assert "--from-progress-pr --planning-pr <number>" in text

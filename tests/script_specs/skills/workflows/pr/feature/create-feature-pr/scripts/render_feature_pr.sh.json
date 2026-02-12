@@ -13,13 +13,16 @@
       "name": "pr-template-with-progress",
       "args": [
         "--pr",
+        "--from-progress-pr",
         "--progress-url",
-        "https://github.com/org/repo/blob/feat-branch/docs/progress/20260206_slug.md"
+        "https://github.com/org/repo/blob/feat-branch/docs/progress/20260206_slug.md",
+        "--planning-pr",
+        "123"
       ],
       "timeout_sec": 5,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "## Progress"
+        "stdout_regex": "(?s)## Progress.*## Planning PR"
       }
     },
     {

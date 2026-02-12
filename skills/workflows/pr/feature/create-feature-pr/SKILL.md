@@ -17,8 +17,7 @@ Inputs:
 
 - Required: feature summary + acceptance criteria.
 - Optional: kickoff artifacts already prepared (for example plan/progress/scaffold/docs files) to commit before opening the PR.
-- Optional: related progress file path under `docs/progress/` to link in the PR body.
-- Optional: related planning PR number.
+- Optional (only when this feature PR is created from a progress PR): planning PR number and progress file reference.
 
 Outputs:
 
@@ -87,16 +86,20 @@ Failure modes:
 - Body narrative (`Summary`, `Changes`, `Risk / Notes`) must describe the intended feature outcome even when the first commit is kickoff-only.
 - Always include `## Status` and initialize new draft PRs with kickoff status.
 - Progress (optional):
-  - If a progress file exists, add `## Progress` and include a full GitHub URL (e.g. `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/...`) because PR bodies resolve relative links under `/pull/`.
+  - Use this section only when the feature PR is derived from a progress PR.
+  - Generate by passing `--from-progress-pr` plus either:
+    - `--progress-url <full-github-url>`, or
+    - `--progress-file docs/progress/<file>.md` (script auto-resolves full URL from origin remote + current branch).
   - If no progress file, omit the `## Progress` section entirely (do not write `None`).
 - Planning PR (optional):
+  - Use this section only when the feature PR is derived from a progress PR.
   - If this feature work follows a planning PR, add `## Planning PR` and reference it as `- #<number>` (no extra text/URL).
   - If no planning PR, omit the `## Planning PR` section entirely (do not write `None`).
 - Always include Status, Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
 - Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr` to generate the PR body quickly.
-  - Add `--progress-url <full-github-url>` only when a progress file exists.
-  - Add `--planning-pr <number>` only when this feature follows a planning PR.
+  - Non-progress flow: run with `--pr` only (no `Progress`/`Planning PR` sections).
+  - Progress-derived flow: add `--from-progress-pr --planning-pr <number>` and either `--progress-url <full-github-url>` or `--progress-file docs/progress/<file>.md`.
 - Open draft PRs by default; only open non-draft when the user explicitly requests it.
 
 ## Output
