@@ -2,9 +2,6 @@
 
 {{OPTIONAL_SECTIONS}}
 
-## Status
-- kickoff: implementation in progress (draft PR)
-
 ## Summary
 <one paragraph summary of the feature and scope>
 
