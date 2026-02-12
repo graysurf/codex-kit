@@ -77,8 +77,10 @@ collect_worktree_state() {
 add_unique_worktree_path() {
   local path="${1:-}"
   local existing
+  local i
 
-  for existing in "${WORKTREE_ALL_PATHS[@]}"; do
+  for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+    existing="${WORKTREE_ALL_PATHS[$i]}"
     if [[ "$existing" == "$path" ]]; then
       return
     fi
@@ -89,26 +91,42 @@ add_unique_worktree_path() {
 
 build_all_worktree_paths() {
   local path
+  local i
   WORKTREE_ALL_PATHS=()
 
-  for path in "${WORKTREE_STAGED_PATHS[@]}"; do
+  for (( i=0; i<${#WORKTREE_STAGED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_STAGED_PATHS[$i]}"
     add_unique_worktree_path "$path"
   done
-  for path in "${WORKTREE_UNSTAGED_PATHS[@]}"; do
+  for (( i=0; i<${#WORKTREE_UNSTAGED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_UNSTAGED_PATHS[$i]}"
     add_unique_worktree_path "$path"
   done
-  for path in "${WORKTREE_UNTRACKED_PATHS[@]}"; do
+  for (( i=0; i<${#WORKTREE_UNTRACKED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_UNTRACKED_PATHS[$i]}"
     add_unique_worktree_path "$path"
   done
 }
 
-path_in_array() {
+path_in_unstaged_paths() {
   local needle="${1:-}"
-  shift || true
-  local item
+  local i
 
-  for item in "$@"; do
-    if [[ "$item" == "$needle" ]]; then
+  for (( i=0; i<${#WORKTREE_UNSTAGED_PATHS[@]}; i++ )); do
+    if [[ "${WORKTREE_UNSTAGED_PATHS[$i]}" == "$needle" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+path_in_untracked_paths() {
+  local needle="${1:-}"
+  local i
+
+  for (( i=0; i<${#WORKTREE_UNTRACKED_PATHS[@]}; i++ )); do
+    if [[ "${WORKTREE_UNTRACKED_PATHS[$i]}" == "$needle" ]]; then
       return 0
     fi
   done
@@ -181,7 +199,7 @@ inspect_suspicious_path() {
   cached_diff="$(git diff --cached -- "$path" 2>/dev/null || true)"
   unstaged_diff="$(git diff -- "$path" 2>/dev/null || true)"
 
-  if path_in_array "$path" "${WORKTREE_UNTRACKED_PATHS[@]}"; then
+  if path_in_untracked_paths "$path"; then
     echo "uncertain"
     return
   fi
@@ -200,12 +218,14 @@ evaluate_suspicious_signals() {
   local path domain
   local staged_and_unstaged_overlap=0
   local all_infra_only=1
+  local i
 
   SUSPICIOUS_PATHS=()
   SUSPICIOUS_REASONS=()
   DIFF_INSPECTION_RESULTS=()
 
-  for path in "${WORKTREE_ALL_PATHS[@]}"; do
+  for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+    path="${WORKTREE_ALL_PATHS[$i]}"
     domain="$(detect_path_domain "$path")"
     case "$domain" in
       infra)
@@ -222,21 +242,24 @@ evaluate_suspicious_signals() {
     esac
   done
 
-  for path in "${WORKTREE_STAGED_PATHS[@]}"; do
-    if path_in_array "$path" "${WORKTREE_UNSTAGED_PATHS[@]}"; then
+  for (( i=0; i<${#WORKTREE_STAGED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_STAGED_PATHS[$i]}"
+    if path_in_unstaged_paths "$path"; then
       staged_and_unstaged_overlap=1
       add_or_merge_suspicious_path "$path" "same_file_overlap"
     fi
   done
 
   if (( (has_product + has_infra + has_docs) >= 2 )) && [[ "${#WORKTREE_ALL_PATHS[@]}" -gt 1 ]]; then
-    for path in "${WORKTREE_ALL_PATHS[@]}"; do
+    for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+      path="${WORKTREE_ALL_PATHS[$i]}"
       add_or_merge_suspicious_path "$path" "cross_domain_path_spread"
     done
   fi
 
   if [[ "${#WORKTREE_ALL_PATHS[@]}" -gt 0 ]] && [[ "$all_infra_only" -eq 1 ]]; then
-    for path in "${WORKTREE_ALL_PATHS[@]}"; do
+    for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+      path="${WORKTREE_ALL_PATHS[$i]}"
       add_or_merge_suspicious_path "$path" "infra_tooling_only"
     done
   fi
