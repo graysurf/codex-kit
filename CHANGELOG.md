@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.6 - 2026-02-13
+
+### Added
+- `create-feature-pr`: support kickoff-first draft PR flow.
+- `deliver-feature-pr`: add dirty preflight triage support.
+
+### Changed
+- Runbooks: document Codex Cloud setup for Ubuntu and ensure Linuxbrew path guidance.
+- `handoff-progress-pr`: align handoff guidance with progress-derived PR flags.
+- Docker: pin `zsh-kit` reference to `nils-cli` for image builds.
+
+### Fixed
+- `create-feature-pr`: remove legacy Status section and harden progress URL resolution checks.
+- `close-feature-pr`: enforce paired progress metadata hygiene.
+- `deliver-feature-pr`: handle empty arrays safely under `set -u`.
+- CI/scripts: harden Homebrew install workflow and add install-homebrew help mode.
+- Semgrep profile: allow scanning the `commands/` directory.
+- Progress docs: correct archived plan path references.
+
 ## v2.2.5 - 2026-02-09
 
 ### Changed
