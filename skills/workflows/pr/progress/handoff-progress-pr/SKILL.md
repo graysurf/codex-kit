@@ -65,9 +65,10 @@ When creating feature PRs for implementation:
 
 Recommended pattern for feature PR bodies:
 
-- Keep `## Progress` as-is (link to the progress file).
-- Add `## Planning PR`:
-  - `- #<number>`
+- Progress-derived sections are opt-in in `create-feature-pr`; enable them explicitly.
+- Generate PR body with:
+  - `render_feature_pr.sh --pr --from-progress-pr --planning-pr <number> --progress-url <full-github-url>`
+- This ensures `## Progress` and `## Planning PR` are emitted as a valid pair.
 
 ## Workflow
 
@@ -87,6 +88,8 @@ Recommended pattern for feature PR bodies:
    - Ensure the `## Progress` link points to `blob/<base-branch>/docs/progress/...`
 5. Kick off implementation PR(s)
    - Use `create-feature-pr` to implement and open one or more feature PRs.
+   - For each progress-derived implementation PR body, use:
+     - `render_feature_pr.sh --pr --from-progress-pr --planning-pr <planning-pr-number> --progress-url <full-github-url>`
    - In each implementation PR body:
      - Link the progress file (full GitHub blob URL).
      - Add a `## Planning PR` link back to this planning PR.

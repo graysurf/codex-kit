@@ -199,6 +199,11 @@ fi
 
 progress_file="${progress_file#./}"
 
+if [[ ! "$progress_file" =~ ^docs/progress/.+\.md$ ]]; then
+  echo "error: --progress-file must be a docs/progress/*.md path" >&2
+  exit 1
+fi
+
 if [[ "$patch_only" == "0" ]]; then
   if [[ -n "$(git status --porcelain=v1)" ]]; then
     echo "error: working tree is not clean; commit/stash first" >&2
@@ -276,6 +281,7 @@ gh pr edit "$pr_number" --body-file "$tmp_file"
 rm -f "$tmp_file"
 
 echo "progress: ${progress_url}" >&2
+echo "feature-pr-render-args: --from-progress-pr --planning-pr ${pr_number} --progress-url ${progress_url}" >&2
 
 if [[ "$patch_only" == "0" && "$keep_branch" == "0" ]]; then
   if [[ "$head_branch" == "$base_branch" ]]; then

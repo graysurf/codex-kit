@@ -54,8 +54,10 @@ Failure modes:
 3. Review PR hygiene (aligned with `create-feature-pr`)
    - Title reflects feature outcome; capitalize the first word.
    - PR body includes: `Summary`, `Changes`, `Testing`, `Risk / Notes`.
-   - If PR body contains `## Progress` and it is `None` (or empty), remove that section entirely.
-   - If PR body contains `## Planning PR` and it is `None` (or empty), remove that section entirely.
+   - `## Progress`/`## Planning PR` are progress-derived metadata and must be treated as a pair.
+   - Non-progress feature PR: both sections should be absent.
+   - Progress-derived feature PR: both sections must exist with non-empty values.
+   - If only one section exists, or either section is `None` (or empty), remove both sections entirely.
    - If PR body includes `Open Questions` and/or `Next Steps` and they are not already `- None`, update them to the latest status (resolve questions or confirm with the user, check off completed steps, link follow-ups).
    - `Testing` records results (`pass/failed/skipped`) and reasons if not run.
    - If edits are needed: use `gh pr edit <pr> --title ...` / `gh pr edit <pr> --body-file ...`.

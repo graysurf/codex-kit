@@ -142,8 +142,7 @@ def test_script_smoke_fixture_close_feature_pr_strips_progress_only(tmp_path: Pa
 
     patched_body = (log_dir / "gh.pr.124.body.md").read_text("utf-8")
     assert "## Progress" not in patched_body
-    assert "## Planning PR" in patched_body
-    assert "#42" in patched_body
+    assert "## Planning PR" not in patched_body
 
 
 @pytest.mark.script_smoke
@@ -189,8 +188,57 @@ def test_script_smoke_fixture_close_feature_pr_strips_planning_only(tmp_path: Pa
 
     patched_body = (log_dir / "gh.pr.125.body.md").read_text("utf-8")
     assert "## Planning PR" not in patched_body
-    assert "## Progress" in patched_body
-    assert "https://example.com/progress" in patched_body
+    assert "## Progress" not in patched_body
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_close_feature_pr_keeps_valid_progress_pair(tmp_path: Path):
+    work_tree, _ = init_fixture_repo(tmp_path)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-feature-pr-keep-valid-pair")
+    pr_body = "\n".join(
+        [
+            "# Fixture PR",
+            "",
+            "## Progress",
+            "- [docs/progress/20260213_fixture.md](https://github.com/example/repo/blob/feat/fixture/docs/progress/20260213_fixture.md)",
+            "",
+            "## Planning PR",
+            "- #42",
+            "",
+            "## Summary",
+            "Fixture.",
+            "",
+            "## Changes",
+            "- Fixture",
+            "",
+        ]
+    )
+    spec = {
+        "args": ["--pr", "126", "--skip-checks", "--no-cleanup"],
+        "timeout_sec": 15,
+        "env": {
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "126",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/126",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": "feat/fixture",
+            "CODEX_GH_STUB_STATE": "OPEN",
+            "CODEX_GH_STUB_BODY": pr_body,
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-keep-valid-progress-pair", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    calls_path = log_dir / "gh.calls.txt"
+    calls = calls_path.read_text("utf-8")
+    assert "gh pr merge 126" in calls
+    assert "gh pr edit 126 --body-file" not in calls
 
 
 @pytest.mark.script_smoke
@@ -223,6 +271,8 @@ def test_script_smoke_fixture_handoff_progress_pr_patch_only(tmp_path: Path):
 
     patched_body = (log_dir / "gh.pr.21.body.md").read_text("utf-8")
     assert f"- [{progress_file}](https://github.com/example/repo/blob/main/{progress_file})" in patched_body
+    stderr_text = Path(result.stderr_path).read_text("utf-8")
+    assert "feature-pr-render-args: --from-progress-pr --planning-pr 21 --progress-url" in stderr_text
 
 
 @pytest.mark.script_smoke
@@ -260,6 +310,37 @@ def test_script_smoke_fixture_handoff_progress_pr_patch_only_reuses_pr_body(tmp_
 
     patched_body = (log_dir / "gh.pr.22.body.md").read_text("utf-8")
     assert f"- [{progress_file}](https://github.com/example/repo/blob/main/{progress_file})" in patched_body
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_handoff_progress_pr_rejects_non_progress_file(tmp_path: Path):
+    work_tree, _ = init_fixture_repo(tmp_path)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "handoff-progress-pr-invalid-progress-file")
+
+    spec = {
+        "args": ["--pr", "23", "--progress-file", "docs/notes.md", "--patch-only"],
+        "timeout_sec": 15,
+        "env": {
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "23",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/23",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": "docs/progress/fixture",
+            "CODEX_GH_STUB_STATE": "MERGED",
+            "CODEX_GH_STUB_BODY": "# Fixture PR\n\n## Summary\nFixture.\n",
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-invalid-progress-file", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "fail", result
+    assert result.exit_code == 1
+    stderr_text = Path(result.stderr_path).read_text("utf-8")
+    assert "docs/progress/*.md path" in stderr_text
 
 
 @pytest.mark.script_smoke
