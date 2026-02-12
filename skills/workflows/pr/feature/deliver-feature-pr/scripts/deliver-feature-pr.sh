@@ -47,6 +47,309 @@ require_clean_worktree() {
   fi
 }
 
+declare -a WORKTREE_STAGED_PATHS=()
+declare -a WORKTREE_UNSTAGED_PATHS=()
+declare -a WORKTREE_UNTRACKED_PATHS=()
+declare -a WORKTREE_ALL_PATHS=()
+declare -a SUSPICIOUS_PATHS=()
+declare -a SUSPICIOUS_REASONS=()
+declare -a DIFF_INSPECTION_RESULTS=()
+
+collect_worktree_state() {
+  local path
+
+  WORKTREE_STAGED_PATHS=()
+  while IFS= read -r -d '' path; do
+    WORKTREE_STAGED_PATHS+=("$path")
+  done < <(git diff --name-only --cached -z)
+
+  WORKTREE_UNSTAGED_PATHS=()
+  while IFS= read -r -d '' path; do
+    WORKTREE_UNSTAGED_PATHS+=("$path")
+  done < <(git diff --name-only -z)
+
+  WORKTREE_UNTRACKED_PATHS=()
+  while IFS= read -r -d '' path; do
+    WORKTREE_UNTRACKED_PATHS+=("$path")
+  done < <(git ls-files --others --exclude-standard -z)
+}
+
+add_unique_worktree_path() {
+  local path="${1:-}"
+  local existing
+  local i
+
+  for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+    existing="${WORKTREE_ALL_PATHS[$i]}"
+    if [[ "$existing" == "$path" ]]; then
+      return
+    fi
+  done
+
+  WORKTREE_ALL_PATHS+=("$path")
+}
+
+build_all_worktree_paths() {
+  local path
+  local i
+  WORKTREE_ALL_PATHS=()
+
+  for (( i=0; i<${#WORKTREE_STAGED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_STAGED_PATHS[$i]}"
+    add_unique_worktree_path "$path"
+  done
+  for (( i=0; i<${#WORKTREE_UNSTAGED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_UNSTAGED_PATHS[$i]}"
+    add_unique_worktree_path "$path"
+  done
+  for (( i=0; i<${#WORKTREE_UNTRACKED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_UNTRACKED_PATHS[$i]}"
+    add_unique_worktree_path "$path"
+  done
+}
+
+path_in_unstaged_paths() {
+  local needle="${1:-}"
+  local i
+
+  for (( i=0; i<${#WORKTREE_UNSTAGED_PATHS[@]}; i++ )); do
+    if [[ "${WORKTREE_UNSTAGED_PATHS[$i]}" == "$needle" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+path_in_untracked_paths() {
+  local needle="${1:-}"
+  local i
+
+  for (( i=0; i<${#WORKTREE_UNTRACKED_PATHS[@]}; i++ )); do
+    if [[ "${WORKTREE_UNTRACKED_PATHS[$i]}" == "$needle" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+is_docs_path() {
+  local path="${1:-}"
+  if [[ "$path" == docs/* || "$path" == *.md ]]; then
+    return 0
+  fi
+  return 1
+}
+
+is_infra_tooling_path() {
+  local path="${1:-}"
+  case "$path" in
+    .github/*|scripts/*|skills/tools/*|setup/*|.editorconfig|.pre-commit-config.yaml|.pre-commit-config.yml|.tool-versions|Makefile|package-lock.json|pnpm-lock.yaml|yarn.lock|go.sum|Cargo.lock)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+detect_path_domain() {
+  local path="${1:-}"
+
+  if is_infra_tooling_path "$path"; then
+    echo "infra"
+    return
+  fi
+  if is_docs_path "$path"; then
+    echo "docs"
+    return
+  fi
+
+  echo "product"
+}
+
+add_or_merge_suspicious_path() {
+  local path="${1:-}"
+  local reason="${2:-}"
+  local i
+
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    if [[ "${SUSPICIOUS_PATHS[$i]}" == "$path" ]]; then
+      case ",${SUSPICIOUS_REASONS[$i]}," in
+        *",$reason,"*)
+          ;;
+        *)
+          SUSPICIOUS_REASONS[$i]="${SUSPICIOUS_REASONS[$i]},$reason"
+          ;;
+      esac
+      return
+    fi
+  done
+
+  SUSPICIOUS_PATHS+=("$path")
+  SUSPICIOUS_REASONS+=("$reason")
+  DIFF_INSPECTION_RESULTS+=("uncertain")
+}
+
+inspect_suspicious_path() {
+  local path="${1:-}"
+  local cached_diff unstaged_diff
+
+  cached_diff="$(git diff --cached -- "$path" 2>/dev/null || true)"
+  unstaged_diff="$(git diff -- "$path" 2>/dev/null || true)"
+
+  if path_in_untracked_paths "$path"; then
+    echo "uncertain"
+    return
+  fi
+  if [[ -n "$cached_diff$unstaged_diff" ]]; then
+    echo "uncertain"
+    return
+  fi
+
+  echo "out-of-scope"
+}
+
+evaluate_suspicious_signals() {
+  local has_product=0
+  local has_infra=0
+  local has_docs=0
+  local path domain
+  local staged_and_unstaged_overlap=0
+  local all_infra_only=1
+  local i
+
+  SUSPICIOUS_PATHS=()
+  SUSPICIOUS_REASONS=()
+  DIFF_INSPECTION_RESULTS=()
+
+  for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+    path="${WORKTREE_ALL_PATHS[$i]}"
+    domain="$(detect_path_domain "$path")"
+    case "$domain" in
+      infra)
+        has_infra=1
+        ;;
+      docs)
+        has_docs=1
+        all_infra_only=0
+        ;;
+      *)
+        has_product=1
+        all_infra_only=0
+        ;;
+    esac
+  done
+
+  for (( i=0; i<${#WORKTREE_STAGED_PATHS[@]}; i++ )); do
+    path="${WORKTREE_STAGED_PATHS[$i]}"
+    if path_in_unstaged_paths "$path"; then
+      staged_and_unstaged_overlap=1
+      add_or_merge_suspicious_path "$path" "same_file_overlap"
+    fi
+  done
+
+  if (( (has_product + has_infra + has_docs) >= 2 )) && [[ "${#WORKTREE_ALL_PATHS[@]}" -gt 1 ]]; then
+    for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+      path="${WORKTREE_ALL_PATHS[$i]}"
+      add_or_merge_suspicious_path "$path" "cross_domain_path_spread"
+    done
+  fi
+
+  if [[ "${#WORKTREE_ALL_PATHS[@]}" -gt 0 ]] && [[ "$all_infra_only" -eq 1 ]]; then
+    for (( i=0; i<${#WORKTREE_ALL_PATHS[@]}; i++ )); do
+      path="${WORKTREE_ALL_PATHS[$i]}"
+      add_or_merge_suspicious_path "$path" "infra_tooling_only"
+    done
+  fi
+
+  if [[ "$staged_and_unstaged_overlap" -eq 1 ]]; then
+    echo "signal: same_file_overlap detected"
+  fi
+}
+
+populate_diff_inspection_results() {
+  local i path
+
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    path="${SUSPICIOUS_PATHS[$i]}"
+    DIFF_INSPECTION_RESULTS[$i]="$(inspect_suspicious_path "$path")"
+  done
+}
+
+emit_block_payload_and_exit() {
+  local flow="${1:-single_status_escalation}"
+  local mixed_status="${2:-false}"
+  local i
+
+  echo "FLOW=$flow" >&2
+  echo "BLOCK_STATE=blocked_for_ambiguity" >&2
+  echo "CHANGE_STATE_SUMMARY=staged:${#WORKTREE_STAGED_PATHS[@]},unstaged:${#WORKTREE_UNSTAGED_PATHS[@]},untracked:${#WORKTREE_UNTRACKED_PATHS[@]},mixed_status=${mixed_status}" >&2
+
+  echo "SUSPICIOUS_FILES=" >&2
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    echo "- ${SUSPICIOUS_PATHS[$i]}" >&2
+  done
+
+  echo "SUSPICIOUS_REASONS=" >&2
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    echo "- ${SUSPICIOUS_PATHS[$i]}: ${SUSPICIOUS_REASONS[$i]}" >&2
+  done
+
+  echo "DIFF_INSPECTION_RESULT=" >&2
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    echo "- ${SUSPICIOUS_PATHS[$i]}: ${DIFF_INSPECTION_RESULTS[$i]}" >&2
+  done
+
+  echo "CONFIRMATION_PROMPT=Confirm whether the suspicious files are in scope for this task (proceed/abort)." >&2
+  echo "NEXT_ACTION=wait for user confirmation before continuing" >&2
+  exit 1
+}
+
+triage_preflight_scope_or_block() {
+  local is_mixed_status=0
+  local flow="single_status_fast_path"
+  local has_uncertain=0
+  local i
+
+  if [[ "${#WORKTREE_STAGED_PATHS[@]}" -gt 0 ]] && [[ "${#WORKTREE_UNSTAGED_PATHS[@]}" -gt 0 ]]; then
+    is_mixed_status=1
+    flow="mixed_status"
+  fi
+
+  build_all_worktree_paths
+  evaluate_suspicious_signals
+
+  if [[ "${#SUSPICIOUS_PATHS[@]}" -eq 0 ]]; then
+    echo "FLOW=$flow"
+    return
+  fi
+
+  if [[ "$is_mixed_status" -eq 0 ]]; then
+    flow="single_status_escalation"
+  fi
+
+  populate_diff_inspection_results
+  for (( i=0; i<${#DIFF_INSPECTION_RESULTS[@]}; i++ )); do
+    if [[ "${DIFF_INSPECTION_RESULTS[$i]}" == "uncertain" ]]; then
+      has_uncertain=1
+      break
+    fi
+  done
+
+  if [[ "$has_uncertain" -eq 1 ]]; then
+    emit_block_payload_and_exit "$flow" "$([[ "$is_mixed_status" -eq 1 ]] && echo "true" || echo "false")"
+  fi
+
+  echo "FLOW=$flow"
+}
+
+print_worktree_state_summary() {
+  echo "state: worktree changes (staged=${#WORKTREE_STAGED_PATHS[@]}, unstaged=${#WORKTREE_UNSTAGED_PATHS[@]}, untracked=${#WORKTREE_UNTRACKED_PATHS[@]})"
+  echo "CHANGE_STATE_SUMMARY=staged:${#WORKTREE_STAGED_PATHS[@]},unstaged:${#WORKTREE_UNSTAGED_PATHS[@]},untracked:${#WORKTREE_UNTRACKED_PATHS[@]},mixed_status=$([[ "${#WORKTREE_STAGED_PATHS[@]}" -gt 0 && "${#WORKTREE_UNSTAGED_PATHS[@]}" -gt 0 ]] && echo "true" || echo "false")"
+}
+
 require_git_repo() {
   git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
     echo "error: must run inside a git work tree" >&2
@@ -104,8 +407,10 @@ cmd_preflight() {
   require_cmd git
   require_cmd gh
   require_git_repo
-  require_clean_worktree
+  collect_worktree_state
+  print_worktree_state_summary
   gh auth status >/dev/null
+  triage_preflight_scope_or_block
 
   local current_branch
   current_branch="$(git rev-parse --abbrev-ref HEAD)"
