@@ -41,6 +41,7 @@ exceptions=(
   "AGENTS*"
   "auth.json"
   "config.toml"
+  ".codex-global-state.json"
 )
 
 while [[ $# -gt 0 ]]; do
