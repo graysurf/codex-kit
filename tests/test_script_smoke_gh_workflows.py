@@ -242,6 +242,58 @@ def test_script_smoke_fixture_close_feature_pr_keeps_valid_progress_pair(tmp_pat
 
 
 @pytest.mark.script_smoke
+def test_script_smoke_fixture_close_feature_pr_auto_ready_draft_before_merge(tmp_path: Path):
+    work_tree, _ = init_fixture_repo(tmp_path)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-feature-pr-auto-ready-draft")
+    pr_body = "\n".join(
+        [
+            "# Fixture PR",
+            "",
+            "## Summary",
+            "Fixture.",
+            "",
+            "## Changes",
+            "- Fixture",
+            "",
+            "## Testing",
+            "- not run (fixture)",
+            "",
+            "## Risk / Notes",
+            "- None",
+            "",
+        ]
+    )
+    spec = {
+        "args": ["--pr", "127", "--skip-checks", "--no-cleanup"],
+        "timeout_sec": 15,
+        "env": {
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "127",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/127",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": "feat/fixture",
+            "CODEX_GH_STUB_STATE": "OPEN",
+            "CODEX_GH_STUB_IS_DRAFT": "true",
+            "CODEX_GH_STUB_BODY": pr_body,
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-auto-ready-draft", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    calls = (log_dir / "gh.calls.txt").read_text("utf-8").splitlines()
+    ready_idx = next(i for i, line in enumerate(calls) if line.startswith("gh pr ready 127"))
+    merge_idx = next(i for i, line in enumerate(calls) if line.startswith("gh pr merge 127"))
+    assert ready_idx < merge_idx
+    assert any("gh pr view 127 --json url,baseRefName,headRefName,state,isDraft" in line for line in calls)
+
+
+@pytest.mark.script_smoke
 def test_script_smoke_fixture_handoff_progress_pr_patch_only(tmp_path: Path):
     work_tree, _ = init_fixture_repo(tmp_path)
 

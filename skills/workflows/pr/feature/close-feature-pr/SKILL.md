@@ -16,7 +16,7 @@ Prereqs:
 Inputs:
 
 - PR number (or current-branch PR).
-- Optional: merge readiness decisions (draft → ready; checks pass).
+- Optional: whether to skip checks (`--skip-checks`).
 
 Outputs:
 
@@ -30,7 +30,7 @@ Exit codes:
 
 Failure modes:
 
-- PR is draft (must confirm and mark ready first).
+- PR is draft and automatic `gh pr ready` fails.
 - Required checks failing or branch not mergeable.
 - Missing `gh` auth or insufficient permissions.
 
@@ -50,7 +50,7 @@ Failure modes:
 2. Preflight
    - Ensure working tree is clean: `git status --porcelain=v1` should be empty
    - Ensure checks pass: `gh pr checks <pr>`
-   - Ensure PR is not draft: `gh pr view <pr> --json isDraft -q .isDraft` should be `false` (if `true`, confirm with the user then run `gh pr ready <pr>`)
+   - Ensure PR is not draft: `gh pr view <pr> --json isDraft -q .isDraft` should be `false`; if `true`, run `gh pr ready <pr>` automatically, then continue to merge.
 3. Review PR hygiene (aligned with `create-feature-pr`)
    - Title reflects feature outcome; capitalize the first word.
    - PR body includes: `Summary`, `Changes`, `Testing`, `Risk / Notes`.

@@ -48,6 +48,7 @@ Failure modes:
   - Do not merge; fix issues on the feature branch, push, and re-run CI wait.
 - Skill conflict or ambiguity (branch target, merge strategy, or "skip CI"):
   - Stop and ask the user to confirm the canonical workflow before continuing.
+- PR remains draft and automatic `gh pr ready` fails during close.
 - Missing `gh` auth/permissions or non-mergeable PR.
 
 ## Scripts (only entrypoints)
@@ -83,7 +84,7 @@ Failure modes:
 4. Close feature PR
    - Run:
      - `deliver-feature-pr.sh close --pr <number>`
-   - This delegates to `close-feature-pr` behavior: merge PR and clean branches.
+   - This delegates to `close-feature-pr` behavior: if draft, auto-mark ready first, then merge PR and clean branches.
 5. Report delivery artifacts
    - Include PR URL, CI status summary, merge commit SHA, and final branch state.
 
@@ -125,6 +126,7 @@ Failure modes:
   - branch guard fails (wrong source/base branch)
   - authentication/permission checks fail
   - CI checks are failing (must fix and rerun)
+  - handling draft-state PRs (draft is resolved by auto-ready in close flow, not by bypass)
   - mergeability/policy checks fail
 
 ## Stop-and-confirm output contract

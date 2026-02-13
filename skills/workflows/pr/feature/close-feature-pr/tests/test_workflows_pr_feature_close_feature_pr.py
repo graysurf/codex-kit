@@ -18,3 +18,13 @@ def test_workflows_pr_feature_close_feature_pr_entrypoints_exist() -> None:
             "scripts/close_feature_pr.sh",
         ],
     )
+
+
+def _skill_md_text() -> str:
+    return (Path(__file__).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_close_feature_pr_skill_documents_auto_ready_for_draft_prs() -> None:
+    text = _skill_md_text()
+    assert "if `true`, run `gh pr ready <pr>` automatically, then continue to merge." in text
+    assert "PR is draft and automatic `gh pr ready` fails." in text

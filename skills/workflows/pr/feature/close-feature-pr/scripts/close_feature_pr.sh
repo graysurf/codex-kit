@@ -8,6 +8,7 @@ Usage:
 
 What it does:
   - (Optional) Fails fast if PR checks are not passing
+  - Marks draft PRs as ready automatically before merge
   - Merges the PR with a merge commit
   - Deletes the remote head branch (unless --keep-branch)
   - Switches to the base branch, pulls, and deletes the local head branch (unless --no-cleanup)
@@ -203,8 +204,8 @@ if [[ -n "$pr_number" ]]; then
   pr_view_args=("$pr_number")
 fi
 
-pr_meta="$(gh pr view "${pr_view_args[@]}" --json url,baseRefName,headRefName,state -q '[.url, .baseRefName, .headRefName, .state] | @tsv')"
-IFS=$'\t' read -r pr_url base_branch head_branch pr_state <<<"$pr_meta"
+pr_meta="$(gh pr view "${pr_view_args[@]}" --json url,baseRefName,headRefName,state,isDraft -q '[.url, .baseRefName, .headRefName, .state, .isDraft] | @tsv')"
+IFS=$'\t' read -r pr_url base_branch head_branch pr_state pr_is_draft <<<"$pr_meta"
 
 if [[ -z "$pr_number" ]]; then
   pr_number="$(python3 - "$pr_url" <<'PY'
@@ -237,7 +238,7 @@ print(f"{parts[0]}/{parts[1]}")
 PY
 )"
 
-if [[ -z "$pr_number" || -z "$repo_full" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" ]]; then
+if [[ -z "$pr_number" || -z "$repo_full" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" || -z "$pr_is_draft" ]]; then
   echo "error: failed to resolve PR metadata via gh" >&2
   exit 1
 fi
@@ -249,6 +250,11 @@ fi
 
 if [[ "$skip_checks" == "0" ]]; then
   gh pr checks "$pr_number"
+fi
+
+if [[ "$pr_is_draft" == "true" ]]; then
+  echo "note: PR #${pr_number} is draft; marking ready automatically" >&2
+  gh pr ready "$pr_number"
 fi
 
 normalize_progress_and_planning_sections "$pr_number"

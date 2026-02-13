@@ -29,3 +29,9 @@ def test_deliver_feature_pr_skill_disallows_partial_handoff_success_language() -
     text = _skill_md_text()
     assert "Do not stop after create/open PR and report \"next step is wait-ci/close\"." in text
     assert "When stopping before `close`, report status as `BLOCKED` or `FAILED`" in text
+
+
+def test_deliver_feature_pr_skill_routes_draft_handling_to_auto_ready_close_flow() -> None:
+    text = _skill_md_text()
+    assert "if draft, auto-mark ready first, then merge PR and clean branches." in text
+    assert "handling draft-state PRs (draft is resolved by auto-ready in close flow, not by bypass)" in text
