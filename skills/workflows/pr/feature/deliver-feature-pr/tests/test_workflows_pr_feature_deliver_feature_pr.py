@@ -13,3 +13,19 @@ def test_workflows_pr_feature_deliver_feature_pr_contract() -> None:
 def test_workflows_pr_feature_deliver_feature_pr_entrypoints_exist() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     assert_entrypoints_exist(skill_root, ["scripts/deliver-feature-pr.sh"])
+
+
+def _skill_md_text() -> str:
+    return (Path(__file__).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_deliver_feature_pr_skill_requires_end_to_end_completion() -> None:
+    text = _skill_md_text()
+    assert "If there is no blocking error, this workflow must run end-to-end through `close`." in text
+    assert "create-only is not a successful delivery outcome." in text
+
+
+def test_deliver_feature_pr_skill_disallows_partial_handoff_success_language() -> None:
+    text = _skill_md_text()
+    assert "Do not stop after create/open PR and report \"next step is wait-ci/close\"." in text
+    assert "When stopping before `close`, report status as `BLOCKED` or `FAILED`" in text

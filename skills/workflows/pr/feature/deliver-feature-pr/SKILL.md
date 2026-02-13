@@ -31,6 +31,7 @@ Outputs:
 - A GitHub PR created via `create-feature-pr`.
 - CI checks fully green; failed checks are fixed before merge.
 - PR merged and cleaned up via `close-feature-pr`.
+- `deliver-feature-pr` is successful only after merge/close is complete; create-only is not a successful delivery outcome.
 
 Exit codes:
 
@@ -85,6 +86,13 @@ Failure modes:
    - This delegates to `close-feature-pr` behavior: merge PR and clean branches.
 5. Report delivery artifacts
    - Include PR URL, CI status summary, merge commit SHA, and final branch state.
+
+## Completion gate
+
+- If there is no blocking error, this workflow must run end-to-end through `close`.
+- Do not stop after create/open PR and report "next step is wait-ci/close".
+- A stop before `close` is valid only when a real block/failure exists (for example: ambiguity confirmation pending, CI still failing, timeout, auth/permission failure, non-mergeable PR, or explicit user pause).
+- When stopping before `close`, report status as `BLOCKED` or `FAILED` with the exact unblock action; do not report partial success.
 
 ## Suspicious-signal matrix
 
