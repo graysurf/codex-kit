@@ -13,6 +13,8 @@ Commands:
 
 preflight options:
   --base <branch>           Expected starting/base branch (default: main)
+  --bypass-ambiguity        Continue when ambiguity signals are present.
+  --proceed-all             Alias of --bypass-ambiguity.
 
 wait-ci options:
   --pr <number>             PR number (required)
@@ -307,7 +309,36 @@ emit_block_payload_and_exit() {
   exit 1
 }
 
+emit_bypass_payload() {
+  local flow="${1:-single_status_escalation}"
+  local mixed_status="${2:-false}"
+  local i
+
+  echo "FLOW=${flow}_bypass_ambiguity"
+  echo "BYPASS_STATE=ambiguity_bypassed"
+  echo "CHANGE_STATE_SUMMARY=staged:${#WORKTREE_STAGED_PATHS[@]},unstaged:${#WORKTREE_UNSTAGED_PATHS[@]},untracked:${#WORKTREE_UNTRACKED_PATHS[@]},mixed_status=${mixed_status}"
+
+  echo "SUSPICIOUS_FILES="
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    echo "- ${SUSPICIOUS_PATHS[$i]}"
+  done
+
+  echo "SUSPICIOUS_REASONS="
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    echo "- ${SUSPICIOUS_PATHS[$i]}: ${SUSPICIOUS_REASONS[$i]}"
+  done
+
+  echo "DIFF_INSPECTION_RESULT="
+  for (( i=0; i<${#SUSPICIOUS_PATHS[@]}; i++ )); do
+    echo "- ${SUSPICIOUS_PATHS[$i]}: ${DIFF_INSPECTION_RESULTS[$i]}"
+  done
+
+  echo "BYPASS_NOTE=Preflight ambiguity checks were explicitly bypassed via --bypass-ambiguity."
+  echo "NEXT_ACTION=continue delivery workflow with explicit user-confirmed scope"
+}
+
 triage_preflight_scope_or_block() {
+  local bypass_ambiguity="${1:-0}"
   local is_mixed_status=0
   local flow="single_status_fast_path"
   local has_uncertain=0
@@ -339,6 +370,10 @@ triage_preflight_scope_or_block() {
   done
 
   if [[ "$has_uncertain" -eq 1 ]]; then
+    if [[ "$bypass_ambiguity" -eq 1 ]]; then
+      emit_bypass_payload "$flow" "$([[ "$is_mixed_status" -eq 1 ]] && echo "true" || echo "false")"
+      return
+    fi
     emit_block_payload_and_exit "$flow" "$([[ "$is_mixed_status" -eq 1 ]] && echo "true" || echo "false")"
   fi
 
@@ -382,6 +417,7 @@ parse_positive_int() {
 
 cmd_preflight() {
   local base="main"
+  local bypass_ambiguity=0
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
@@ -392,6 +428,10 @@ cmd_preflight() {
         fi
         base="${2:-}"
         shift 2
+        ;;
+      --bypass-ambiguity|--proceed-all)
+        bypass_ambiguity=1
+        shift
         ;;
       -h|--help)
         usage
@@ -410,7 +450,7 @@ cmd_preflight() {
   collect_worktree_state
   print_worktree_state_summary
   gh auth status >/dev/null
-  triage_preflight_scope_or_block
+  triage_preflight_scope_or_block "$bypass_ambiguity"
 
   local current_branch
   current_branch="$(git rev-parse --abbrev-ref HEAD)"

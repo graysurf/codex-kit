@@ -218,6 +218,41 @@ def test_preflight_single_status_escalation_block(tmp_path: Path) -> None:
     assert "blocked_for_ambiguity" in combined
 
 
+def test_preflight_single_status_escalation_bypass_pass(tmp_path: Path) -> None:
+    repo, env = _setup_preflight_repo(tmp_path)
+    _write(repo, ".github/workflows/ci.yml", "name: ci\n")
+
+    proc = _run_preflight(repo, env, "--bypass-ambiguity")
+
+    assert proc.returncode == 0, proc.stderr
+    combined = _combined(proc)
+    assert "bypass_state=ambiguity_bypassed" in combined
+    assert "ok: preflight passed" in proc.stdout.lower()
+
+
+def test_preflight_mixed_status_suspicious_bypass_pass(tmp_path: Path) -> None:
+    repo, env = _setup_preflight_repo(tmp_path)
+    _seed_commit(
+        repo,
+        {
+            "app/product.txt": "base\n",
+            ".github/workflows/ci.yml": "name: ci\n",
+        },
+        message="chore: add mixed-domain files",
+    )
+    _write(repo, "app/product.txt", "base\nstaged\n")
+    _assert_ok(_git(repo, "add", "app/product.txt"))
+    _write(repo, ".github/workflows/ci.yml", "name: ci\n# unstaged\n")
+
+    proc = _run_preflight(repo, env, "--bypass-ambiguity")
+
+    assert proc.returncode == 0, proc.stderr
+    combined = _combined(proc)
+    assert "bypass_state=ambiguity_bypassed" in combined
+    assert "mixed_status=true" in combined
+    assert "ok: preflight passed" in proc.stdout.lower()
+
+
 def test_preflight_stop_and_confirm_payload_fields(tmp_path: Path) -> None:
     repo, env = _setup_preflight_repo(tmp_path)
     _seed_commit(
@@ -257,3 +292,13 @@ def test_preflight_base_branch_guard_fail(tmp_path: Path) -> None:
     assert proc.returncode == 1
     assert "initial branch guard failed" in proc.stderr.lower()
     assert "stop and ask user to confirm source branch and merge target" in proc.stderr.lower()
+
+
+def test_preflight_base_branch_guard_still_fails_with_bypass(tmp_path: Path) -> None:
+    repo, env = _setup_preflight_repo(tmp_path)
+    _assert_ok(_git(repo, "checkout", "-q", "-B", "feature/demo"))
+
+    proc = _run_preflight(repo, env, "--base", "main", "--bypass-ambiguity")
+
+    assert proc.returncode == 1
+    assert "initial branch guard failed" in proc.stderr.lower()

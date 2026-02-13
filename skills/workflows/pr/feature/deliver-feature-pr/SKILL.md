@@ -22,6 +22,8 @@ Inputs:
 - Feature summary + acceptance criteria (forwarded to `create-feature-pr`).
 - Optional `base` and merge target branch (default: `main` -> `main`).
 - Optional PR number (if omitted, resolve from the current branch PR).
+- Optional ambiguity bypass flag for preflight: `--bypass-ambiguity` (alias: `--proceed-all`).
+  Use only after explicit user confirmation that suspicious files are in scope.
 
 Outputs:
 
@@ -56,10 +58,14 @@ Failure modes:
 1. Branch-intent preflight (mandatory)
    - Run:
      - `deliver-feature-pr.sh preflight --base main`
+   - Optional explicit bypass run (non-blocking mode):
+     - `deliver-feature-pr.sh preflight --base main --bypass-ambiguity`
    - Contract:
      - This delivery method starts from `main`, creates `feat/*`, and merges back to `main`.
      - Preflight must classify `staged`/`unstaged`/`untracked` changes and apply the suspicious-signal matrix.
      - If current branch is not `main` (or not the user-confirmed base), stop and ask the user.
+     - `--bypass-ambiguity` only bypasses ambiguity block payloads after explicit user approval.
+       It does not bypass branch guard, auth checks, or later CI gates.
 2. Create feature PR
    - Use `create-feature-pr` to:
      - create a new `feat/<slug>` branch from confirmed base
@@ -95,7 +101,23 @@ Failure modes:
   - classify each path as `in-scope`, `out-of-scope`, or `uncertain`
   - if any path remains `uncertain`, stop and confirm with the user
 - `uncertain => stop and confirm` is mandatory for both mixed-status and single-status preflight.
+- Explicit bypass exception:
+  - after the user clearly confirms "proceed all" / "all suspicious files are in scope",
+    run preflight again with `--bypass-ambiguity` to continue without blocking.
+  - do not silently bypass; user confirmation is required in the same task context.
 - Do not auto-stage, auto-reset, or silently drop files during escalation.
+
+## Bypass guidance
+
+- Use `--bypass-ambiguity` (or `--proceed-all`) when:
+  - preflight returns `BLOCK_STATE=blocked_for_ambiguity`
+  - the user explicitly asks to continue despite ambiguity
+  - the changed paths are confirmed in-scope for the requested delivery
+- Do not use bypass when:
+  - branch guard fails (wrong source/base branch)
+  - authentication/permission checks fail
+  - CI checks are failing (must fix and rerun)
+  - mergeability/policy checks fail
 
 ## Stop-and-confirm output contract
 
@@ -129,6 +151,13 @@ Failure modes:
    - Example output:
      - `error: initial branch guard failed (current=feature/demo, expected=main)`
      - `action: stop and ask user to confirm source branch and merge target before continuing.`
+4. Ambiguity bypass pass (`single_status_escalation_bypass_ambiguity` / `mixed_status_bypass_ambiguity`)
+   - Example output:
+     - `FLOW=single_status_escalation_bypass_ambiguity`
+     - `BYPASS_STATE=ambiguity_bypassed`
+     - `SUSPICIOUS_FILES=...`
+     - `BYPASS_NOTE=Preflight ambiguity checks were explicitly bypassed via --bypass-ambiguity.`
+     - `ok: preflight passed (base=main)`
 
 ## Conflict policy
 
