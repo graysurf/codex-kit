@@ -53,7 +53,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Keep scan rules general; do not add repo-specific patterns.
 - Do not rely on grep results alone; use LLM analysis to confirm plausibility and impact.
 - Produce an issues list using `references/ISSUES_TEMPLATE.md`.
-- Use the ID format `PR-<number>-BUG-###` (example: `PR-128-BUG-001`). If the PR number is not known yet, use `PR-<number>` as a placeholder and update after PR creation.
+- Use the ID format `PR-<number>-BUG-##` (example: `PR-128-BUG-01`). If the PR number is not known yet, use `PR-<number>` as a placeholder and update after PR creation.
 - For project-specific skills, consider adding a minimal repro script requirement; see `references/REPRO_GUIDE.md`.
 
 ## Context window management

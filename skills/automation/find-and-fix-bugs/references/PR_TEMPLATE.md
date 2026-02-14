@@ -22,7 +22,7 @@ Status: open | fixed | deferred | needs-info
 
 | ID | Severity | Confidence | Area | Summary | Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| PR-<number>-BUG-001 | high | medium | <module/path> | <one-line summary> | <file:line or repro> | fixed |
+| PR-<number>-BUG-01 | high | medium | <module/path> | <one-line summary> | <file:line or repro> | fixed |
 
 ## Fix Approach
 - <key changes>
