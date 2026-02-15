@@ -51,11 +51,11 @@ Failure modes:
 ## Usage
 
 ```bash
-export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+export AGENTS_HOME="${AGENTS_HOME:-$HOME/.agents}"
 export PLAYWRIGHT_MCP_OUTPUT_DIR="out/playwright/default"
-"$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help
-"$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://playwright.dev --headed
-"$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" snapshot
+"$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help
+"$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://playwright.dev --headed
+"$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" snapshot
 ```
 
 ## Guardrails

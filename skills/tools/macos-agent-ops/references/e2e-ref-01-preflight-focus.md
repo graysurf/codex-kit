@@ -10,19 +10,19 @@ Goal: mirror the intent of `crates/macos-agent/tests/e2e_real_macos.rs`.
 
 ```bash
 # Resolve debug binary path
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where
+$AGENTS_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where
 
 # Ensure deterministic input source (im-select path)
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source --id abc
+$AGENTS_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source --id abc
 
 # Readiness with probes + AX smoke
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor
+$AGENTS_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor
 
 # Validate Finder can become foreground app (includes --reopen-on-fail)
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder
+$AGENTS_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder
 
 # AX tree probe against Arc (or another target app)
-$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXWindow
+$AGENTS_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXWindow
 ```
 
 ## What this catches

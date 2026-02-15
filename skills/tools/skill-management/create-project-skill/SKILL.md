@@ -1,6 +1,6 @@
 ---
 name: create-project-skill
-description: Scaffold a project-local skill under .codex/skills with contract and layout validation.
+description: Scaffold a project-local skill under .agents/skills with contract and layout validation.
 ---
 
 # Create Project Skill
@@ -11,12 +11,12 @@ Prereqs:
 
 - Run inside a git work tree.
 - `bash`, `git`, and `python3` available on `PATH`.
-- Target project path is a git work tree where `.codex/skills/` can be created.
+- Target project path is a git work tree where `.agents/skills/` can be created.
 
 Inputs:
 
 - Required:
-  - `--skill-dir <.codex/skills/...|<skill-name>>`
+  - `--skill-dir <.agents/skills/...|<skill-name>>`
 - Optional:
   - `--project-path <path>` (defaults to current directory)
   - `--title "<Title>"` (defaults to Title Case from skill name)
@@ -24,12 +24,12 @@ Inputs:
 
 Outputs:
 
-- Creates a project-local skill skeleton at `<project>/.codex/skills/...`:
+- Creates a project-local skill skeleton at `<project>/.agents/skills/...`:
   - `SKILL.md`
   - `scripts/<skill-name>.sh`
   - `tests/test_<skill_path>.sh`
 - Validates generated contract headings using:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file <SKILL.md>`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file <SKILL.md>`
 - Validates project-skill layout using an internal local validator.
 
 Exit codes:
@@ -40,7 +40,7 @@ Exit codes:
 
 Failure modes:
 
-- `--skill-dir` missing/invalid or outside `.codex/skills/`.
+- `--skill-dir` missing/invalid or outside `.agents/skills/`.
 - Target project path missing, not a directory, or not a git work tree.
 - Target skill directory already exists.
 - Missing prerequisites (`git`, `python3`) or missing template/validator files.
@@ -48,12 +48,12 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh`
+- `$AGENTS_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh`
 
 ## Workflow
 
 1. Resolve the target project root (default current directory) and verify it is a git work tree.
-2. Normalize `--skill-dir` to `.codex/skills/...` (supports shorthand `<skill-name>`).
+2. Normalize `--skill-dir` to `.agents/skills/...` (supports shorthand `<skill-name>`).
 3. Scaffold `SKILL.md`, a scripts entrypoint, and a tests smoke stub.
 4. Run contract validation and local project-skill layout validation.
 5. Return success output with the created project-skill path.

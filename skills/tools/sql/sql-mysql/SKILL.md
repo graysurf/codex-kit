@@ -46,7 +46,7 @@ Prefer read-only queries unless the user explicitly requests data changes.
 1) Run a query:
 
 ```bash
-$CODEX_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \
+$AGENTS_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \
   --prefix TEST \
   --env-file /dev/null \
   --query "select 1;"
@@ -55,7 +55,7 @@ $CODEX_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \
 2) Run a file:
 
 ```bash
-$CODEX_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \
+$AGENTS_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \
   --prefix TEST \
   --env-file /dev/null \
   --file /path/to/query.sql
@@ -67,8 +67,8 @@ Ask before running `UPDATE`, `DELETE`, `INSERT`, `TRUNCATE`, or schema changes.
 
 ## Output and clarification rules
 
-- Follow the shared template at `$CODEX_HOME/skills/tools/sql/_shared/references/ASSISTANT_RESPONSE_TEMPLATE.md`.
+- Follow the shared template at `$AGENTS_HOME/skills/tools/sql/_shared/references/ASSISTANT_RESPONSE_TEMPLATE.md`.
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh`
+- `$AGENTS_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh`

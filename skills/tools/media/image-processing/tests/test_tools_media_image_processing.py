@@ -22,7 +22,7 @@ def test_tools_media_image_processing_command_exists() -> None:
 
 
 def _repo_root() -> Path:
-    if code_home := os.environ.get("CODEX_HOME"):
+    if code_home := os.environ.get("AGENTS_HOME"):
         return Path(code_home).resolve()
     root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
     return Path(root).resolve()

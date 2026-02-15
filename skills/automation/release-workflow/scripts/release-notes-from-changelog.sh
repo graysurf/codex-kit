@@ -13,7 +13,7 @@ Usage:
 
 Behavior:
   - Extracts the matching "## <version> ..." section from a changelog until the next "## " heading.
-  - Writes the extracted notes to --output (default: $CODEX_HOME/out/release-notes-<version>.md).
+  - Writes the extracted notes to --output (default: $AGENTS_HOME/out/release-notes-<version>.md).
 
 Notes:
   - Default changelog path: CHANGELOG.md
@@ -52,8 +52,8 @@ done
 [[ -f "$changelog" ]] || die "changelog not found: $changelog"
 
 if [[ -z "$output" ]]; then
-  if [[ -n "${CODEX_HOME:-}" ]]; then
-    output="${CODEX_HOME%/}/out/release-notes-${version}.md"
+  if [[ -n "${AGENTS_HOME:-}" ]]; then
+    output="${AGENTS_HOME%/}/out/release-notes-${version}.md"
   else
     output="./release-notes-${version}.md"
   fi

@@ -40,7 +40,7 @@ Failure modes:
 1) Clarify (if needed)
 
 - If underspecified, ask 1–5 “need to know” questions first.
-- Use the format from `$CODEX_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`.
+- Use the format from `$AGENTS_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`.
 
 2) Research
 

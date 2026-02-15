@@ -17,17 +17,17 @@ Use this guide only when the target repository does not provide its own release 
 
 2. Update `CHANGELOG.md`
    - Scaffold a new entry:
-     - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version vX.Y.Z --date YYYY-MM-DD --output "$CODEX_HOME/out/release-entry-vX.Y.Z.md"`
+     - `$AGENTS_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version vX.Y.Z --date YYYY-MM-DD --output "$AGENTS_HOME/out/release-entry-vX.Y.Z.md"`
    - Insert the scaffolded entry at the top of `CHANGELOG.md`.
    - Remove placeholders and scaffolding:
      - Remove any `...` placeholders and `<!-- ... -->` HTML comments.
      - Remove empty sections; keep section order.
      - For `### Added`, `### Changed`, `### Fixed`: if a section is `None`, remove the whole section (do not write `- None.`).
    - Audit the changelog and stop if it fails:
-     - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
+     - `$AGENTS_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 
 3. Verify prereqs (strict)
-   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version vX.Y.Z --branch main --allow-dirty-path CHANGELOG.md --strict`
+   - `$AGENTS_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version vX.Y.Z --branch main --allow-dirty-path CHANGELOG.md --strict`
    - This strict audit still blocks unrelated dirty files; only `CHANGELOG.md` is allowed before the release commit.
 
 4. (Only when code changed) run the repo’s lint/test/build checks and record results
@@ -37,9 +37,9 @@ Use this guide only when the target repository does not provide its own release 
 
 6. Publish the GitHub release from the changelog entry
    - Extract release notes:
-     - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version vX.Y.Z --output "$CODEX_HOME/out/release-notes-vX.Y.Z.md"`
+     - `$AGENTS_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version vX.Y.Z --output "$AGENTS_HOME/out/release-notes-vX.Y.Z.md"`
    - Create the release:
-     - `gh release create vX.Y.Z -F "$CODEX_HOME/out/release-notes-vX.Y.Z.md" --title "vX.Y.Z"`
+     - `gh release create vX.Y.Z -F "$AGENTS_HOME/out/release-notes-vX.Y.Z.md" --title "vX.Y.Z"`
 
 7. Verify the release
    - `gh release view vX.Y.Z`

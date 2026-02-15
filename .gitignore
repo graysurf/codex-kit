@@ -39,12 +39,5 @@ worktrees/
 skills/.system/
 skills/openai/
 
-# Codex runtime artifacts
-.codex-global-state.json
-.personality_migration
-rules/
-sqlite/
-vendor_imports/
-
 # Local per-repo API testing setup (dev-only)
 /setup/

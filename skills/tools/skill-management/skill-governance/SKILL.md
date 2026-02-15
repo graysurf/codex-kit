@@ -40,6 +40,6 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
-- `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-- `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`
+- `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+- `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+- `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`

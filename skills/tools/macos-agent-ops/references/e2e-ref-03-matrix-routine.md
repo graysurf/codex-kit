@@ -11,7 +11,7 @@ Goal: mirror matrix-style real-app checks from `e2e_real_apps`.
 ## Quick usage
 
 ```bash
-OPS="$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh"
+OPS="$AGENTS_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh"
 
 # 0) Stabilize input source once
 "$OPS" input-source --id abc
@@ -35,9 +35,9 @@ OPS="$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh"
 4. If any command fails with `wait app-active` timeout, capture current active window screenshot:
 
 ```bash
-BIN="$($CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where)"
+BIN="$($AGENTS_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where)"
 "$BIN" --format json observe screenshot --active-window \
-  --path "$CODEX_HOME/out/macos-agent-matrix-failure.png"
+  --path "$AGENTS_HOME/out/macos-agent-matrix-failure.png"
 ```
 
 ## Common stabilization notes

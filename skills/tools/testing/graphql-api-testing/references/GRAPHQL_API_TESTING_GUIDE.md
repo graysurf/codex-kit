@@ -9,7 +9,7 @@ Suggested destination:
 Copy command:
 
 ```bash
-cp "$CODEX_HOME/skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md" \
+cp "$AGENTS_HOME/skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md" \
   "docs/backend/graphql-api-testing-guide.md"
 ```
 
@@ -63,7 +63,7 @@ To initialize `setup/graphql/` in a repo for the first time, copy the bundled te
 
 ```bash
 mkdir -p setup
-cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql" setup/
+cp -R "$AGENTS_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql" setup/
 ```
 
 The template includes a helper to turn a copied `api-gql`/`gql.sh` history command into a report:

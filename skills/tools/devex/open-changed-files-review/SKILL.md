@@ -11,7 +11,7 @@ Prereqs:
 
 - `zsh` available on `PATH`.
 - Optional: VSCode CLI `code` (missing → script no-ops).
-- `$CODEX_HOME/skills/tools/devex/open-changed-files-review/scripts/open-changed-files.zsh` available.
+- `$AGENTS_HOME/skills/tools/devex/open-changed-files-review/scripts/open-changed-files.zsh` available.
 
 Inputs:
 
@@ -46,11 +46,11 @@ Use this skill when Codex has edited files and you want to immediately open the 
    - Default: `CODEX_OPEN_CHANGED_FILES_MAX_FILES=50`
    - If there are more files than the cap: open the first N and mention that it was truncated.
 3. Prefer running:
-   - `$CODEX_HOME/skills/tools/devex/open-changed-files-review/scripts/open-changed-files.zsh --max-files "$max" --workspace-mode pwd -- <files...>`
+   - `$AGENTS_HOME/skills/tools/devex/open-changed-files-review/scripts/open-changed-files.zsh --max-files "$max" --workspace-mode pwd -- <files...>`
 4. If VSCode CLI `code` (or the tool) is unavailable: silent no-op (exit `0`, no errors), but still print a paste-ready manual command plus the file list for the user.
 
 ## Paste-ready command template
 
 ```zsh
-$CODEX_HOME/skills/tools/devex/open-changed-files-review/scripts/open-changed-files.zsh --max-files "${CODEX_OPEN_CHANGED_FILES_MAX_FILES:-50}" --workspace-mode pwd -- <files...>
+$AGENTS_HOME/skills/tools/devex/open-changed-files-review/scripts/open-changed-files.zsh --max-files "${CODEX_OPEN_CHANGED_FILES_MAX_FILES:-50}" --workspace-mode pwd -- <files...>
 ```

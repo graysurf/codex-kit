@@ -5,24 +5,6 @@
 - This file defines the global default behavior for Codex CLI: response style, quality bar, and the minimum set of tool-entry conventions.
 - Scope: when Codex CLI can't find a more specific policy file in the current working directory, it falls back to this file.
 - Override rule: if the current directory (or a closer subdirectory) contains a project/folder-specific `AGENTS.md` (or equivalent), the closest one wins; otherwise fall back to this file.
-- Execution-first requirement: `agent-docs` is the mandatory entrypoint to validate applicable docs/policies before implementation work.
-
-## Dispatcher policy (authoritative)
-
-- This file is dispatcher-oriented policy only. Long-form workflow detail must live in external docs loaded by `agent-docs`.
-- Canonical dispatch contract: `$CODEX_HOME/docs/runbooks/agent-docs/context-dispatch-matrix.md`.
-- Mandatory preflight sequence before edits/tests/commits:
-  - Step 1: Determine runtime intent (`startup`, `project implementation`, `technical research`, `skill authoring`).
-  - Step 2: `agent-docs resolve --context startup --strict --format checklist`
-  - Step 3: Run the strict gate for the active intent:
-    - Project implementation: `agent-docs resolve --context project-dev --strict --format checklist`
-    - Technical research: `agent-docs resolve --context task-tools --strict --format checklist`
-    - Skill authoring: `agent-docs resolve --context skill-dev --strict --format checklist`
-  - Step 4: If external lookups are needed during implementation/skill work, additionally run `agent-docs resolve --context task-tools --format checklist`.
-  - Step 5: If any required doc is missing or strict resolve fails, stop write actions and run `agent-docs baseline --check --target all --strict --format text`.
-  - Step 6: Proceed with edits/tests/commits only when required preflight docs are `status=present`.
-- New repository bootstrap path (missing baseline docs): follow `$CODEX_HOME/docs/runbooks/agent-docs/new-project-bootstrap.md` and use the canonical entrypoint `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`, then verify with `agent-docs baseline --check --target all --strict --format text`.
-- Strict/non-strict behavior and missing-doc fallback are defined only in the dispatch contract doc above.
 
 ## Context ownership (externalized)
 

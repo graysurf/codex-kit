@@ -39,7 +39,7 @@ Failure modes:
 1) Decide whether you must ask questions first
 
 - If the request is underspecified, ask 1–5 “need to know” questions before writing the plan.
-- Follow the structure from `$CODEX_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md` (numbered questions, short options, explicit defaults).
+- Follow the structure from `$AGENTS_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md` (numbered questions, short options, explicit defaults).
 
 2) Research the repo just enough to plan well
 

@@ -69,7 +69,7 @@ Practical pattern:
 These names are recommended when the meaning matches; they are not all required:
 
 - `## Setup` — how to satisfy/verify prereqs (no new requirements)
-- `## Scripts (only entrypoints)` — canonical runnable entrypoints (prefer `$CODEX_HOME/...` absolute paths)
+- `## Scripts (only entrypoints)` — canonical runnable entrypoints (prefer `$AGENTS_HOME/...` absolute paths)
 - `## Workflow` — step-by-step execution instructions and decision points
 - `## References` — longer guides/specs/templates
 
@@ -116,7 +116,7 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/.../scripts/example-skill.sh`
+- `$AGENTS_HOME/skills/.../scripts/example-skill.sh`
 
 ## Workflow
 
@@ -126,6 +126,6 @@ Failure modes:
 ## Tooling
 
 - Contract validation:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Skill layout audit:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`

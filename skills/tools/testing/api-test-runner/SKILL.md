@@ -54,13 +54,13 @@ Bootstrap a minimal `setup/api/` (when your repo already has `setup/rest` and/or
 
 ```bash
 mkdir -p setup
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" setup/
+cp -R "$AGENTS_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" setup/
 ```
 
 Bootstrap a runnable local-fixture smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`, plus a tiny REST + GraphQL fixture):
 
 ```bash
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
+cp -R "$AGENTS_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
 ```
 
 Start the local fixture (REST + GraphQL; required by `smoke-demo`):
@@ -409,7 +409,7 @@ strategy:
 steps:
   - name: Run suite shard
     env:
-      CODEX_HOME: ${{ github.workspace }}
+      AGENTS_HOME: ${{ github.workspace }}
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
     run: |
       api-test run \

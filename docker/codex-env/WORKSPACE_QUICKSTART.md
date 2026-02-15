@@ -54,7 +54,7 @@ If this is your first run, you need to complete GitHub device login.
 When using `--detach`, the device code is written to the tunnel log. Tail the log and follow the URL:
 
 ```sh
-docker exec -it codex-ws-codex-kit bash -lc 'tail -f /home/codex/.codex-env/logs/code-tunnel.log'
+docker exec -it codex-ws-codex-kit bash -lc 'tail -f /home/codex/.agents-env/logs/code-tunnel.log'
 ```
 
 Alternatively, print a new device code by running the login command:

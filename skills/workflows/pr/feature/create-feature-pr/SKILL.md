@@ -11,7 +11,7 @@ Prereqs:
 
 - Run inside the target git repo with a clean working tree (or stash unrelated changes).
 - `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
-- `$CODEX_HOME` points at the repo root (or tools are otherwise available).
+- `$AGENTS_HOME` points at the repo root (or tools are otherwise available).
 
 Inputs:
 
@@ -97,7 +97,7 @@ Failure modes:
   - If no planning PR, omit the `## Planning PR` section entirely (do not write `None`).
 - Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
-- Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr` to generate the PR body quickly.
+- Use `$AGENTS_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr` to generate the PR body quickly.
   - Non-progress flow: run with `--pr` only (no `Progress`/`Planning PR` sections).
   - Progress-derived flow: add `--from-progress-pr --planning-pr <number>` and either `--progress-url <full-github-url>` or `--progress-file docs/progress/<file>.md`.
 - Open draft PRs by default; only open non-draft when the user explicitly requests it.
@@ -105,4 +105,4 @@ Failure modes:
 ## Output
 
 - Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format.
-- Use `$CODEX_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --output` to generate the output template quickly.
+- Use `$AGENTS_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --output` to generate the output template quickly.

@@ -48,15 +48,15 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh`
-- `$CODEX_HOME/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py`
+- `$AGENTS_HOME/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh`
+- `$AGENTS_HOME/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py`
 
 ## TL;DR (fast paths)
 
 ```bash
-$CODEX_HOME/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh --pr 123
-$CODEX_HOME/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh --ref main
-$CODEX_HOME/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py --ref main --json
+$AGENTS_HOME/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh --pr 123
+$AGENTS_HOME/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh --ref main
+$AGENTS_HOME/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py --ref main --json
 ```
 
 ## Trigger

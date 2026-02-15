@@ -17,14 +17,14 @@ Prereqs:
 
 Inputs:
 
-- Entrypoint: `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`.
+- Entrypoint: `$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`.
 - Optional flags:
   - `--dry-run` (default mode)
   - `--apply` (write mode)
   - `--force` (overwrite baseline docs; requires `--apply`)
   - `--target all|home|project` (default: `all`)
   - `--project-path <path>`
-  - `--codex-home <path>`
+  - `--agents-home <path>`
   - `--project-required <context:path[:notes]>` (repeatable)
 
 Outputs:
@@ -52,7 +52,7 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`
+- `$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`
 
 ## Workflow
 
@@ -77,7 +77,7 @@ Failure modes:
 Preview only:
 
 ```bash
-$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
+$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
   --dry-run \
   --project-path /path/to/repo
 ```
@@ -85,7 +85,7 @@ $CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
 Apply missing baseline docs:
 
 ```bash
-$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
+$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
   --apply \
   --project-path /path/to/repo
 ```
@@ -93,7 +93,7 @@ $CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
 Apply and add one project extension required doc:
 
 ```bash
-$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
+$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
   --apply \
   --project-path /path/to/repo \
   --project-required "project-dev:BINARY_DEPENDENCIES.md:External runtime tools"

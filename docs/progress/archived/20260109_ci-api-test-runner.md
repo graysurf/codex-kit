@@ -30,7 +30,7 @@ Links:
 
 ## Acceptance Criteria
 
-- A new runner script exists (proposed: `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh`) that can run a suite manifest and exits non-zero when any case fails.
+- A new runner script exists (proposed: `$AGENTS_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh`) that can run a suite manifest and exits non-zero when any case fails.
 - Suite manifests can include both REST and GraphQL cases and support shared defaults (environment name, auth profile names, history toggles).
 - Results are emitted in a machine-readable format (JSON to stdout and/or `--out <file>`), including per-case status, duration, and a replayable command snippet (without secrets).
 - GraphQL cases include a default assertion that `.errors` is empty, plus optional `expect.jq` assertions.
@@ -133,14 +133,14 @@ Example output (stdout and/or `--out` file):
       "type": "rest",
       "status": "passed",
       "durationMs": 120,
-      "command": "$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --config-dir setup/rest --env staging setup/rest/requests/health.request.json"
+      "command": "$AGENTS_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh --config-dir setup/rest --env staging setup/rest/requests/health.request.json"
     },
     {
       "id": "graphql.countries",
       "type": "graphql",
       "status": "passed",
       "durationMs": 240,
-      "command": "$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir setup/graphql --env staging --jwt ci setup/graphql/operations/countries.graphql setup/graphql/operations/countries.variables.json | jq -e '...'",
+      "command": "$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir setup/graphql --env staging --jwt ci setup/graphql/operations/countries.graphql setup/graphql/operations/countries.variables.json | jq -e '...'",
       "assertions": {
         "defaultNoErrors": "passed",
         "jq": "passed"
@@ -154,7 +154,7 @@ Example output (stdout and/or `--out` file):
 
 ### Rationale
 
-- Reuse existing stable callers (`$CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh`, `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`) instead of re-implementing HTTP/auth logic.
+- Reuse existing stable callers (`$AGENTS_HOME/skills/tools/testing/rest-api-testing/scripts/rest.sh`, `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`) instead of re-implementing HTTP/auth logic.
 - Keep assertions simple and composable (`expect.*` for REST, `jq -e` for GraphQL), so the runner can be called from CI scripts or higher-level tools.
 - Prefer deterministic, machine-readable outputs over a “full test framework” feature set.
 
@@ -211,7 +211,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Emit machine-readable results (JSON) and meaningful exit codes.
   - Artifacts:
     - `skills/tools/testing/api-test-runner/SKILL.md`
-    - `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh`
+    - `$AGENTS_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh`
     - `skills/tools/testing/api-test-runner/assets/scaffold/setup/api/` (suite manifest + sample cases)
     - `README.md` (skills list entry)
   - Exit Criteria:
@@ -250,16 +250,16 @@ Validation evidence (local runs; artifacts are gitignored under `out/`):
 
 ```bash
 # Happy path
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
+$AGENTS_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
   --suite smoke-demo \
   --out out/api-test-runner/smoke-demo.results.json \
   --junit out/api-test-runner/smoke-demo.junit.xml
 
 # Selection example (filters are deterministic; unselected cases become skipped)
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --only rest.httpbin.get
+$AGENTS_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh --suite smoke-demo --only rest.httpbin.get
 
 # Failure path (intentional failing expect.jq; exits 2)
-$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
+$AGENTS_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh \
   --suite public-fail \
   --out out/api-test-runner/public-fail.results.json \
   --junit out/api-test-runner/public-fail.junit.xml
@@ -285,6 +285,6 @@ Observed summaries:
 
 ## Modules
 
-- `$CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh`: Suite runner that executes REST/GraphQL cases and produces JSON results.
+- `$AGENTS_HOME/skills/tools/testing/api-test-runner/scripts/api-test.sh`: Suite runner that executes REST/GraphQL cases and produces JSON results.
 - `skills/tools/testing/api-test-runner/SKILL.md`: End-user docs (suite schema, examples, CI usage, safety rules).
 - `skills/tools/testing/api-test-runner/assets/scaffold/setup/api`: Bootstrap template for committing `setup/api/` suite manifests in projects.

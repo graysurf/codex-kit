@@ -27,8 +27,8 @@ Outputs:
   - `tests/test_<skill_path>.py`
 - Root `README.md` updated with a new skill catalog row (for public domains: `workflows`, `tools`, `automation`).
 - Runs skill-governance validators:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file <SKILL.md>`
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir <skill-dir>`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file <SKILL.md>`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir <skill-dir>`
 
 Exit codes:
 
@@ -45,4 +45,4 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh`
+- `$AGENTS_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh`

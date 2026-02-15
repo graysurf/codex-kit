@@ -5,17 +5,17 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
 ## Quick start
 
 - Create a new skill skeleton (writes files, then validates):
-  - `$CODEX_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --skill-dir skills/<category>/<area>/<skill-name>`
-- Create a new project-local skill skeleton under `.codex/skills/`:
-  - `$CODEX_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh --project-path <repo-root> --skill-dir .codex/skills/<skill-name>`
+  - `$AGENTS_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --skill-dir skills/<category>/<area>/<skill-name>`
+- Create a new project-local skill skeleton under `.agents/skills/`:
+  - `$AGENTS_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh --project-path <repo-root> --skill-dir .agents/skills/<skill-name>`
 - Validate contract headings (all tracked skills):
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Audit tracked skill layout:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - Audit a not-yet-tracked skill directory:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/<...>/<skill-name>`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/<...>/<skill-name>`
 - Remove a skill (breaking change; start with `--dry-run`):
-  - `$CODEX_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh --skill-dir skills/<...>/<skill-name> --dry-run`
+  - `$AGENTS_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh --skill-dir skills/<...>/<skill-name> --dry-run`
 
 ## Tools
 
@@ -27,8 +27,8 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
   - Updates root `README.md` skill catalog for public domains (`workflows`, `tools`, `automation`).
   - Does not stage/commit; you still need to fill in the real Contract + implementation.
 - `create-project-skill`
-  - Scaffolds project-local skills under `<project>/.codex/skills/` with contract + layout checks.
-  - Supports shorthand `--skill-dir <skill-name>` -> `.codex/skills/<skill-name>`.
+  - Scaffolds project-local skills under `<project>/.agents/skills/` with contract + layout checks.
+  - Supports shorthand `--skill-dir <skill-name>` -> `.agents/skills/<skill-name>`.
   - Does not stage/commit; you still need to fill in the real Contract + implementation.
 - `remove-skill`
   - Deletes the skill directory and purges repo references (breaking change).

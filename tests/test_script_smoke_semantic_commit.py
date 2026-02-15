@@ -43,7 +43,7 @@ def test_script_smoke_fixture_semantic_commit_commit_with_message(tmp_path: Path
             "test(fixture): commit staged change",
         ],
         "timeout_sec": 20,
-        "env": {"CODEX_HOME": None},
+        "env": {"AGENTS_HOME": None},
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"(?s)test\(fixture\): commit staged change.*Directory tree",
@@ -91,7 +91,7 @@ def test_script_smoke_semantic_commit_invalid_messages(
     spec = {
         "command": ["semantic-commit", "commit", "--message-file", str(message_path)],
         "timeout_sec": 20,
-        "env": {"CODEX_HOME": None},
+        "env": {"AGENTS_HOME": None},
         "expect": {"exit_codes": [1]},
     }
 

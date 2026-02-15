@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /usr/bin/zsh codex \
   && echo "codex ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/codex \
   && chmod 0440 /etc/sudoers.d/codex \
-  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex/.codex /home/linuxbrew/.linuxbrew \
+  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex/.agents /home/linuxbrew/.linuxbrew \
   && chown -R codex:codex /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex /home/linuxbrew
 
 USER codex
@@ -83,7 +83,7 @@ ENV ZSH_FEATURES="codex,opencode"
 ENV ZSH_BOOT_WEATHER_ENABLED=false
 ENV ZSH_BOOT_QUOTE_ENABLED=false
 ENV HOME="/home/codex"
-ENV CODEX_HOME="/home/codex/.codex"
+ENV AGENTS_HOME="/home/codex/.agents"
 
 COPY docker/codex-env/ /opt/codex-env/
 

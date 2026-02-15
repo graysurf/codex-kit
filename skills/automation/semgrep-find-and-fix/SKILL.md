@@ -21,7 +21,7 @@ Inputs:
 
 Outputs:
 
-- Semgrep scan results captured in a JSON file under `$CODEX_HOME/out/semgrep/`.
+- Semgrep scan results captured in a JSON file under `$AGENTS_HOME/out/semgrep/`.
 - A PR that either:
   - fixes the selected high-impact finding(s), or
   - is report-only (adds a report file that documents the most serious findings and suggested fixes).
@@ -63,7 +63,7 @@ If none exist, stop and report: "No Semgrep config found; add one of the support
    - `start_ref="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)"`
 2. Resolve the Semgrep config entrypoint (per rules above).
 3. Run Semgrep and capture JSON to a file (avoid spamming stdout):
-   - `out_dir="${CODEX_HOME:-$(pwd)}/out/semgrep"`
+   - `out_dir="${AGENTS_HOME:-$(pwd)}/out/semgrep"`
    - `mkdir -p "$out_dir"`
    - `out_json="$out_dir/semgrep-$(basename "$(pwd)")-$(date +%Y%m%d-%H%M%S).json"`
    - `semgrep scan --config "$CONFIG" --json --metrics=off --disable-version-check . >"$out_json"`

@@ -158,7 +158,7 @@ fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$repo_root"
-export CODEX_HOME="$repo_root"
+export AGENTS_HOME="$repo_root"
 
 lint_rc=0
 contract_rc=0
@@ -182,7 +182,7 @@ fi
 if [[ "$run_contracts" -eq 1 ]]; then
   echo "lint: validate skill contracts" >&2
   set +e
-  "${CODEX_HOME}/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh"
+  "${AGENTS_HOME}/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh"
   contract_rc=$?
   set -e
 
@@ -194,7 +194,7 @@ fi
 if [[ "$run_skill_layout" -eq 1 ]]; then
   echo "lint: audit skill layout" >&2
   set +e
-  "${CODEX_HOME}/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh"
+  "${AGENTS_HOME}/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh"
   skill_layout_rc=$?
   set -e
 

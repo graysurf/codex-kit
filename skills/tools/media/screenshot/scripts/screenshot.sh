@@ -19,12 +19,12 @@ Options:
   --help         Show this help text.
 
 Examples:
-  screenshot.sh --desktop --path "$CODEX_HOME/out/desktop.png"
+  screenshot.sh --desktop --path "$AGENTS_HOME/out/desktop.png"
   screenshot.sh --list-windows
   screenshot.sh --list-displays
-  screenshot.sh --active-window --path "$CODEX_HOME/out/screenshot.png"
-  screenshot.sh --portal --path "$CODEX_HOME/out/screenshot-portal.png"
-  screenshot.sh --app "Terminal" --window-name "Docs" --path "$CODEX_HOME/out/terminal-docs.png"
+  screenshot.sh --active-window --path "$AGENTS_HOME/out/screenshot.png"
+  screenshot.sh --portal --path "$AGENTS_HOME/out/screenshot-portal.png"
+  screenshot.sh --app "Terminal" --window-name "Docs" --path "$AGENTS_HOME/out/terminal-docs.png"
 
 For full flags, run:
   screen-record --help
@@ -140,8 +140,8 @@ if [[ "$desktop_mode" == "1" ]]; then
     path=""
   fi
   if [[ -z "$path" ]]; then
-    if [[ -z "$dir" && -n "${CODEX_HOME:-}" && -d "${CODEX_HOME:-}" ]]; then
-      dir="${CODEX_HOME}/out/screenshot"
+    if [[ -z "$dir" && -n "${AGENTS_HOME:-}" && -d "${AGENTS_HOME:-}" ]]; then
+      dir="${AGENTS_HOME}/out/screenshot"
     fi
     if [[ -z "$dir" ]]; then
       dir="."
@@ -217,8 +217,8 @@ if [[ "$has_selector" == "0" ]]; then
   final_args+=(--active-window)
 fi
 
-if [[ "$has_output" == "0" && -n "${CODEX_HOME:-}" && -d "${CODEX_HOME:-}" ]]; then
-  out_dir="${CODEX_HOME}/out/screenshot"
+if [[ "$has_output" == "0" && -n "${AGENTS_HOME:-}" && -d "${AGENTS_HOME:-}" ]]; then
+  out_dir="${AGENTS_HOME}/out/screenshot"
   mkdir -p "$out_dir" 2>/dev/null || true
   final_args+=(--dir "$out_dir")
 fi

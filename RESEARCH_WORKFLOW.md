@@ -17,7 +17,7 @@
 2. Resolve `task-tools` in strict mode before research recommendations.
 3. Use source order exactly:
    1. Context7
-   2. Web via `$playwright` skill (`$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh`)
+   2. Web via `$playwright` skill (`$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh`)
    3. GitHub source via `gh`
    4. Local clone (ask first unless user already requested clone)
 4. Keep evidence traceable: include concrete doc/source references for external claims.

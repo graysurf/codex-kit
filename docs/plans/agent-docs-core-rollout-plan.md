@@ -2,14 +2,14 @@
 
 ## Overview
 
-This plan makes `agent-docs` the primary policy orchestration layer instead of a single `task-tools` hook. The rollout covers `CODEX_HOME` global behavior and a real project-level pilot in `/Users/terry/Project/graysurf/nils-cli`, with explicit evidence for whether project `AGENTS.md` must change. It also designs and validates an `agent-doc-init` skill to bootstrap missing baseline/policy docs safely for new projects.
+This plan makes `agent-docs` the primary policy orchestration layer instead of a single `task-tools` hook. The rollout covers `AGENTS_HOME` global behavior and a real project-level pilot in `/Users/terry/Project/graysurf/nils-cli`, with explicit evidence for whether project `AGENTS.md` must change. It also designs and validates an `agent-doc-init` skill to bootstrap missing baseline/policy docs safely for new projects.
 
 ## Scope
 
 - In scope:
-  - Redesign `$CODEX_HOME/AGENTS.md` and `$CODEX_HOME/AGENTS.override.md` as context dispatchers.
-  - Expand `$CODEX_HOME/AGENT_DOCS.toml` to cover `startup`, `task-tools`, `skill-dev`, and `project-dev`.
-  - Add context-specific policy documents under `$CODEX_HOME` and wire them via `agent-docs`.
+  - Redesign `$AGENTS_HOME/AGENTS.md` and `$AGENTS_HOME/AGENTS.override.md` as context dispatchers.
+  - Expand `$AGENTS_HOME/AGENT_DOCS.toml` to cover `startup`, `task-tools`, `skill-dev`, and `project-dev`.
+  - Add context-specific policy documents under `$AGENTS_HOME` and wire them via `agent-docs`.
   - Pilot the same mechanism at project-level in `/Users/terry/Project/graysurf/nils-cli`.
   - Define, implement, and validate an `agent-doc-init` skill for safe baseline initialization.
   - Execute a subagent-based feasibility test and collect measurable outcomes.
@@ -21,14 +21,14 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
 ## Assumptions
 
 1. `agent-docs`, `plan-tooling`, and `semantic-commit` are available on `PATH`.
-2. `$CODEX_HOME` points to `/Users/terry/.config/codex-kit` in this environment.
+2. `$AGENTS_HOME` points to `/Users/terry/.config/codex-kit` in this environment.
 3. Pilot changes in `/Users/terry/Project/graysurf/nils-cli` can be tested in a dedicated branch/worktree.
 4. Subagent execution is available and can be used to run reproducible scenario checks.
 
 ## Success criteria
 
-1. `agent-docs resolve --context <ctx>` succeeds for all four contexts at `CODEX_HOME`.
-2. `agent-docs baseline --check --target all --strict` passes at `CODEX_HOME`.
+1. `agent-docs resolve --context <ctx>` succeeds for all four contexts at `AGENTS_HOME`.
+2. `agent-docs baseline --check --target all --strict` passes at `AGENTS_HOME`.
 3. A documented decision exists for `/Users/terry/Project/graysurf/nils-cli`: keep current `AGENTS.md` as-is or patch it, with evidence.
 4. `agent-doc-init` can initialize missing baseline/policy docs in dry-run and apply modes without destructive overwrites.
 5. Subagent trial reports show the new flow improves consistency (fewer missing-doc starts, clearer context loading sequence).
@@ -106,7 +106,7 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
   - `rg -n "Do not ask questions|critique-only|requirement drift|rubric" docs/runbooks/agent-docs/effectiveness-protocol.md`
   - `mkdir -p out/agent-docs-rollout && test -d out/agent-docs-rollout`
 
-## Sprint 2: CODEX_HOME full-context rollout
+## Sprint 2: AGENTS_HOME full-context rollout
 
 **Goal**: Complete home-level rollout from single-context to all contexts with strict baseline coverage.
 
@@ -242,9 +242,9 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
 
 **Demo/Validation**:
 - Command(s):
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/agent-doc-init/SKILL.md`
-  - `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path /Users/terry/Project/graysurf/nils-cli`
-  - `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --project-path /Users/terry/Project/graysurf/nils-cli`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/agent-doc-init/SKILL.md`
+  - `$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path /Users/terry/Project/graysurf/nils-cli`
+  - `$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --project-path /Users/terry/Project/graysurf/nils-cli`
 - Verify:
   - Missing baseline documents are scaffolded safely and existing files are not overwritten unless explicitly forced.
 
@@ -261,7 +261,7 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
   - Safety model documents non-destructive defaults and escalation path.
   - Inputs/outputs align with `agent-docs scaffold-baseline` capabilities.
 - **Validation**:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/agent-doc-init/SKILL.md`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/agent-doc-init/SKILL.md`
   - `test -f docs/runbooks/agent-docs/init-safety-model.md`
 
 ### Task 4.2: Implement init script with baseline-aware behavior
@@ -278,8 +278,8 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
   - Re-running on an already initialized project produces no changes.
   - Test suite covers no-op, missing-doc creation, and forced overwrite safeguards.
 - **Validation**:
-  - `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path /Users/terry/Project/graysurf/nils-cli`
-  - `$CODEX_HOME/scripts/test.sh -k agent_doc_init`
+  - `$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path /Users/terry/Project/graysurf/nils-cli`
+  - `$AGENTS_HOME/scripts/test.sh -k agent_doc_init`
   - `.venv/bin/python -m pytest skills/tools/agent-doc-init/tests -k agent_doc_init` (optional direct run when venv exists)
   - `bash -n skills/tools/agent-doc-init/scripts/agent_doc_init.sh`
 
@@ -388,7 +388,7 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
 
 ## Rollback plan
 
-1. Revert AGENTS dispatcher changes to the last known-good revision in `CODEX_HOME`.
+1. Revert AGENTS dispatcher changes to the last known-good revision in `AGENTS_HOME`.
 2. Remove newly added extension entries from `AGENT_DOCS.toml` and re-run `agent-docs baseline --check --target home`.
 3. Disable `agent-doc-init` entrypoint from AGENTS/README startup guidance while preserving code for debugging.
 4. For `nils-cli` pilot, reset policy files on pilot branch/worktree without touching unrelated project code.

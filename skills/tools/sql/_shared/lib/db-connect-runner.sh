@@ -14,8 +14,8 @@ sql_skill_repo_root() {
     return 0
   fi
 
-  if [[ -n "${CODEX_HOME-}" && -d "${CODEX_HOME}/skills/tools/sql" ]]; then
-    printf '%s\n' "${CODEX_HOME}"
+  if [[ -n "${AGENTS_HOME-}" && -d "${AGENTS_HOME}/skills/tools/sql" ]]; then
+    printf '%s\n' "${AGENTS_HOME}"
     return 0
   fi
 

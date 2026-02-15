@@ -197,7 +197,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - CI: consolidate publish workflows into a single pipeline.
-- Scripts: set `CODEX_HOME` to repo root by default for more resilient runs.
+- Scripts: set `AGENTS_HOME` to repo root by default for more resilient runs.
 - Plans: remove internal dogfood/review planning docs (keep format + toolchain docs).
 
 ### Fixed
@@ -242,8 +242,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - `codex-env`: use `tini` as init; add `rsync`/linuxbrew directory; disable weather/quote on boot; and improve mount override flows.
-- CI: set `CODEX_HOME` globally, optimize multi-arch builds, and refresh runner labels.
-- Docs: canonicalize script references to `$CODEX_HOME` and use `$HOME/` in path examples.
+- CI: set `AGENTS_HOME` globally, optimize multi-arch builds, and refresh runner labels.
+- Docs: canonicalize script references to `$AGENTS_HOME` and use `$HOME/` in path examples.
 - `find-and-fix-bugs`: add problem + reproduction sections to the skill and PR template.
 - Workspace auth: remove token env vars from the container for safer Git authentication.
 
@@ -269,7 +269,7 @@ All notable changes to this project will be documented in this file.
 - Progress templates: clarify that unchecked Step 0–3 items must be struck with `Reason:` (Step 4 excluded).
 
 ### Fixed
-- Shell style fixer: preserve initializer handling in `$CODEX_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
+- Shell style fixer: preserve initializer handling in `$AGENTS_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
 
 ## v1.3.0 - 2026-01-17
 
@@ -286,10 +286,10 @@ All notable changes to this project will be documented in this file.
 ## v1.2.0 - 2026-01-16
 
 ### Added
-- Semgrep tooling: `.semgrep.yaml`, `.semgrepignore`, and `$CODEX_HOME/scripts/semgrep-scan.sh` with curated defaults.
+- Semgrep tooling: `.semgrep.yaml`, `.semgrepignore`, and `$AGENTS_HOME/scripts/semgrep-scan.sh` with curated defaults.
 - `semgrep-find-and-fix` automation skill, including local config and PR/report templates.
-- Repo verification tooling: `$CODEX_HOME/scripts/check.sh` and `$CODEX_HOME/scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
-- Shell style fixers: `$CODEX_HOME/scripts/fix-shell-style.zsh`, `$CODEX_HOME/scripts/fix-typeset-empty-string-quotes.zsh`, `$CODEX_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
+- Repo verification tooling: `$AGENTS_HOME/scripts/check.sh` and `$AGENTS_HOME/scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
+- Shell style fixers: `$AGENTS_HOME/scripts/fix-shell-style.zsh`, `$AGENTS_HOME/scripts/fix-typeset-empty-string-quotes.zsh`, `$AGENTS_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
 - API test report templates/metadata plus `api-gql`/`api-rest report-from-cmd` workflow helpers (REST + GraphQL).
 
 ### Changed
@@ -312,7 +312,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Command wrappers are now shipped via `commands/` (instead of a `scripts/` loader).
-- Standardized commands path resolution via `CODEX_COMMANDS_PATH` / `$CODEX_HOME/commands`.
+- Standardized commands path resolution via `CODEX_COMMANDS_PATH` / `$AGENTS_HOME/commands`.
 - Release workflow moved into automation, resolves guides/templates deterministically, and audits the changelog pre-publish.
 - PR workflows reduce redundant `gh` metadata lookups.
 - `close-progress-pr` now auto-wraps deferred checklist items.
@@ -322,8 +322,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - `git-tools`: clean up commit context temp file.
-- `chrome-devtools-mcp`: use `CODEX_HOME` for default paths and expand tilde paths.
-- `graphql-api-testing`: quote `CODEX_HOME` during script path rewrites.
+- `chrome-devtools-mcp`: use `AGENTS_HOME` for default paths and expand tilde paths.
+- `graphql-api-testing`: quote `AGENTS_HOME` during script path rewrites.
 - Shell scripts: address minor shellcheck warnings.
 - Progress flow now caches PR body lookups.
 - Git helper scripts load the progress bar lazily.

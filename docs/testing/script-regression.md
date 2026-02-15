@@ -17,13 +17,13 @@
 Or:
 
 ```bash
-$CODEX_HOME/scripts/test.sh
+$AGENTS_HOME/scripts/test.sh
 ```
 
 3) Run only smoke (deeper coverage for a small subset):
 
 ```bash
-$CODEX_HOME/scripts/test.sh -m script_smoke
+$AGENTS_HOME/scripts/test.sh -m script_smoke
 ```
 
 ## What it does
@@ -49,7 +49,7 @@ $CODEX_HOME/scripts/test.sh -m script_smoke
 Smoke tests are a separate pytest marker intended for deeper, hermetic-ish execution of selected scripts.
 
 - Run:
-  - `$CODEX_HOME/scripts/test.sh -m script_smoke`
+  - `$AGENTS_HOME/scripts/test.sh -m script_smoke`
 - Evidence:
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`

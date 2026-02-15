@@ -7,7 +7,7 @@
 3. `scripts/check.sh --all`
 
 `scripts/...` commands are executable directly from the repo root.
-For absolute-path docs/examples, set `export CODEX_HOME="$(pwd)"` in the current shell.
+For absolute-path docs/examples, set `export AGENTS_HOME="$(pwd)"` in the current shell.
 
 ## Required Before Commit
 
@@ -69,7 +69,7 @@ Test artifacts:
   - Expansion required: double quotes (`typeset repo_root="$PWD"`, `print -r -- "$msg"`).
   - Escape sequences required: `$'...'`.
 - Path rules:
-  - Prefer absolute paths in docs/examples via `$CODEX_HOME/...`.
+  - Prefer absolute paths in docs/examples via `$AGENTS_HOME/...`.
   - Prefer `$HOME/...` over `~/...` to avoid shell-specific tilde expansion edge cases.
 - Auto-fixes:
   - `scripts/fix-typeset-empty-string-quotes.zsh --check|--write` normalizes `typeset/local ...=""` to `''`.

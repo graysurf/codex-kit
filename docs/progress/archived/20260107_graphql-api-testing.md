@@ -29,12 +29,12 @@ Links:
 
 ## Acceptance Criteria
 
-- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh` can:
+- `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh` can:
   - Resolve an endpoint via `--env <name>`, `--url <url>`, or `GQL_URL=<url>` (with `setup/graphql/endpoints.env` + optional `endpoints.local.env` presets).
   - Resolve an Authorization token via `--jwt <name>`, `GQL_JWT_NAME=<name>`, or `ACCESS_TOKEN` (with `setup/graphql/jwts.env` + optional `jwts.local.env` presets).
   - When a selected JWT profile is missing/empty, auto-run `login.graphql` under `setup/graphql/` and extract a token via `jq`.
   - Execute an operation file (and optional variables file) and print the response body to stdout.
-- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` can:
+- `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` can:
   - Run an operation via `gql.sh` (or replay via `--response`) and write a Markdown report under `<project>/docs/` by default.
   - Redact `accessToken` / `refreshToken` / `password` fields by default; allow opting out with `--no-redact`.
   - Refuse to write a report when the response has no meaningful `.data` content unless `--allow-empty` (or `GQL_ALLOW_EMPTY`) is set.
@@ -114,24 +114,24 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - [x] Provide a bootstrap template under `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql`.
     - [x] Add a skill entry documenting the workflow and safety rules.
   - Artifacts:
-    - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`
+    - `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`
     - `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql/*`
     - `skills/tools/testing/graphql-api-testing/SKILL.md`
   - Exit Criteria:
-    - [x] `bash -n $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh` passes.
-    - [x] `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --help` prints usage.
+    - [x] `bash -n $AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh` passes.
+    - [x] `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --help` prints usage.
 - [x] Step 2: Expansion / integration
   - Work Items:
     - [x] Implement `gql-report.sh` to generate reproducible Markdown reports with redaction.
     - [x] Add project-local guide template for teams that want repo docs under `docs/`.
     - [x] Add report contract under `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`.
   - Artifacts:
-    - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`
+    - `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`
     - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`
     - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`
   - Exit Criteria:
-    - [x] `bash -n $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` passes.
-    - [x] `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh --help` prints usage.
+    - [x] `bash -n $AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` passes.
+    - [x] `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh --help` prints usage.
 - [x] Step 3: Validation / testing
   - Work Items:
     - [x] Validate `gql.sh` against a real GraphQL endpoint using an existing project `setup/graphql/`:
@@ -149,11 +149,11 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - Command transcripts recorded under Exit Criteria
   - Exit Criteria:
     - [x] End-to-end call works and returns a non-empty `.data` response:
-      - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
-      - `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local --jwt force-login /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
+      - `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
+      - `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --env local --jwt force-login /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json | jq -c '{hasErrors: (.errors|length>0), total: (.data.articles.total//null), items: ((.data.articles.items|length)//0)}'`
     - [x] Report file generated with redaction verified:
-      - `GQL_REPORT_DIR=out/graphql-api-testing/megabanktourism $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh --case "MegabankTourism Articles (local)" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --env local --jwt force-login --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --run`
-      - `GQL_REPORT_DIR=out/graphql-api-testing/megabanktourism $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh --case "graphql-api-testing redaction smoke test" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --response out/graphql-api-testing/megabanktourism/dummy-redaction.response.json`
+      - `GQL_REPORT_DIR=out/graphql-api-testing/megabanktourism $AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh --case "MegabankTourism Articles (local)" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --env local --jwt force-login --config-dir /Users/terry/Project/rytass/MegabankTourism/setup/graphql --run`
+      - `GQL_REPORT_DIR=out/graphql-api-testing/megabanktourism $AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh --case "graphql-api-testing redaction smoke test" --op /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.graphql --vars /Users/terry/Project/rytass/MegabankTourism/setup/graphql/operations/articles.variables.json --response out/graphql-api-testing/megabanktourism/dummy-redaction.response.json`
 - [x] Step 4: Release / wrap-up
   - Work Items:
     - [x] Add the skill to the top-level `README.md` skills list.
@@ -168,8 +168,8 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 ## Modules
 
 - `skills/tools/testing/graphql-api-testing/SKILL.md`: End-user skill instructions (project layout, quickstart, safety, reporting rules).
-- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`: Single entrypoint to run GraphQL operations with env/JWT presets and auto-login fallback.
-- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`: Report generator (runs or replays requests, redacts secrets, blocks empty reports).
+- `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh`: Single entrypoint to run GraphQL operations with env/JWT presets and auto-login fallback.
+- `$AGENTS_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`: Report generator (runs or replays requests, redacts secrets, blocks empty reports).
 - `skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql`: Bootstrap template for per-project `setup/graphql/`.
 - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`: Standard output contract for manual API test reports.
 - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`: Project-local guide template to copy into a repo.

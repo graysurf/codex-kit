@@ -68,7 +68,7 @@ If information is missing, ask brief targeted questions. If still unknown, use `
 
 Upstream reference (example):
 
-- `$CODEX_HOME/docs/progress/archived/20260107_progress-pr-create-and-close.md`
+- `$AGENTS_HOME/docs/progress/archived/20260107_progress-pr-create-and-close.md`
 
 ## File naming
 
@@ -96,18 +96,18 @@ Upstream reference (example):
 ## Validate before commit
 
 - Ensure no placeholders remain: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` should return no output.
-- Ensure progress index PR links are well-formed: `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh` should succeed.
+- Ensure progress index PR links are well-formed: `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh` should succeed.
 
 ## Optional helper scripts
 
 - Create a new progress file skeleton (defaults to this skill’s templates; use `--use-project-templates` only when requested):
-  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh --title "<short title>"`
+  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh --title "<short title>"`
 - Validate progress index formatting:
-  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`
+  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`
 - Render templates for copy/paste or `gh pr create --body-file ...`:
-  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --pr`
-  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --progress-template`
-  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --glossary`
+  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --pr`
+  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --progress-template`
+  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --glossary`
   - Add `--project` to use the repo’s templates (only when requested).
 
 ## Branch / commit / PR
@@ -134,5 +134,5 @@ After PR creation, replace `TBD` PR links in both the progress file and `docs/pr
 ## Output (chat response)
 
 - Use `skills/workflows/pr/progress/_shared/references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format.
-- Use `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --output` to generate the output template quickly.
+- Use `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh --output` to generate the output template quickly.
 - If there are no open questions or next steps, write `None` under those sections (do not leave them blank).

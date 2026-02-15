@@ -125,7 +125,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
   - Fix approach
   - Testing results or "not run"
 - Include the issues list in the PR body.
-- Use `$CODEX_HOME/skills/automation/find-and-fix-bugs/scripts/render_issues_pr.sh --pr` (or `--issues`) to generate templates quickly.
+- Use `$AGENTS_HOME/skills/automation/find-and-fix-bugs/scripts/render_issues_pr.sh --pr` (or `--issues`) to generate templates quickly.
 - After the PR is created, return to the original branch/ref: `git switch "$start_ref"` (or `git switch -` if you stayed on the fix branch the whole time).
 
 ## Output and clarification rules

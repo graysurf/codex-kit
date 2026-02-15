@@ -56,9 +56,9 @@ declare -a project_notify_candidates=()
 
 project_notify_candidates+=("${self_dir%/}/project-notify.sh")
 
-if [[ -n "${CODEX_HOME:-}" ]]; then
-  project_notify_candidates+=("${CODEX_HOME%/}/skills/tools/devex/desktop-notify/scripts/project-notify.sh")
-  project_notify_candidates+=("${CODEX_HOME%/}/scripts/project-notify.sh")
+if [[ -n "${AGENTS_HOME:-}" ]]; then
+  project_notify_candidates+=("${AGENTS_HOME%/}/skills/tools/devex/desktop-notify/scripts/project-notify.sh")
+  project_notify_candidates+=("${AGENTS_HOME%/}/scripts/project-notify.sh")
 fi
 
 for candidate in "${project_notify_candidates[@]}"; do

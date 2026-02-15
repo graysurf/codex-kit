@@ -11,7 +11,7 @@ Conventions:
 - Index rules:
   - Keep the `## In progress` and `## Archived` tables with 3 columns: Date | Feature | PR.
   - PR cell format: `TBD` or `[#<number>](https://github.com/<owner>/<repo>/pull/<number>)`
-    (validated by `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`).
+    (validated by `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`).
 
 ## In progress
 

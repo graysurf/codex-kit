@@ -75,12 +75,12 @@ default_template="${skill_root}/assets/templates/RELEASE_TEMPLATE.md"
 [[ -f "$default_guide" ]] || die "default guide missing: $default_guide"
 [[ -f "$default_template" ]] || die "default template missing: $default_template"
 
-codex_home="${CODEX_HOME:-}"
-if [[ -z "$codex_home" || ! -d "$codex_home" ]]; then
-  codex_home="$(cd "${skill_root}/../../.." && pwd -P)"
+agents_home="${AGENTS_HOME:-}"
+if [[ -z "$agents_home" || ! -d "$agents_home" ]]; then
+  agents_home="$(cd "${skill_root}/../../.." && pwd -P)"
 fi
 
-project_resolve="${codex_home%/}/scripts/project-resolve"
+project_resolve="${agents_home%/}/scripts/project-resolve"
 [[ -x "$project_resolve" ]] || die "missing executable: $project_resolve"
 command -v python3 >/dev/null 2>&1 || die "python3 not found; required to parse project-resolve JSON output"
 

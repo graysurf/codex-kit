@@ -63,7 +63,7 @@ def test_create_project_skill_generates_contract_first_skill_md() -> None:
         )
         assert proc.returncode == 0, f"create_project_skill.sh failed:\n{proc.stdout}\n{proc.stderr}"
 
-        skill_root = project_root / ".codex" / "skills" / "example-project-skill"
+        skill_root = project_root / ".agents" / "skills" / "example-project-skill"
         skill_md = skill_root / "SKILL.md"
         generated_script = skill_root / "scripts" / "example-project-skill.sh"
         assert skill_md.is_file(), f"missing generated SKILL.md: {skill_md}"
@@ -86,7 +86,7 @@ def test_create_project_skill_generates_contract_first_skill_md() -> None:
         assert proc3.returncode == 0, f"generated script --help failed:\n{proc3.stdout}\n{proc3.stderr}"
 
 
-def test_create_project_skill_rejects_non_codex_skills_prefix() -> None:
+def test_create_project_skill_rejects_non_agents_skills_prefix() -> None:
     root = repo_root()
     create_script = (
         root
@@ -110,11 +110,11 @@ def test_create_project_skill_rejects_non_codex_skills_prefix() -> None:
                 "--project-path",
                 str(project_root),
                 "--skill-dir",
-                ".codex/not-skills/example-project-skill",
+                ".agents/not-skills/example-project-skill",
             ],
             cwd=root,
             text=True,
             capture_output=True,
         )
         assert proc.returncode == 2, f"expected usage error, got {proc.returncode}:\n{proc.stdout}\n{proc.stderr}"
-        assert "must be under .codex/skills/" in proc.stderr
+        assert "must be under .agents/skills/" in proc.stderr

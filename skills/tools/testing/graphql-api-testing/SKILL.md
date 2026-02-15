@@ -92,7 +92,7 @@ api-gql schema --config-dir setup/graphql
 
 - If `setup/graphql/prompt.md` exists → read it first for project-specific context.
 - No `setup/graphql/` yet → bootstrap from template:
-- `cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql" setup/`
+- `cp -R "$AGENTS_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setup/graphql" setup/`
 - Have schema but no operation yet → resolve schema (`api-gql schema`) then add `setup/graphql/operations/<name>.graphql` + variables json.
 - Have operation → run with `api-gql call`.
 - Need a markdown report → use `api-gql report --run` (or `--response`).

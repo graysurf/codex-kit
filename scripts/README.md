@@ -30,8 +30,8 @@ repo-local command without external dependencies on wrapper paths.
 Example (copy mode: project-resolve):
 
 ```zsh
-zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
-  --input "$HOME/.codex/scripts/project-resolve" \
+zsh -f $AGENTS_HOME/scripts/build/bundle-wrapper.zsh \
+  --input "$HOME/.agents/scripts/project-resolve" \
   --output scripts/project-resolve
 ```
 
@@ -50,8 +50,8 @@ Notes:
 Use the `agent-doc-init` skill entrypoint for safe baseline initialization in new repositories:
 
 ```bash
-$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
-$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
+$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
+$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
 ```
 
 Validate after apply:
@@ -62,7 +62,7 @@ agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH"
 
 ### Skill contract lint
 
-`$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
+`$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
 
 Requirements (inside `## Contract`, in order):
 
@@ -74,8 +74,8 @@ Requirements (inside `## Contract`, in order):
 
 Usage:
 
-- Validate all tracked skills: `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-- Validate a specific file: `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
+- Validate all tracked skills: `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+- Validate a specific file: `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
 
 Exit codes:
 
@@ -84,7 +84,7 @@ Exit codes:
 
 ### Skill layout audit
 
-`$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
+`$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
 
 - `SKILL.md` at the skill root
 - Required: `tests/`
@@ -94,16 +94,16 @@ Exit codes:
 
 ### Lint + syntax checks
 
-`$CODEX_HOME/scripts/lint.sh` runs:
+`$AGENTS_HOME/scripts/lint.sh` runs:
 
 - Shell: `shellcheck` (bash) + `bash -n` + `zsh -n` (shebang-based)
 - Python: `ruff` + `mypy` + `pyright`
 
 Usage:
 
-- Lint everything: `$CODEX_HOME/scripts/lint.sh`
-- Shell only: `$CODEX_HOME/scripts/lint.sh --shell`
-- Python only: `$CODEX_HOME/scripts/lint.sh --python`
+- Lint everything: `$AGENTS_HOME/scripts/lint.sh`
+- Shell only: `$AGENTS_HOME/scripts/lint.sh --shell`
+- Python only: `$AGENTS_HOME/scripts/lint.sh --python`
 
 ## Semgrep
 
@@ -111,8 +111,8 @@ Use `semgrep-scan.sh` to run `.semgrep.yaml` plus curated Semgrep Registry packs
 
 Examples:
 
-- Default (scripting profile): `$CODEX_HOME/scripts/semgrep-scan.sh`
-- Shell scripts only: `$CODEX_HOME/scripts/semgrep-scan.sh --profile shell`
+- Default (scripting profile): `$AGENTS_HOME/scripts/semgrep-scan.sh`
+- Shell scripts only: `$AGENTS_HOME/scripts/semgrep-scan.sh --profile shell`
 
 ## Plans
 

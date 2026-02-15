@@ -126,7 +126,7 @@ def execute_command_sequence(
         cwd = Path(cwd_value).resolve()
 
         env = base_env.copy()
-        env["CODEX_HOME"] = tokens["CODEX_HOME"]
+        env["AGENTS_HOME"] = tokens["AGENTS_HOME"]
         env["PROJECT_PATH"] = tokens["PROJECT_PATH"]
 
         run = run_command(argv, cwd=cwd, env=env, expected_exit=expected_exit)
@@ -147,7 +147,7 @@ def build_temp_missing_doc_scenario(
 ) -> tuple[str, str, list[dict[str, Any]], dict[str, str]]:
     with tempfile.TemporaryDirectory(prefix="agent-docs-trial-missing-") as temp_dir:
         temp_root = Path(temp_dir)
-        temp_home = temp_root / "codex-home"
+        temp_home = temp_root / "agents-home"
         temp_project = temp_root / "project"
         temp_home.mkdir(parents=True, exist_ok=True)
         temp_project.mkdir(parents=True, exist_ok=True)
@@ -161,7 +161,7 @@ def build_temp_missing_doc_scenario(
                 {
                     "argv": [
                         "agent-docs",
-                        "--codex-home",
+                        "--agents-home",
                         "{TEMP_HOME}",
                         "--project-path",
                         "{TEMP_PROJECT}",
@@ -193,7 +193,7 @@ def build_temp_auto_init_scenario(
 ) -> tuple[str, str, list[dict[str, Any]], dict[str, str]]:
     with tempfile.TemporaryDirectory(prefix="agent-docs-trial-init-") as temp_dir:
         temp_root = Path(temp_dir)
-        temp_home = temp_root / "codex-home"
+        temp_home = temp_root / "agents-home"
         temp_project = temp_root / "project"
         temp_home.mkdir(parents=True, exist_ok=True)
         temp_project.mkdir(parents=True, exist_ok=True)
@@ -211,7 +211,7 @@ def build_temp_auto_init_scenario(
                     "argv": [
                         "{AGENT_DOC_INIT}",
                         "--apply",
-                        "--codex-home",
+                        "--agents-home",
                         "{TEMP_HOME}",
                         "--project-path",
                         "{TEMP_PROJECT}",
@@ -221,7 +221,7 @@ def build_temp_auto_init_scenario(
                 {
                     "argv": [
                         "agent-docs",
-                        "--codex-home",
+                        "--agents-home",
                         "{TEMP_HOME}",
                         "--project-path",
                         "{TEMP_PROJECT}",
@@ -239,7 +239,7 @@ def build_temp_auto_init_scenario(
                     "argv": [
                         "{AGENT_DOC_INIT}",
                         "--dry-run",
-                        "--codex-home",
+                        "--agents-home",
                         "{TEMP_HOME}",
                         "--project-path",
                         "{TEMP_PROJECT}",
@@ -321,11 +321,11 @@ def main() -> int:
         raise SystemExit("error: config must include a non-empty `scenarios` array")
 
     root = repo_root()
-    effective_codex_home = Path(os.environ.get("CODEX_HOME", str(root))).resolve()
+    effective_agents_home = Path(os.environ.get("AGENTS_HOME", str(root))).resolve()
     effective_project_path = Path(os.environ.get("PROJECT_PATH", str(root))).resolve()
     tokens = {
         "REPO_ROOT": str(root),
-        "CODEX_HOME": str(effective_codex_home),
+        "AGENTS_HOME": str(effective_agents_home),
         "PROJECT_PATH": str(effective_project_path),
     }
 
@@ -347,7 +347,7 @@ def main() -> int:
         "trial_mode": "deterministic-subagent-feasibility",
         "environment": {
             "repo_root": str(root),
-            "codex_home": str(effective_codex_home),
+            "agents_home": str(effective_agents_home),
             "project_path": str(effective_project_path),
         },
         "scenarios": scenarios,

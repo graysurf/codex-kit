@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plan refactors the PR progress workflow so shared templates do not live inside a single skill directory, and so reusable helper scripts become a dedicated “tooling” skill (mirroring `plan-tooling`). The goal is to reduce coupling, make reuse explicit, and keep canonical entrypoints stable via `$CODEX_HOME/...` paths.
+This plan refactors the PR progress workflow so shared templates do not live inside a single skill directory, and so reusable helper scripts become a dedicated “tooling” skill (mirroring `plan-tooling`). The goal is to reduce coupling, make reuse explicit, and keep canonical entrypoints stable via `$AGENTS_HOME/...` paths.
 
 ## Scope
 
@@ -26,8 +26,8 @@ This plan refactors the PR progress workflow so shared templates do not live ins
 
 **Demo/Validation**:
 - Command(s):
-  - `$CODEX_HOME/scripts/lint.sh --shell`
-  - `$CODEX_HOME/scripts/test.sh -k workflows_pr_progress_create_progress_pr`
+  - `$AGENTS_HOME/scripts/lint.sh --shell`
+  - `$AGENTS_HOME/scripts/test.sh -k workflows_pr_progress_create_progress_pr`
 - Verify:
   - `docs/templates/PROGRESS_TEMPLATE.md` and `docs/templates/PROGRESS_GLOSSARY.md` resolve to the new shared template files.
 
@@ -51,7 +51,7 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `docs/templates/PROGRESS_TEMPLATE.md` resolves to `skills/workflows/pr/progress/_shared/assets/templates/PROGRESS_TEMPLATE.md`.
   - `docs/templates/PROGRESS_GLOSSARY.md` resolves to `skills/workflows/pr/progress/_shared/references/PROGRESS_GLOSSARY.md`.
 - **Validation**:
-  - `$CODEX_HOME/scripts/lint.sh --shell`
+  - `$AGENTS_HOME/scripts/lint.sh --shell`
   - `test -f skills/workflows/pr/progress/_shared/assets/templates/PROGRESS_TEMPLATE.md`
   - `test -f skills/workflows/pr/progress/_shared/references/PROGRESS_GLOSSARY.md`
   - `readlink docs/templates/PROGRESS_TEMPLATE.md`
@@ -77,8 +77,8 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `create-progress-pr/SKILL.md` lists the shared template locations as the default.
   - Repo scan shows no references to `create-progress-pr/(assets|references)/` template paths under `skills/` and documentation files, excluding `docs/progress/archived/` and `docs/plans/`.
 - **Validation**:
-  - `$CODEX_HOME/scripts/lint.sh --shell`
-  - `$CODEX_HOME/scripts/test.sh -k workflows_pr_progress_create_progress_pr`
+  - `$AGENTS_HOME/scripts/lint.sh --shell`
+  - `$AGENTS_HOME/scripts/test.sh -k workflows_pr_progress_create_progress_pr`
   - `rg -n \"create-progress-pr/(assets|references)/\" skills docs -S --glob '!docs/progress/archived/**' --glob '!docs/plans/**'`
 
 ## Sprint 2: Introduce `progress-tooling` skill
@@ -87,8 +87,8 @@ This plan refactors the PR progress workflow so shared templates do not live ins
 
 **Demo/Validation**:
 - Command(s):
-  - `$CODEX_HOME/scripts/lint.sh --shell`
-  - `$CODEX_HOME/scripts/test.sh -k workflows_pr_progress`
+  - `$AGENTS_HOME/scripts/lint.sh --shell`
+  - `$AGENTS_HOME/scripts/test.sh -k workflows_pr_progress`
 - Verify:
   - All progress workflow scripts reference the new tooling entrypoints under `progress-tooling/scripts/`.
 
@@ -104,7 +104,7 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh`
   - `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
   - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
-- **Description**: Add a new `progress-tooling` skill that owns the progress helper scripts (scaffold, render, validate). Move the scripts from `create-progress-pr/scripts/` into `progress-tooling/scripts/` and update all references (including E2E and addendum scripts) to use the new canonical `$CODEX_HOME/.../progress-tooling/scripts/...` paths. Update tests so entrypoint assertions match the new layout, and register the new tooling entrypoints in `docs/runbooks/skills/TOOLING_INDEX_V2.md`.
+- **Description**: Add a new `progress-tooling` skill that owns the progress helper scripts (scaffold, render, validate). Move the scripts from `create-progress-pr/scripts/` into `progress-tooling/scripts/` and update all references (including E2E and addendum scripts) to use the new canonical `$AGENTS_HOME/.../progress-tooling/scripts/...` paths. Update tests so entrypoint assertions match the new layout, and register the new tooling entrypoints in `docs/runbooks/skills/TOOLING_INDEX_V2.md`.
 - **Dependencies**:
   - Task 1.2
 - **Complexity**: 7
@@ -114,10 +114,10 @@ This plan refactors the PR progress workflow so shared templates do not live ins
   - `progress_addendum.sh` and the progress E2E driver reference the new tooling script paths.
   - `docs/runbooks/skills/TOOLING_INDEX_V2.md` includes the new progress tooling entrypoints.
 - **Validation**:
-  - `$CODEX_HOME/scripts/lint.sh --shell`
-  - `$CODEX_HOME/scripts/test.sh -k workflows_pr_progress`
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/workflows/pr/progress/progress-tooling/SKILL.md`
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/workflows/pr/progress/create-progress-pr/SKILL.md`
+  - `$AGENTS_HOME/scripts/lint.sh --shell`
+  - `$AGENTS_HOME/scripts/test.sh -k workflows_pr_progress`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/workflows/pr/progress/progress-tooling/SKILL.md`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/workflows/pr/progress/create-progress-pr/SKILL.md`
   - `rg -n \"create-progress-pr/scripts/(create_progress_file|render_progress_pr|validate_progress_index)\\.sh\" skills docs -S --glob '!docs/progress/archived/**' --glob '!docs/plans/**'`
 
 ## Future work (not in this plan)

@@ -64,7 +64,7 @@ Notes:
 - The image uses `tini` as PID 1 for signal forwarding and zombie reaping.
 - `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
 - `mitmproxy` is installed via `apt` on Linux (declared in `tools.optional.linux.apt.list`).
-- On first container start, the entrypoint seeds `$CODEX_HOME` from the pinned codex-kit checkout (`$CODEX_KIT_DIR`) if the volume is empty.
+- On first container start, the entrypoint seeds `$AGENTS_HOME` from the pinned codex-kit checkout (`$CODEX_KIT_DIR`) if the volume is empty.
 
 ## Fallback policy
 

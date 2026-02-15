@@ -12,17 +12,17 @@ services:
         INSTALL_VSCODE: ${INSTALL_VSCODE:-1}
     environment:
       HOME: /home/codex
-      CODEX_HOME: /home/codex/.codex
-      CODEX_AUTH_FILE: /home/codex/.codex/auth.json
+      AGENTS_HOME: /home/codex/.agents
+      CODEX_AUTH_FILE: /home/codex/.agents/auth.json
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ${WORKSPACE_DIR:-.}:/work
-      - codex-home:/home/codex
-      - codex-codex-home:/home/codex/.codex
+      - agents-home:/home/codex
+      - agents-kit-home:/home/codex/.agents
     working_dir: /work
     tty: true
     stdin_open: true
 
 volumes:
-  codex-home:
-  codex-codex-home:
+  agents-home:
+  agents-kit-home:

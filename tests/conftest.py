@@ -28,7 +28,7 @@ SCRIPT_SMOKE_RUN_RESULTS: list[ScriptRunResult] = []
 
 
 def repo_root() -> Path:
-    if code_home := os.environ.get("CODEX_HOME"):
+    if code_home := os.environ.get("AGENTS_HOME"):
         p = Path(code_home)
         if p.is_dir():
             return p.resolve()
@@ -67,7 +67,7 @@ def default_smoke_env(repo: Path) -> dict[str, str]:
 
     base.update(
         {
-            "CODEX_HOME": str(repo),
+            "AGENTS_HOME": str(repo),
             "HOME": str(home),
             "XDG_CONFIG_HOME": str(xdg_config),
             "XDG_CACHE_HOME": str(xdg_cache),
@@ -110,7 +110,7 @@ def default_env(repo: Path) -> dict[str, str]:
 
     base.update(
         {
-            "CODEX_HOME": str(repo),
+            "AGENTS_HOME": str(repo),
             "HOME": str(home),
             "XDG_CONFIG_HOME": str(xdg_config),
             "XDG_CACHE_HOME": str(xdg_cache),

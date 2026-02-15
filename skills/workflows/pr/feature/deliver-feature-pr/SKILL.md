@@ -53,7 +53,7 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/workflows/pr/feature/deliver-feature-pr/scripts/deliver-feature-pr.sh`
+- `$AGENTS_HOME/skills/workflows/pr/feature/deliver-feature-pr/scripts/deliver-feature-pr.sh`
 
 ## Workflow
 

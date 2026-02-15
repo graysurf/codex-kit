@@ -19,7 +19,7 @@ Links:
 
 ## Acceptance Criteria
 
-- `$CODEX_HOME/scripts/test.sh` (or `python -m pytest`) passes locally and in GitHub Actions.
+- `$AGENTS_HOME/scripts/test.sh` (or `python -m pytest`) passes locally and in GitHub Actions.
 - Test discovery covers 100% of tracked script entrypoints under `scripts/`, `commands/`, and `skills/**/scripts/`.
 - Each discovered script has an executable test invocation (default: `--help`; or an explicit per-script spec) and runs in a hermetic sandbox:
   - `HOME` and `XDG_*` point to temp dirs under `out/tests/script-regression/`
@@ -32,10 +32,10 @@ Links:
   - Add a Python test harness under `tests/` using `pytest` (stdlib + pytest only).
   - Add a script discovery + execution layer that runs each script with a safe invocation and a timeout.
   - Add repo-local stubs used by the harness (e.g., `tests/stubs/bin/*`) to make execution hermetic and non-destructive.
-  - Wire `pytest` into GitHub Actions so PRs and pushes run `$CODEX_HOME/scripts/test.sh`.
+  - Wire `pytest` into GitHub Actions so PRs and pushes run `$AGENTS_HOME/scripts/test.sh`.
   - Add lightweight validations for non-code assets:
     - `prompts/*.md` YAML front matter is parseable and includes required keys (exact key set TBD).
-    - `skills/**/SKILL.md` contract lint remains enforced (via `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` and/or direct parsing).
+    - `skills/**/SKILL.md` contract lint remains enforced (via `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` and/or direct parsing).
 - Out-of-scope:
   - End-to-end integration tests that require real external services, credentials, or network access.
   - Large refactors of scripts unrelated to testability (only minimal changes to support safe invocations, when needed).
@@ -54,7 +54,7 @@ Links:
 ### Output
 
 - `tests/**` (pytest suite + helpers + fixtures)
-- Optional local runner wrapper: `$CODEX_HOME/scripts/test.sh`
+- Optional local runner wrapper: `$AGENTS_HOME/scripts/test.sh`
 - Evidence (untracked, local):
   - `out/tests/script-regression/summary.json`
   - `out/tests/script-regression/logs/**`
@@ -89,7 +89,7 @@ Links:
 - Per-script spec format + location: `tests/script_specs/<script_relpath>.json`.
 - `prompts/*.md` front matter: must be valid YAML and include `description` + `argument-hint` keys (additional keys allowed).
 - Hermetic default environment:
-  - `CODEX_HOME` set to repo root
+  - `AGENTS_HOME` set to repo root
   - `HOME` and `XDG_CONFIG_HOME` redirected under `out/tests/script-regression/`
   - `NO_COLOR=1` and non-interactive friendly env vars set
 - Evidence location: all test evidence written under `out/tests/script-regression/` (never `/tmp` for persisted artifacts).
@@ -115,7 +115,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Requirements, scope, and acceptance criteria are aligned: recorded in this progress file.
     - [x] I/O contract is defined (inputs, outputs, evidence paths): recorded in this progress file.
     - [x] Risks and mitigations are explicit: recorded in this progress file.
-    - [x] A minimal verification command is defined: `.venv/bin/python -m pytest` (or `$CODEX_HOME/scripts/test.sh`).
+    - [x] A minimal verification command is defined: `.venv/bin/python -m pytest` (or `$AGENTS_HOME/scripts/test.sh`).
 - [x] Step 1: Minimum viable harness (pytest)
   - Work Items:
     - [x] Add `pytest` dev dependency metadata: `requirements-dev.txt`.
@@ -133,7 +133,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Basic usage docs exist (TL;DR + how to add a script spec): `docs/testing/script-regression.md`.
 - [x] Step 2: Full coverage + audit checks
   - Work Items:
-    - [x] Add per-script specs for scripts that cannot be validated via `--help` alone (example: `$CODEX_HOME/scripts/chrome-devtools-mcp.sh`).
+    - [x] Add per-script specs for scripts that cannot be validated via `--help` alone (example: `$AGENTS_HOME/scripts/chrome-devtools-mcp.sh`).
     - [x] Ensure every discovered script is covered by the default contract or an explicit spec (no silent skips).
     - [x] Add targeted tests for "audit scripts" (contracts + progress index validation).
   - Artifacts:

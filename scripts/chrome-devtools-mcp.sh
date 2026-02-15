@@ -68,11 +68,11 @@ expand_tilde() {
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
-CODEX_HOME="${CODEX_HOME:-$REPO_ROOT}"
-CODEX_HOME="$(expand_tilde "$CODEX_HOME")"
-export CODEX_HOME
+AGENTS_HOME="${AGENTS_HOME:-$REPO_ROOT}"
+AGENTS_HOME="$(expand_tilde "$AGENTS_HOME")"
+export AGENTS_HOME
 
-USER_DATA_DIR_BASE="$(expand_tilde "${CHROME_DEVTOOLS_USER_DATA_BASE:-$CODEX_HOME/.cache/chrome-devtools-mcp}")"
+USER_DATA_DIR_BASE="$(expand_tilde "${CHROME_DEVTOOLS_USER_DATA_BASE:-$AGENTS_HOME/.cache/chrome-devtools-mcp}")"
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -114,8 +114,8 @@ resolve_browser_url() {
   printf 'http://127.0.0.1:%s' "$port"
 }
 
-# 1) Load .env (default: $CODEX_HOME/.env) into environment
-ENV_FILE="$(expand_tilde "${ENV_FILE:-$CODEX_HOME/.env}")"
+# 1) Load .env (default: $AGENTS_HOME/.env) into environment
+ENV_FILE="$(expand_tilde "${ENV_FILE:-$AGENTS_HOME/.env}")"
 if [[ -f "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1090
@@ -126,9 +126,9 @@ fi
 # 2) Defaults
 MODE="${CHROME_DEVTOOLS_MODE:-clean}"  # clean|profile|connect
 
-# Log setup (default to $CODEX_HOME/out)
+# Log setup (default to $AGENTS_HOME/out)
 # IMPORTANT: Do not redirect stdout; MCP uses stdout for the protocol.
-LOG_DIR="$(expand_tilde "${CHROME_DEVTOOLS_LOG_DIR:-$CODEX_HOME/out}")"
+LOG_DIR="$(expand_tilde "${CHROME_DEVTOOLS_LOG_DIR:-$AGENTS_HOME/out}")"
 LOG_SUBDIR="${CHROME_DEVTOOLS_LOG_SUBDIR:-chrome-devtools-mcp}"
 if [[ -n "${CHROME_DEVTOOLS_LOG_FILE:-}" ]]; then
   LOG_FILE="$(expand_tilde "$CHROME_DEVTOOLS_LOG_FILE")"

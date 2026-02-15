@@ -112,7 +112,7 @@ Use the same outcome as `handoff-progress-pr`:
 
 If you have the helper script available:
 
-- `bash $CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh --pr <planning_pr_number>`
+- `bash $AGENTS_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh --pr <planning_pr_number>`
 
 ### Step 2 — Create branches + worktrees (stacked)
 
@@ -122,7 +122,7 @@ Create worktrees from a TSV spec (recommended). Example spec:
 
 Create worktrees:
 
-- `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh --spec $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/references/pr-splits.example.tsv`
+- `bash $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh --spec $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/references/pr-splits.example.tsv`
 - Optional flags:
   - `--worktrees-root <path>` to override the default worktrees root.
   - `--dry-run` to print planned worktrees without creating them.
@@ -188,8 +188,8 @@ Spawn one subagent per worktree/PR. Each subagent must receive:
   - `git worktree remove <path>`
   - `git worktree prune`
 - Optional helper (preview first, then confirm):
-  - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --dry-run`
-  - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --yes`
+  - `bash $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --dry-run`
+  - `bash $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --yes`
 
 ## Failure modes (and what to do)
 

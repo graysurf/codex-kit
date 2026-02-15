@@ -37,7 +37,7 @@ POLICY (sticky for this conversation)
 
 5) Context hygiene
    - Keep main-agent chat output short and acceptance-focused.
-   - Do not paste large diffs or logs into chat; write them to `$CODEX_HOME/out/` artifacts and reference paths instead.
+   - Do not paste large diffs or logs into chat; write them to `$AGENTS_HOME/out/` artifacts and reference paths instead.
 
 On enable, respond with:
 - Confirmation that parallel-first mode is enabled for this conversation thread.

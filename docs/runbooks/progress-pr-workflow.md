@@ -28,11 +28,11 @@ This runbook documents the end-to-end flow across the progress PR skills:
 
 3) Handoff (merge planning PR and patch Progress link):
 
-- `bash $CODEX_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh --pr <planning_pr_number>`
+- `bash $AGENTS_HOME/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh --pr <planning_pr_number>`
 
 4) Create worktrees and stacked branches from a spec:
 
-- `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh --spec $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/references/pr-splits.example.tsv`
+- `bash $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh --spec $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/references/pr-splits.example.tsv`
 - Replace the example spec with your project TSV when ready.
 - Optional flags:
   - `--worktrees-root <path>` to override the default worktrees root.
@@ -49,15 +49,15 @@ This runbook documents the end-to-end flow across the progress PR skills:
 
 6) Close out the workflow after implementation merges:
 
-- `bash $CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh --pr <final_pr_number> --progress-file docs/progress/<file>.md`
+- `bash $AGENTS_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh --pr <final_pr_number> --progress-file docs/progress/<file>.md`
 - Optional cleanup of worktrees (preview first):
-  - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --dry-run`
-  - `bash $CODEX_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --yes`
+  - `bash $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --dry-run`
+  - `bash $AGENTS_HOME/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/cleanup_worktrees.sh --prefix <branch-prefix> --yes`
 
 Optional E2E driver (real GitHub):
 
 - Requires `E2E_ALLOW_REAL_GH=1` and `CI` not set to `true`.
-- Canonical: `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all`
+- Canonical: `$AGENTS_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all`
 
 ## Invariants (must always hold)
 
@@ -93,7 +93,7 @@ Optional E2E driver (real GitHub):
 | Area | CI (fixtures + gh stub) | Real GitHub (required) |
 | --- | --- | --- |
 | Progress file formatting + placeholder removal | `rg`/validation scripts ensure no `[[...]]` tokens | N/A |
-| Progress index table updates | `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh` | Confirm index link renders on GitHub |
+| Progress index table updates | `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh` | Confirm index link renders on GitHub |
 | Worktree helper scripts | Fixture tests verify `create_worktrees_from_tsv.sh` and `cleanup_worktrees.sh` behavior | Optional spot-check with real repo paths |
 | PR creation + merge | Stubbed `gh` validates arguments | Must create/merge real PRs |
 | Progress link patching | Stubbed `gh pr edit` flow | Must verify PR body links resolve in GitHub UI |

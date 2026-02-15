@@ -15,9 +15,9 @@ Primary success criteria: new and existing skills follow a single, auditable str
     - Global shared: `skills/_shared/`
 - Ensure plan tooling entrypoints live under `commands/plan-tooling`.
   - Ensure real-GitHub E2E drivers live under dedicated skills (e.g., `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/`).
-  - Remove legacy entrypoints and update all runnable instructions to canonical `$CODEX_HOME/...` paths.
+  - Remove legacy entrypoints and update all runnable instructions to canonical `$AGENTS_HOME/...` paths.
   - Add per-skill `tests/` for **all tracked skills** and enforce via audit + CI.
-  - Update docs/tests to prefer `$CODEX_HOME/...` absolute paths for executable entrypoints.
+  - Update docs/tests to prefer `$AGENTS_HOME/...` absolute paths for executable entrypoints.
 - Out of scope:
   - Rewriting skill behavior beyond path/reference updates (no functional redesign unless required for safety).
   - Refactoring `.worktrees/` contents (local worktrees are treated as disposable).
@@ -28,7 +28,7 @@ Primary success criteria: new and existing skills follow a single, auditable str
 1. Breaking change policy: canonical skill entrypoints only (no legacy script entrypoints).
 2. Shared code policy: prefer category-level `_shared/` first; use `skills/_shared/` only for truly cross-category reuse.
 3. Test policy: every tracked skill must have tests (minimal smoke tests are acceptable for doc-only skills).
-4. Documentation policy: in `SKILL.md`, executable paths use `$CODEX_HOME/...` (repo-relative links are allowed for non-executables).
+4. Documentation policy: in `SKILL.md`, executable paths use `$AGENTS_HOME/...` (repo-relative links are allowed for non-executables).
 
 ## Current inventory (2026-01-24 snapshot)
 
@@ -42,10 +42,10 @@ Canonical skill entrypoints (v2):
   - `$CODEX_COMMANDS_PATH/plan-tooling to-json`
   - `$CODEX_COMMANDS_PATH/plan-tooling batches`
 - E2E driver:
-  - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
 - Skill governance:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 
 ## Sprint 1: Define v2 skill anatomy + shared layout
 
@@ -73,7 +73,7 @@ Canonical skill entrypoints (v2):
   - Define shared directories (not “skills”):
     - `skills/_shared/` and `skills/**/_shared/` with allowed subtrees like `lib/`, `references/`, `assets/`, `python/`
     - Explicitly forbid `_shared/scripts/` (avoid treating libs as entrypoints).
-  - Define path rules for `SKILL.md` (executables use `$CODEX_HOME/...`).
+  - Define path rules for `SKILL.md` (executables use `$AGENTS_HOME/...`).
   - Define naming conventions for skills and shared folders (kebab-case; `_shared` reserved).
 - **Dependencies**: none
 - **Acceptance criteria**:
@@ -95,7 +95,7 @@ Canonical skill entrypoints (v2):
 - **Dependencies**: Task 1.1
 - **Acceptance criteria**:
   - Index includes plan tooling scripts and the progress workflow E2E driver.
-  - Index only lists canonical `$CODEX_HOME/...` executable paths.
+  - Index only lists canonical `$AGENTS_HOME/...` executable paths.
 - **Validation**:
   - `test -f docs/runbooks/skills/TOOLING_INDEX_V2.md`
 
@@ -132,7 +132,7 @@ Canonical skill entrypoints (v2):
   - `skills/tools/skill-management/skill-governance/SKILL.md`
   - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
   - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-- **Description**: Move skill-governance scripts into a dedicated skill folder with `$CODEX_HOME/...` canonical paths.
+- **Description**: Move skill-governance scripts into a dedicated skill folder with `$AGENTS_HOME/...` canonical paths.
 - **Dependencies**:
   - Task 1.1
   - Task 1.2
@@ -161,7 +161,7 @@ Canonical skill entrypoints (v2):
 - **Location**:
   - `skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`
   - `tests/test_audit_scripts.py`
-- **Description**: Add a repo check that enforces `$CODEX_HOME/...` absolute paths for executable entrypoints referenced in `SKILL.md`.
+- **Description**: Add a repo check that enforces `$AGENTS_HOME/...` absolute paths for executable entrypoints referenced in `SKILL.md`.
 - **Dependencies**: Task 2.1
 - **Acceptance criteria**:
   - Validator detects common footguns (e.g., `scripts/...` in runnable instructions inside `SKILL.md`).
@@ -180,7 +180,7 @@ Canonical skill entrypoints (v2):
   - Task 2.1
   - Task 2.2
 - **Acceptance criteria**:
-  - Docs reference `$CODEX_HOME/skills/tools/skill-management/skill-governance/...` as canonical.
+  - Docs reference `$AGENTS_HOME/skills/tools/skill-management/skill-governance/...` as canonical.
 - **Validation**:
   - `rg -n \"skill-governance\" README.md DEVELOPMENT.md`
 
@@ -190,7 +190,7 @@ Canonical skill entrypoints (v2):
 - **Location**:
   - `skills/workflows/plan/create-plan/SKILL.md`
   - `docs/runbooks/progress-pr-workflow.md`
-- **Description**: Do a repo-wide scan for runnable instructions and rewrite them to canonical `$CODEX_COMMANDS_PATH/...` (binaries) or `$CODEX_HOME/...` (repo scripts) paths.
+- **Description**: Do a repo-wide scan for runnable instructions and rewrite them to canonical `$CODEX_COMMANDS_PATH/...` (binaries) or `$AGENTS_HOME/...` (repo scripts) paths.
 - **Dependencies**:
   - Task 2.3
   - Task 2.4
@@ -219,11 +219,11 @@ Canonical skill entrypoints (v2):
   - Task 1.2
   - Task 2.1
 - **Acceptance criteria**:
-  - Canonical scripts run from any CWD when `CODEX_HOME` is set.
+  - Canonical scripts run from any CWD when `AGENTS_HOME` is set.
 - **Validation**:
   - `scripts/test.sh -m script_smoke -k plan_to_json`
 
-### Task 3.2: Update planning skills to use canonical `$CODEX_HOME/...` tooling
+### Task 3.2: Update planning skills to use canonical `$AGENTS_HOME/...` tooling
 
 - **Complexity**: 4
 - **Location**:
@@ -299,7 +299,7 @@ Canonical skill entrypoints (v2):
 - Command(s):
   - `scripts/check.sh --all`
 - Verify:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces tests and passes.
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces tests and passes.
   - Skill-local tests run in CI and locally.
 
 ### Task 5.1: Add a shared pytest helper for skill-local tests
@@ -397,7 +397,7 @@ Canonical skill entrypoints (v2):
   - Task 5.4
   - Task 5.5
 - **Acceptance criteria**:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` reports no tracked skills missing tests.
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` reports no tracked skills missing tests.
   - The added tests are minimal and use the shared helper (no duplicated harness logic).
 - **Validation**:
   - `scripts/check.sh --skills-layout`

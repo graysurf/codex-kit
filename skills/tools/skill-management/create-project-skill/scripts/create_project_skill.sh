@@ -4,20 +4,20 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  $CODEX_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh \
-    --skill-dir <.codex/skills/...|<skill-name>> \
+  $AGENTS_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh \
+    --skill-dir <.agents/skills/...|<skill-name>> \
     [--project-path <path>] \
     [--title "<Title>"] \
     [--description "<text>"] \
     [--help]
 
-Scaffolds a project-local skill under .codex/skills and validates:
+Scaffolds a project-local skill under .agents/skills and validates:
   - SKILL contract headings (via validate_skill_contracts.sh --file)
   - project-skill layout (local validator)
 
 Notes:
-  - If --skill-dir does not start with .codex/skills/, it is treated as
-    <skill-name> and expanded to .codex/skills/<skill-name>.
+  - If --skill-dir does not start with .agents/skills/, it is treated as
+    <skill-name> and expanded to .agents/skills/<skill-name>.
   - This command writes files and does not stage/commit.
 USAGE
 }
@@ -154,25 +154,25 @@ if normalized.startswith("./"):
 if ".." in Path(normalized).parts:
     print(f"error: --skill-dir must not contain '..': {raw}", file=sys.stderr)
     raise SystemExit(2)
-if normalized in {".codex", ".codex/skills"}:
-    print(f"error: --skill-dir must include a skill name under .codex/skills/: {raw}", file=sys.stderr)
+if normalized in {".agents", ".agents/skills"}:
+    print(f"error: --skill-dir must include a skill name under .agents/skills/: {raw}", file=sys.stderr)
     raise SystemExit(2)
 
-if normalized.startswith(".codex/"):
-    if not normalized.startswith(".codex/skills/"):
-        print(f"error: --skill-dir must be under .codex/skills/: {raw}", file=sys.stderr)
+if normalized.startswith(".agents/"):
+    if not normalized.startswith(".agents/skills/"):
+        print(f"error: --skill-dir must be under .agents/skills/: {raw}", file=sys.stderr)
         raise SystemExit(2)
     resolved = normalized
 else:
-    resolved = f".codex/skills/{normalized}"
+    resolved = f".agents/skills/{normalized}"
 
 if resolved.endswith("/"):
     resolved = resolved.rstrip("/")
-if not resolved.startswith(".codex/skills/"):
-    print(f"error: resolved --skill-dir must be under .codex/skills/: {resolved}", file=sys.stderr)
+if not resolved.startswith(".agents/skills/"):
+    print(f"error: resolved --skill-dir must be under .agents/skills/: {resolved}", file=sys.stderr)
     raise SystemExit(2)
 if len(Path(resolved).parts) < 3:
-    print(f"error: --skill-dir must include a skill name under .codex/skills/: {raw}", file=sys.stderr)
+    print(f"error: --skill-dir must include a skill name under .agents/skills/: {raw}", file=sys.stderr)
     raise SystemExit(2)
 
 print(resolved)
@@ -212,7 +212,7 @@ from __future__ import annotations
 import sys
 
 skill_dir = sys.argv[1]
-rel = skill_dir.removeprefix(".codex/skills/").strip("/")
+rel = skill_dir.removeprefix(".agents/skills/").strip("/")
 parts = []
 for p in rel.split("/"):
     p = p.strip()

@@ -78,9 +78,9 @@ tests/
 
 ```bash
 mkdir -p tests
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" tests/
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/rest" tests/
-cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/graphql" tests/
+cp -R "$AGENTS_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" tests/
+cp -R "$AGENTS_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/rest" tests/
+cp -R "$AGENTS_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/graphql" tests/
 ```
 
 Then edit your suite file to reference `tests/...` paths and set `configDir` defaults.
@@ -174,7 +174,7 @@ strategy:
 steps:
   - name: Run suite shard
     env:
-      CODEX_HOME: ${{ github.workspace }}
+      AGENTS_HOME: ${{ github.workspace }}
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
     run: |
       api-test run \

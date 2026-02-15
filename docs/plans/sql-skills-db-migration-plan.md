@@ -68,7 +68,7 @@ This plan removes DB-related entrypoints from `scripts/` and DB-related template
 - **Complexity**: 3
 - **Acceptance criteria**:
   - `docs/templates/ASSISTANT_RESPONSE_TEMPLATE.md` is deleted.
-  - References point to `$CODEX_HOME/skills/tools/sql/_shared/references/ASSISTANT_RESPONSE_TEMPLATE.md`.
+  - References point to `$AGENTS_HOME/skills/tools/sql/_shared/references/ASSISTANT_RESPONSE_TEMPLATE.md`.
 - **Validation**:
   - `test ! -f docs/templates/ASSISTANT_RESPONSE_TEMPLATE.md`
   - `rg -n \"ASSISTANT_RESPONSE_TEMPLATE\\.md\" -S skills | cat`

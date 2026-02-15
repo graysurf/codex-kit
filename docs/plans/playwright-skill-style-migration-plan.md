@@ -72,8 +72,8 @@ This migration rewrites `skills/tools/browser/playwright` so it matches the repo
 
 **Demo/Validation**:
 - Command(s):
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/browser/playwright`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/browser/playwright`
 - Verify:
   - Rewritten skill files pass contract and layout governance checks.
 
@@ -89,7 +89,7 @@ This migration rewrites `skills/tools/browser/playwright` so it matches the repo
   - The file clearly states the wrapper-only scope and avoids duplicated setup paths.
   - `Scripts (only entrypoints)` points only to `scripts/playwright_cli.sh`.
 - **Validation**:
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
 
 ### Task 2.2: Simplify wrapper implementation while preserving behavior
 - **Location**:
@@ -106,8 +106,8 @@ This migration rewrites `skills/tools/browser/playwright` so it matches the repo
 - **Validation**:
   - `bash -n skills/tools/browser/playwright/scripts/playwright_cli.sh`
   - `pytest -q skills/tools/browser/playwright/tests/test_tools_browser_playwright.py -k "help or entrypoints or contract or session"`
-  - `tmpdir=$(mktemp -d) && (cd "$tmpdir" && PLAYWRIGHT_CLI_SESSION=ci "$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help >/dev/null) && rm -rf "$tmpdir"`
-  - `mkdir -p "$CODEX_HOME/out" && env PATH="/nonexistent" /bin/bash "$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://example.com >/dev/null 2>"$CODEX_HOME/out/playwright-missing-npx.err"; test $? -eq 1; rg -n "npx is required" "$CODEX_HOME/out/playwright-missing-npx.err"`
+  - `tmpdir=$(mktemp -d) && (cd "$tmpdir" && PLAYWRIGHT_CLI_SESSION=ci "$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help >/dev/null) && rm -rf "$tmpdir"`
+  - `mkdir -p "$AGENTS_HOME/out" && env PATH="/nonexistent" /bin/bash "$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://example.com >/dev/null 2>"$AGENTS_HOME/out/playwright-missing-npx.err"; test $? -eq 1; rg -n "npx is required" "$AGENTS_HOME/out/playwright-missing-npx.err"`
 
 ### Task 2.3: Rewrite CLI reference doc in standard style
 - **Location**:
@@ -150,8 +150,8 @@ This migration rewrites `skills/tools/browser/playwright` so it matches the repo
 **Demo/Validation**:
 - Command(s):
   - `pytest -q skills/tools/browser/playwright/tests/test_tools_browser_playwright.py`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/browser/playwright`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/browser/playwright`
 - Verify:
   - Tests and governance checks pass with the migrated files and deleted notices.
 
@@ -170,8 +170,8 @@ This migration rewrites `skills/tools/browser/playwright` so it matches the repo
   - Layout audit passes for the skill directory.
 - **Validation**:
   - `pytest -q skills/tools/browser/playwright/tests/test_tools_browser_playwright.py`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/browser/playwright`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/browser/playwright`
 
 ### Task 3.2: Execute wrapper smoke checks in a temp workspace
 - **Location**:
@@ -184,7 +184,7 @@ This migration rewrites `skills/tools/browser/playwright` so it matches the repo
   - `--help` path exits cleanly and prints wrapper usage.
   - Wrapper forwards sample arguments to upstream command without local parsing regressions.
 - **Validation**:
-  - `tmpdir=$(mktemp -d) && (set -o pipefail; cd "$tmpdir" && "$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help >/dev/null) && rm -rf "$tmpdir"`
+  - `tmpdir=$(mktemp -d) && (set -o pipefail; cd "$tmpdir" && "$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help >/dev/null) && rm -rf "$tmpdir"`
 
 ### Task 3.3: Final consistency pass and reviewer checklist
 - **Location**:
@@ -229,5 +229,5 @@ This migration rewrites `skills/tools/browser/playwright` so it matches the repo
    - `skills/tools/browser/playwright/references/NOTICE.txt`
 2. Re-run focused checks:
    - `pytest -q skills/tools/browser/playwright/tests/test_tools_browser_playwright.py`
-   - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
+   - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/browser/playwright/SKILL.md`
 3. Re-open a follow-up migration with narrower scope (docs-only or wrapper-only) if full migration is unstable.

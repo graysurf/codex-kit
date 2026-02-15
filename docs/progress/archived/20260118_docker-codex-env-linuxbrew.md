@@ -19,7 +19,7 @@ Links:
 
 - Provide a Docker-based Codex work environment on Ubuntu Server (Linux host, headless) that mirrors the macOS setup as closely as practical (Linux container + zsh).
 - Install CLI tooling via Linuxbrew from `zsh-kit` tool lists, with explicit apt fallbacks/removals when Linuxbrew lacks a package.
-- Support running multiple isolated environments concurrently (separate `HOME`/`CODEX_HOME` state per environment).
+- Support running multiple isolated environments concurrently (separate `HOME`/`AGENTS_HOME` state per environment).
 - Provide a host-invoked “workspace launcher” workflow that can start a fresh container, clone a target repo, and (optionally) start a VS Code tunnel for remote development.
 - Keep secrets and mutable state out of the image (inject via volumes/env at runtime).
 
@@ -29,7 +29,7 @@ Links:
 - In the container, `zsh -lic 'echo ok'` succeeds (no startup errors) and the required tool executables are on `PATH`.
 - All required tools from `/Users/terry/.config/zsh/config/tools.list` are installed via Linuxbrew (or documented apt fallback/removal), and a smoke command verifies them.
 - Optional tools from `/Users/terry/.config/zsh/config/tools.optional.list` are installed by default (or documented apt fallback/removal), with an explicit opt-out for faster builds if needed.
-- Two environments can run concurrently and do not share mutable state (verify via distinct named volumes for `HOME` and `CODEX_HOME`).
+- Two environments can run concurrently and do not share mutable state (verify via distinct named volumes for `HOME` and `AGENTS_HOME`).
 - Codex CLI is runnable in-container (`codex --version`), with auth/state stored outside the image (volume or env-based).
 - macOS VS Code can tunnel/attach to the container on the Ubuntu Server host (no Docker Desktop required).
 - A host-side workspace launcher can start an isolated workspace from a git repo input (including `git@github.com:...`), clone the repo inside the container (no host workspace bind mount), and provide a repeatable “connect via VS Code tunnel” workflow.
@@ -70,7 +70,7 @@ Links:
   - `$HOME/.config/zsh/` (bind mount into container, ideally read-only)
   - Workspace repo(s) (bind mount)
 - Runtime secrets/state injection:
-  - `OPENAI_API_KEY` (env) and/or `CODEX_HOME` (named volume) for Codex auth/session files
+  - `OPENAI_API_KEY` (env) and/or `AGENTS_HOME` (named volume) for Codex auth/session files
 
 ### Output
 
@@ -103,7 +103,7 @@ Links:
 - Split `zsh-kit` tool lists by OS (macOS/Linux) and add Linux apt-only lists for tools that cannot be installed via Linuxbrew (e.g. VS Code `code`, `mitmproxy`).
 - Target runtime: Ubuntu Server (Docker Engine, headless) with macOS VS Code tunnel access to containers; no Docker Desktop requirement.
 - Repository layout: `Dockerfile` + `docker-compose.yml` at repo root; keep helper scripts/docs under `docker/codex-env/`.
-- `HOME`/`CODEX_HOME`: per-environment named volumes (no sharing), with `HOME=/home/codex` and `CODEX_HOME=/home/codex/.codex`.
+- `HOME`/`AGENTS_HOME`: per-environment named volumes (no sharing), with `HOME=/home/codex` and `AGENTS_HOME=/home/codex/.agents`.
 - Security baseline: no extra hardening (skip `cap_drop` and `no-new-privileges`); default read-write mounts.
 - Minimum smoke verification set: `rg fd fzf gh jq codex opencode gemini psql mysql sqlcmd`.
 
@@ -158,10 +158,10 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Decide how to source `zsh-kit` and `codex-kit` inside the container:
       - Clone during image build (self-contained, pinned revision/ref).
     - [x] Decide install fallback order (per tool): Linuxbrew > apt > release binary.
-    - [x] Decide `CODEX_HOME` strategy:
+    - [x] Decide `AGENTS_HOME` strategy:
       - `HOME=/home/codex`
-      - `CODEX_HOME=/home/codex/.codex`
-      - One named volume per environment for `HOME` + `CODEX_HOME` (no sharing).
+      - `AGENTS_HOME=/home/codex/.agents`
+      - One named volume per environment for `HOME` + `AGENTS_HOME` (no sharing).
     - [x] Validate and record the Linux install method for key tools that may not exist on Linuxbrew (follow the fallback order):
       - `codex`: Linuxbrew cask works on `linux/arm64` (no fallback needed).
       - `opencode`: Linuxbrew formula works on `linux/arm64`.
@@ -198,7 +198,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - container starts into `zsh -l` (or a small entrypoint that execs it)
     - [x] Add `docker-compose.yml` with:
       - bind mount workspace(s)
-      - named volume(s) for `HOME` and `CODEX_HOME`
+      - named volume(s) for `HOME` and `AGENTS_HOME`
       - no extra hardening flags (per Step 0 decision)
     - [x] Install Codex CLI in the container (exact mechanism TBD in Step 0) and validate it starts.
     - [x] Create a minimal `docker/codex-env/README.md` with TL;DR commands.
@@ -268,7 +268,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
         - [x] Ensure workspace state isolation:
           - One named volume per workspace for `/work`.
           - One named volume per workspace for `/home/codex`.
-          - One named volume per workspace for `/home/codex/.codex`.
+          - One named volume per workspace for `/home/codex/.agents`.
         - [x] Make naming deterministic and collision-safe:
           - Normalise repo name (`OWNER_REPO`), add timestamp suffix by default.
           - Reject invalid Docker names; provide a safe fallback.
@@ -349,7 +349,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] ~~Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.~~
       - Reason: Not needed for current usage; smoke one-liners + evidence already exist.
     - [x] Validate `codex-kit` checks inside the container (at minimum lint):
-      - `$CODEX_HOME/scripts/check.sh --lint`
+      - `$AGENTS_HOME/scripts/check.sh --lint`
       - Evidence: `out/docker/verify/20260118_121526_check_lint/check-lint.log`
     - [x] Record evidence outputs under `out/docker/verify/` (tool versions, smoke logs).
       - Evidence: `out/docker/verify/20260118_084317/smoke.log`
@@ -374,7 +374,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
         - ~~Without token → fails with actionable error (or SSH fallback works if implemented).~~
         - Reason: Not needed for current usage; requires a private repo or controlled permission test.
       - [x] Validate concurrent workspaces:
-        - Two different repos or two instances of same repo can run concurrently with isolated `HOME`/`CODEX_HOME` and `/work`.
+        - Two different repos or two instances of same repo can run concurrently with isolated `HOME`/`AGENTS_HOME` and `/work`.
         - Evidence: `out/docker/verify/20260118_120341_workspace_concurrency/concurrent-workspaces.log`
       - [x] Record evidence under `out/docker/verify/` and link it here.
         - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`

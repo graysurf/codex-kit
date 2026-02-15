@@ -113,11 +113,11 @@ Links:
     - `skills/workflows/pr/progress/create-progress-pr/assets/templates/PROGRESS_TEMPLATE.md`
     - `skills/workflows/pr/progress/create-progress-pr/references/PROGRESS_GLOSSARY.md`
     - `skills/workflows/pr/progress/create-progress-pr/references/ASSISTANT_RESPONSE_TEMPLATE.md`
-    - `$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`
-    - `$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/render_progress_pr.sh`
+    - `$AGENTS_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`
+    - `$AGENTS_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/render_progress_pr.sh`
   - Exit Criteria:
     - [x] `bash -n skills/workflows/pr/progress/create-progress-pr/scripts/*.sh` passes.
-    - [x] Create a progress file in this repo: `$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh --title "X"`.
+    - [x] Create a progress file in this repo: `$AGENTS_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh --title "X"`.
     - [x] Placeholder check passes: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no output (after filling).
 - [x] Step 2: Expansion / integration
   - Work Items:
@@ -130,14 +130,14 @@ Links:
     - [x] Update `create-feature-pr` output to be PR-focused (no `git-scope` section).
   - Artifacts:
     - `skills/workflows/pr/progress/close-progress-pr/SKILL.md`
-    - `$CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
+    - `$AGENTS_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
     - `skills/workflows/pr/feature/close-feature-pr/SKILL.md`
-    - `$CODEX_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`
+    - `$AGENTS_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`
     - `skills/workflows/pr/feature/create-feature-pr/SKILL.md`
     - `skills/workflows/pr/feature/create-feature-pr/references/ASSISTANT_RESPONSE_TEMPLATE.md`
     - `README.md`
   - Exit Criteria:
-    - [x] `bash -n $CODEX_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` passes.
+    - [x] `bash -n $AGENTS_HOME/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` passes.
     - [x] `close-feature-pr` no longer mentions or edits progress files.
     - [x] `create-feature-pr` output template contains only PR-related info.
 - [x] Step 3: Validation / testing

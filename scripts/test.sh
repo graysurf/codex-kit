@@ -44,7 +44,7 @@ if ! "$python" -c "import pytest" >/dev/null 2>&1; then
   exit 1
 fi
 
-export CODEX_HOME="$repo_root"
+export AGENTS_HOME="$repo_root"
 declare -a ignore_args=()
 if [[ "${CODEX_PYTEST_INCLUDE_WORKTREES:-}" != "1" ]]; then
   ignore_args+=(--ignore=worktrees --ignore=.worktrees)
@@ -55,8 +55,8 @@ set +e
 status=$?
 set -e
 
-coverage_md="${CODEX_HOME}/out/tests/script-coverage/summary.md"
-coverage_json="${CODEX_HOME}/out/tests/script-coverage/summary.json"
+coverage_md="${AGENTS_HOME}/out/tests/script-coverage/summary.md"
+coverage_json="${AGENTS_HOME}/out/tests/script-coverage/summary.json"
 if [[ -f "$coverage_md" ]]; then
   echo ""
   echo "script coverage (functional):"

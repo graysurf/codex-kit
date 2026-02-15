@@ -21,7 +21,7 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
 ## Assumptions
 1. Homebrew tap `graysurf/tap` is the canonical distribution channel for the “codex-kit binary tools”.
 2. Installing `nils-cli` provides these required binaries on both macOS and Ubuntu (Linuxbrew): `api-gql`, `api-rest`, `api-test`, `cli-template`, `fzf-cli`, `git-lock`, `git-scope`, `git-summary`, `image-processing`, `plan-tooling`, `semantic-commit`.
-3. `project-resolve` remains a repo-local script (installed/used via `$CODEX_HOME/scripts/project-resolve`), not a Homebrew-installed binary.
+3. `project-resolve` remains a repo-local script (installed/used via `$AGENTS_HOME/scripts/project-resolve`), not a Homebrew-installed binary.
 4. CI is allowed to install Homebrew (Linuxbrew) on Ubuntu runners.
 
 ## Sprint 1: Decouple Runtime From `commands/` (Move project-resolve + PATH-Only Binaries)
@@ -58,13 +58,13 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
   - `skills/automation/release-workflow/scripts/release-resolve.sh`
   - `skills/automation/release-workflow/scripts/release-find-guide.sh`
   - `skills/automation/release-workflow/scripts/release-scaffold-entry.sh`
-- **Description**: Replace `commands_dir`/`CODEX_COMMANDS_PATH` resolution with a direct call to `$CODEX_HOME/scripts/project-resolve` (with a repo-relative fallback when `CODEX_HOME` is unset) and remove dependency on `commands/project-resolve`.
+- **Description**: Replace `commands_dir`/`CODEX_COMMANDS_PATH` resolution with a direct call to `$AGENTS_HOME/scripts/project-resolve` (with a repo-relative fallback when `AGENTS_HOME` is unset) and remove dependency on `commands/project-resolve`.
 - **Dependencies**:
   - Task 1.1
 - **Complexity**: 5
 - **Acceptance criteria**:
   - Release workflow scripts no longer reference `CODEX_COMMANDS_PATH` or `commands/project-resolve`.
-  - When run inside this repo with `CODEX_HOME` unset, scripts still locate and execute `scripts/project-resolve`.
+  - When run inside this repo with `AGENTS_HOME` unset, scripts still locate and execute `scripts/project-resolve`.
 - **Validation**:
   - `rg -n \"CODEX_COMMANDS_PATH|commands_dir|commands/project-resolve\" skills/automation/release-workflow/scripts | cat`
   - `bash skills/automation/release-workflow/scripts/release-resolve.sh --help >/dev/null`
@@ -75,7 +75,7 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
   - `scripts/check.sh`
   - `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh`
   - `skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-- **Description**: Remove `CODEX_COMMANDS_PATH` and `CODEX_HOME/commands` fallback lookup for `plan-tooling`, `semantic-commit`, and `git-scope`; require them via `command -v`/`PATH` (installed by `brew install nils-cli`) and emit clear install instructions when missing.
+- **Description**: Remove `CODEX_COMMANDS_PATH` and `AGENTS_HOME/commands` fallback lookup for `plan-tooling`, `semantic-commit`, and `git-scope`; require them via `command -v`/`PATH` (installed by `brew install nils-cli`) and emit clear install instructions when missing.
 - **Dependencies**:
   - none
 - **Complexity**: 6
@@ -119,7 +119,7 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
   - `docs/plans/TOOLCHAIN.md`
   - `docs/runbooks/plan-workflow.md`
   - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
-- **Description**: Replace runnable examples that use repo-local command paths (for example `$CODEX_COMMANDS_PATH/plan-tooling` or `$CODEX_HOME/commands/plan-tooling`) with PATH-based invocations (`plan-tooling`, `api-test`, `api-rest`, `api-gql`, `semantic-commit`, etc.), and add a brief note that these come from `brew install nils-cli`.
+- **Description**: Replace runnable examples that use repo-local command paths (for example `$CODEX_COMMANDS_PATH/plan-tooling` or `$AGENTS_HOME/commands/plan-tooling`) with PATH-based invocations (`plan-tooling`, `api-test`, `api-rest`, `api-gql`, `semantic-commit`, etc.), and add a brief note that these come from `brew install nils-cli`.
 - **Dependencies**:
   - Task 1.3
 - **Complexity**: 5
@@ -223,7 +223,7 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
 - **Location**:
   - `.github/workflows/lint.yml`
   - `.github/workflows/api-test-runner.yml`
-- **Description**: Update workflows to install Homebrew + `graysurf/tap/nils-cli` on both macOS and Ubuntu runners, ensure Homebrew is on `PATH`, and update workflow commands to invoke `api-test`/`plan-tooling` from `PATH` (not `$CODEX_HOME/commands/...`).
+- **Description**: Update workflows to install Homebrew + `graysurf/tap/nils-cli` on both macOS and Ubuntu runners, ensure Homebrew is on `PATH`, and update workflow commands to invoke `api-test`/`plan-tooling` from `PATH` (not `$AGENTS_HOME/commands/...`).
 - **Dependencies**:
   - Task 3.1
 - **Complexity**: 8
@@ -231,7 +231,7 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
   - CI installs `nils-cli` successfully on `macos-latest` and `ubuntu-latest`.
   - `api-test-runner.yml` uses `api-test` from `PATH` and passes on both OSes (or documents OS-specific constraints explicitly in the workflow).
 - **Validation**:
-  - `rg -n \"\\$CODEX_HOME/commands/|CODEX_COMMANDS_PATH\" .github/workflows | cat`
+  - `rg -n \"\\$AGENTS_HOME/commands/|CODEX_COMMANDS_PATH\" .github/workflows | cat`
   - Run the updated workflows on a PR (GitHub Actions).
 
 ### Task 3.3: Ensure Local “One Command” Verification Works With Brew Tooling

@@ -8,7 +8,7 @@
 
 - Config entrypoint: `<path>`
 - Command: `semgrep scan --config "<path>" --json --metrics=off --disable-version-check .`
-- Output JSON (local): `<path under $CODEX_HOME/out/semgrep/>`
+- Output JSON (local): `<path under $AGENTS_HOME/out/semgrep/>`
 
 ## Top Findings
 

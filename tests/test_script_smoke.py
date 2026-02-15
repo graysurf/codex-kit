@@ -241,7 +241,7 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
     spec: dict[str, Any] = {
         "command": ["semantic-commit", "staged-context"],
         "timeout_sec": 10,
-        "env": {"CODEX_HOME": None},
+        "env": {"AGENTS_HOME": None},
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"(?s)===== commit-context\.json =====.*hello\.txt.*===== staged\.patch =====.*diff --git a/hello\.txt b/hello\.txt",
@@ -289,7 +289,7 @@ def test_script_smoke_fixture_semantic_commit_staged_context_cleans_tmp(tmp_path
         "command": ["semantic-commit", "staged-context"],
         "timeout_sec": 10,
         "env": {
-            "CODEX_HOME": None,
+            "AGENTS_HOME": None,
             "TMPDIR": str(tmpdir),
         },
         "expect": {

@@ -47,7 +47,7 @@ Failure modes:
 
 Canonical entrypoint:
 
-- `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all`
+- `$AGENTS_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all`
 
 ## Notes
 

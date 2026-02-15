@@ -32,11 +32,13 @@ Upgrade when needed:
 brew upgrade nils-cli
 ```
 
-Set `CODEX_HOME` in `$HOME/.zshenv`:
+Set `AGENTS_HOME` in `$HOME/.zshenv`:
 
 ```zsh
-export CODEX_HOME="$HOME/.codex"
+export AGENTS_HOME="$HOME/.agents"
 ```
+
+`AGENTS_HOME` is the home for this agents-kit toolchain.
 
 Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools can treat that repo as the active project context:
 
@@ -47,8 +49,8 @@ export PROJECT_PATH="$PWD"
 For new repositories with missing policy baseline docs, run the canonical bootstrap flow:
 
 ```zsh
-$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
-$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
+$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
+$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
 agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
 ```
 
@@ -72,7 +74,7 @@ See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Dock
 
 ### Skill management
 
-See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills (including project-local `.codex/skills`) using canonical entrypoints.
+See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills (including project-local `.agents/skills`) using canonical entrypoints.
 
 Core skills are grouped under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and [skills/automation/](skills/automation). Internal/meta skills live under `skills/.system/` (not listed below).
 
@@ -104,7 +106,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Browser | [playwright](./skills/tools/browser/playwright/) | Automate a real browser via Playwright CLI using the wrapper script |
 | Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/) | Audit skill layout and validate SKILL.md contracts |
 | Skill Management | [create-skill](./skills/tools/skill-management/create-skill/) | Scaffold a new skill directory that passes skill-governance audit and contract validation |
-| Skill Management | [create-project-skill](./skills/tools/skill-management/create-project-skill/) | Scaffold a project-local skill under `<project>/.codex/skills/` with contract/layout validation |
+| Skill Management | [create-project-skill](./skills/tools/skill-management/create-project-skill/) | Scaffold a project-local skill under `<project>/.agents/skills/` with contract/layout validation |
 | Skill Management | [remove-skill](./skills/tools/skill-management/remove-skill/) | Remove a tracked skill directory and purge non-archived repo references (breaking change) |
 | DevEx | [semantic-commit](./skills/tools/devex/semantic-commit/) | Commit staged changes using Semantic Commit format |
 | DevEx | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |

@@ -93,7 +93,7 @@ api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
 
 - If `setup/rest/prompt.md` exists → read it first for project-specific context.
 - No `setup/rest/` yet → bootstrap from template:
-  - `cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/`
+  - `cp -R "$AGENTS_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/`
 - Have request file → run with `api-rest call`.
 - Need a markdown report → use `api-rest report --run` (or `--response`).
 

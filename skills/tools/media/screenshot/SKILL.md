@@ -61,44 +61,44 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh`
+- `$AGENTS_HOME/skills/tools/media/screenshot/scripts/screenshot.sh`
 
 ## Usage
 
-- Screenshot (active window) to `$CODEX_HOME/out/` (recommended):
+- Screenshot (active window) to `$AGENTS_HOME/out/` (recommended):
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --active-window --path "$CODEX_HOME/out/screenshot.png"
+$AGENTS_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --active-window --path "$AGENTS_HOME/out/screenshot.png"
 ```
 
 - Screenshot via portal picker (Linux Wayland):
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --portal --path "$CODEX_HOME/out/screenshot-portal.png"
+$AGENTS_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --portal --path "$AGENTS_HOME/out/screenshot-portal.png"
 ```
 
 - Screenshot the desktop (main display helper, macOS only):
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --desktop --path "$CODEX_HOME/out/desktop.png"
+$AGENTS_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --desktop --path "$AGENTS_HOME/out/desktop.png"
 ```
 
 - List windows to find a `--window-id`:
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-windows
+$AGENTS_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-windows
 ```
 
 - List displays (pass-through to `screen-record`):
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-displays
+$AGENTS_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-displays
 ```
 
 - Screenshot by app/window title:
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --app "Terminal" --window-name "Docs" --path "$CODEX_HOME/out/terminal-docs.png"
+$AGENTS_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --app "Terminal" --window-name "Docs" --path "$AGENTS_HOME/out/terminal-docs.png"
 ```
 
 - Permission preflight / request (if blocked):
@@ -110,5 +110,5 @@ screen-record --request-permission
 
 ## Notes
 
-- Prefer writing under `"$CODEX_HOME/out/"` so outputs are easy to attach/inspect.
+- Prefer writing under `"$AGENTS_HOME/out/"` so outputs are easy to attach/inspect.
 - For non-window video capture, use `screen-record --display` / `--display-id` (recording mode).

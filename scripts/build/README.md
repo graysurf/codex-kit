@@ -5,7 +5,7 @@ Bundle a zsh “wrapper script” into a single, standalone executable by inlini
 ## Usage
 
 ```zsh
-zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh --input <wrapper> --output <path> [--entry <fn>]
+zsh -f $AGENTS_HOME/scripts/build/bundle-wrapper.zsh --input <wrapper> --output <path> [--entry <fn>]
 ```
 
 The bundler sets sensible defaults if missing:
@@ -22,8 +22,8 @@ This script is intended to stay in sync with the upstream `bundle-wrapper.zsh` u
 If you update the upstream version locally, you can vendor it into this repo with:
 
 ```zsh
-cp "$HOME/.config/zsh/tools/bundle-wrapper.zsh" $CODEX_HOME/scripts/build/bundle-wrapper.zsh
-$CODEX_HOME/scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
+cp "$HOME/.config/zsh/tools/bundle-wrapper.zsh" $AGENTS_HOME/scripts/build/bundle-wrapper.zsh
+$AGENTS_HOME/scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 ```
 
 ## Supported wrapper patterns
@@ -46,8 +46,8 @@ $CODEX_HOME/scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 ### Re-bundle an already-bundled script (copy mode)
 
 ```zsh
-zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
-  --input "$HOME/.codex/scripts/project-resolve" \
+zsh -f $AGENTS_HOME/scripts/build/bundle-wrapper.zsh \
+  --input "$HOME/.agents/scripts/project-resolve" \
   --output scripts/project-resolve
 ```
 
@@ -81,7 +81,7 @@ EOF
 
 ZDOTDIR="$tmp/zdotdir" \
 ZSH_SCRIPT_DIR="$tmp/zdotdir/scripts" \
-zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
+zsh -f $AGENTS_HOME/scripts/build/bundle-wrapper.zsh \
   --input "$tmp/wrapper.zsh" \
   --output "$tmp/bundled.zsh" \
   --entry hello_main

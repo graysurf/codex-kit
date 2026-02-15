@@ -9,7 +9,7 @@ Create a minimal reproduction script that triggers the bug before the fix and pa
 ## Expectations
 
 - Keep it minimal and deterministic.
-- Prefer a single command; name it clearly (for example: `$CODEX_HOME/skills/automation/find-and-fix-bugs/scripts/repro.sh`).
+- Prefer a single command; name it clearly (for example: `$AGENTS_HOME/skills/automation/find-and-fix-bugs/scripts/repro.sh`).
 - Run it before the fix and after the fix.
 - Record the command and results in the PR body and output.
 

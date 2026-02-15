@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  $CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh [options]
+  $AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh [options]
 
 Options:
   --dry-run                          Preview actions only (default).
@@ -12,7 +12,7 @@ Options:
   --force                            Overwrite baseline docs (requires --apply).
   --target <all|home|project>        Baseline target scope (default: all).
   --project-path <path>              Explicit PROJECT_PATH for agent-docs.
-  --codex-home <path>                Explicit CODEX_HOME for agent-docs.
+  --agents-home <path>                Explicit AGENTS_HOME for agent-docs.
   --project-required <context:path[:notes]>
                                      Upsert one required project extension entry.
                                      Repeatable.
@@ -463,7 +463,7 @@ apply="false"
 force="false"
 target="all"
 project_path=""
-codex_home=""
+agents_home=""
 declare -a project_required_entries=()
 
 while [[ $# -gt 0 ]]; do
@@ -499,11 +499,11 @@ while [[ $# -gt 0 ]]; do
       project_path="${2:-}"
       shift 2
       ;;
-    --codex-home)
+    --agents-home)
       if [[ $# -lt 2 || -z "${2:-}" ]]; then
-        die_usage "--codex-home requires a value"
+        die_usage "--agents-home requires a value"
       fi
-      codex_home="${2:-}"
+      agents_home="${2:-}"
       shift 2
       ;;
     --project-required)
@@ -538,11 +538,11 @@ declare -a common_args=()
 if [[ -n "$project_path" ]]; then
   common_args+=(--project-path "$project_path")
 fi
-if [[ -n "$codex_home" ]]; then
-  common_args+=(--codex-home "$codex_home")
+if [[ -n "$agents_home" ]]; then
+  common_args+=(--agents-home "$agents_home")
 fi
 
-effective_codex_home="${codex_home:-${CODEX_HOME:-$HOME/.codex}}"
+effective_agents_home="${agents_home:-${AGENTS_HOME:-$HOME/.agents}}"
 effective_project_path="${project_path:-${PROJECT_PATH:-$PWD}}"
 
 before_json="$(run_baseline_json "$target" "${common_args[@]}")"
@@ -644,7 +644,7 @@ if [[ "$apply" == "true" ]]; then
 fi
 
 printf 'agent_doc_init mode=%s target=%s force=%s\n' "$mode" "$target" "$force"
-printf 'agent_doc_init codex_home=%s\n' "$effective_codex_home"
+printf 'agent_doc_init agents_home=%s\n' "$effective_agents_home"
 printf 'agent_doc_init project_path=%s\n' "$effective_project_path"
 printf 'baseline_before missing_required=%s missing_optional=%s\n' "$missing_before" "$missing_optional_before"
 printf 'scaffold_action=%s missing_only=%s\n' "$scaffold_action" "$scaffold_missing_only"

@@ -9,7 +9,7 @@ Suggested destination:
 Copy command:
 
 ```bash
-cp "$CODEX_HOME/skills/tools/testing/rest-api-testing/references/REST_API_TESTING_GUIDE.md" \
+cp "$AGENTS_HOME/skills/tools/testing/rest-api-testing/references/REST_API_TESTING_GUIDE.md" \
   "docs/backend/rest-api-testing-guide.md"
 ```
 
@@ -44,7 +44,7 @@ To initialize `setup/rest/` in a repo for the first time, copy the bundled templ
 
 ```bash
 mkdir -p setup
-cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/
+cp -R "$AGENTS_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/rest" setup/
 ```
 
 The template includes a helper to turn a copied `api-rest`/`rest.sh` history command into a report:
@@ -154,7 +154,7 @@ api-rest report \
 
 Report output contract (recommended):
 
-- `$CODEX_HOME/skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
+- `$AGENTS_HOME/skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
 
 If you already have an `api-rest`/`rest.sh` command snippet (e.g. from `setup/rest/.rest_history`), you can generate the report without manually rewriting it:
 

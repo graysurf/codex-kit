@@ -41,4 +41,4 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$CODEX_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh`
+- `$AGENTS_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh`

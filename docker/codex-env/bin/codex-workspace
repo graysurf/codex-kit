@@ -282,7 +282,7 @@ ensure_container_running() {
 
 volume_names() {
   local container="$1"
-  echo "${container}-work" "${container}-home" "${container}-codex-home"
+  echo "${container}-work" "${container}-home" "${container}-agents-home"
 }
 
 setup_git_auth() {
@@ -315,7 +315,7 @@ setup_git_auth() {
       IFS= read -r token || exit 0
       [[ -n "$token" ]] || exit 0
 
-      token_file="$HOME/.codex-env/gh.token"
+      token_file="$HOME/.agents-env/gh.token"
       mkdir -p "${token_file%/*}"
       printf "%s\n" "$token" >| "$token_file"
       chmod 600 "$token_file" 2>/dev/null || true
@@ -516,11 +516,11 @@ workspace_up() {
 	      --label "codex-kit.workspace=1"
 	      --label "codex-kit.created-at=$ts"
 	      -e "HOME=/home/codex"
-	      -e "CODEX_HOME=/home/codex/.codex"
-	      -e "CODEX_AUTH_FILE=/home/codex/.codex/auth.json"
+	      -e "AGENTS_HOME=/home/codex/.agents"
+	      -e "CODEX_AUTH_FILE=/home/codex/.agents/auth.json"
       -v "${vol_work}:/work"
       -v "${vol_home}:/home/codex"
-      -v "${vol_codex}:/home/codex/.codex"
+      -v "${vol_codex}:/home/codex/.agents"
 	      -w /work
 	    )
 		    if [[ -n "$owner_repo" ]]; then
@@ -750,7 +750,7 @@ workspace_tunnel() {
   ensure_container_running "$container"
   docker exec "$container" bash -lc 'command -v code >/dev/null 2>&1' || die "missing 'code' in container (build with INSTALL_VSCODE=1)"
 
-  local log_path="/home/codex/.codex-env/logs/code-tunnel.log"
+  local log_path="/home/codex/.agents-env/logs/code-tunnel.log"
 
   local tunnel_name=""
   if [[ -n "$tunnel_name_arg" ]]; then

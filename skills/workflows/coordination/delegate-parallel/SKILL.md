@@ -15,7 +15,7 @@ Prereqs:
 - The request can be decomposed into 2+ tasks with limited file overlap.
 - You can spawn and monitor multiple subagents.
 - There is a way to validate changes (tests/lint/build or a concrete manual checklist).
-- You can write artifacts to `$CODEX_HOME/out/` (fallback: repo `out/` if needed).
+- You can write artifacts to `$AGENTS_HOME/out/` (fallback: repo `out/` if needed).
 
 Inputs:
 
@@ -24,7 +24,7 @@ Inputs:
   - `max_agents`: 3
   - `max_retries_per_task`: 2
   - `mode`: patch-artifacts (subagents deliver `changes.patch`; orchestrator applies + validates)
-  - `artifact_root`: `$CODEX_HOME/out/delegate-parallel/<run-id>/`
+  - `artifact_root`: `$AGENTS_HOME/out/delegate-parallel/<run-id>/`
 
 Outputs:
 
@@ -71,7 +71,7 @@ If not, stop and execute sequentially without subagents.
 
 If objective/scope/constraints/done criteria are unclear, ask 1–5 “Need to know” questions before dispatch.
 
-Use the format from `$CODEX_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`.
+Use the format from `$AGENTS_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`.
 
 ### Step 3 — Decompose into task cards
 
@@ -91,8 +91,8 @@ If two cards must edit the same files substantially, merge them or serialize the
 
 Create:
 
-- `artifact_root = $CODEX_HOME/out/delegate-parallel/<run-id>/` (preferred)
-- Fallback (if `CODEX_HOME` is unavailable): `out/delegate-parallel/<run-id>/`
+- `artifact_root = $AGENTS_HOME/out/delegate-parallel/<run-id>/` (preferred)
+- Fallback (if `AGENTS_HOME` is unavailable): `out/delegate-parallel/<run-id>/`
 
 For each task card, allocate a folder:
 

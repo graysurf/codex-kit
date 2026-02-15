@@ -56,11 +56,11 @@ done
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 skill_root="$(cd "${script_dir}/.." && pwd -P)"
 
-codex_home="${CODEX_HOME:-}"
-if [[ -z "$codex_home" || ! -d "$codex_home" ]]; then
-  codex_home="$(cd "${skill_root}/../../.." && pwd -P)"
+agents_home="${AGENTS_HOME:-}"
+if [[ -z "$agents_home" || ! -d "$agents_home" ]]; then
+  agents_home="$(cd "${skill_root}/../../.." && pwd -P)"
 fi
-project_resolve="${codex_home%/}/scripts/project-resolve"
+project_resolve="${agents_home%/}/scripts/project-resolve"
 [[ -x "$project_resolve" ]] || die "missing executable: $project_resolve"
 
 if [[ -n "$project_path" ]]; then

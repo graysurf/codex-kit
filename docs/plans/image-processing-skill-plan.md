@@ -155,8 +155,8 @@ This is an assistant response template (documented in the skill) used after a su
   - Skill contract validation passes for the new `SKILL.md`.
   - Skill layout audit passes for the new skill directory.
 - **Validation**:
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/media/image-processing/SKILL.md`
-  - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/media/image-processing`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/media/image-processing/SKILL.md`
+  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/tools/media/image-processing`
   - `scripts/test.sh -k tools_media_image_processing`
 
 ### Task 1.2: Write the skill docs (CLI + assistant workflow + response template)

@@ -93,9 +93,9 @@ declare -a desktop_notify_candidates=()
 
 desktop_notify_candidates+=("${self_dir%/}/desktop-notify.sh")
 
-if [[ -n "${CODEX_HOME:-}" ]]; then
-  desktop_notify_candidates+=("${CODEX_HOME%/}/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh")
-  desktop_notify_candidates+=("${CODEX_HOME%/}/scripts/desktop-notify.sh")
+if [[ -n "${AGENTS_HOME:-}" ]]; then
+  desktop_notify_candidates+=("${AGENTS_HOME%/}/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh")
+  desktop_notify_candidates+=("${AGENTS_HOME%/}/scripts/desktop-notify.sh")
 fi
 
 for candidate in "${desktop_notify_candidates[@]}"; do

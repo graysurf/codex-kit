@@ -7,7 +7,7 @@ Usage:
   scripts/semgrep-scan.sh [--profile <local|recommended|security|shell|scripting>] [--target <path>] [--] [semgrep args...]
 
 Runs Semgrep with repo-local rules plus selected Semgrep Registry packs.
-Writes JSON output to $CODEX_HOME/out/semgrep/ and prints the JSON path to stdout.
+Writes JSON output to $AGENTS_HOME/out/semgrep/ and prints the JSON path to stdout.
 
 Profiles:
   local:        .semgrep.yaml only
@@ -124,7 +124,7 @@ case "$profile" in
     ;;
 esac
 
-out_dir="${CODEX_HOME:-$repo_root}/out/semgrep"
+out_dir="${AGENTS_HOME:-$repo_root}/out/semgrep"
 mkdir -p "$out_dir"
 out_json="$out_dir/semgrep-$(basename "$repo_root")-$(date +%Y%m%d-%H%M%S).json"
 

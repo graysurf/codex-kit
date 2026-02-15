@@ -25,7 +25,7 @@
       "command": [
         "bash",
         "-lc",
-        "set -euo pipefail\nrepo=\"${CODEX_HOME:?}\"\ncd \"$repo\"\nfile_rel=\"out/tests/script-smoke/fixtures/progress-addendum/fixture.md\"\nmkdir -p \"$(dirname \"$file_rel\")\"\ncat >\"$file_rel\" <<'MD'\n# codex-kit: Fixture progress\n\n| Status | Created | Updated |\n| --- | --- | --- |\n| DONE | 2026-01-01 | 2026-01-02 |\n\nLinks:\n\n- PR: TBD\n- Docs: None\n- Glossary: TBD\n\n## Goal\n\n- Fixture\nMD\n\n\"$repo/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh\" --file \"$file_rel\" --date \"2099-01-01\" >/dev/null\n\ngrep -q \"^## Addendum$\" \"$file_rel\"\ngrep -q \"^### 2099-01-01$\" \"$file_rel\"\n\nprintf \"%s\\n\" \"$file_rel\"\n"
+        "set -euo pipefail\nrepo=\"${AGENTS_HOME:?}\"\ncd \"$repo\"\nfile_rel=\"out/tests/script-smoke/fixtures/progress-addendum/fixture.md\"\nmkdir -p \"$(dirname \"$file_rel\")\"\ncat >\"$file_rel\" <<'MD'\n# codex-kit: Fixture progress\n\n| Status | Created | Updated |\n| --- | --- | --- |\n| DONE | 2026-01-01 | 2026-01-02 |\n\nLinks:\n\n- PR: TBD\n- Docs: None\n- Glossary: TBD\n\n## Goal\n\n- Fixture\nMD\n\n\"$repo/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh\" --file \"$file_rel\" --date \"2099-01-01\" >/dev/null\n\ngrep -q \"^## Addendum$\" \"$file_rel\"\ngrep -q \"^### 2099-01-01$\" \"$file_rel\"\n\nprintf \"%s\\n\" \"$file_rel\"\n"
       ],
       "timeout_sec": 15,
       "expect": {

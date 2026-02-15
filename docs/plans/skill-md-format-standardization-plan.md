@@ -74,11 +74,11 @@ The outcome is a documented SKILL.md design plus governance checks that prevent 
   - The template includes stubs for `## Scripts (only entrypoints)` and `## Workflow` (when applicable) without introducing placeholder tokens in required Contract headings.
   - The template location is stable and documented in the format spec.
 - **Validation**:
-  - `bash $CODEX_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --help`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --help`
   - `rm -rf skills/_tmp/skill-md-format-smoke || true`
-  - `bash $CODEX_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --skill-dir skills/_tmp/skill-md-format-smoke --title \"Skill Md Format Smoke\" --description \"smoke\"`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/_tmp/skill-md-format-smoke/SKILL.md`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/_tmp/skill-md-format-smoke`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --skill-dir skills/_tmp/skill-md-format-smoke --title \"Skill Md Format Smoke\" --description \"smoke\"`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/_tmp/skill-md-format-smoke/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/_tmp/skill-md-format-smoke`
   - `rm -rf skills/_tmp/skill-md-format-smoke`
 
 ### Task 1.3: Add an audit script for SKILL.md structure
@@ -103,7 +103,7 @@ The outcome is a documented SKILL.md design plus governance checks that prevent 
 
 **Demo/Validation**:
 - Command(s):
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
   - `pytest -q`
 - Verify:
   - Validator fails on known-bad fixtures and passes on the repo’s SKILL.md set after migration.
@@ -121,8 +121,8 @@ The outcome is a documented SKILL.md design plus governance checks that prevent 
   - The validator preserves current behavior for Contract inner headings and ordering.
   - Error output is actionable for mass-fixing (grouped by file, stable ordering).
 - **Validation**:
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/media/image-processing/SKILL.md`
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/devex/semantic-commit/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/media/image-processing/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/devex/semantic-commit/SKILL.md`
 
 ### Task 2.2: Add regression tests for the new Contract placement rule
 - **Location**:
@@ -161,7 +161,7 @@ The outcome is a documented SKILL.md design plus governance checks that prevent 
 
 **Demo/Validation**:
 - Command(s):
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Verify:
   - All tracked SKILL.md pass (no exceptions).
 
@@ -177,7 +177,7 @@ The outcome is a documented SKILL.md design plus governance checks that prevent 
   - No policy requirements are lost; they are only reorganized under headings.
   - The `## Contract` block remains intact and unchanged (no semantic edits; only whitespace if needed for formatting).
 - **Validation**:
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/media/image-processing/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/tools/media/image-processing/SKILL.md`
 
 ### Task 3.2: Refactor worktree-stacked-feature-pr SKILL.md to use a short preamble
 - **Location**:
@@ -190,7 +190,7 @@ The outcome is a documented SKILL.md design plus governance checks that prevent 
   - `skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md` passes the updated validator.
   - The longer explanation remains available, just relocated under an H2.
 - **Validation**:
-  - `bash $CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md`
+  - `bash $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md`
 
 ## Testing Strategy
 
