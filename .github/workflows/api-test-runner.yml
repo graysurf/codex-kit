@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     env:
-      CODEX_HOME: ${{ github.workspace }}
+      AGENTS_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -42,7 +42,7 @@ jobs:
 
       - name: Run suite
         env:
-          CODEX_HOME: ${{ github.workspace }}
+          AGENTS_HOME: ${{ github.workspace }}
         run: |
           set -euo pipefail
 
@@ -100,7 +100,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     env:
-      CODEX_HOME: ${{ github.workspace }}
+      AGENTS_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -118,7 +118,7 @@ jobs:
 
       - name: Run cleanup fixture suite
         env:
-          CODEX_HOME: ${{ github.workspace }}
+          AGENTS_HOME: ${{ github.workspace }}
           API_TEST_ALLOW_WRITES_ENABLED: "true"
           API_TEST_OUTPUT_DIR: out/api-test-runner/cleanup
         run: |
@@ -177,7 +177,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     env:
-      CODEX_HOME: ${{ github.workspace }}
+      AGENTS_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -201,7 +201,7 @@ jobs:
       - name: Run suite (expected GraphQL failure demo)
         continue-on-error: true
         env:
-          CODEX_HOME: ${{ github.workspace }}
+          AGENTS_HOME: ${{ github.workspace }}
         run: |
           api-test run \
             --suite public-auth-demo \
@@ -246,7 +246,7 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     env:
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
-      CODEX_HOME: ${{ github.workspace }}
+      AGENTS_HOME: ${{ github.workspace }}
 
     steps:
       - name: Skip (missing API_TEST_AUTH_JSON)
@@ -287,7 +287,7 @@ jobs:
       - name: Run suite (auth via GitHub Secrets)
         if: ${{ env.API_TEST_AUTH_JSON != '' }}
         env:
-          CODEX_HOME: ${{ github.workspace }}
+          AGENTS_HOME: ${{ github.workspace }}
         run: |
           api-test run \
             --suite auth-secrets-demo \

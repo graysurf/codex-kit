@@ -78,7 +78,7 @@ Failure modes:
 
 - Selector: `--active-window` for “capture what I’m looking at”; otherwise prefer `--window-id` for deterministic selection.
 - For desktop/non-window capture, prefer `--display` (or `--display-id` for deterministic target).
-- Output path: prefer writing under `"$CODEX_HOME/out/screen-record/"` with a timestamped filename.
+- Output path: prefer writing under `"$AGENTS_HOME/out/screen-record/"` with a timestamped filename.
 - Recording container: default `.mov`; use `.mp4` only when compatible with requested audio.
 - Screenshot format: default `.png`; use `.jpg`/`.webp` only when explicitly requested.
 - Audio: default `off`; use `system`/`mic`/`both` only when explicitly requested (recording only).
