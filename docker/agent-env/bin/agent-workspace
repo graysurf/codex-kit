@@ -212,9 +212,26 @@ normalize_container_name() {
   local name="$1"
   if [[ "$name" == "${WORKSPACE_PREFIX}-"* ]]; then
     echo "$name"
-  else
-    echo "${WORKSPACE_PREFIX}-${name}"
+    return 0
   fi
+
+  # Avoid duplicate "...-ws-ws-..." when prefix already ends with "-ws".
+  local normalized="$name"
+  if [[ "$WORKSPACE_PREFIX" == *"-ws" && "$normalized" == ws-* ]]; then
+    local stripped="${normalized#ws-}"
+    if [[ -n "$stripped" ]]; then
+      normalized="$stripped"
+    fi
+  fi
+
+  local canonical="${WORKSPACE_PREFIX}-${normalized}"
+  local legacy="${WORKSPACE_PREFIX}-${name}"
+  if [[ "$canonical" != "$legacy" ]] && container_exists "$legacy" && ! container_exists "$canonical"; then
+    echo "$legacy"
+    return 0
+  fi
+
+  echo "$canonical"
 }
 
 parse_repo() {

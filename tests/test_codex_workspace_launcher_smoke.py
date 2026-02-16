@@ -71,7 +71,7 @@ def test_create_output_json_stdout_is_pure_json() -> None:
 
     payload: dict[str, Any] = json.loads(completed.stdout)
     assert payload["command"] == "create"
-    assert payload["workspace"] == "agent-ws-ws-test"
+    assert payload["workspace"] == "agent-ws-test"
     assert payload["repo"] is None
     assert payload["path"] == "/work"
     assert payload["image"] == "stub/agent-env:latest"
@@ -153,7 +153,7 @@ def test_setup_git_does_not_persist_token_into_container_env(tmp_path: Path) -> 
 
     calls = (log_dir / "docker.calls.txt").read_text("utf-8")
     assert "-e GH_TOKEN=stub-token" not in calls
-    assert "docker exec -i agent-ws-ws-test bash -lc" in calls
+    assert "docker exec -i agent-ws-test bash -lc" in calls
 
 
 @pytest.mark.script_smoke
