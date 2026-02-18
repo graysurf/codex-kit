@@ -222,21 +222,21 @@ def test_agent_doc_init_default_dry_run_noop(tmp_path: Path) -> None:
     assert all(not line.startswith("scaffold-baseline ") for line in calls)
 
 
-def test_agent_doc_init_uses_agents_home_env_when_agent_home_unset(tmp_path: Path) -> None:
-    agents_home = tmp_path / "agents-home"
-    agents_home.mkdir(parents=True, exist_ok=True)
+def test_agent_doc_init_uses_agent_home_env_when_cli_agent_home_unset(tmp_path: Path) -> None:
+    agent_home = tmp_path / "agent-home"
+    agent_home.mkdir(parents=True, exist_ok=True)
 
     proc, calls = _run_script(
         tmp_path,
         ["--project-path", str(Path.cwd())],
         baseline_seq="0,0",
-        extra_env={"AGENT_HOME": None, "AGENTS_HOME": str(agents_home)},
+        extra_env={"AGENT_HOME": str(agent_home)},
     )
     assert proc.returncode == 0, f"exit={proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
-    assert f"agent_doc_init AGENT_HOME={agents_home}" in proc.stdout
+    assert f"agent_doc_init AGENT_HOME={agent_home}" in proc.stdout
     baseline_calls = [line for line in calls if line.startswith("baseline ")]
     assert baseline_calls
-    assert f"--agent-home {agents_home}" in baseline_calls[0]
+    assert f"--agent-home {agent_home}" in baseline_calls[0]
 
 
 def test_agent_doc_init_cli_agent_home_overrides_env(tmp_path: Path) -> None:
@@ -249,7 +249,7 @@ def test_agent_doc_init_cli_agent_home_overrides_env(tmp_path: Path) -> None:
         tmp_path,
         ["--project-path", str(Path.cwd()), "--agent-home", str(cli_home)],
         baseline_seq="0,0",
-        extra_env={"AGENT_HOME": str(env_home), "AGENTS_HOME": str(env_home)},
+        extra_env={"AGENT_HOME": str(env_home)},
     )
     assert proc.returncode == 0, f"exit={proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
     assert f"agent_doc_init AGENT_HOME={cli_home}" in proc.stdout
