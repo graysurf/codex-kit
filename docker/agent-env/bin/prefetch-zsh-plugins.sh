@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-zsh_kit_dir="${ZSH_KIT_DIR:-/opt/zsh-kit}"
+zsh_kit_dir="${ZSH_KIT_DIR:-$HOME/.config/zsh}"
+zsh_kit_dir="${zsh_kit_dir/#\~/$HOME}"
 zsh_cache_dir="${ZSH_CACHE_DIR:-${zsh_kit_dir%/}/cache}"
 zsh_plugins_dir="${ZSH_PLUGINS_DIR:-${zsh_kit_dir%/}/plugins}"
 zsh_plugin_list_file="${ZSH_PLUGIN_LIST_FILE:-${zsh_kit_dir%/}/config/plugins.list}"

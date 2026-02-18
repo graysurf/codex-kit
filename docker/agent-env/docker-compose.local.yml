@@ -1,5 +1,9 @@
 services:
   agent-env:
+    environment:
+      ZSH_KIT_DIR: /home/agent/.config/zsh
+      ZDOTDIR: /home/agent/.config/zsh
+      AGENT_KIT_DIR: /home/agent/.agent-kit-src
     volumes:
-      - ${ZSH_KIT_DIR:?Set ZSH_KIT_DIR}:/opt/zsh-kit:ro
-      - ${AGENT_KIT_DIR:?Set AGENT_KIT_DIR}:/opt/agent-kit:ro
+      - ${ZSH_KIT_DIR:?Set ZSH_KIT_DIR}:/home/agent/.config/zsh:ro
+      - ${AGENT_KIT_DIR:?Set AGENT_KIT_DIR}:/home/agent/.agent-kit-src:ro

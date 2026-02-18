@@ -10,14 +10,10 @@ Run from the repo root (Dockerfile is at the repo root).
 docker build -f Dockerfile -t agent-env:linuxbrew .
 ```
 
-Build-time pinning (recommended):
-
-```sh
-docker build -f Dockerfile -t agent-env:linuxbrew \
-  --build-arg ZSH_KIT_REF=main \
-  --build-arg AGENT_KIT_REF=main \
-  .
-```
+Source checkout policy:
+- `zsh-kit` and `agent-kit` are always cloned from the `main` branch during image build.
+- Image defaults: `ZSH_KIT_DIR=~/.config/zsh`, `AGENT_KIT_DIR=~/.agents`.
+- `AGENT_HOME` is intentionally runtime-configurable (not pinned via Dockerfile `ENV`).
 
 Build without installing tools (fast path):
 
@@ -64,7 +60,7 @@ Notes:
 - The image uses `tini` as PID 1 for signal forwarding and zombie reaping.
 - `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
 - `mitmproxy` is installed via `apt` on Linux (declared in `tools.optional.linux.apt.list`).
-- On first container start, the entrypoint seeds `$AGENT_HOME` from the pinned agent-kit checkout (`$AGENT_KIT_DIR`) if the volume is empty.
+- On first container start, the entrypoint seeds `$AGENT_HOME` from the bundled agent-kit checkout (`$AGENT_KIT_DIR`) if the volume is empty.
 
 ## Fallback policy
 
@@ -299,6 +295,10 @@ AGENT_KIT_DIR=/path/to/agent-kit \
 WORKSPACE_DIR=/path/to/workspace \
 docker compose -f docker-compose.yml -f docker/agent-env/docker-compose.local.yml up --build
 ```
+
+Notes:
+- `ZSH_KIT_DIR` (host path) is mounted to `/home/agent/.config/zsh` inside the container.
+- `AGENT_KIT_DIR` (host path) is mounted to `/home/agent/.agent-kit-src`, and the local override sets container `AGENT_KIT_DIR` to that mount.
 
 ## VS Code tunnel (macOS client)
 

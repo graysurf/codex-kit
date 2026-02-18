@@ -132,7 +132,7 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 | Rsync host ↔ container | Wrapper | Wrapper | Keep out of launcher |
 | Reset repo(s) inside container | Wrapper | Wrapper | Keep out of launcher |
 | Host config snapshot (`~/.config` copy) | Wrapper | Wrapper | Keep out of launcher |
-| Refresh `/opt/agent-kit` + `/opt/zsh-kit` | Wrapper | Wrapper | Keep out of launcher |
+| Refresh `~/.agents` + `~/.config/zsh` | Wrapper | Wrapper | Keep out of launcher |
 | Private repo seeding (`~/.private`) | Wrapper | Wrapper | Keep out of launcher |
 | Extra repos cloning | Wrapper | Wrapper | Keep out of launcher |
 | GPG import | Wrapper | Wrapper | Keep out of launcher |

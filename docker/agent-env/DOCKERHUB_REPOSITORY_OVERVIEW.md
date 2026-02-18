@@ -38,14 +38,10 @@ docker run --rm -it \
 docker build -f Dockerfile -t agent-env:linuxbrew .
 ```
 
-Recommended: pin source refs at build time:
-
-```sh
-docker build -f Dockerfile -t agent-env:linuxbrew \
-  --build-arg ZSH_KIT_REF=main \
-  --build-arg AGENT_KIT_REF=main \
-  .
-```
+Source checkout policy:
+- `zsh-kit` and `agent-kit` are always cloned from the `main` branch during image build.
+- Image defaults: `ZSH_KIT_DIR=~/.config/zsh`, `AGENT_KIT_DIR=~/.agents`.
+- `AGENT_HOME` is runtime-configurable (not pinned via Dockerfile `ENV`).
 
 Common build args:
 

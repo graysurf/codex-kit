@@ -45,8 +45,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /usr/bin/zsh agent \
   && echo "agent ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/agent \
   && chmod 0440 /etc/sudoers.d/agent \
-  && mkdir -p /opt/zsh-kit /opt/agent-kit /opt/agent-env /home/agent/.agents /home/linuxbrew/.linuxbrew \
-  && chown -R agent:agent /opt/zsh-kit /opt/agent-kit /opt/agent-env /home/agent /home/linuxbrew
+  && mkdir -p /opt/agent-env /home/agent/.config/zsh /home/agent/.agents /home/linuxbrew/.linuxbrew \
+  && chown -R agent:agent /opt/agent-env /home/agent /home/linuxbrew
 
 USER agent
 
@@ -66,24 +66,19 @@ RUN if [[ "${INSTALL_NILS_CLI}" == "1" ]]; then \
   fi
 
 ARG ZSH_KIT_REPO="https://github.com/graysurf/zsh-kit.git"
-ARG ZSH_KIT_REF="nils-cli"
 ARG AGENT_KIT_REPO="https://github.com/graysurf/agent-kit.git"
-ARG AGENT_KIT_REF="main"
 
-RUN git clone "${ZSH_KIT_REPO}" /opt/zsh-kit \
-  && (cd /opt/zsh-kit && git checkout "${ZSH_KIT_REF}")
+RUN git clone --branch main --single-branch "${ZSH_KIT_REPO}" /home/agent/.config/zsh
 
-RUN git clone "${AGENT_KIT_REPO}" /opt/agent-kit \
-  && (cd /opt/agent-kit && git checkout "${AGENT_KIT_REF}")
+RUN git clone --branch main --single-branch "${AGENT_KIT_REPO}" /home/agent/.agents
 
-ENV ZSH_KIT_DIR="/opt/zsh-kit"
-ENV AGENT_KIT_DIR="/opt/agent-kit"
-ENV ZDOTDIR="/opt/zsh-kit"
+ENV ZSH_KIT_DIR="~/.config/zsh"
+ENV AGENT_KIT_DIR="~/.agents"
+ENV ZDOTDIR="/home/agent/.config/zsh"
 ENV ZSH_FEATURES="opencode"
 ENV ZSH_BOOT_WEATHER_ENABLED=false
 ENV ZSH_BOOT_QUOTE_ENABLED=false
 ENV HOME="/home/agent"
-ENV AGENT_HOME="/home/agent/.agents"
 
 COPY docker/agent-env/ /opt/agent-env/
 

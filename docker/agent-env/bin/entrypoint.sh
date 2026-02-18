@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-codex_user="${CODEX_USER:-codex}"
-AGENT_HOME="${AGENT_HOME:-/home/${codex_user}/.agents}"
-codex_src="${AGENT_KIT_DIR:-/opt/agent-kit}"
+codex_user="${CODEX_USER:-$(id -un)}"
+home_dir="${HOME:-/home/${codex_user}}"
+
+expand_home_path() {
+  local path="${1:-}"
+  if [[ "$path" == "~" ]]; then
+    printf '%s\n' "$home_dir"
+    return 0
+  fi
+  if [[ "$path" == "~/"* ]]; then
+    printf '%s/%s\n' "${home_dir%/}" "${path#~/}"
+    return 0
+  fi
+  printf '%s\n' "$path"
+}
+
+AGENT_HOME="$(expand_home_path "${AGENT_HOME:-${home_dir%/}/.agents}")"
+codex_src="$(expand_home_path "${AGENT_KIT_DIR:-${home_dir%/}/.agents}")"
 
 export CODEX_AUTH_FILE="${CODEX_AUTH_FILE:-${AGENT_HOME%/}/auth.json}"
 

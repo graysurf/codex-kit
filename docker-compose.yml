@@ -5,8 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        ZSH_KIT_REF: ${ZSH_KIT_REF:-main}
-        AGENT_KIT_REF: ${AGENT_KIT_REF:-main}
         INSTALL_TOOLS: ${INSTALL_TOOLS:-1}
         INSTALL_OPTIONAL_TOOLS: ${INSTALL_OPTIONAL_TOOLS:-1}
         INSTALL_VSCODE: ${INSTALL_VSCODE:-1}
