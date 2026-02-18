@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.7 - 2026-02-18
+
+### Added
+- `close-feature-pr`: automatically ready draft PRs before merge.
+- `deliver-feature-pr`: add explicit preflight ambiguity bypass support.
+- `create-project-skill`: auto-prefix generated skill names.
+- Devex: add the `codex-notify` desktop notification wrapper.
+- Scripts: add a `clean-untracked` helper command.
+
+### Changed
+- Environment/home-variable migration: standardize on `AGENT_HOME`/`agents_home` naming across docs and scripts, plus `agent-env` naming updates.
+- Branding/docs: sync `codex-kit` references to `agent-kit` and refresh workspace-launcher guidance.
+- Docker: simplify agent-environment path defaults and add an `agent-env` overview.
+- Workflows: update env-var references and align preflight/release documentation.
+
+### Fixed
+- Env resolution: remove inconsistent `AGENTS_HOME` fallback usage in runtime scripts and skills.
+- `agent-doc-init`: align home-resolution behavior with `AGENT_HOME`.
+- `workspace-launcher`: normalize workspace container naming.
+- Media tests: align screen-record test environment-variable handling.
+
 ## v2.2.6 - 2026-02-13
 
 ### Added
