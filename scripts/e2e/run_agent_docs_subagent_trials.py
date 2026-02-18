@@ -321,9 +321,7 @@ def main() -> int:
         raise SystemExit("error: config must include a non-empty `scenarios` array")
 
     root = repo_root()
-    effective_AGENT_HOME = Path(
-        os.environ.get("AGENT_HOME") or os.environ.get("AGENTS_HOME") or str(root)
-    ).resolve()
+    effective_AGENT_HOME = Path(os.environ.get("AGENT_HOME", str(root))).resolve()
     effective_project_path = Path(os.environ.get("PROJECT_PATH", str(root))).resolve()
     tokens = {
         "REPO_ROOT": str(root),

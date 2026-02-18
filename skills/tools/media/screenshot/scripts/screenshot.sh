@@ -45,7 +45,7 @@ for arg in "$@"; do
   fi
   args+=("$arg")
 done
-agent_home="${AGENT_HOME:-${AGENTS_HOME:-}}"
+agent_home="${AGENT_HOME:-}"
 
 if [[ "$desktop_mode" == "1" ]]; then
   os="$(uname -s 2>/dev/null || true)"

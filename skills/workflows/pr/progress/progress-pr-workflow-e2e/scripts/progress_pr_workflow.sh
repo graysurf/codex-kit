@@ -202,9 +202,8 @@ if [[ -z "$sandbox_base_branch" ]]; then
 fi
 json_upsert "sandbox_base_branch" "$sandbox_base_branch"
 
-AGENT_HOME="${AGENT_HOME:-${AGENTS_HOME:-$repo_root}}"
-AGENTS_HOME="${AGENTS_HOME:-$AGENT_HOME}"
-export AGENT_HOME AGENTS_HOME
+AGENT_HOME="${AGENT_HOME:-$repo_root}"
+export AGENT_HOME
 handoff_script=""
 close_script=""
 create_progress_file_script=""
@@ -224,7 +223,6 @@ if [[ ! -f "$handoff_script" || ! -f "$close_script" || ! -f "$create_progress_f
   # the caller intentionally pointed AGENT_HOME at a agent-kit checkout that contains these scripts.
   resolve_tools "$repo_root"
   AGENT_HOME="$repo_root"
-  AGENTS_HOME="$repo_root"
 fi
 
 for p in "$handoff_script" "$close_script" "$create_progress_file_script" "$create_worktrees_script"; do

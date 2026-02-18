@@ -90,7 +90,7 @@ self_dir="$(cd "$(dirname "$self_path")" >/dev/null 2>&1 && pwd -P || true)"
 
 desktop_notify_abs=""
 declare -a desktop_notify_candidates=()
-agent_home="${AGENT_HOME:-${AGENTS_HOME:-}}"
+agent_home="${AGENT_HOME:-}"
 
 desktop_notify_candidates+=("${self_dir%/}/desktop-notify.sh")
 

@@ -52,7 +52,7 @@ done
 [[ -f "$changelog" ]] || die "changelog not found: $changelog"
 
 if [[ -z "$output" ]]; then
-  agent_home="${AGENT_HOME:-${AGENTS_HOME:-}}"
+  agent_home="${AGENT_HOME:-}"
   if [[ -n "$agent_home" ]]; then
     output="${agent_home%/}/out/release-notes-${version}.md"
   else

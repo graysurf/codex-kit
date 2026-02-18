@@ -53,7 +53,7 @@ fi
 
 project_notify_abs=""
 declare -a project_notify_candidates=()
-agent_home="${AGENT_HOME:-${AGENTS_HOME:-}}"
+agent_home="${AGENT_HOME:-}"
 
 project_notify_candidates+=("${self_dir%/}/project-notify.sh")
 
