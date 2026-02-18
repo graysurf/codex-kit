@@ -100,6 +100,7 @@ def _run_script(
     args: list[str],
     *,
     baseline_seq: str = "0,0",
+    extra_env: dict[str, str | None] | None = None,
 ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
     bin_dir = _write_agent_docs_stub(tmp_path)
     log_path = tmp_path / "agent_docs_calls.log"
@@ -111,6 +112,12 @@ def _run_script(
     env["AGENT_DOCS_STUB_LOG"] = str(log_path)
     env["AGENT_DOCS_STUB_STATE"] = str(state_path)
     env["AGENT_DOCS_STUB_BASELINE_SEQ"] = baseline_seq
+    if extra_env:
+        for key, value in extra_env.items():
+            if value is None:
+                env.pop(key, None)
+            else:
+                env[key] = value
 
     project_path = tmp_path / "project"
     project_path.mkdir(parents=True, exist_ok=True)
@@ -213,6 +220,42 @@ def test_agent_doc_init_default_dry_run_noop(tmp_path: Path) -> None:
     assert "result changed=false" in proc.stdout
     assert sum(1 for line in calls if line.startswith("baseline ")) == 2
     assert all(not line.startswith("scaffold-baseline ") for line in calls)
+
+
+def test_agent_doc_init_uses_agents_home_env_when_agent_home_unset(tmp_path: Path) -> None:
+    agents_home = tmp_path / "agents-home"
+    agents_home.mkdir(parents=True, exist_ok=True)
+
+    proc, calls = _run_script(
+        tmp_path,
+        ["--project-path", str(Path.cwd())],
+        baseline_seq="0,0",
+        extra_env={"AGENT_HOME": None, "AGENTS_HOME": str(agents_home)},
+    )
+    assert proc.returncode == 0, f"exit={proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+    assert f"agent_doc_init AGENT_HOME={agents_home}" in proc.stdout
+    baseline_calls = [line for line in calls if line.startswith("baseline ")]
+    assert baseline_calls
+    assert f"--agent-home {agents_home}" in baseline_calls[0]
+
+
+def test_agent_doc_init_cli_agent_home_overrides_env(tmp_path: Path) -> None:
+    env_home = tmp_path / "env-home"
+    env_home.mkdir(parents=True, exist_ok=True)
+    cli_home = tmp_path / "cli-home"
+    cli_home.mkdir(parents=True, exist_ok=True)
+
+    proc, calls = _run_script(
+        tmp_path,
+        ["--project-path", str(Path.cwd()), "--agent-home", str(cli_home)],
+        baseline_seq="0,0",
+        extra_env={"AGENT_HOME": str(env_home), "AGENTS_HOME": str(env_home)},
+    )
+    assert proc.returncode == 0, f"exit={proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+    assert f"agent_doc_init AGENT_HOME={cli_home}" in proc.stdout
+    baseline_calls = [line for line in calls if line.startswith("baseline ")]
+    assert baseline_calls
+    assert f"--agent-home {cli_home}" in baseline_calls[0]
 
 
 def test_agent_doc_init_apply_runs_missing_only_scaffold(tmp_path: Path) -> None:

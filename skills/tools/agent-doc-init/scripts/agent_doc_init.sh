@@ -463,7 +463,7 @@ apply="false"
 force="false"
 target="all"
 project_path=""
-AGENT_HOME=""
+agent_home=""
 declare -a project_required_entries=()
 
 while [[ $# -gt 0 ]]; do
@@ -503,7 +503,7 @@ while [[ $# -gt 0 ]]; do
       if [[ $# -lt 2 || -z "${2:-}" ]]; then
         die_usage "--agent-home requires a value"
       fi
-      AGENT_HOME="${2:-}"
+      agent_home="${2:-}"
       shift 2
       ;;
     --project-required)
@@ -534,16 +534,16 @@ if ! command -v python3 >/dev/null 2>&1; then
   die_runtime "python3 is required but not found on PATH"
 fi
 
+effective_AGENT_HOME="${agent_home:-${AGENT_HOME:-${AGENTS_HOME:-$HOME/.agents}}}"
+effective_project_path="${project_path:-${PROJECT_PATH:-$PWD}}"
+
 declare -a common_args=()
 if [[ -n "$project_path" ]]; then
   common_args+=(--project-path "$project_path")
 fi
-if [[ -n "$AGENT_HOME" ]]; then
-  common_args+=(--agent-home "$AGENT_HOME")
+if [[ -n "$effective_AGENT_HOME" ]]; then
+  common_args+=(--agent-home "$effective_AGENT_HOME")
 fi
-
-effective_AGENT_HOME="${AGENT_HOME:-${AGENT_HOME:-$HOME/.agents}}"
-effective_project_path="${project_path:-${PROJECT_PATH:-$PWD}}"
 
 before_json="$(run_baseline_json "$target" "${common_args[@]}")"
 read -r missing_before missing_optional_before <<<"$(printf '%s' "$before_json" | extract_baseline_counts)"
