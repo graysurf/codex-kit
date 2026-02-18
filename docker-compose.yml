@@ -11,7 +11,7 @@ services:
     environment:
       HOME: /home/agent
       AGENT_HOME: /home/agent/.agents
-      CODEX_AUTH_FILE: /home/agent/.agents/auth.json
+      CODEX_AUTH_FILE: /home/agent/.codex/auth.json
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ${WORKSPACE_DIR:-.}:/work

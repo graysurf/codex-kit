@@ -534,7 +534,7 @@ workspace_up() {
 	      --label "agent-kit.created-at=$ts"
 	      -e "HOME=/home/agent"
 	      -e "AGENT_HOME=/home/agent/.agents"
-	      -e "CODEX_AUTH_FILE=/home/agent/.agents/auth.json"
+	      -e "CODEX_AUTH_FILE=/home/agent/.codex/auth.json"
       -v "${vol_work}:/work"
       -v "${vol_home}:/home/agent"
       -v "${vol_codex}:/home/agent/.agents"
