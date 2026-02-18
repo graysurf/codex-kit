@@ -60,6 +60,9 @@ done
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$repo_root"
+agent_home="${AGENT_HOME:-${AGENTS_HOME:-$repo_root}}"
+export AGENT_HOME="$agent_home"
+export AGENTS_HOME="$agent_home"
 
 semgrep_bin="${repo_root}/.venv/bin/semgrep"
 if [[ ! -x "$semgrep_bin" ]]; then
@@ -124,7 +127,7 @@ case "$profile" in
     ;;
 esac
 
-out_dir="${AGENT_HOME:-$repo_root}/out/semgrep"
+out_dir="${agent_home}/out/semgrep"
 mkdir -p "$out_dir"
 out_json="$out_dir/semgrep-$(basename "$repo_root")-$(date +%Y%m%d-%H%M%S).json"
 

@@ -68,9 +68,10 @@ expand_tilde() {
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
-AGENT_HOME="${AGENT_HOME:-$REPO_ROOT}"
+AGENT_HOME="${AGENT_HOME:-${AGENTS_HOME:-$REPO_ROOT}}"
 AGENT_HOME="$(expand_tilde "$AGENT_HOME")"
 export AGENT_HOME
+export AGENTS_HOME="${AGENTS_HOME:-$AGENT_HOME}"
 
 USER_DATA_DIR_BASE="$(expand_tilde "${CHROME_DEVTOOLS_USER_DATA_BASE:-$AGENT_HOME/.cache/chrome-devtools-mcp}")"
 

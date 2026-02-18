@@ -75,10 +75,12 @@ default_template="${skill_root}/assets/templates/RELEASE_TEMPLATE.md"
 [[ -f "$default_guide" ]] || die "default guide missing: $default_guide"
 [[ -f "$default_template" ]] || die "default template missing: $default_template"
 
-AGENT_HOME="${AGENT_HOME:-}"
+AGENT_HOME="${AGENT_HOME:-${AGENTS_HOME:-}}"
 if [[ -z "$AGENT_HOME" || ! -d "$AGENT_HOME" ]]; then
   AGENT_HOME="$(cd "${skill_root}/../../.." && pwd -P)"
 fi
+export AGENT_HOME
+export AGENTS_HOME="${AGENTS_HOME:-$AGENT_HOME}"
 
 project_resolve="${AGENT_HOME%/}/scripts/project-resolve"
 [[ -x "$project_resolve" ]] || die "missing executable: $project_resolve"

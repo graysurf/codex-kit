@@ -44,7 +44,9 @@ if ! "$python" -c "import pytest" >/dev/null 2>&1; then
   exit 1
 fi
 
-export AGENT_HOME="$repo_root"
+agent_home="${AGENT_HOME:-${AGENTS_HOME:-$repo_root}}"
+export AGENT_HOME="$agent_home"
+export AGENTS_HOME="$agent_home"
 declare -a ignore_args=()
 if [[ "${CODEX_PYTEST_INCLUDE_WORKTREES:-}" != "1" ]]; then
   ignore_args+=(--ignore=worktrees --ignore=.worktrees)

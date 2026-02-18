@@ -4,6 +4,13 @@
 [[ -n "${CODEX_ENV_LOADED:-}" ]] && return
 export CODEX_ENV_LOADED=1
 
+if [[ -z "${AGENT_HOME:-}" && -n "${AGENTS_HOME:-}" ]]; then
+  export AGENT_HOME="${AGENTS_HOME}"
+fi
+if [[ -z "${AGENTS_HOME:-}" && -n "${AGENT_HOME:-}" ]]; then
+  export AGENTS_HOME="${AGENT_HOME}"
+fi
+
 # non-interactive only: reduce color/control sequences for LLM consumption
 if [[ ! -o interactive ]]; then
   export NO_COLOR=1

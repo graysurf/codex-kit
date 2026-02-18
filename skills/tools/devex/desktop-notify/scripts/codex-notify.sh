@@ -53,12 +53,13 @@ fi
 
 project_notify_abs=""
 declare -a project_notify_candidates=()
+agent_home="${AGENT_HOME:-${AGENTS_HOME:-}}"
 
 project_notify_candidates+=("${self_dir%/}/project-notify.sh")
 
-if [[ -n "${AGENT_HOME:-}" ]]; then
-  project_notify_candidates+=("${AGENT_HOME%/}/skills/tools/devex/desktop-notify/scripts/project-notify.sh")
-  project_notify_candidates+=("${AGENT_HOME%/}/scripts/project-notify.sh")
+if [[ -n "$agent_home" ]]; then
+  project_notify_candidates+=("${agent_home%/}/skills/tools/devex/desktop-notify/scripts/project-notify.sh")
+  project_notify_candidates+=("${agent_home%/}/scripts/project-notify.sh")
 fi
 
 for candidate in "${project_notify_candidates[@]}"; do

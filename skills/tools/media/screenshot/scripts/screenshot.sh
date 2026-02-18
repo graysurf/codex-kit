@@ -45,6 +45,7 @@ for arg in "$@"; do
   fi
   args+=("$arg")
 done
+agent_home="${AGENT_HOME:-${AGENTS_HOME:-}}"
 
 if [[ "$desktop_mode" == "1" ]]; then
   os="$(uname -s 2>/dev/null || true)"
@@ -140,8 +141,8 @@ if [[ "$desktop_mode" == "1" ]]; then
     path=""
   fi
   if [[ -z "$path" ]]; then
-    if [[ -z "$dir" && -n "${AGENT_HOME:-}" && -d "${AGENT_HOME:-}" ]]; then
-      dir="${AGENT_HOME}/out/screenshot"
+    if [[ -z "$dir" && -n "$agent_home" && -d "$agent_home" ]]; then
+      dir="${agent_home}/out/screenshot"
     fi
     if [[ -z "$dir" ]]; then
       dir="."
@@ -217,8 +218,8 @@ if [[ "$has_selector" == "0" ]]; then
   final_args+=(--active-window)
 fi
 
-if [[ "$has_output" == "0" && -n "${AGENT_HOME:-}" && -d "${AGENT_HOME:-}" ]]; then
-  out_dir="${AGENT_HOME}/out/screenshot"
+if [[ "$has_output" == "0" && -n "$agent_home" && -d "$agent_home" ]]; then
+  out_dir="${agent_home}/out/screenshot"
   mkdir -p "$out_dir" 2>/dev/null || true
   final_args+=(--dir "$out_dir")
 fi

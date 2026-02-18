@@ -58,7 +58,9 @@ done
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$repo_root"
 
-export AGENT_HOME="${AGENT_HOME:-$repo_root}"
+agent_home="${AGENT_HOME:-${AGENTS_HOME:-$repo_root}}"
+export AGENT_HOME="$agent_home"
+export AGENTS_HOME="$agent_home"
 
 # Reduce color/control sequences for non-interactive usage and logs.
 export NO_COLOR=1

@@ -90,12 +90,13 @@ self_dir="$(cd "$(dirname "$self_path")" >/dev/null 2>&1 && pwd -P || true)"
 
 desktop_notify_abs=""
 declare -a desktop_notify_candidates=()
+agent_home="${AGENT_HOME:-${AGENTS_HOME:-}}"
 
 desktop_notify_candidates+=("${self_dir%/}/desktop-notify.sh")
 
-if [[ -n "${AGENT_HOME:-}" ]]; then
-  desktop_notify_candidates+=("${AGENT_HOME%/}/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh")
-  desktop_notify_candidates+=("${AGENT_HOME%/}/scripts/desktop-notify.sh")
+if [[ -n "$agent_home" ]]; then
+  desktop_notify_candidates+=("${agent_home%/}/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh")
+  desktop_notify_candidates+=("${agent_home%/}/scripts/desktop-notify.sh")
 fi
 
 for candidate in "${desktop_notify_candidates[@]}"; do

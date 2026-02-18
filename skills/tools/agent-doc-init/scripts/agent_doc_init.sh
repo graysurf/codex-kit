@@ -534,7 +534,7 @@ if ! command -v python3 >/dev/null 2>&1; then
   die_runtime "python3 is required but not found on PATH"
 fi
 
-effective_AGENT_HOME="${agent_home:-${AGENT_HOME:-$HOME/.agents}}"
+effective_AGENT_HOME="${agent_home:-${AGENT_HOME:-${AGENTS_HOME:-$HOME/.agents}}}"
 effective_project_path="${project_path:-${PROJECT_PATH:-$PWD}}"
 
 declare -a common_args=()

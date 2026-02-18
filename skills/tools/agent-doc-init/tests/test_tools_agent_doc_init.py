@@ -239,6 +239,23 @@ def test_agent_doc_init_uses_agent_home_env_when_cli_agent_home_unset(tmp_path: 
     assert f"--agent-home {agent_home}" in baseline_calls[0]
 
 
+def test_agent_doc_init_uses_agents_home_env_when_agent_home_unset(tmp_path: Path) -> None:
+    agents_home = tmp_path / "agents-home"
+    agents_home.mkdir(parents=True, exist_ok=True)
+
+    proc, calls = _run_script(
+        tmp_path,
+        ["--project-path", str(Path.cwd())],
+        baseline_seq="0,0",
+        extra_env={"AGENT_HOME": None, "AGENTS_HOME": str(agents_home)},
+    )
+    assert proc.returncode == 0, f"exit={proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+    assert f"agent_doc_init AGENT_HOME={agents_home}" in proc.stdout
+    baseline_calls = [line for line in calls if line.startswith("baseline ")]
+    assert baseline_calls
+    assert f"--agent-home {agents_home}" in baseline_calls[0]
+
+
 def test_agent_doc_init_cli_agent_home_overrides_env(tmp_path: Path) -> None:
     env_home = tmp_path / "env-home"
     env_home.mkdir(parents=True, exist_ok=True)
