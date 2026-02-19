@@ -44,6 +44,11 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 - If the user provides a bug report: ensure reproduction steps, expected vs actual, and environment. Ask only for missing details.
 - If the user provides no input: do not ask; proceed autonomously.
+- If candidate bugs are sourced from GitHub Issues, read each issue carefully before selection (full description, repro details, expected vs actual, labels, comments, and linked references).
+- For GitHub Issue sourcing, treat an issue as already in progress and skip it immediately when either is true:
+  - the issue already has discussion/comments
+  - the issue already has an opened/linked PR (including draft PRs)
+- When skipping an in-progress issue, record the skip reason in the issues list and continue to the next candidate issue.
 
 ## Discovery
 
@@ -52,6 +57,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Exclude generated, vendor, or codegen directories when present (node_modules, dist, build, vendor, .git, gen, generated, codegen).
 - Keep scan rules general; do not add repo-specific patterns.
 - Do not rely on grep results alone; use LLM analysis to confirm plausibility and impact.
+- If using GitHub Issues as the discovery source, inspect issue content directly (not title-only triage) and apply the in-progress skip rules from Intake before ranking candidates.
 - Produce an issues list using `references/ISSUES_TEMPLATE.md`.
 - Use the ID format `PR-<number>-BUG-##` (example: `PR-128-BUG-01`). If the PR number is not known yet, use `PR-<number>` as a placeholder and update after PR creation.
 - For project-specific skills, consider adding a minimal repro script requirement; see `references/REPRO_GUIDE.md`.
@@ -66,6 +72,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 - If user input exists, fix that issue.
 - If autonomous, fix the single most severe or highest-confidence issue.
+- For GitHub Issue-driven selection, choose only eligible issues (open, no discussion/comments, no opened/linked PR). Skip in-progress issues and move to the next target.
 - Only fix multiple issues when they share the same root cause and the diff remains small.
 - Severity levels are fixed: critical, high, medium, low.
 
