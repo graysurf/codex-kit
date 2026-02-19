@@ -35,14 +35,15 @@ def test_docs_plan_cleanup_skill_declares_response_template_usage() -> None:
 def test_docs_plan_cleanup_response_template_includes_required_summary_fields() -> None:
     text = _response_template_text()
     required_fields = (
-        "total_plan_md:",
-        "plan_md_to_keep:",
-        "plan_md_to_clean:",
-        "plan_related_md_to_clean:",
-        "plan_related_md_kept_referenced_elsewhere:",
-        "plan_related_md_to_rehome:",
-        "plan_related_md_manual_review:",
-        "non_docs_md_referencing_removed_plan:",
+        "| metric | value |",
+        "| total_plan_md |",
+        "| plan_md_to_keep |",
+        "| plan_md_to_clean |",
+        "| plan_related_md_to_clean |",
+        "| plan_related_md_kept_referenced_elsewhere |",
+        "| plan_related_md_to_rehome |",
+        "| plan_related_md_manual_review |",
+        "| non_docs_md_referencing_removed_plan |",
     )
     for field in required_fields:
         assert field in text
@@ -61,3 +62,15 @@ def test_docs_plan_cleanup_response_template_includes_all_item_sections() -> Non
     )
     for section in required_sections:
         assert section in text
+
+    # Itemized sections must be represented as markdown tables.
+    assert "| path |" in text
+    assert "| path | referenced_by |" in text
+    assert "| none | - |" in text
+
+
+def test_docs_plan_cleanup_skill_requires_markdown_table_output() -> None:
+    text = _skill_md_text()
+    assert "rendered as a Markdown table" in text
+    assert "rendered as Markdown tables" in text
+    assert "render a `none` row in that table" in text

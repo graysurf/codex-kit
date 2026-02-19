@@ -1,37 +1,61 @@
 ## Cleanup Result
-- project: <repo-root-path>
-- project_path_source: <PROJECT_PATH|--project-path|cwd>
-- mode: <dry-run|execute>
-- execution_status: <applied|skipped (dry-run)>
+| field | value |
+| --- | --- |
+| project | <repo-root-path> |
+| project_path_source | <PROJECT_PATH\|--project-path\|cwd> |
+| mode | <dry-run\|execute> |
+| execution_status | <applied\|skipped (dry-run)> |
 
 ## Summary
-total_plan_md: <number>
-plan_md_to_keep: <number>
-plan_md_to_clean: <number>
-plan_related_md_to_clean: <number>
-plan_related_md_kept_referenced_elsewhere: <number>
-plan_related_md_to_rehome: <number>
-plan_related_md_manual_review: <number>
-non_docs_md_referencing_removed_plan: <number>
+| metric | value |
+| --- | --- |
+| total_plan_md | <number> |
+| plan_md_to_keep | <number> |
+| plan_md_to_clean | <number> |
+| plan_related_md_to_clean | <number> |
+| plan_related_md_kept_referenced_elsewhere | <number> |
+| plan_related_md_to_rehome | <number> |
+| plan_related_md_manual_review | <number> |
+| non_docs_md_referencing_removed_plan | <number> |
 
 ## plan_md_to_keep
-- <docs/plans/... or none>
+| path |
+| --- |
+| <docs/plans/...> |
+| none |
 
 ## plan_md_to_clean
-- <docs/plans/... or none>
+| path |
+| --- |
+| <docs/plans/...> |
+| none |
 
 ## plan_related_md_to_clean
-- <docs/... or none>
+| path |
+| --- |
+| <docs/...> |
+| none |
 
 ## plan_related_md_kept_referenced_elsewhere
-- <docs/... | referenced_by: <file[, file...]>>
-- none
+| path | referenced_by |
+| --- | --- |
+| <docs/...> | <file[, file...]> |
+| none | - |
 
 ## plan_related_md_to_rehome
-- <docs/specs/... or docs/runbooks/... or none>
+| path |
+| --- |
+| <docs/specs/... or docs/runbooks/...> |
+| none |
 
 ## plan_related_md_manual_review
-- <docs/... or none>
+| path |
+| --- |
+| <docs/...> |
+| none |
 
 ## non_docs_md_referencing_removed_plan
-- <README.md or other .md outside docs/ or none>
+| path |
+| --- |
+| <README.md or other .md outside docs/> |
+| none |

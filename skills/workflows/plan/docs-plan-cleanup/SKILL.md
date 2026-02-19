@@ -75,7 +75,7 @@ Failure modes:
 
 - Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format when reporting cleanup results.
 - When script output contains `[execution]` with `status: applied`, the response must include:
-  1. The exact summary counters from script output:
+  1. The exact summary counters from script output, rendered as a Markdown table:
      - `total_plan_md`
      - `plan_md_to_keep`
      - `plan_md_to_clean`
@@ -84,7 +84,7 @@ Failure modes:
      - `plan_related_md_to_rehome`
      - `plan_related_md_manual_review`
      - `non_docs_md_referencing_removed_plan`
-  2. All itemized sections from the script report:
+  2. All itemized sections from the script report, rendered as Markdown tables:
      - `plan_md_to_keep`
      - `plan_md_to_clean`
      - `plan_related_md_to_clean`
@@ -92,5 +92,5 @@ Failure modes:
      - `plan_related_md_to_rehome`
      - `plan_related_md_manual_review`
      - `non_docs_md_referencing_removed_plan`
-- Do not omit empty sections. If a section has no values, keep it and render `- none`.
+- Do not omit empty sections. If a section has no values, keep it and render a `none` row in that table.
 - Copy values from script output directly; do not infer or re-count manually.
