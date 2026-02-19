@@ -44,6 +44,10 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 - If the user provides a bug report: ensure reproduction steps, expected vs actual, and environment. Ask only for missing details.
 - If the user provides no input: do not ask; proceed autonomously.
+- When using GitHub issues as intake targets, you must read the full issue context before selection:
+  description/body, reproduction steps, expected vs actual behavior, labels, comments/discussion, and linked references.
+- Skip immediately and move to the next issue when either condition is true:
+  the issue has any comments/discussion, or the issue has any opened linked PR (including draft PRs).
 
 ## Discovery
 
