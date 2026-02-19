@@ -1,9 +1,5 @@
 # Progress Files
 
-Progress files track planning + implementation work for features. See the workflow runbook:
-
-- `docs/runbooks/progress-pr-workflow.md`
-
 Conventions:
 
 - Naming: `docs/progress/<YYYYMMDD>_<feature_slug>.md`
