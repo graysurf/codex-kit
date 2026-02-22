@@ -1,6 +1,6 @@
 ---
 name: image-processing
-description: Process images (convert/resize/crop/optimize) via ImageMagick
+description: Validate SVG inputs and convert trusted SVG to png/webp/svg
 ---
 
 # Image Processing
@@ -13,25 +13,20 @@ Prereqs:
 
 - Run inside a git work tree (recommended; enables stable `out/` paths).
 - `image-processing` available on `PATH` (install via `brew install nils-cli`).
-- ImageMagick:
-  - `magick` (preferred), or
-  - `convert` + `identify`.
-- Optional (used by `optimize` when available; otherwise falls back):
-  - WebP: `cwebp` + `dwebp`
-  - JPEG: `cjpeg` + `djpeg`
+- No external image binaries required for standard use.
 
 Inputs:
 
 - Natural-language user intent (assistant translates into a command).
-- One or more input paths via `--in` (file or directory).
-- For output-producing subcommands: exactly one output mode:
-  - `--out <file>` (single input only), or
-  - `--out-dir <dir>` (batch), or
-  - `--in-place --yes` (destructive).
+- Exactly one operation:
+  - `convert`: `--from-svg <path>` + `--to png|webp|svg` + `--out <file>`
+  - `svg-validate`: exactly one `--in <path>` + `--out <file.svg>`
+- Optional sizing for raster convert output: `--width` / `--height`.
+- Optional output controls: `--overwrite`, `--dry-run`, `--json`, `--report`.
 
 Outputs:
 
-- Processed image file(s) under the chosen output mode.
+- One output file per invocation.
 - Optional artifacts under `out/image-processing/runs/<run_id>/`:
   - `summary.json` (when `--json` or `--report` is used)
   - `report.md` (when `--report` is used)
@@ -47,23 +42,27 @@ Exit codes:
 
 Failure modes:
 
-- Missing required tools (`image-processing` binary, ImageMagick).
-- Invalid or ambiguous flags (missing output mode, missing required params).
-- Output collisions in batch mode (multiple inputs map to the same output).
+- Missing required tool (`image-processing` binary).
+- Invalid or ambiguous flags (missing required params, unsupported combinations).
 - Output already exists without `--overwrite`.
-- Disallowed operations:
-  - `--in-place` without `--yes`
-  - Alpha → JPEG without `--background`
+- Invalid convert contract:
+  - missing `--from-svg` / `--to` / `--out`
+  - `--in` used with `convert`
+  - `--out` extension mismatch vs `--to`
+  - `--to svg` with `--width`/`--height`
+- Invalid `svg-validate` contract:
+  - missing or repeated `--in`
+  - missing `--out`
+  - convert-only flags like `--to`/`--width`/`--height`
 
 ## Guidance
 
 ### Preferences (optional; honor when provided)
 
-- Output mode: `--out` / `--out-dir` / `--in-place --yes`
-- Format: `png` / `jpg` / `webp`
-- Geometry intent: width/height/scale/aspect, `--fit contain|cover|stretch`, `--gravity`
-- Quality / metadata: `--quality`, `--strip-metadata`, `--background` (required for alpha → JPEG)
-- Reproducibility: `--dry-run`, `--json`, `--report`
+- Operation: `convert` or `svg-validate`.
+- Target format (for `convert`): `png` / `webp` / `svg`.
+- Raster sizing (for `convert --to png|webp`): `--width`, `--height`.
+- Reproducibility/audit flags: `--dry-run`, `--json`, `--report`, `--overwrite`.
 
 ### Policies (must-follow per request)
 
@@ -76,11 +75,9 @@ Failure modes:
    - Only run: `image-processing` (from `PATH`; install via `brew install nils-cli`)
    - Do not call ImageMagick binaries directly unless debugging the `image-processing` CLI itself.
 
-3) Output mode gate (exactly one)
-   - For output-producing subcommands, require exactly one of:
-     - `--out <file>` (single input only)
-     - `--out-dir <dir>` (batch)
-     - `--in-place --yes` (destructive; requires explicit user intent)
+3) Contract gate (exactly one operation path)
+   - `convert`: require `--from-svg`, `--to`, `--out`; forbid `--in`.
+   - `svg-validate`: require exactly one `--in` and `--out`; forbid `--to`/`--width`/`--height`.
 
 4) Completion response (fixed)
    - After a successful run, respond using:

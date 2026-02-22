@@ -19,13 +19,13 @@ Notes:
 
 A good “next prompt” should include:
 
-- The subcommand (convert/resize/rotate/crop/pad/flip/flop/optimize)
-- Exact input path(s)
-- Exact output mode (`--out`/`--out-dir`/`--in-place --yes`)
-- Any non-default flags (e.g., `--no-auto-orient`, `--no-pre-upscale`, `--background`, `--strip-metadata`, `--report`)
+- The subcommand (`convert` or `svg-validate`)
+- Exact input path(s) (`--from-svg` for convert, `--in` for svg-validate)
+- Exact output path (`--out`)
+- Any non-default flags (e.g., `--width`, `--height`, `--overwrite`, `--report`, `--dry-run`)
 
 Example:
 
 ```text
-Convert `assets/fixtures/fixture_80x60.png` to WebP and write to `out/image-processing/validate/fixture.webp` with a report.
+Convert `assets/icons/logo.svg` to WebP and write to `out/image-processing/logo.webp` with `--report`.
 ```

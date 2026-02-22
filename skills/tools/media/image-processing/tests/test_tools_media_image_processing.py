@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -36,14 +35,6 @@ def _fixtures_dir() -> Path:
     return _skill_root() / "assets" / "fixtures"
 
 
-def _ensure_imagemagick() -> None:
-    has_magick = shutil.which("magick") is not None
-    has_convert = shutil.which("convert") is not None
-    has_identify = shutil.which("identify") is not None
-    if not (has_magick or (has_convert and has_identify)):
-        pytest.skip("ImageMagick not installed (need magick or convert+identify)")
-
-
 def _unique_out_dir(case: str) -> Path:
     base = _repo_root() / "out" / "tests" / "image-processing"
     path = base / f"{case}-{time.time_ns()}"
@@ -67,251 +58,346 @@ def _run_json(args: list[str]) -> dict:
     return json.loads(proc.stdout)
 
 
+def _write_svg(path: Path, width: int = 80, height: int = 60) -> Path:
+    path.write_text(
+        (
+            f"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {width} {height}\" "
+            f"width=\"{width}\" height=\"{height}\">"
+            "<rect x=\"2\" y=\"2\" width=\"76\" height=\"56\" fill=\"#0f62fe\"/>"
+            "</svg>"
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def _as_path_in_repo(path_like: str) -> Path:
+    candidate = Path(path_like)
+    if candidate.is_absolute():
+        return candidate
+    return _repo_root() / candidate
+
+
 def test_image_processing_help() -> None:
     proc = _run(["--help"])
     assert proc.returncode == 0
     assert "usage:" in proc.stdout.lower()
+    assert "convert" in proc.stdout
+    assert "svg-validate" in proc.stdout
 
 
-def test_info_json() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    j = _run_json(["info", "--in", str(fixture)])
-    assert j["operation"] == "info"
-    assert j["items"][0]["status"] == "ok"
-    assert j["items"][0]["output_path"] is None
-    assert j["items"][0]["input_info"]["width"] == 80
-    assert j["items"][0]["input_info"]["height"] == 60
+@pytest.mark.parametrize(
+    "removed",
+    ["info", "auto-orient", "resize", "rotate", "crop", "pad", "flip", "flop", "optimize"],
+)
+def test_removed_subcommands_are_usage_errors(removed: str) -> None:
+    proc = _run([removed])
+    assert proc.returncode == 2
+    stderr = proc.stderr.lower()
+    assert "invalid value" in stderr or "unrecognized subcommand" in stderr or "unknown subcommand" in stderr
 
 
-def test_auto_orient() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60_exif_orientation_6.jpg"
-    out_dir = _unique_out_dir("auto-orient")
-    out_file = out_dir / "auto.jpg"
-    j = _run_json(["auto-orient", "--in", str(fixture), "--out", str(out_file)])
-    item = j["items"][0]
-    assert item["status"] == "ok"
-    assert out_file.is_file()
-    assert item["output_info"]["width"] == 60
-    assert item["output_info"]["height"] == 80
-    assert item["output_info"]["exif_orientation"] in (None, "1")
+def test_convert_from_svg_to_supported_outputs() -> None:
+    out_dir = _unique_out_dir("convert-supported-outputs")
+    input_svg = _write_svg(out_dir / "icon.svg")
+
+    for to, expected_format in [("png", "PNG"), ("webp", "WEBP"), ("svg", "SVG")]:
+        output = out_dir / f"icon-converted.{to}"
+        j = _run_json(
+            [
+                "convert",
+                "--from-svg",
+                str(input_svg),
+                "--to",
+                to,
+                "--out",
+                str(output),
+            ]
+        )
+        assert j["operation"] == "convert"
+        assert j["source"]["mode"] == "from_svg"
+        item = j["items"][0]
+        assert item["status"] == "ok"
+        assert output.is_file()
+        assert item["output_info"]["format"] == expected_format
 
 
-def test_convert_png_to_webp() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("convert-webp")
-    out_file = out_dir / "fixture.webp"
-    j = _run_json(["convert", "--in", str(fixture), "--to", "webp", "--out", str(out_file)])
-    item = j["items"][0]
-    assert item["status"] == "ok"
-    assert out_file.is_file()
-    assert item["output_info"]["format"] == "WEBP"
-    assert item["output_info"]["width"] == 80
-    assert item["output_info"]["height"] == 60
+def test_convert_supports_raster_dimension_override() -> None:
+    out_dir = _unique_out_dir("convert-raster-dimensions")
+    input_svg = _write_svg(out_dir / "icon.svg")
 
-
-def test_convert_alpha_to_jpg_requires_background() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60_alpha.png"
-    out_dir = _unique_out_dir("alpha-to-jpg")
-    out_file = out_dir / "alpha.jpg"
-
-    proc = _run(
+    width_only = _run_json(
         [
             "convert",
+            "--from-svg",
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(out_dir / "icon-width.png"),
+            "--width",
+            "512",
+        ]
+    )
+    assert width_only["items"][0]["output_info"]["width"] == 512
+    assert width_only["items"][0]["output_info"]["height"] == 384
+
+    exact_box = _run_json(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(out_dir / "icon-box.png"),
+            "--width",
+            "512",
+            "--height",
+            "512",
+        ]
+    )
+    assert exact_box["items"][0]["output_info"]["width"] == 512
+    assert exact_box["items"][0]["output_info"]["height"] == 512
+
+
+def test_convert_requires_from_svg() -> None:
+    fixture = _fixtures_dir() / "fixture_80x60.png"
+    proc = _run(["convert", "--in", str(fixture), "--to", "png", "--out", str(fixture), "--json"])
+    assert proc.returncode == 2
+    assert "convert requires --from-svg" in proc.stderr
+
+
+def test_convert_rejects_in_flag_and_invalid_target() -> None:
+    out_dir = _unique_out_dir("convert-invalid-flags")
+    input_svg = _write_svg(out_dir / "icon.svg")
+
+    with_in = _run(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
             "--in",
-            str(fixture),
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(out_dir / "icon.png"),
+            "--json",
+        ]
+    )
+    assert with_in.returncode == 2
+    assert "does not support --in" in with_in.stderr
+
+    invalid_target = _run(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
             "--to",
             "jpg",
             "--out",
-            str(out_file),
+            str(out_dir / "icon.jpg"),
+            "--json",
+        ]
+    )
+    assert invalid_target.returncode == 2
+    assert "png|webp|svg" in invalid_target.stderr
+
+
+def test_convert_rejects_missing_out_and_extension_mismatch() -> None:
+    out_dir = _unique_out_dir("convert-out-contract")
+    input_svg = _write_svg(out_dir / "icon.svg")
+
+    missing_out = _run(["convert", "--from-svg", str(input_svg), "--to", "png", "--json"])
+    assert missing_out.returncode == 2
+    assert "requires --out" in missing_out.stderr
+
+    mismatch = _run(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(out_dir / "icon.webp"),
+            "--json",
+        ]
+    )
+    assert mismatch.returncode == 2
+    assert "--out extension must match --to png" in mismatch.stderr
+
+
+def test_convert_rejects_invalid_dimension_contracts() -> None:
+    out_dir = _unique_out_dir("convert-dimension-contracts")
+    input_svg = _write_svg(out_dir / "icon.svg")
+
+    svg_with_width = _run(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
+            "--to",
+            "svg",
+            "--out",
+            str(out_dir / "icon.svg"),
+            "--width",
+            "256",
+            "--json",
+        ]
+    )
+    assert svg_with_width.returncode == 2
+    assert "does not support --width/--height" in svg_with_width.stderr
+
+    width_zero = _run(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(out_dir / "icon.png"),
+            "--width",
+            "0",
+            "--json",
+        ]
+    )
+    assert width_zero.returncode == 2
+    assert "--width must be > 0" in width_zero.stderr
+
+
+def test_convert_overwrite_flag_controls_output_replacement() -> None:
+    out_dir = _unique_out_dir("convert-overwrite")
+    input_svg = _write_svg(out_dir / "icon.svg")
+    output = out_dir / "icon.png"
+    output.write_text("existing", encoding="utf-8")
+
+    blocked = _run(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(output),
+            "--json",
+        ]
+    )
+    assert blocked.returncode == 2
+    assert "output exists (pass --overwrite to replace)" in blocked.stderr
+
+    replaced = _run_json(
+        [
+            "convert",
+            "--from-svg",
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(output),
+            "--overwrite",
+        ]
+    )
+    assert replaced["items"][0]["status"] == "ok"
+    assert output.is_file()
+    assert output.read_bytes() != b"existing"
+
+
+def test_svg_validate_success() -> None:
+    out_dir = _unique_out_dir("svg-validate-success")
+    input_svg = _write_svg(out_dir / "valid.svg")
+    output_svg = out_dir / "valid.cleaned.svg"
+
+    j = _run_json(["svg-validate", "--in", str(input_svg), "--out", str(output_svg)])
+    assert j["operation"] == "svg-validate"
+    assert j["source"]["mode"] == "svg_validate"
+    assert output_svg.is_file()
+    assert j["items"][0]["status"] == "ok"
+    assert j["items"][0]["output_info"]["format"] == "SVG"
+
+
+def test_svg_validate_requires_single_input_and_out() -> None:
+    out_dir = _unique_out_dir("svg-validate-contract")
+    one = _write_svg(out_dir / "one.svg")
+    two = _write_svg(out_dir / "two.svg")
+
+    missing_out = _run(["svg-validate", "--in", str(one)])
+    assert missing_out.returncode == 2
+    assert "svg-validate requires --out" in missing_out.stderr
+
+    many_inputs = _run(
+        [
+            "svg-validate",
+            "--in",
+            str(one),
+            "--in",
+            str(two),
+            "--out",
+            str(out_dir / "out.svg"),
+        ]
+    )
+    assert many_inputs.returncode == 2
+    assert "requires exactly one --in" in many_inputs.stderr
+
+
+def test_svg_validate_rejects_convert_only_flags() -> None:
+    out_dir = _unique_out_dir("svg-validate-flags")
+    one = _write_svg(out_dir / "one.svg")
+
+    proc = _run(
+        [
+            "svg-validate",
+            "--in",
+            str(one),
+            "--out",
+            str(out_dir / "one.cleaned.svg"),
+            "--to",
+            "png",
             "--json",
         ]
     )
     assert proc.returncode == 2
-    assert "background" in proc.stderr.lower()
+    assert "does not support --to" in proc.stderr
+
+
+def test_svg_validate_invalid_svg_returns_error_summary() -> None:
+    out_dir = _unique_out_dir("svg-validate-invalid")
+    invalid_svg = out_dir / "invalid.svg"
+    invalid_svg.write_text(
+        "<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+        encoding="utf-8",
+    )
+    output = out_dir / "invalid.cleaned.svg"
+
+    proc = _run(["svg-validate", "--in", str(invalid_svg), "--out", str(output), "--json"])
+    assert proc.returncode == 1
+    payload = json.loads(proc.stdout)
+    item = payload["items"][0]
+    assert item["status"] == "error"
+    error = item.get("error") or ""
+    assert any(token in error for token in ["missing_viewbox", "disallowed_tag", "unsafe_tag"])
+
+
+def test_report_written() -> None:
+    out_dir = _unique_out_dir("report")
+    input_svg = _write_svg(out_dir / "icon.svg")
+    output = out_dir / "icon.webp"
 
     j = _run_json(
         [
             "convert",
-            "--in",
-            str(fixture),
+            "--from-svg",
+            str(input_svg),
             "--to",
-            "jpg",
-            "--background",
-            "white",
+            "webp",
             "--out",
-            str(out_file),
+            str(output),
+            "--report",
         ]
     )
-    assert j["items"][0]["status"] == "ok"
-    assert out_file.is_file()
-    assert j["items"][0]["output_info"]["format"] == "JPEG"
-
-
-def test_resize_scale_2() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("resize-scale")
-    out_file = out_dir / "scaled.png"
-    j = _run_json(["resize", "--in", str(fixture), "--scale", "2", "--out", str(out_file)])
-    assert j["items"][0]["status"] == "ok"
-    assert j["items"][0]["output_info"]["width"] == 160
-    assert j["items"][0]["output_info"]["height"] == 120
-
-
-def test_resize_aspect_requires_fit() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("resize-aspect-missing-fit")
-    out_file = out_dir / "out.png"
-    proc = _run(
-        [
-            "resize",
-            "--in",
-            str(fixture),
-            "--aspect",
-            "16:9",
-            "--width",
-            "160",
-            "--out",
-            str(out_file),
-            "--json",
-        ]
-    )
-    assert proc.returncode == 2
-    assert "--fit" in proc.stderr
-
-
-def test_rotate_90() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("rotate")
-    out_file = out_dir / "rot.png"
-    j = _run_json(["rotate", "--in", str(fixture), "--degrees", "90", "--out", str(out_file)])
-    assert j["items"][0]["status"] == "ok"
-    assert j["items"][0]["output_info"]["width"] == 60
-    assert j["items"][0]["output_info"]["height"] == 80
-
-
-def test_crop_aspect_1_1() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("crop")
-    out_file = out_dir / "square.png"
-    j = _run_json(["crop", "--in", str(fixture), "--aspect", "1:1", "--out", str(out_file)])
-    assert j["items"][0]["status"] == "ok"
-    assert j["items"][0]["output_info"]["width"] == 60
-    assert j["items"][0]["output_info"]["height"] == 60
-
-
-def test_pad_to_100x100() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("pad")
-    out_file = out_dir / "pad.png"
-    j = _run_json(["pad", "--in", str(fixture), "--width", "100", "--height", "100", "--out", str(out_file)])
-    assert j["items"][0]["status"] == "ok"
-    assert j["items"][0]["output_info"]["width"] == 100
-    assert j["items"][0]["output_info"]["height"] == 100
-
-
-def test_flip_flop() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("flip-flop")
-    out_flip = out_dir / "flip.png"
-    out_flop = out_dir / "flop.png"
-    j1 = _run_json(["flip", "--in", str(fixture), "--out", str(out_flip)])
-    j2 = _run_json(["flop", "--in", str(fixture), "--out", str(out_flop)])
-    assert j1["items"][0]["status"] == "ok"
-    assert j2["items"][0]["status"] == "ok"
-    assert j1["items"][0]["output_info"]["width"] == 80
-    assert j1["items"][0]["output_info"]["height"] == 60
-    assert j2["items"][0]["output_info"]["width"] == 80
-    assert j2["items"][0]["output_info"]["height"] == 60
-
-
-def test_optimize_jpg_and_webp() -> None:
-    _ensure_imagemagick()
-    out_dir = _unique_out_dir("optimize")
-
-    jpg_in = _fixtures_dir() / "fixture_80x60.jpg"
-    jpg_out = out_dir / "opt.jpg"
-    j = _run_json(["optimize", "--in", str(jpg_in), "--quality", "85", "--out", str(jpg_out)])
-    assert j["items"][0]["status"] == "ok"
-    assert j["items"][0]["output_info"]["format"] == "JPEG"
-    assert jpg_out.is_file()
-
-    webp_in = _fixtures_dir() / "fixture_80x60.webp"
-    webp_out = out_dir / "opt.webp"
-    j = _run_json(["optimize", "--in", str(webp_in), "--quality", "80", "--out", str(webp_out)])
-    assert j["items"][0]["status"] == "ok"
-    assert j["items"][0]["output_info"]["format"] == "WEBP"
-    assert webp_out.is_file()
-
-
-def test_negative_missing_output_mode() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    proc = _run(["convert", "--in", str(fixture), "--to", "webp", "--json"])
-    assert proc.returncode == 2
-    assert "output mode" in proc.stderr.lower()
-
-
-def test_negative_in_place_requires_yes() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    proc = _run(["flip", "--in", str(fixture), "--in-place", "--json"])
-    assert proc.returncode == 2
-    assert "--yes" in proc.stderr
-
-
-def test_strip_metadata_removes_exif_orientation() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60_exif_orientation_6.jpg"
-    out_dir = _unique_out_dir("strip-metadata")
-    out_keep = out_dir / "keep.jpg"
-    out_strip = out_dir / "strip.jpg"
-
-    keep = _run_json(
-        [
-            "convert",
-            "--in",
-            str(fixture),
-            "--to",
-            "jpg",
-            "--no-auto-orient",
-            "--out",
-            str(out_keep),
-        ]
-    )
-    assert keep["items"][0]["output_info"]["exif_orientation"] == "6"
-
-    stripped = _run_json(
-        [
-            "convert",
-            "--in",
-            str(fixture),
-            "--to",
-            "jpg",
-            "--no-auto-orient",
-            "--strip-metadata",
-            "--out",
-            str(out_strip),
-        ]
-    )
-    assert stripped["items"][0]["output_info"]["exif_orientation"] in (None, "1")
-
-
-def test_report_written() -> None:
-    _ensure_imagemagick()
-    fixture = _fixtures_dir() / "fixture_80x60.png"
-    out_dir = _unique_out_dir("report")
-    out_file = out_dir / "fixture.webp"
-    j = _run_json(["convert", "--in", str(fixture), "--to", "webp", "--out", str(out_file), "--report"])
     report_path = j.get("report_path")
     assert isinstance(report_path, str) and report_path
-    assert (_repo_root() / report_path).is_file()
+    assert _as_path_in_repo(report_path).is_file()

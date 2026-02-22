@@ -8,28 +8,23 @@ image-processing --help
 
 ## Design rules (important)
 
-- Output-producing subcommands require **exactly one** output mode:
-  - `--out <file>` (single input only), or
-  - `--out-dir <dir>` (batch), or
-  - `--in-place --yes` (destructive).
+- The CLI has exactly two subcommands: `convert` and `svg-validate`.
 - By default, the CLI refuses to overwrite outputs. Use `--overwrite` to replace.
-- Only `convert` changes formats. Other subcommands keep the input format/extension.
-- `resize` defaults to a 2x pre-upscale step before the final resize; disable with `--no-pre-upscale`.
-- Auto orientation is enabled by default for output-producing subcommands; disable with `--no-auto-orient`.
+- `convert` is SVG-first: it requires `--from-svg` and does not accept `--in`.
+- `svg-validate` requires exactly one `--in` and an explicit `--out` ending in `.svg`.
 - When `--json` is used, stdout is JSON only (logs go to stderr).
 
 ## Common flags
 
 - Inputs:
-  - `--in <path>` (repeatable; file or directory)
-  - `--recursive` (when `--in` is a directory)
-  - `--glob '*.png'` (repeatable; filter directory candidates)
-- Output mode:
-  - `--out <file>` / `--out-dir <dir>` / `--in-place --yes`
-  - `--overwrite`
-- Output behavior:
-  - `--strip-metadata` (remove EXIF/XMP/ICC)
-  - `--background <color>` (required when flattening alpha into JPEG; used for padding background)
+  - `convert`: `--from-svg <path>`
+  - `svg-validate`: `--in <path>` (exactly one)
+- Output:
+  - `--out <file>` (required)
+  - `--overwrite` (optional)
+- Convert target:
+  - `--to png|webp|svg` (required for `convert`)
+  - `--width`, `--height` (optional, raster targets only)
 - Reproducibility:
   - `--dry-run` (no image outputs written)
   - `--json` (machine summary)
@@ -37,104 +32,64 @@ image-processing --help
 
 ## Subcommands
 
-### `info`
-
-Outputs per-file metadata (format, dimensions, size, alpha, EXIF orientation when available).
-
-```bash
-image-processing \
-  info --in path/to/image.png --json | python3 -m json.tool
-```
-
-### `auto-orient`
-
-Applies EXIF orientation to pixels and normalizes orientation metadata.
-
-```bash
-image-processing \
-  auto-orient --in path/to/photo.jpg --out out/photo.jpg --json
-```
-
 ### `convert`
 
-Convert between `png`, `jpg`, and `webp`.
+Render trusted SVG input to `png`, `webp`, or `svg`.
 
 ```bash
 image-processing \
-  convert --in path/to/image.png --to webp --out out/image.webp --json
+  convert \
+  --from-svg path/to/icon.svg \
+  --to webp \
+  --out out/icon.webp \
+  --json
+
+image-processing \
+  convert \
+  --from-svg path/to/icon.svg \
+  --to png \
+  --out out/icon@2x.png \
+  --width 512 \
+  --height 512 \
+  --json
 ```
 
-Alpha → JPEG requires `--background`:
+Rules:
+
+- Must include `--from-svg`, `--to`, and `--out`.
+- Must not include `--in`.
+- `--out` extension must match `--to`.
+- `--to svg` does not support `--width`/`--height`.
+
+### `svg-validate`
+
+Validate and sanitize one SVG input into one SVG output.
 
 ```bash
 image-processing \
-  convert --in path/to/alpha.png --to jpg --background white --out out/alpha.jpg --json
+  svg-validate \
+  --in path/to/input.svg \
+  --out out/input.cleaned.svg \
+  --json
 ```
 
-### `resize`
+Rules:
 
-Supports:
-- `--scale <number>` (e.g. `2`)
-- `--width <px>` / `--height <px>` (proportional when only one is provided)
-- `--aspect W:H` with explicit `--fit contain|cover|stretch` (box-based)
+- Requires exactly one `--in`.
+- Requires `--out`, and output must be `.svg`.
+- Does not support convert-only flags (`--from-svg`, `--to`, `--width`, `--height`).
 
-Examples:
+## Known removed subcommands
 
-```bash
-# Scale 2x (proportional)
-image-processing \
-  resize --in path/to/image.png --scale 2 --out out/image_2x.png --json
+The following legacy subcommands are no longer supported and now return usage errors:
 
-# Fit to a 1600x900 box via cover (crop to fill)
-image-processing \
-  resize --in path/to/image.png --width 1600 --height 900 --fit cover --out out/image_1600x900.png --json
-```
-
-### `rotate`
-
-Rotate by degrees clockwise.
-
-```bash
-image-processing \
-  rotate --in path/to/image.png --degrees 90 --out out/rot90.png --json
-```
-
-### `crop`
-
-Choose **exactly one** crop mode:
-- `--rect 'WxH+X+Y'`
-- `--size 'WxH'` (uses `--gravity`, default `center`)
-- `--aspect W:H` (largest possible crop; uses `--gravity`, default `center`)
-
-```bash
-image-processing \
-  crop --in path/to/image.png --aspect 1:1 --out out/square.png --json
-```
-
-### `pad`
-
-Extend canvas to a target size (must be ≥ input dimensions):
-
-```bash
-image-processing \
-  pad --in path/to/image.png --width 1200 --height 630 --out out/padded.png --json
-```
-
-### `flip` / `flop`
-
-```bash
-image-processing \
-  flip --in path/to/image.png --out out/flip.png --json
-
-image-processing \
-  flop --in path/to/image.png --out out/flop.png --json
-```
-
-### `optimize`
-
-Re-encode JPEG/WebP (format does not change). Uses `cjpeg`/`cwebp` when available.
-
-```bash
-image-processing \
-  optimize --in path/to/image.jpg --quality 85 --out out/image.jpg --json
+- `info`
+- `auto-orient`
+- `resize`
+- `rotate`
+- `crop`
+- `pad`
+- `flip`
+- `flop`
+- `optimize`
 ```
