@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.8 - 2026-02-19
+
+### Changed
+- Docker runtime defaults now point `CODEX_AUTH_FILE` to `$HOME/.codex/auth.json` in compose and workspace launch flows.
+
+### Fixed
+- `docker/agent-env/bin/entrypoint.sh` now falls back `CODEX_HOME` to `$HOME/.codex` and defaults `CODEX_AUTH_FILE` to `$CODEX_HOME/auth.json`.
+
 ## v2.2.7 - 2026-02-18
 
 ### Added
