@@ -56,3 +56,8 @@ Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, a
   - `$AGENT_HOME/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh`
 - Main-agent PR review + issue sync:
   - `$AGENT_HOME/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh`
+
+## Issue delivery automation (main-agent orchestration wrapper)
+
+- End-to-end orchestration (`start` / `status` / `ready-for-review` / `close-after-review`):
+  - `$AGENT_HOME/skills/automation/issue-delivery-loop/scripts/manage_issue_delivery_loop.sh`
