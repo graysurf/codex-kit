@@ -41,7 +41,6 @@ Failure modes:
 ## When to use
 
 - The user asks to merge/close a PR and clean up the feature branch.
-- If the PR is tracked by a progress file (PR body links to `docs/progress/...`) and you want to finalize/archive that progress, use `close-progress-pr` instead.
 
 ## Workflow
 
@@ -54,10 +53,6 @@ Failure modes:
 3. Review PR hygiene (aligned with `create-feature-pr`)
    - Title reflects feature outcome; capitalize the first word.
    - PR body includes: `Summary`, `Changes`, `Testing`, `Risk / Notes`.
-   - `## Progress`/`## Planning PR` are progress-derived metadata and must be treated as a pair.
-   - Non-progress feature PR: both sections should be absent.
-   - Progress-derived feature PR: both sections must exist with non-empty values.
-   - If only one section exists, or either section is `None` (or empty), remove both sections entirely.
    - If PR body includes `Open Questions` and/or `Next Steps` and they are not already `- None`, update them to the latest status (resolve questions or confirm with the user, check off completed steps, link follow-ups).
    - `Testing` records results (`pass/failed/skipped`) and reasons if not run.
    - If edits are needed: use `gh pr edit <pr> --title ...` / `gh pr edit <pr> --body-file ...`.

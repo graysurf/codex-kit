@@ -54,16 +54,13 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Runbooks: document Codex Cloud setup for Ubuntu and ensure Linuxbrew path guidance.
-- `handoff-progress-pr`: align handoff guidance with progress-derived PR flags.
 - Docker: pin `zsh-kit` reference to `nils-cli` for image builds.
 
 ### Fixed
 - `create-feature-pr`: remove legacy Status section and harden progress URL resolution checks.
-- `close-feature-pr`: enforce paired progress metadata hygiene.
 - `deliver-feature-pr`: handle empty arrays safely under `set -u`.
 - CI/scripts: harden Homebrew install workflow and add install-homebrew help mode.
 - Semgrep profile: allow scanning the `commands/` directory.
-- Progress docs: correct archived plan path references.
 
 ## v2.2.5 - 2026-02-09
 
@@ -172,11 +169,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Scripts: consolidate DB connect tooling under the SQL skills and remove legacy `scripts/db-connect/{psql,mysql,mssql}.zsh`.
-- Docs: update SQL/testing and progress workflow documentation to match the new layout.
+- Docs: update SQL/testing documentation to match the new layout.
 
 ### Fixed
 - SQL scripts: pass shell style checks.
-- Docs: fix archived progress doc glossary links.
 
 ## v2.0.3 - 2026-01-25
 
@@ -186,11 +182,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - `create-plan` / `create-plan-rigorous`: reference the shared plan template and requirements.
-- Progress PR tooling: centralize shared progress templates/glossary/PR template under `skills/workflows/pr/progress/_shared`.
 - Docs: trim README skill governance and skill management sections.
 
 ### Fixed
-- Tests: update progress-tooling smoke script paths after progress tooling refactor.
+- Tests: update plan-tooling smoke script paths after plan tooling refactor.
 
 ## v2.0.2 - 2026-01-25
 
@@ -226,7 +221,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Breaking: skills structure reorg (v2). The v1 `skills/` layout and prior skill entrypoints are not backward compatible.
-- Plan tooling and progress PR workflow E2E driver are now shipped under `skills/workflows/**`.
+- Plan tooling is now shipped under `skills/workflows/**`.
 
 ### Fixed
 - Lint workflows: route checks through the v2 skill governance entrypoints.
@@ -236,7 +231,6 @@ All notable changes to this project will be documented in this file.
 ## v1.5.0 - 2026-01-24
 
 ### Added
-- Progress PR workflows: `worktree-stacked-feature-pr` and hardened progress PR automation for worktrees.
 - Plan toolchain: plan lint/parse/batches scripts and `scripts/check.sh --plans` to keep plans executable and parallelizable.
 
 ### Changed
@@ -245,7 +239,6 @@ All notable changes to this project will be documented in this file.
 - Plans: remove internal dogfood/review planning docs (keep format + toolchain docs).
 
 ### Fixed
-- Progress PR workflows: worktree-safety and idempotency fixes across close/handoff flows.
 - `bundle-wrapper`: improve parsing of array-style arguments.
 - Tests: fix git commit ban regex enforcement.
 
@@ -305,12 +298,10 @@ All notable changes to this project will be documented in this file.
 - Workspace launcher: `docker/agent-env/bin/agent-workspace` (`up/ls/shell/tunnel/rm`) with `--secrets-mount` support and improved auth/mount flows.
 - Docker agent env docs: `docker/agent-env/README.md` and `docker/agent-env/WORKSPACE_QUICKSTART.md` (plus root README link).
 - Git commit context JSON: new `commands/git-commit-context-json` wrapper and `git-tools` JSON output support.
-- `close-progress-pr`: auto-defer unchecked checklist items and enforce deferred checklist formatting.
 
 ### Changed
 - Docker env: clean up environment variables; add `CODEX_AUTH_FILE` config; default `CODEX_COMMANDS_PATH` and `ZSH_FEATURES`.
 - `semantic-commit`: staged context now outputs a JSON + patch bundle and falls back to `git diff --staged` when wrappers are unavailable.
-- Progress templates: clarify that unchecked Step 0–3 items must be struck with `Reason:` (Step 4 excluded).
 
 ### Fixed
 - Shell style fixer: preserve initializer handling in `$AGENT_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
@@ -321,8 +312,7 @@ All notable changes to this project will be documented in this file.
 - Skill layout audit now enforces `TEMPLATE` markdown placement under `references/` or `assets/templates/`.
 
 ### Changed
-- `create-progress-pr` defaults now source the progress template from `assets/templates/`.
-- Progress docs updated to reflect template placement guidance.
+- Docs: update template placement guidance.
 
 ### Fixed
 - None.
@@ -351,7 +341,6 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Top-level `commands/` directory exposing reusable primitives (`git-scope`, `git-tools`, `project-resolve`).
 - Functional script coverage reporting for smoke tests.
-- Auto-strikethrough test cases for `close-progress-pr`.
 - `open-changed-files-review` code-path override option.
 
 ### Changed
@@ -359,7 +348,6 @@ All notable changes to this project will be documented in this file.
 - Standardized commands path resolution via `CODEX_COMMANDS_PATH` / `$AGENT_HOME/commands`.
 - Release workflow moved into automation, resolves guides/templates deterministically, and audits the changelog pre-publish.
 - PR workflows reduce redundant `gh` metadata lookups.
-- `close-progress-pr` now auto-wraps deferred checklist items.
 - Docs: commit workflow, automation commit guidance, and find-and-fix-bugs classification updates.
 - Prompts: remove obsolete openspec prompt files.
 - `.gitignore`: ignore `tmp/` directory.
@@ -369,8 +357,6 @@ All notable changes to this project will be documented in this file.
 - `chrome-devtools-mcp`: use `AGENT_HOME` for default paths and expand tilde paths.
 - `graphql-api-testing`: quote `AGENT_HOME` during script path rewrites.
 - Shell scripts: address minor shellcheck warnings.
-- Progress flow now caches PR body lookups.
-- Git helper scripts load the progress bar lazily.
 
 ## v1.0.2 - 2026-01-14
 
@@ -381,11 +367,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - CI: upload `script_smoke` artifacts and add API test runner workflows for demos/fixtures.
-- Smoke coverage expanded via Step 2 planned PRs (per progress inventory).
+- Smoke coverage expanded via Step 2 planned PRs.
 
 ### Fixed
-- `close-progress-pr`: avoid hard `rg` dependency.
-- `git-scope` smoke spec now tracks the archived progress file path.
+- `git-scope` smoke spec now tracks the archived plan file path.
 
 ## v1.0.1 - 2026-01-13
 

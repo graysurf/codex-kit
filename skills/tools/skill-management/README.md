@@ -32,7 +32,6 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
   - Does not stage/commit; you still need to fill in the real Contract + implementation.
 - `remove-skill`
   - Deletes the skill directory and purges repo references (breaking change).
-  - Does not modify `docs/progress/archived/**` (history stays as-is).
 
 ## Conventions
 

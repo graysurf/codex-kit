@@ -90,13 +90,6 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | PR / Feature | [deliver-feature-pr](./skills/workflows/pr/feature/deliver-feature-pr/) | Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR |
-| PR / Progress | [create-progress-pr](./skills/workflows/pr/progress/create-progress-pr/) | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |
-| PR / Progress | [handoff-progress-pr](./skills/workflows/pr/progress/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
-| PR / Progress | [worktree-stacked-feature-pr](./skills/workflows/pr/progress/worktree-stacked-feature-pr/) | Handoff a progress planning PR, then create multiple stacked feature PRs using git worktrees and parallel subagents (one PR per sprint/phase) |
-| PR / Progress | [close-progress-pr](./skills/workflows/pr/progress/close-progress-pr/) | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
-| PR / Progress | [progress-tooling](./skills/workflows/pr/progress/progress-tooling/) | Render progress PR templates, scaffold progress files, and validate progress index formatting |
-| PR / Progress | [progress-addendum](./skills/workflows/pr/progress/progress-addendum/) | Add an append-only Addendum section to DONE progress files (top-of-file), with audit + template scripts to keep archived docs from going stale. |
-| PR / Progress | [progress-pr-workflow-e2e](./skills/workflows/pr/progress/progress-pr-workflow-e2e/) | Run a real-GitHub E2E driver for the progress PR workflow (planning -> handoff -> stacked PRs -> close/archive). |
 
 ### Tools
 

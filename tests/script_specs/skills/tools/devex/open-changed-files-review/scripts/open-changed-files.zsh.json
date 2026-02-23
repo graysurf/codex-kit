@@ -2,11 +2,11 @@
   "smoke": [
     {
       "name": "dry-run-list",
-      "args": ["--dry-run", "--max-files", "1", "docs/progress/README.md"],
+      "args": ["--dry-run", "--max-files", "1", "README.md"],
       "timeout_sec": 5,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "--new-window.*docs/progress/README\\.md"
+        "stdout_regex": "--new-window.*README\\.md"
       }
     }
   ]

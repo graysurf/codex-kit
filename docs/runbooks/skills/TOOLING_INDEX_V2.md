@@ -35,19 +35,6 @@ Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, a
 - Compute dependency batches:
   - `plan-tooling batches`
 
-## Progress tooling (Progress PR workflow)
-
-- Create a new progress file skeleton:
-  - `$AGENT_HOME/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh`
-- Validate progress index formatting:
-  - `$AGENT_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`
-- Render progress PR templates:
-  - `$AGENT_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh`
-
-## Progress PR workflow (real GitHub E2E driver)
-
-- `$AGENT_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-
 ## Issue workflow (main-agent + subagent PR automation)
 
 - Main-agent issue lifecycle:

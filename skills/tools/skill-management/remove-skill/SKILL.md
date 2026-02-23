@@ -24,8 +24,8 @@ Outputs:
 
 - Deletes the skill directory under `--skill-dir` (tracked + untracked files).
 - Deletes any matching script-spec files under `tests/script_specs/**` for scripts in that skill.
-- Removes references in tracked Markdown files (excluding `docs/progress/archived/**`).
-- Fails if any remaining references are found outside `docs/progress/archived/**`.
+- Removes references in tracked Markdown files.
+- Fails if any remaining references are found.
 
 Exit codes:
 
@@ -37,7 +37,6 @@ Failure modes:
 
 - `--skill-dir` invalid or missing `SKILL.md`.
 - Remaining references in non-Markdown tracked files (must be fixed manually).
-- Attempting to remove references from `docs/progress/archived/**` (explicitly skipped).
 
 ## Scripts (only entrypoints)
 

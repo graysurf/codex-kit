@@ -111,4 +111,3 @@ api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
 - Full guide (project template): `skills/tools/testing/rest-api-testing/references/REST_API_TESTING_GUIDE.md`
 - Report contract: `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
 - Report template: `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_TEMPLATE.md`
-- Progress plan: `docs/progress/20260108_rest-api-testing-skill.md`

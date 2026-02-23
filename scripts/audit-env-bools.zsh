@@ -17,7 +17,7 @@ print_usage() {
   print -r -- "  Enforce repo boolean env rules for Inventory flags."
   print -r --
   print -r -- "Checks (Inventory flags):"
-  print -r -- "  - No legacy env names in tracked files (excludes docs/progress/**)."
+  print -r -- "  - No legacy env names in tracked files."
   print -r -- "  - No 0/1/yes/no/on/off assignments (only true|false allowed)."
   print -r --
   print -r -- "Examples:"
@@ -69,7 +69,6 @@ scan_hits() {
 
   command git -C "$root_dir" grep "${grep_args[@]}" -- "$pattern" -- \
     . \
-    ':(exclude)docs/progress' \
     ':(exclude)out' \
     ':(exclude)tmp' \
     ':(exclude)scripts/audit-env-bools.zsh' \
@@ -84,7 +83,7 @@ scan_hits() {
 }
 
 # check_no_legacy_names <root_dir>
-# Ensure legacy env names are not referenced (excluding docs/progress/** which is already excluded from file list).
+# Ensure legacy env names are not referenced.
 check_no_legacy_names() {
   emulate -L zsh
   setopt pipe_fail err_return nounset

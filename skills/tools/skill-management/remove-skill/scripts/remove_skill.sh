@@ -10,8 +10,7 @@ Usage:
     [--yes] \
     [--help]
 
-Deletes a skill directory and purges repo references (excluding
-`docs/progress/archived/**`).
+Deletes a skill directory and purges repo references.
 
 Notes:
   - This is a breaking change tool. It does not create compatibility shims.
@@ -144,7 +143,7 @@ if [[ "$assume_yes" != "1" ]]; then
       echo "  - $spec" >&2
     done
   fi
-  echo "This will also edit tracked Markdown files (excluding docs/progress/archived/**) to remove references." >&2
+  echo "This will also edit tracked Markdown files to remove references." >&2
   echo -n "Proceed? (y/N): " >&2
   read -r reply
   case "${reply:-}" in
@@ -178,7 +177,6 @@ skill_dir = sys.argv[1]
 dry_run = sys.argv[2] == "1"
 
 EXCLUDED_PREFIXES = (
-    "docs/progress/archived/",
     "out/",
     "tmp/",
 )
@@ -233,7 +231,6 @@ from pathlib import Path
 skill_dir = sys.argv[1]
 
 EXCLUDED_PREFIXES = (
-    "docs/progress/archived/",
     "out/",
     "tmp/",
 )
