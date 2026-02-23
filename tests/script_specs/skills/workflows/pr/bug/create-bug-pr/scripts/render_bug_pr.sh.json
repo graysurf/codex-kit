@@ -1,0 +1,22 @@
+{
+  "smoke": [
+    {
+      "name": "pr-template",
+      "args": ["--pr"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Problem"
+      }
+    },
+    {
+      "name": "output-template",
+      "args": ["--output"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "Issues List"
+      }
+    }
+  ]
+}
