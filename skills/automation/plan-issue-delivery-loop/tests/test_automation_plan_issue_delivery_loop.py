@@ -45,3 +45,10 @@ def test_plan_issue_delivery_loop_script_supports_sprint_progression_flow() -> N
     assert "--pr-group <task=group>" in text
     assert "PR_GROUP=" in text
     assert "OPEN_PR_CMD=SHARED_WITH_GROUP" in text
+
+
+def test_plan_issue_delivery_loop_sprint_comment_omits_redundant_plan_metadata() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "scripts" / "plan-issue-delivery-loop.sh").read_text(encoding="utf-8")
+    assert 'print(f"- Plan issue: #{issue_number}")' not in text
+    assert 'print(f"- Plan file: `{plan_file}`")' not in text

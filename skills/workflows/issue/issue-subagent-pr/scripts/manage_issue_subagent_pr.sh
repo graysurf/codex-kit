@@ -238,6 +238,32 @@ shell_quote() {
   printf '%q' "${1:-}"
 }
 
+normalize_pr_announcement_ref() {
+  local value=''
+  value="$(echo "${1:-}" | tr -d '\r')"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+
+  if [[ "$value" =~ ^#([0-9]+)$ ]]; then
+    printf '#%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+  if [[ "$value" =~ ^PR#([0-9]+)$ ]]; then
+    printf '#%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+  if [[ "$value" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#([0-9]+)$ ]]; then
+    printf '#%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+  if [[ "$value" =~ ^https://github\.com/[^/[:space:]]+/[^/[:space:]]+/pull/([0-9]+)([/?#].*)?$ ]]; then
+    printf '#%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  printf '%s\n' "$value"
+}
+
 render_task_prompt_template_text() {
   local template_file="${1:-}"
   [[ -f "$template_file" ]] || die "template file not found: $template_file"
@@ -481,12 +507,13 @@ case "$subcommand" in
     if [[ "$dry_run" == "1" ]]; then
       run_cmd "${cmd[@]}"
       pr_url="DRY-RUN-PR-URL"
+      pr_comment_ref="$(normalize_pr_announcement_ref "$pr_url")"
       if [[ "$comment_issue" == "1" ]]; then
         issue_cmd=(gh issue comment "$issue_number")
         if [[ -n "$repo_arg" ]]; then
           issue_cmd+=(-R "$repo_arg")
         fi
-        issue_cmd+=(--body "Subagent opened PR for #${issue_number}: ${pr_url}")
+        issue_cmd+=(--body "Subagent opened PR: ${pr_comment_ref}")
         run_cmd "${issue_cmd[@]}"
       fi
       echo "$pr_url"
@@ -494,12 +521,13 @@ case "$subcommand" in
     fi
 
     pr_url="$(run_cmd "${cmd[@]}")"
+    pr_comment_ref="$(normalize_pr_announcement_ref "$pr_url")"
     if [[ "$comment_issue" == "1" ]]; then
       issue_cmd=(gh issue comment "$issue_number")
       if [[ -n "$repo_arg" ]]; then
         issue_cmd+=(-R "$repo_arg")
       fi
-      issue_cmd+=(--body "Subagent opened PR for #${issue_number}: ${pr_url}")
+      issue_cmd+=(--body "Subagent opened PR: ${pr_comment_ref}")
       run_cmd "${issue_cmd[@]}"
     fi
 

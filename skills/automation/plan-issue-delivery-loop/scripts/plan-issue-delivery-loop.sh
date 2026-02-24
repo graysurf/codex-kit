@@ -759,9 +759,13 @@ with spec_path.open("r", encoding="utf-8") as handle:
             raise SystemExit("error: malformed task spec row")
         task_id = raw[0].strip()
         summary = raw[1].strip() if len(raw) >= 2 else ""
-        owner = raw[4].strip() if len(raw) >= 5 else ""
+        pr_group = raw[6].strip() if len(raw) >= 7 else task_id
         notes = raw[5].strip() if len(raw) >= 6 else ""
-        rows.append((task_id, summary, owner, notes))
+        rows.append((task_id, summary, pr_group or task_id, notes))
+
+group_sizes = {}
+for _task_id, _summary, pr_group, _notes in rows:
+    group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
 
 if mode == "start":
     heading = f"## Sprint {sprint} Start"
@@ -775,18 +779,21 @@ else:
 
 print(heading)
 print("")
-print(f"- Plan issue: #{issue_number}")
-print(f"- Plan file: `{plan_file}`")
 print(f"- Sprint: {sprint} ({sprint_name})")
 print(f"- Tasks in sprint: {len(rows)}")
 print(f"- Note: {lead}")
+print("- PR values here are planning placeholders; actual PR numbers are tracked in Task Decomposition.")
 if approval_url:
     print(f"- Approval comment URL: {approval_url}")
 print("")
-print("| Task | Summary | Owner |")
+print("| Task | Summary | PR |")
 print("| --- | --- | --- |")
-for task_id, summary, owner, _notes in rows:
-    print(f"| {task_id} | {summary or '-'} | {owner or '-'} |")
+for task_id, summary, pr_group, _notes in rows:
+    if group_sizes.get(pr_group, 0) > 1:
+        pr_value = f"TBD (shared:{pr_group})"
+    else:
+        pr_value = "TBD (per-task)"
+    print(f"| {task_id} | {summary or '-'} | {pr_value} |")
 if note_text.strip():
     print("")
     print("## Main-Agent Notes")

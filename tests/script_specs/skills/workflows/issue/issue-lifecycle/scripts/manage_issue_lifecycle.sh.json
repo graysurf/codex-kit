@@ -96,7 +96,7 @@
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "(?s)\\| Task \\| Summary \\| Owner \\| Branch \\| Worktree \\| Execution Mode \\| PR \\| Status \\| Notes \\|.*\\| T1 \\| Build scaffold \\| TBD \\| TBD \\| TBD \\| TBD \\| TBD \\| planned \\| setup \\|.*\\| T2 \\| Ship endpoint \\| subagent-2 \\| `issue/201/t2` \\| `\\.worktrees/issue/201-t2` \\| TBD \\| PR#105 \\| planned \\| impl \\|"
+        "stdout_regex": "(?s)\\| Task \\| Summary \\| Owner \\| Branch \\| Worktree \\| Execution Mode \\| PR \\| Status \\| Notes \\|.*\\| T1 \\| Build scaffold \\| TBD \\| TBD \\| TBD \\| TBD \\| TBD \\| planned \\| setup \\|.*\\| T2 \\| Ship endpoint \\| subagent-2 \\| `issue/201/t2` \\| `\\.worktrees/issue/201-t2` \\| TBD \\| #105 \\| planned \\| impl \\|"
       }
     }
   ]

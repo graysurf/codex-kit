@@ -467,16 +467,17 @@ build_review_request_body() {
   local output="## Main-Agent Review Request${nl}${nl}"
   output+="- Issue: ${issue_ref}${nl}"
   output+="- Close gate: provide an approval comment URL, then run close-after-review.${nl}${nl}"
-  output+="| Task | Status | PR |${nl}"
-  output+="| --- | --- | --- |${nl}"
+  output+="| Task | Summary | Status | PR |${nl}"
+  output+="| --- | --- | --- | --- |${nl}"
 
   local task_count=0
   local pr_count=0
 
-  while IFS=$'\t' read -r task _summary _owner _branch _worktree _execution_mode pr status _notes; do
+  while IFS=$'\t' read -r task summary _owner _branch _worktree _execution_mode pr status _notes; do
     task_count=$((task_count + 1))
-    local task_id status_value pr_value
+    local task_id summary_value status_value pr_value
     task_id="$(trim_text "$task")"
+    summary_value="$(trim_text "$summary")"
     status_value="$(trim_text "$status")"
     pr_value="$(trim_text "$pr")"
 
@@ -486,7 +487,7 @@ build_review_request_body() {
       pr_value="TBD"
     fi
 
-    output+="| ${task_id} | ${status_value} | ${pr_value} |${nl}"
+    output+="| ${task_id} | ${summary_value:-'-'} | ${status_value} | ${pr_value} |${nl}"
   done < <(parse_issue_tasks_tsv "$body_file")
 
   [[ "$task_count" -gt 0 ]] || die "issue has no tasks in Task Decomposition"

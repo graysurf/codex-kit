@@ -310,7 +310,7 @@ def normalize_pr(value: str) -> str:
     ):
         match = re.match(pattern, current, flags=re.IGNORECASE)
         if match:
-            return f"PR#{match.group(1)}"
+            return f"#{match.group(1)}"
 
     return current
 
