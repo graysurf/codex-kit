@@ -72,3 +72,10 @@ def test_plan_issue_delivery_loop_sprint_comment_omits_redundant_plan_metadata()
     text = (skill_root / "scripts" / "plan-issue-delivery-loop.sh").read_text(encoding="utf-8")
     assert 'print(f"- Plan issue: #{issue_number}")' not in text
     assert 'print(f"- Plan file: `{plan_file}`")' not in text
+
+
+def test_plan_issue_delivery_loop_sprint_comment_prefers_issue_pr_values() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "scripts" / "plan-issue-delivery-loop.sh").read_text(encoding="utf-8")
+    assert "load_issue_pr_values" in text
+    assert "PR values prefer current Task Decomposition values when present" in text

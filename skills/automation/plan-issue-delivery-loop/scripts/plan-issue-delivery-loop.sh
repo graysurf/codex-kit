@@ -964,8 +964,9 @@ render_sprint_comment_body() {
   local task_spec_file="${6:-}"
   local note_text="${7:-}"
   local approval_comment_url="${8:-}"
+  local issue_body_file="${9:-}"
 
-  python3 - "$mode" "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_file" "$note_text" "$approval_comment_url" <<'PY'
+  python3 - "$mode" "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_file" "$note_text" "$approval_comment_url" "$issue_body_file" <<'PY'
 import csv
 import pathlib
 import sys
@@ -978,11 +979,79 @@ sprint_name = sys.argv[5].strip()
 spec_path = pathlib.Path(sys.argv[6])
 note_text = sys.argv[7]
 approval_url = sys.argv[8].strip()
+issue_body_path_raw = sys.argv[9].strip()
+issue_body_path = pathlib.Path(issue_body_path_raw) if issue_body_path_raw else None
 
 if mode not in {"start", "ready", "accepted"}:
     raise SystemExit(f"error: unsupported sprint comment mode: {mode}")
 if not spec_path.is_file():
     raise SystemExit(f"error: task spec file not found: {spec_path}")
+
+
+def is_placeholder(value: str) -> bool:
+    token = (value or "").strip().lower()
+    if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
+        return True
+    if token.startswith("tbd "):
+        return True
+    if token.startswith("<") and token.endswith(">"):
+        return True
+    if "task ids" in token:
+        return True
+    return False
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def section_bounds(lines: list[str], heading: str) -> tuple[int, int]:
+    start = None
+    for idx, line in enumerate(lines):
+        if line.strip() == heading:
+            start = idx + 1
+            break
+    if start is None:
+        raise SystemExit(f"error: missing required heading: {heading}")
+    end = len(lines)
+    for idx in range(start, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+    return start, end
+
+
+def load_issue_pr_values(path: pathlib.Path | None) -> dict[str, str]:
+    if path is None or not path.is_file():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    try:
+        start, end = section_bounds(lines, "## Task Decomposition")
+    except SystemExit:
+        return {}
+    table_lines = [line for line in lines[start:end] if line.strip().startswith("|")]
+    if len(table_lines) < 3:
+        return {}
+    headers = parse_row(table_lines[0])
+    if "Task" not in headers or "PR" not in headers:
+        return {}
+
+    pr_map: dict[str, str] = {}
+    for raw in table_lines[2:]:
+        cells = parse_row(raw)
+        if not cells or len(cells) != len(headers):
+            continue
+        row = {headers[idx]: cells[idx] for idx in range(len(headers))}
+        task = row.get("Task", "").strip()
+        pr_value = row.get("PR", "").strip()
+        if not task or is_placeholder(pr_value):
+            continue
+        pr_map[task] = pr_value
+    return pr_map
 
 rows = []
 with spec_path.open("r", encoding="utf-8") as handle:
@@ -1003,6 +1072,7 @@ with spec_path.open("r", encoding="utf-8") as handle:
 group_sizes = {}
 for _task_id, _summary, pr_group, _notes in rows:
     group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
+issue_pr_values = load_issue_pr_values(issue_body_path)
 
 if mode == "start":
     heading = f"## Sprint {sprint} Start"
@@ -1019,17 +1089,19 @@ print("")
 print(f"- Sprint: {sprint} ({sprint_name})")
 print(f"- Tasks in sprint: {len(rows)}")
 print(f"- Note: {lead}")
-print("- PR values here are planning placeholders; actual PR numbers are tracked in Task Decomposition.")
+print("- PR values prefer current Task Decomposition values when present; otherwise use planning placeholders.")
 if approval_url:
     print(f"- Approval comment URL: {approval_url}")
 print("")
 print("| Task | Summary | PR |")
 print("| --- | --- | --- |")
 for task_id, summary, pr_group, _notes in rows:
-    if group_sizes.get(pr_group, 0) > 1:
-        pr_value = f"TBD (shared:{pr_group})"
-    else:
-        pr_value = "TBD (per-task)"
+    pr_value = issue_pr_values.get(task_id, "")
+    if is_placeholder(pr_value):
+        if group_sizes.get(pr_group, 0) > 1:
+            pr_value = f"TBD (shared:{pr_group})"
+        else:
+            pr_value = "TBD (per-task)"
     print(f"| {task_id} | {summary or '-'} | {pr_value} |")
 if note_text.strip():
     print("")
@@ -1721,8 +1793,17 @@ start_sprint_cmd() {
 
   emit_dispatch_hints "$task_spec_out" "$issue_number" "$issue_subagent_script"
 
+  local issue_body_file=''
+  if [[ "$dry_run" != '1' ]]; then
+    issue_body_file="$(mktemp)"
+    issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+  fi
+
   local comment_body=''
-  comment_body="$(render_sprint_comment_body start "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '')"
+  comment_body="$(render_sprint_comment_body start "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '' "$issue_body_file")"
+  if [[ -n "$issue_body_file" ]]; then
+    rm -f "$issue_body_file"
+  fi
   printf '%s\n' "$comment_body"
 
   if [[ "$post_comment" == '1' ]]; then
@@ -1846,8 +1927,17 @@ ready_sprint_cmd() {
     post_comment='1'
   fi
 
+  local issue_body_file=''
+  if [[ "$dry_run" != '1' ]]; then
+    issue_body_file="$(mktemp)"
+    issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+  fi
+
   local comment_body=''
-  comment_body="$(render_sprint_comment_body ready "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '')"
+  comment_body="$(render_sprint_comment_body ready "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '' "$issue_body_file")"
+  if [[ -n "$issue_body_file" ]]; then
+    rm -f "$issue_body_file"
+  fi
   printf '%s\n' "$comment_body"
 
   if [[ "$post_comment" == '1' ]]; then
@@ -1978,8 +2068,17 @@ accept_sprint_cmd() {
     post_comment='1'
   fi
 
+  local issue_body_file=''
+  if [[ "$dry_run" != '1' ]]; then
+    issue_body_file="$(mktemp)"
+    issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+  fi
+
   local comment_body=''
-  comment_body="$(render_sprint_comment_body accepted "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" "$approved_comment_url")"
+  comment_body="$(render_sprint_comment_body accepted "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" "$approved_comment_url" "$issue_body_file")"
+  if [[ -n "$issue_body_file" ]]; then
+    rm -f "$issue_body_file"
+  fi
   printf '%s\n' "$comment_body"
 
   if [[ "$post_comment" == '1' ]]; then
