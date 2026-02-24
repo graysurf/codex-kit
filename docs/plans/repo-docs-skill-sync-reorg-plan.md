@@ -14,7 +14,7 @@ Review all tracked documentation files in this repo, identify outdated content, 
   - Behavioral changes to skill scripts or workflow logic.
   - Retroactively rewriting historical changelog release notes except for adding a current cleanup entry (if needed).
 
-## Assumptions (if any)
+## Assumptions
 1. This turn delivers a plan only; documentation edits happen in a later execution pass.
 2. "All documents" means tracked markdown files in the repo, plus markdown fixtures used as contract examples.
 3. Recent skill additions/removals can be derived from git history and current tracked `skills/**/SKILL.md`.

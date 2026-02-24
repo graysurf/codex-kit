@@ -16,7 +16,7 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
   - Permanent docs updates outside this plan file.
   - Automating cleanup in this phase (manual cleanup is documented only).
 
-## Assumptions (if any)
+## Assumptions
 1. `plan-tooling` and `python3` are available on `PATH`.
 2. `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh` is executable in this repo.
 3. GitHub approval/merge gates are validated when the orchestration workflow runs, not in this planning step.
