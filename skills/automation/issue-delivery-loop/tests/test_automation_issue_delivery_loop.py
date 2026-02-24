@@ -34,3 +34,6 @@ def test_issue_delivery_loop_script_enforces_subagent_owner_policy() -> None:
     assert "enforce_subagent_owner_policy" in text
     assert "Owner must not be main-agent" in text
     assert "Owner must include 'subagent'" in text
+    assert "pr_refs=()" in text
+    assert "Tasks [" in text
+    assert "(tasks: " in text

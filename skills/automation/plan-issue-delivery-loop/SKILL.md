@@ -25,13 +25,17 @@ Inputs:
   - sprint acceptance record comments
   - final plan issue close gate
 - Optional repository override (`--repo <owner/repo>`).
+- Optional PR grouping controls:
+  - `--pr-grouping per-task|manual|auto` (default: `per-task`)
+  - `--pr-group <task-or-plan-id>=<group>` (repeatable; for `manual`)
 
 Outputs:
 
 - Plan-scoped task-spec TSV generated from all plan tasks (all sprints) for one issue.
-- Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints.
+- Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints, including `pr_group`.
 - Exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
 - Sprint progress tracked on that issue via comments + task decomposition rows/PR links.
+- Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
 
 Exit codes:
@@ -57,7 +61,7 @@ Failure modes:
 1. Plan issue bootstrap (one-time)
    - `start-plan`: parse the full plan, generate one task decomposition covering all sprints, and open one plan issue.
 2. Sprint execution loop (repeat on the same plan issue)
-   - `start-sprint`: generate sprint task TSV, post sprint-start comment, emit subagent dispatch hints.
+   - `start-sprint`: generate sprint task TSV, post sprint-start comment, emit subagent dispatch hints (supports grouped PR dispatch).
    - `ready-sprint`: post sprint-ready comment for sprint-level review/acceptance on the same issue.
    - `accept-sprint`: record sprint acceptance (comment only); plan issue remains open.
    - `next-sprint`: record current sprint acceptance and immediately start the next sprint on the same issue.
@@ -71,7 +75,7 @@ Failure modes:
 2. Run `start-plan` to open exactly one GitHub issue for the whole plan (`1 plan = 1 issue`).
 3. Run `start-sprint` for Sprint 1 on that same issue:
    - main-agent posts sprint kickoff comment
-   - main-agent emits task dispatch hints
+   - main-agent chooses PR grouping (`per-task`, `manual`, `auto`) and emits dispatch hints
    - subagents create worktrees/PRs and implement tasks
 4. While sprint work is active, use issue task rows + PR links for traceability, and optionally `status-plan` for snapshots.
 5. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request comment.

@@ -1027,6 +1027,8 @@ case "$subcommand" in
     merged_rows=""
     gate_errors=()
     nl=$'\n'
+    pr_refs=()
+    pr_tasks=()
 
     while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
       task_id="$(trim_text "$task")"
@@ -1042,8 +1044,27 @@ case "$subcommand" in
       fi
 
       pr_ref="$(normalize_pr_ref "$pr_value")"
+      pr_index='-1'
+      for i in "${!pr_refs[@]}"; do
+        if [[ "${pr_refs[$i]}" == "$pr_ref" ]]; then
+          pr_index="$i"
+          break
+        fi
+      done
+      if [[ "$pr_index" == '-1' ]]; then
+        pr_refs+=("$pr_ref")
+        pr_tasks+=("$task_id")
+      else
+        pr_tasks[$pr_index]+=", ${task_id}"
+      fi
+    done < <(parse_issue_tasks_tsv "$body_file")
+
+    for i in "${!pr_refs[@]}"; do
+      pr_ref="${pr_refs[$i]}"
+      task_list="${pr_tasks[$i]}"
+
       if [[ "$dry_run" == "1" && -z "$issue_number" ]]; then
-        merged_rows+="- ${task_id}: ${pr_ref} (merge check skipped in dry-run body-file mode)${nl}"
+        merged_rows+="- ${pr_ref} (tasks: ${task_list}; merge check skipped in dry-run body-file mode)${nl}"
         continue
       fi
 
@@ -1052,17 +1073,18 @@ case "$subcommand" in
       pr_meta_code=$?
       set -e
       if [[ "$pr_meta_code" -ne 0 ]]; then
-        gate_errors+=("${task_id}: failed to query PR ${pr_ref}: ${pr_meta}")
+        pr_meta="${pr_meta//$'\n'/ }"
+        gate_errors+=("Tasks [${task_list}]: failed to query PR ${pr_ref}: ${pr_meta}")
         continue
       fi
 
       IFS=$'\t' read -r _pr_number pr_url pr_state _is_draft _review_decision _merge_state merged_at <<<"$pr_meta"
       if [[ -z "$merged_at" ]]; then
-        gate_errors+=("${task_id}: PR is not merged (${pr_url:-$pr_ref}, state=${pr_state})")
+        gate_errors+=("Tasks [${task_list}]: PR is not merged (${pr_url:-$pr_ref}, state=${pr_state})")
       else
-        merged_rows+="- ${task_id}: ${pr_url:-$pr_ref}${nl}"
+        merged_rows+="- ${pr_url:-$pr_ref} (tasks: ${task_list})${nl}"
       fi
-    done < <(parse_issue_tasks_tsv "$body_file")
+    done
 
     if [[ -n "$temp_body" ]]; then
       rm -f "$temp_body"

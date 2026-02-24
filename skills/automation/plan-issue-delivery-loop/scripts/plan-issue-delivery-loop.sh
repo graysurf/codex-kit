@@ -40,6 +40,41 @@ is_positive_int() {
   [[ "${1:-}" =~ ^[1-9][0-9]*$ ]]
 }
 
+is_valid_pr_grouping() {
+  case "${1:-}" in
+    per-task|manual|auto)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+validate_pr_grouping_args() {
+  local mode="${1:-}"
+  local mapping_count="${2:-0}"
+  is_valid_pr_grouping "$mode" || die "--pr-grouping must be one of: per-task, manual, auto"
+  if [[ "$mode" == "manual" && "$mapping_count" -eq 0 ]]; then
+    die "--pr-grouping manual requires at least one --pr-group <task-or-plan-id>=<group> entry"
+  fi
+  if [[ "$mode" != "manual" && "$mapping_count" -gt 0 ]]; then
+    die "--pr-group can only be used when --pr-grouping manual"
+  fi
+}
+
+join_lines() {
+  local joined=''
+  local item=''
+  for item in "$@"; do
+    if [[ -n "$joined" ]]; then
+      joined+=$'\n'
+    fi
+    joined+="$item"
+  done
+  printf '%s' "$joined"
+}
+
 print_cmd() {
   local out=''
   local arg=''
@@ -310,8 +345,10 @@ render_task_spec_from_plan_scope() {
   local owner_prefix="${5:-subagent}"
   local branch_prefix="${6:-issue}"
   local worktree_prefix="${7:-issue__}"
+  local pr_grouping="${8:-per-task}"
+  local pr_group_entries="${9:-}"
 
-  python3 - "$plan_file" "$scope_kind" "$scope_value" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" <<'PY'
+  python3 - "$plan_file" "$scope_kind" "$scope_value" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_entries" <<'PY'
 import json
 import pathlib
 import re
@@ -325,6 +362,8 @@ output_path = pathlib.Path(sys.argv[4])
 owner_prefix = sys.argv[5].strip() or "subagent"
 branch_prefix = sys.argv[6].strip() or "issue"
 worktree_prefix = sys.argv[7].strip() or "issue__"
+pr_grouping = sys.argv[8].strip() or "per-task"
+pr_group_entries_raw = sys.argv[9]
 
 if not plan.is_file():
     raise SystemExit(f"error: plan file not found: {plan}")
@@ -332,6 +371,8 @@ if scope_kind not in {"plan", "sprint"}:
     raise SystemExit(f"error: unsupported scope_kind: {scope_kind}")
 if scope_kind == "sprint" and (not scope_value.isdigit() or int(scope_value) <= 0):
     raise SystemExit(f"error: sprint must be a positive integer (got: {scope_value})")
+if pr_grouping not in {"per-task", "manual", "auto"}:
+    raise SystemExit(f"error: unsupported pr-grouping mode: {pr_grouping}")
 
 parsed = subprocess.run(
     ["plan-tooling", "to-json", "--file", str(plan)],
@@ -367,6 +408,13 @@ def slugify(value: str, fallback: str) -> str:
     return text[:48]
 
 
+def normalize_group_key(value: str, fallback: str) -> str:
+    token = re.sub(r"[^a-z0-9]+", "-", (value or "").strip().lower()).strip("-")
+    if not token:
+        token = fallback
+    return token[:48]
+
+
 def is_placeholder(value: str) -> bool:
     token = (value or "").strip().lower()
     if token in {"", "-", "none", "n/a", "na"}:
@@ -386,14 +434,13 @@ if "subagent" not in normalized_owner_prefix.lower():
 branch_prefix_norm = branch_prefix.rstrip("/") or "issue"
 worktree_prefix_norm = worktree_prefix.rstrip("-_") or "issue"
 
-output_path.parent.mkdir(parents=True, exist_ok=True)
-lines = ["# task_id\tsummary\tbranch\tworktree\towner\tnotes"]
-
+task_records = []
 for sprint in selected:
     sprint_num = int(sprint.get("number", 0))
     tasks = sprint.get("tasks", []) or []
     for idx, task in enumerate(tasks, start=1):
         task_id = f"S{sprint_num}T{idx}"
+        plan_task_id = (task.get("id") or "").strip()
         task_name = (task.get("name") or task.get("id") or f"task-{idx}").strip()
         summary = re.sub(r"\s+", " ", task_name).strip() or f"sprint-{sprint_num}-task-{idx}"
         slug = slugify(summary, f"task-{idx}")
@@ -414,22 +461,131 @@ for sprint in selected:
             if not is_placeholder(text):
                 validations.append(text)
 
-        notes_parts = [f"sprint=S{sprint_num}", f"plan-task:{(task.get('id') or '').strip() or task_id}"]
+        notes_parts = [f"sprint=S{sprint_num}", f"plan-task:{plan_task_id or task_id}"]
         if deps:
             notes_parts.append("deps=" + ",".join(deps))
         if validations:
             notes_parts.append("validate=" + validations[0])
-        notes = "; ".join(notes_parts)
 
-        row = [
-            task_id.replace("\t", " "),
-            summary.replace("\t", " "),
-            branch.replace("\t", " "),
-            worktree.replace("\t", " "),
-            owner.replace("\t", " "),
-            notes.replace("\t", " "),
-        ]
-        lines.append("\t".join(row))
+        task_records.append(
+            {
+                "task_id": task_id,
+                "plan_task_id": plan_task_id,
+                "summary": summary,
+                "branch": branch,
+                "worktree": worktree,
+                "owner": owner,
+                "dependencies": deps,
+                "notes_parts": notes_parts,
+            }
+        )
+
+if not task_records:
+    raise SystemExit("error: selected scope has no tasks")
+
+group_assignments = {}
+assignment_sources = []
+for raw_line in pr_group_entries_raw.splitlines():
+    entry = raw_line.strip()
+    if not entry:
+        continue
+    if "=" not in entry:
+        raise SystemExit("error: --pr-group must use <task-or-plan-id>=<group> format")
+    raw_key, raw_group = entry.split("=", 1)
+    key = raw_key.strip()
+    group_key = normalize_group_key(raw_group, "")
+    if not key or not group_key:
+        raise SystemExit("error: --pr-group must include both task key and group")
+    assignment_sources.append(key)
+    group_assignments[key] = group_key
+    group_assignments[key.casefold()] = group_key
+
+if pr_grouping == "manual" and not group_assignments:
+    raise SystemExit("error: --pr-grouping manual requires at least one --pr-group entry")
+if pr_grouping != "manual" and group_assignments:
+    raise SystemExit("error: --pr-group can only be used when --pr-grouping manual")
+
+if pr_grouping == "manual":
+    known_keys = set()
+    for rec in task_records:
+        known_keys.add(rec["task_id"].casefold())
+        if rec["plan_task_id"]:
+            known_keys.add(rec["plan_task_id"].casefold())
+    unknown = [key for key in assignment_sources if key.casefold() not in known_keys]
+    if unknown:
+        preview = ", ".join(unknown[:5])
+        raise SystemExit(f"error: --pr-group references unknown task keys: {preview}")
+
+if pr_grouping == "auto":
+    task_index = {}
+    for idx, rec in enumerate(task_records):
+        for key in (rec["task_id"], rec["plan_task_id"]):
+            if key:
+                task_index.setdefault(key.casefold(), idx)
+
+    deps_by_task = []
+    outgoing_counts = [0] * len(task_records)
+    for idx, rec in enumerate(task_records):
+        internal_deps = []
+        for dep in rec["dependencies"]:
+            dep_idx = task_index.get(dep.casefold())
+            if dep_idx is not None:
+                if dep_idx not in internal_deps:
+                    internal_deps.append(dep_idx)
+                    outgoing_counts[dep_idx] += 1
+        deps_by_task.append(internal_deps)
+
+    for idx, rec in enumerate(task_records):
+        group_key = ""
+        internal_deps = deps_by_task[idx]
+        # Auto mode only chains strictly sequential tasks to avoid
+        # collapsing fan-out branches that can still run in parallel.
+        if len(internal_deps) == 1:
+            dep_idx = internal_deps[0]
+            if dep_idx < idx and outgoing_counts[dep_idx] == 1:
+                group_key = task_records[dep_idx].get("pr_group", "")
+        rec["pr_group"] = group_key or normalize_group_key(rec["task_id"], f"group-{idx + 1}")
+elif pr_grouping == "manual":
+    for idx, rec in enumerate(task_records):
+        group_key = ""
+        for key in (rec["task_id"], rec["plan_task_id"]):
+            if not key:
+                continue
+            group_key = group_assignments.get(key) or group_assignments.get(key.casefold(), "")
+            if group_key:
+                break
+        rec["pr_group"] = group_key or normalize_group_key(rec["task_id"], f"task-{idx + 1}")
+else:
+    for idx, rec in enumerate(task_records):
+        rec["pr_group"] = normalize_group_key(rec["task_id"], f"task-{idx + 1}")
+
+group_sizes = {}
+group_anchor = {}
+for rec in task_records:
+    group_key = rec["pr_group"]
+    group_sizes[group_key] = group_sizes.get(group_key, 0) + 1
+    if group_key not in group_anchor:
+        group_anchor[group_key] = rec
+
+output_path.parent.mkdir(parents=True, exist_ok=True)
+lines = ["# task_id\tsummary\tbranch\tworktree\towner\tnotes\tpr_group"]
+
+for rec in task_records:
+    notes_parts = list(rec["notes_parts"])
+    notes_parts.append(f"pr-group={rec['pr_group']}")
+    if group_sizes[rec["pr_group"]] > 1:
+        notes_parts.append(f"shared-pr-anchor={group_anchor[rec['pr_group']]['task_id']}")
+    notes = "; ".join(notes_parts)
+    row = [
+        rec["task_id"].replace("\t", " "),
+        rec["summary"].replace("\t", " "),
+        rec["branch"].replace("\t", " "),
+        rec["worktree"].replace("\t", " "),
+        rec["owner"].replace("\t", " "),
+        notes.replace("\t", " "),
+        rec["pr_group"].replace("\t", " "),
+    ]
+    lines.append("\t".join(row))
 
 output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 print(output_path)
@@ -513,24 +669,54 @@ with spec_path.open("r", encoding="utf-8") as handle:
         branch = raw[2].strip() if len(raw) >= 3 else ""
         worktree = raw[3].strip() if len(raw) >= 4 else ""
         owner = raw[4].strip() if len(raw) >= 5 else "subagent"
-        rows.append((task_id, summary, branch, worktree, owner))
+        pr_group = raw[6].strip() if len(raw) >= 7 else task_id
+        rows.append(
+            {
+                "task_id": task_id,
+                "summary": summary,
+                "branch": branch,
+                "worktree": worktree,
+                "owner": owner,
+                "pr_group": pr_group or task_id,
+            }
+        )
+
+groups = {}
+group_order = []
+for row in rows:
+    key = row["pr_group"] or row["task_id"]
+    if key not in groups:
+        groups[key] = []
+        group_order.append(key)
+    groups[key].append(row)
 
 print("DISPATCH_HINTS_BEGIN")
-for task_id, summary, branch, worktree, owner in rows:
-    pr_title = f"feat: {summary}" if summary else f"feat: {task_id}"
-    create_cmd = (
-        f"{shlex.quote(subagent_entrypoint)} create-worktree "
-        f"--branch {shlex.quote(branch)} --base main --worktree-name {shlex.quote(worktree)}"
-    )
+for group_key in group_order:
+    group_rows = groups[group_key]
+    leader = group_rows[0]
+    summary = leader["summary"] or leader["task_id"]
+    if len(group_rows) > 1:
+        summary = f"{summary} (+{len(group_rows) - 1} tasks)"
+    pr_title = f"feat: {summary}"
     open_cmd = (
         f"{shlex.quote(subagent_entrypoint)} open-pr "
         f"--issue {shlex.quote(issue_number or '<issue-number>')} "
         f"--title {shlex.quote(pr_title)} "
-        f"--head {shlex.quote(branch)} --use-template"
+        f"--head {shlex.quote(leader['branch'])} --use-template"
     )
-    print(f"TASK={task_id} OWNER={owner}")
-    print(f"CREATE_WORKTREE_CMD={create_cmd}")
-    print(f"OPEN_PR_CMD={open_cmd}")
+    task_list = ",".join(row["task_id"] for row in group_rows)
+    print(f"PR_GROUP={group_key} HEAD={leader['branch']} TASK_COUNT={len(group_rows)} TASKS={task_list}")
+    for idx, row in enumerate(group_rows):
+        create_cmd = (
+            f"{shlex.quote(subagent_entrypoint)} create-worktree "
+            f"--branch {shlex.quote(row['branch'])} --base main --worktree-name {shlex.quote(row['worktree'])}"
+        )
+        print(f"TASK={row['task_id']} OWNER={row['owner']} PR_GROUP={group_key}")
+        print(f"CREATE_WORKTREE_CMD={create_cmd}")
+        if idx == 0:
+            print(f"OPEN_PR_CMD={open_cmd}")
+        else:
+            print("OPEN_PR_CMD=SHARED_WITH_GROUP")
 print("DISPATCH_HINTS_END")
 PY
 }
@@ -646,6 +832,8 @@ build-task-spec options (sprint scope):
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
+  --pr-grouping <mode>           per-task (default) | manual | auto
+  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
 
 build-plan-task-spec options:
   --plan <path>                  Plan markdown path (required)
@@ -653,6 +841,8 @@ build-plan-task-spec options:
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
+  --pr-grouping <mode>           per-task (default) | manual | auto
+  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
 
 start-plan options:
   --plan <path>                  Plan markdown path (required)
@@ -662,6 +852,8 @@ start-plan options:
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
+  --pr-grouping <mode>           per-task (default) | manual | auto
+  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
   --label <name>                 Repeatable; default labels: issue, plan
 
 status-plan options:
@@ -693,6 +885,8 @@ start-sprint / ready-sprint / accept-sprint options:
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
+  --pr-grouping <mode>           per-task (default) | manual | auto
+  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
   --summary <text> | --summary-file <path>
   --comment | --no-comment       Default: comment when --issue is provided
   --approved-comment-url <url>   accept-sprint only (required)
@@ -706,6 +900,8 @@ next-sprint options:
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
+  --pr-grouping <mode>           per-task (default) | manual | auto
+  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
   --summary <text> | --summary-file <path>
   --comment | --no-comment       Applies to sprint comments (default: comment)
 
@@ -723,6 +919,8 @@ build_task_spec_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
+  local pr_grouping='per-task'
+  local pr_group_entries=()
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
@@ -750,6 +948,14 @@ build_task_spec_cmd() {
         worktree_prefix="${2:-}"
         shift 2
         ;;
+      --pr-grouping)
+        pr_grouping="${2:-}"
+        shift 2
+        ;;
+      --pr-group)
+        pr_group_entries+=("${2:-}")
+        shift 2
+        ;;
       -h|--help)
         usage
         exit 0
@@ -763,6 +969,7 @@ build_task_spec_cmd() {
   [[ -n "$plan_file" ]] || die "--plan is required for build-task-spec"
   [[ -n "$sprint" ]] || die "--sprint is required for build-task-spec"
   is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
 
   validate_plan "$plan_file"
 
@@ -775,7 +982,9 @@ build_task_spec_cmd() {
     task_spec_out="$(default_sprint_task_spec_path "$plan_file" "$sprint")"
   fi
 
-  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" >/dev/null
+  local pr_group_config=''
+  pr_group_config="$(join_lines "${pr_group_entries[@]}")"
+  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
 
   printf 'PLAN_FILE=%s\n' "$plan_file"
   printf 'SCOPE=sprint\n'
@@ -783,6 +992,7 @@ build_task_spec_cmd() {
   printf 'SPRINT_NAME=%s\n' "$sprint_name"
   printf 'SPRINT_TASK_COUNT=%s\n' "$sprint_task_count"
   printf 'MAX_SPRINT=%s\n' "$max_sprint"
+  printf 'PR_GROUPING=%s\n' "$pr_grouping"
   printf 'TASK_SPEC_PATH=%s\n' "$task_spec_out"
 }
 
@@ -792,6 +1002,8 @@ build_plan_task_spec_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
+  local pr_grouping='per-task'
+  local pr_group_entries=()
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
@@ -815,6 +1027,14 @@ build_plan_task_spec_cmd() {
         worktree_prefix="${2:-}"
         shift 2
         ;;
+      --pr-grouping)
+        pr_grouping="${2:-}"
+        shift 2
+        ;;
+      --pr-group)
+        pr_group_entries+=("${2:-}")
+        shift 2
+        ;;
       -h|--help)
         usage
         exit 0
@@ -826,6 +1046,7 @@ build_plan_task_spec_cmd() {
   done
 
   [[ -n "$plan_file" ]] || die "--plan is required for build-plan-task-spec"
+  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   validate_plan "$plan_file"
 
   local plan_summary plan_title max_sprint total_tasks
@@ -837,13 +1058,16 @@ build_plan_task_spec_cmd() {
     task_spec_out="$(default_plan_task_spec_path "$plan_file")"
   fi
 
-  render_task_spec_from_plan_scope "$plan_file" plan '' "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" >/dev/null
+  local pr_group_config=''
+  pr_group_config="$(join_lines "${pr_group_entries[@]}")"
+  render_task_spec_from_plan_scope "$plan_file" plan '' "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
 
   printf 'PLAN_FILE=%s\n' "$plan_file"
   printf 'SCOPE=plan\n'
   printf 'PLAN_TITLE=%s\n' "$plan_title"
   printf 'MAX_SPRINT=%s\n' "$max_sprint"
   printf 'TOTAL_TASK_COUNT=%s\n' "$total_tasks"
+  printf 'PR_GROUPING=%s\n' "$pr_grouping"
   printf 'TASK_SPEC_PATH=%s\n' "$task_spec_out"
 }
 
@@ -855,6 +1079,8 @@ start_plan_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
+  local pr_grouping='per-task'
+  local pr_group_entries=()
   local repo_arg=''
   local dry_run='0'
   local labels=()
@@ -889,6 +1115,14 @@ start_plan_cmd() {
         worktree_prefix="${2:-}"
         shift 2
         ;;
+      --pr-grouping)
+        pr_grouping="${2:-}"
+        shift 2
+        ;;
+      --pr-group)
+        pr_group_entries+=("${2:-}")
+        shift 2
+        ;;
       --label)
         labels+=("${2:-}")
         shift 2
@@ -912,6 +1146,7 @@ start_plan_cmd() {
   done
 
   [[ -n "$plan_file" ]] || die "--plan is required for start-plan"
+  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   validate_plan "$plan_file"
 
   local plan_summary plan_title max_sprint total_tasks
@@ -922,7 +1157,9 @@ start_plan_cmd() {
   if [[ -z "$task_spec_out" ]]; then
     task_spec_out="$(default_plan_task_spec_path "$plan_file")"
   fi
-  render_task_spec_from_plan_scope "$plan_file" plan '' "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" >/dev/null
+  local pr_group_config=''
+  pr_group_config="$(join_lines "${pr_group_entries[@]}")"
+  render_task_spec_from_plan_scope "$plan_file" plan '' "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
 
   if [[ -z "$issue_body_out" ]]; then
     issue_body_out="$(default_plan_issue_body_path "$plan_file")"
@@ -953,6 +1190,7 @@ start_plan_cmd() {
   printf 'PLAN_TITLE=%s\n' "$plan_title"
   printf 'MAX_SPRINT=%s\n' "$max_sprint"
   printf 'TOTAL_TASK_COUNT=%s\n' "$total_tasks"
+  printf 'PR_GROUPING=%s\n' "$pr_grouping"
   printf 'TASK_SPEC_PATH=%s\n' "$task_spec_out"
   printf 'ISSUE_BODY_PATH=%s\n' "$issue_body_out"
   printf 'DESIGN=ONE_PLAN_ONE_ISSUE\n'
@@ -1074,6 +1312,8 @@ start_sprint_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
+  local pr_grouping='per-task'
+  local pr_group_entries=()
   local summary_text=''
   local summary_file=''
   local post_comment=''
@@ -1108,6 +1348,14 @@ start_sprint_cmd() {
         ;;
       --worktree-prefix)
         worktree_prefix="${2:-}"
+        shift 2
+        ;;
+      --pr-grouping)
+        pr_grouping="${2:-}"
+        shift 2
+        ;;
+      --pr-group)
+        pr_group_entries+=("${2:-}")
         shift 2
         ;;
       --summary)
@@ -1148,6 +1396,7 @@ start_sprint_cmd() {
   [[ -n "$issue_number" ]] || die "--issue is required for start-sprint"
   [[ -n "$sprint" ]] || die "--sprint is required for start-sprint"
   is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   summary_text="$(read_optional_text "$summary_text" "$summary_file")"
 
   validate_plan "$plan_file"
@@ -1160,7 +1409,9 @@ start_sprint_cmd() {
   if [[ -z "$task_spec_out" ]]; then
     task_spec_out="$(default_sprint_task_spec_path "$plan_file" "$sprint")"
   fi
-  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" >/dev/null
+  local pr_group_config=''
+  pr_group_config="$(join_lines "${pr_group_entries[@]}")"
+  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
 
   if [[ -z "$post_comment" ]]; then
     post_comment='1'
@@ -1171,6 +1422,7 @@ start_sprint_cmd() {
   printf 'SPRINT=%s\n' "$sprint"
   printf 'SPRINT_NAME=%s\n' "$sprint_name"
   printf 'SPRINT_TASK_COUNT=%s\n' "$sprint_task_count"
+  printf 'PR_GROUPING=%s\n' "$pr_grouping"
   printf 'TASK_SPEC_PATH=%s\n' "$task_spec_out"
 
   emit_dispatch_hints "$task_spec_out" "$issue_number" "$issue_subagent_script"
@@ -1195,6 +1447,8 @@ ready_sprint_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
+  local pr_grouping='per-task'
+  local pr_group_entries=()
   local summary_text=''
   local summary_file=''
   local post_comment=''
@@ -1229,6 +1483,14 @@ ready_sprint_cmd() {
         ;;
       --worktree-prefix)
         worktree_prefix="${2:-}"
+        shift 2
+        ;;
+      --pr-grouping)
+        pr_grouping="${2:-}"
+        shift 2
+        ;;
+      --pr-group)
+        pr_group_entries+=("${2:-}")
         shift 2
         ;;
       --summary)
@@ -1269,6 +1531,7 @@ ready_sprint_cmd() {
   [[ -n "$issue_number" ]] || die "--issue is required for ready-sprint"
   [[ -n "$sprint" ]] || die "--sprint is required for ready-sprint"
   is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   summary_text="$(read_optional_text "$summary_text" "$summary_file")"
 
   validate_plan "$plan_file"
@@ -1281,7 +1544,9 @@ ready_sprint_cmd() {
   if [[ -z "$task_spec_out" ]]; then
     task_spec_out="$(default_sprint_task_spec_path "$plan_file" "$sprint")"
   fi
-  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" >/dev/null
+  local pr_group_config=''
+  pr_group_config="$(join_lines "${pr_group_entries[@]}")"
+  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
 
   if [[ -z "$post_comment" ]]; then
     post_comment='1'
@@ -1307,6 +1572,8 @@ accept_sprint_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
+  local pr_grouping='per-task'
+  local pr_group_entries=()
   local summary_text=''
   local summary_file=''
   local approved_comment_url=''
@@ -1342,6 +1609,14 @@ accept_sprint_cmd() {
         ;;
       --worktree-prefix)
         worktree_prefix="${2:-}"
+        shift 2
+        ;;
+      --pr-grouping)
+        pr_grouping="${2:-}"
+        shift 2
+        ;;
+      --pr-group)
+        pr_group_entries+=("${2:-}")
         shift 2
         ;;
       --summary)
@@ -1387,6 +1662,7 @@ accept_sprint_cmd() {
   [[ -n "$sprint" ]] || die "--sprint is required for accept-sprint"
   [[ -n "$approved_comment_url" ]] || die "--approved-comment-url is required for accept-sprint"
   is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   summary_text="$(read_optional_text "$summary_text" "$summary_file")"
   validate_approval_comment_url_format "$approved_comment_url" >/dev/null
 
@@ -1400,7 +1676,9 @@ accept_sprint_cmd() {
   if [[ -z "$task_spec_out" ]]; then
     task_spec_out="$(default_sprint_task_spec_path "$plan_file" "$sprint")"
   fi
-  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" >/dev/null
+  local pr_group_config=''
+  pr_group_config="$(join_lines "${pr_group_entries[@]}")"
+  render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
 
   if [[ -z "$post_comment" ]]; then
     post_comment='1'
@@ -1429,6 +1707,8 @@ next_sprint_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
+  local pr_grouping='per-task'
+  local pr_group_entries=()
   local summary_text=''
   local summary_file=''
   local post_comment=''
@@ -1467,6 +1747,14 @@ next_sprint_cmd() {
         ;;
       --worktree-prefix)
         worktree_prefix="${2:-}"
+        shift 2
+        ;;
+      --pr-grouping)
+        pr_grouping="${2:-}"
+        shift 2
+        ;;
+      --pr-group)
+        pr_group_entries+=("${2:-}")
         shift 2
         ;;
       --summary)
@@ -1508,6 +1796,7 @@ next_sprint_cmd() {
   [[ -n "$current_sprint" ]] || die "--current-sprint is required for next-sprint"
   [[ -n "$approved_comment_url" ]] || die "--approved-comment-url is required for next-sprint"
   is_positive_int "$current_sprint" || die "--current-sprint must be a positive integer"
+  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   summary_text="$(read_optional_text "$summary_text" "$summary_file")"
 
   validate_plan "$plan_file"
@@ -1527,8 +1816,13 @@ next_sprint_cmd() {
     --owner-prefix "$owner_prefix"
     --branch-prefix "$branch_prefix"
     --worktree-prefix "$worktree_prefix"
+    --pr-grouping "$pr_grouping"
     "$comment_flag"
   )
+  local pr_group_entry=''
+  for pr_group_entry in "${pr_group_entries[@]}"; do
+    accept_cmd+=(--pr-group "$pr_group_entry")
+  done
   if [[ -n "$summary_text" ]]; then
     accept_cmd+=(--summary "$summary_text")
   fi
@@ -1561,8 +1855,12 @@ next_sprint_cmd() {
     --owner-prefix "$owner_prefix"
     --branch-prefix "$branch_prefix"
     --worktree-prefix "$worktree_prefix"
+    --pr-grouping "$pr_grouping"
     "$comment_flag"
   )
+  for pr_group_entry in "${pr_group_entries[@]}"; do
+    start_cmd+=(--pr-group "$pr_group_entry")
+  done
   if [[ -n "$next_task_spec_out" ]]; then
     start_cmd+=(--task-spec-out "$next_task_spec_out")
   fi
