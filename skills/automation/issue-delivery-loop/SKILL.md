@@ -100,5 +100,5 @@ Failure modes:
 
 - `status` and `ready-for-review` also support `--body-file` for offline/dry-run rendering in tests.
 - `close-after-review` supports `--body-file` for offline gate checks; it prints `DRY-RUN-CLOSE-SKIPPED` in body-file mode.
-- `Execution Mode` controls branch/worktree uniqueness checks: only `per-task` requires unique branch/worktree per row.
+- `Execution Mode` controls branch/worktree uniqueness checks: only `pr-isolated` requires unique branch/worktree per row.
 - Use `--dry-run` to suppress write operations while previewing commands.

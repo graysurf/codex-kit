@@ -55,7 +55,7 @@ Failure modes:
 1. Create isolated worktree:
    - `.../manage_issue_subagent_pr.sh create-worktree --branch feat/issue-123-api --base main`
 2. Render a subagent task prompt from assigned task facts (recommended before implementation handoff):
-   - `.../manage_issue_subagent_pr.sh render-task-prompt --issue 123 --task-id T1 --summary "Implement API task" --owner subagent-api --branch issue/123/t1-api --worktree .worktrees/issue/123-t1-api --execution-mode per-task --pr-title "feat(issue): implement API task"`
+   - `.../manage_issue_subagent_pr.sh render-task-prompt --issue 123 --task-id T1 --summary "Implement API task" --owner subagent-api --branch issue/123/t1-api --worktree .worktrees/issue/123-t1-api --execution-mode pr-isolated --pr-title "feat(issue): implement API task"`
 3. Open draft PR and sync PR URL to issue:
    - `cp references/PR_BODY_TEMPLATE.md /tmp/pr-123.md && <edit file>`
    - `.../manage_issue_subagent_pr.sh open-pr --issue 123 --title "feat: api task" --body-file /tmp/pr-123.md`

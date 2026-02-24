@@ -28,7 +28,7 @@ You are the implementation subagent for a single issue task. Follow the assigned
 - Use the assigned `Owner / Branch / Worktree / Execution Mode`; do not replace them with guessed values.
 - Main-agent is orchestration/review-only; subagent owns implementation work and the implementation PR.
 - If `Execution Mode` is `pr-shared` or `per-sprint`, shared `Branch / Worktree / PR` with other tasks is allowed; still preserve the assigned values.
-- If `Execution Mode` is `pr-isolated` or `per-task`, keep one task per assigned `Branch / Worktree / PR`.
+- If `Execution Mode` is `pr-isolated`, keep one task per assigned `Branch / Worktree / PR`.
 - PR body must be fully filled (no `TBD`, `TODO`, `<...>`, `#<number>`, placeholder testing lines).
 - PR body must include `## Issue` with a bullet linking the issue: `- #{{ISSUE_NUMBER}}`.
 - Before opening or finalizing the PR, run PR body validation and fix any errors.

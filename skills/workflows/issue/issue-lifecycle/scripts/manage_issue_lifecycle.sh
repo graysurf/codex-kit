@@ -161,7 +161,7 @@ print("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
 for task_id, summary, branch, worktree, owner, notes in rows:
     notes_value = notes if notes else "-"
     print(
-        f"| {task_id} | {summary} | {owner} | `{branch}` | `{worktree}` | per-task | TBD | planned | {notes_value} |"
+        f"| {task_id} | {summary} | {owner} | `{branch}` | `{worktree}` | pr-isolated | TBD | planned | {notes_value} |"
     )
 
 print("")
@@ -210,7 +210,7 @@ canonical_columns = [
     "Notes",
 ]
 allowed_statuses = {"planned", "in-progress", "blocked", "done"}
-allowed_execution_modes = {"per-task", "per-sprint", "pr-isolated", "pr-shared"}
+allowed_execution_modes = {"per-sprint", "pr-isolated", "pr-shared"}
 placeholder_pr = {"", "-", "tbd", "none", "n/a", "na"}
 placeholder_tokens = {"", "-", "tbd", "none", "n/a", "na"}
 
@@ -354,8 +354,6 @@ def normalize_execution_mode(value: str) -> str:
         return lowered
     if lowered == "persprint":
         return "per-sprint"
-    if lowered == "pertask":
-        return "per-task"
     if lowered == "prshared":
         return "pr-shared"
     if lowered == "prisolated":
@@ -403,8 +401,8 @@ if mode == "sync":
 
 errors: list[str] = []
 
-seen_branch_per_task: dict[str, str] = {}
-seen_worktree_per_task: dict[str, str] = {}
+seen_branch_pr_isolated: dict[str, str] = {}
+seen_worktree_pr_isolated: dict[str, str] = {}
 
 for idx, row in enumerate(task_rows, start=1):
     task_id = row.get("Task", "").strip()
@@ -449,17 +447,17 @@ for idx, row in enumerate(task_rows, start=1):
         if exec_mode == "TBD":
             errors.append(f"{task_id}: Execution Mode must not be TBD when Status is {status}")
 
-    if exec_mode == "per-task":
+    if exec_mode == "pr-isolated":
         if branch and branch != "TBD":
-            if branch in seen_branch_per_task:
-                errors.append(f"{task_id}: Branch duplicates {seen_branch_per_task[branch]} ({branch}) under per-task mode")
+            if branch in seen_branch_pr_isolated:
+                errors.append(f"{task_id}: Branch duplicates {seen_branch_pr_isolated[branch]} ({branch}) under pr-isolated mode")
             else:
-                seen_branch_per_task[branch] = task_id
+                seen_branch_pr_isolated[branch] = task_id
         if worktree and worktree != "TBD":
-            if worktree in seen_worktree_per_task:
-                errors.append(f"{task_id}: Worktree duplicates {seen_worktree_per_task[worktree]} ({worktree}) under per-task mode")
+            if worktree in seen_worktree_pr_isolated:
+                errors.append(f"{task_id}: Worktree duplicates {seen_worktree_pr_isolated[worktree]} ({worktree}) under pr-isolated mode")
             else:
-                seen_worktree_per_task[worktree] = task_id
+                seen_worktree_pr_isolated[worktree] = task_id
 
 if errors:
     for message in errors:

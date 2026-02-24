@@ -65,12 +65,12 @@
       "args": [
         "validate",
         "--body-file",
-        "tests/fixtures/issue/issue_body_duplicate_per_task.md"
+        "tests/fixtures/issue/issue_body_duplicate_pr_isolated.md"
       ],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [1],
-        "stderr_regex": "Branch duplicates .* under per-task mode"
+        "stderr_regex": "Branch duplicates .* under pr-isolated mode"
       }
     },
     {

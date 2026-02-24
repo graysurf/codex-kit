@@ -33,7 +33,7 @@
         "--worktree",
         ".worktrees/issue/999-t1-api",
         "--execution-mode",
-        "per-task",
+        "pr-isolated",
         "--pr-title",
         "feat(issue): implement API validation",
         "--acceptance",
@@ -42,7 +42,7 @@
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "(?s)## Assigned Execution Facts.*Assigned worktree: `\\.worktrees/issue/999-t1-api`.*Execution mode: `per-task`.*validate-pr-body.*open-pr"
+        "stdout_regex": "(?s)## Assigned Execution Facts.*Assigned worktree: `\\.worktrees/issue/999-t1-api`.*Execution mode: `pr-isolated`.*validate-pr-body.*open-pr"
       }
     },
     {
@@ -89,7 +89,7 @@
         "--worktree",
         ".worktrees/issue/999-t1-api",
         "--execution-mode",
-        "per-task",
+        "pr-isolated",
         "--pr-title",
         "feat(issue): implement API validation"
       ],

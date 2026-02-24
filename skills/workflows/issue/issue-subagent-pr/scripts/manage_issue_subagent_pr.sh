@@ -85,7 +85,7 @@ render-task-prompt options:
   --owner <subagent-id>          Assigned subagent owner (required; must include 'subagent')
   --branch <name>                Assigned branch (required; non-TBD)
   --worktree <path>              Assigned worktree path (required; non-TBD)
-  --execution-mode <mode>        per-task|per-sprint|pr-isolated|pr-shared (required)
+  --execution-mode <mode>        per-sprint|pr-isolated|pr-shared (required)
   --pr-title <text>              PR title to use (required)
   --base <branch>                Base branch for PR/worktree (default: main)
   --notes <text>                 Task Notes column text (optional)
@@ -197,11 +197,8 @@ normalize_execution_mode_value() {
   lowered="${lowered//_/-}"
   lowered="${lowered// /-}"
   case "$lowered" in
-    per-task|per-sprint|pr-isolated|pr-shared)
+    per-sprint|pr-isolated|pr-shared)
       printf '%s\n' "$lowered"
-      ;;
-    pertask)
-      printf '%s\n' "per-task"
       ;;
     persprint)
       printf '%s\n' "per-sprint"
@@ -1063,10 +1060,10 @@ case "$subcommand" in
 
     execution_mode="$(normalize_execution_mode_value "$execution_mode")"
     case "$execution_mode" in
-      per-task|per-sprint|pr-isolated|pr-shared)
+      per-sprint|pr-isolated|pr-shared)
         ;;
       *)
-        die "--execution-mode must be one of: per-task, per-sprint, pr-isolated, pr-shared"
+        die "--execution-mode must be one of: per-sprint, pr-isolated, pr-shared"
         ;;
     esac
 
