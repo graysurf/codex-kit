@@ -75,6 +75,7 @@ Failure modes:
 - Use `--dry-run` in orchestration/testing contexts.
 - `open-pr` now syncs the issue task table PR references using canonical `#<number>` format and marks matched `planned` rows as `in-progress`.
 - `render-task-prompt` is intended to freeze real execution facts (`Owner/Branch/Worktree/Execution Mode/PR title`) into a reusable subagent handoff prompt and reduce manual dispatch mistakes.
+- `render-task-prompt --issue DRY_RUN_PLAN_ISSUE` is allowed for local orchestration rehearsal flows that do not call GitHub APIs.
 - `open-pr --use-template` is not a substitute for filling the PR body; subagent must submit a fully edited body that passes validation.
 - Keep implementation details and evidence in PR comments; issue comments should summarize status and link back to PR artifacts.
 - Subagents own implementation execution; main-agent does not implement issue task code directly.

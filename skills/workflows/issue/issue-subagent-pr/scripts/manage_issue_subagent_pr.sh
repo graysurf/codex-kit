@@ -79,7 +79,7 @@ validate-pr-body options:
   --issue <number>               Expected issue number (optional, validates `## Issue` section when present)
 
 render-task-prompt options:
-  --issue <number>               Issue number (required)
+  --issue <number|DRY_RUN_PLAN_ISSUE>  Issue number (required; dry-run token allowed)
   --task-id <id>                 Task id (required, e.g. T1)
   --summary <text>               Task summary from Task Decomposition (required)
   --owner <subagent-id>          Assigned subagent owner (required; must include 'subagent')
@@ -1036,7 +1036,9 @@ case "$subcommand" in
       esac
     done
 
-    [[ "$issue_number" =~ ^[0-9]+$ ]] || die "--issue must be a numeric issue number"
+    if [[ ! "$issue_number" =~ ^[0-9]+$ && "$issue_number" != "DRY_RUN_PLAN_ISSUE" ]]; then
+      die "--issue must be a numeric issue number (or DRY_RUN_PLAN_ISSUE for dry-run)"
+    fi
     [[ -n "$task_id" ]] || die "--task-id is required for render-task-prompt"
     [[ -n "$task_summary" ]] || die "--summary is required for render-task-prompt"
     [[ -n "$task_owner" ]] || die "--owner is required for render-task-prompt"

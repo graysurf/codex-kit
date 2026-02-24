@@ -38,6 +38,7 @@ Outputs:
 
 - Plan-scoped task-spec TSV generated from all plan tasks (all sprints) for one issue.
 - Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints, including `pr_group`.
+- Sprint-scoped rendered subagent prompt files + a prompt manifest (`task_id -> prompt_path -> execution_mode`) generated at `start-sprint`.
 - Exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
 - Sprint progress tracked on that issue via comments + task decomposition rows/PR links.
 - `start-sprint`/`ready-sprint`/`accept-sprint` sync sprint task rows (`Owner/Branch/Worktree/Execution Mode/Notes`) from the sprint task-spec.
@@ -47,6 +48,7 @@ Outputs:
 - Sprint start comments may still show `TBD` PR placeholders until subagents open PRs and rows are linked.
 - `start-sprint` comments append the full markdown section for the active sprint from the plan file (for example Sprint 1/2/3 sections).
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
+- Main-agent must launch subagents from rendered `TASK_PROMPT_PATH` artifacts (no ad-hoc dispatch prompt bypass).
 - Final issue close only after plan-level acceptance and merged-PR close gate.
 - `close-plan` enforces cleanup of all issue-assigned task worktrees before completion.
 - `multi-sprint-guide --dry-run` emits a local-only command sequence that avoids GitHub calls.
@@ -77,7 +79,7 @@ Failure modes:
 1. Plan issue bootstrap (one-time)
    - `start-plan`: parse the full plan, generate one task decomposition covering all sprints, and open one plan issue.
 2. Sprint execution loop (repeat on the same plan issue)
-   - `start-sprint`: generate sprint task TSV, sync sprint task rows in issue body, post sprint-start comment, emit subagent dispatch hints (supports grouped PR dispatch). For sprint `N>1`, this command requires sprint `N-1` merged+done gate to pass first.
+   - `start-sprint`: generate sprint task TSV, render per-task subagent prompts, sync sprint task rows in issue body, post sprint-start comment, emit subagent dispatch hints (supports grouped PR dispatch). For sprint `N>1`, this command requires sprint `N-1` merged+done gate to pass first.
    - `ready-sprint`: post sprint-ready comment to request main-agent review before merge.
    - After review approval, merge sprint PRs.
    - `accept-sprint`: validate sprint PRs are merged, sync sprint task statuses to `done`, and record sprint acceptance comment on the same issue (issue stays open).
@@ -105,6 +107,7 @@ Failure modes:
 3. Run `start-sprint` for Sprint 1 on that same issue:
    - main-agent posts sprint kickoff comment
    - main-agent chooses PR grouping (`per-sprint` or `group`) and emits dispatch hints
+   - main-agent starts subagents using rendered `TASK_PROMPT_PATH` prompt artifacts from dispatch hints
    - subagents create worktrees/PRs and implement tasks
 4. While sprint work is active, keep issue task rows + PR links traceable:
    - sprint row metadata is synced from task-spec by sprint commands

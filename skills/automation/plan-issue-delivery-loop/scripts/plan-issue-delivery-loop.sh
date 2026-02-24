@@ -221,6 +221,18 @@ default_sprint_task_spec_path() {
     "$sprint"
 }
 
+default_sprint_prompt_dir() {
+  local plan_file="${1:-}"
+  local sprint="${2:-}"
+  local plan_base plan_stem
+  plan_base="$(basename "$plan_file")"
+  plan_stem="${plan_base%.md}"
+  printf '%s/out/plan-issue-delivery-loop/%s-sprint-%s-subagent-prompts\n' \
+    "${agent_home%/}" \
+    "$plan_stem" \
+    "$sprint"
+}
+
 default_dry_run_issue_number() {
   printf 'DRY_RUN_PLAN_ISSUE\n'
 }
@@ -596,235 +608,44 @@ render_task_spec_from_plan_scope() {
   local worktree_prefix="${7:-issue__}"
   local pr_grouping="${8:-}"
   local pr_group_entries="${9:-}"
+  [[ -n "$plan_file" ]] || die "plan file path is required"
+  [[ -f "$plan_file" ]] || die "plan file not found: $plan_file"
+  [[ "$scope_kind" == "plan" || "$scope_kind" == "sprint" ]] || die "unsupported scope scope: $scope_kind"
+  if [[ "$scope_kind" == "sprint" ]]; then
+    is_positive_int "$scope_value" || die "sprint must be a positive integer (got: ${scope_value:-<empty>})"
+  fi
+  [[ -n "$pr_grouping" ]] || die "pr-grouping is required"
+  if [[ "$pr_grouping" == "per-spring" ]]; then
+    pr_grouping='per-sprint'
+  fi
+  is_valid_pr_grouping "$pr_grouping" || die "unsupported pr-grouping mode: $pr_grouping"
+  [[ -n "$task_spec_out" ]] || die "task-spec output path is required"
 
-  python3 - "$plan_file" "$scope_kind" "$scope_value" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_entries" <<'PY'
-import json
-import pathlib
-import re
-import subprocess
-import sys
+  local cmd=(
+    plan-tooling split-prs
+    --file "$plan_file"
+    --scope "$scope_kind"
+    --pr-grouping "$pr_grouping"
+    --strategy deterministic
+    --owner-prefix "$owner_prefix"
+    --branch-prefix "$branch_prefix"
+    --worktree-prefix "$worktree_prefix"
+    --format tsv
+  )
+  if [[ "$scope_kind" == "sprint" ]]; then
+    cmd+=(--sprint "$scope_value")
+  fi
 
-plan = pathlib.Path(sys.argv[1])
-scope_kind = sys.argv[2].strip()
-scope_value = sys.argv[3].strip()
-output_path = pathlib.Path(sys.argv[4])
-owner_prefix = sys.argv[5].strip() or "subagent"
-branch_prefix = sys.argv[6].strip() or "issue"
-worktree_prefix = sys.argv[7].strip() or "issue__"
-pr_grouping = sys.argv[8].strip()
-pr_group_entries_raw = sys.argv[9]
-if pr_grouping == "per-spring":
-    pr_grouping = "per-sprint"
+  if [[ "$pr_grouping" == "group" ]]; then
+    while IFS= read -r entry; do
+      [[ -n "$entry" ]] || continue
+      cmd+=(--pr-group "$entry")
+    done <<<"$pr_group_entries"
+  fi
 
-if not plan.is_file():
-    raise SystemExit(f"error: plan file not found: {plan}")
-if scope_kind not in {"plan", "sprint"}:
-    raise SystemExit(f"error: unsupported scope_kind: {scope_kind}")
-if scope_kind == "sprint" and (not scope_value.isdigit() or int(scope_value) <= 0):
-    raise SystemExit(f"error: sprint must be a positive integer (got: {scope_value})")
-if pr_grouping not in {"per-sprint", "group"}:
-    raise SystemExit(f"error: unsupported pr-grouping mode: {pr_grouping}")
-
-parsed = subprocess.run(
-    ["plan-tooling", "to-json", "--file", str(plan)],
-    check=True,
-    capture_output=True,
-    text=True,
-)
-data = json.loads(parsed.stdout)
-sprints = data.get("sprints", [])
-
-selected = []
-if scope_kind == "plan":
-    selected = [s for s in sprints if s.get("tasks")]
-    if not selected:
-        raise SystemExit("error: plan has no tasks")
-else:
-    sprint_num = int(scope_value)
-    for sprint in sprints:
-        if int(sprint.get("number", 0)) == sprint_num:
-            selected = [sprint]
-            break
-    if not selected:
-        raise SystemExit(f"error: sprint {sprint_num} not found")
-    if not selected[0].get("tasks"):
-        raise SystemExit(f"error: sprint {sprint_num} has no tasks")
-
-
-def slugify(value: str, fallback: str) -> str:
-    text = value.strip().lower()
-    text = re.sub(r"[^a-z0-9]+", "-", text).strip("-")
-    if not text:
-        text = fallback
-    return text[:48]
-
-
-def normalize_group_key(value: str, fallback: str) -> str:
-    token = re.sub(r"[^a-z0-9]+", "-", (value or "").strip().lower()).strip("-")
-    if not token:
-        token = fallback
-    return token[:48]
-
-
-def is_placeholder(value: str) -> bool:
-    token = (value or "").strip().lower()
-    if token in {"", "-", "none", "n/a", "na"}:
-        return True
-    if token.startswith("<") and token.endswith(">"):
-        return True
-    if token == "...":
-        return True
-    if "task ids" in token:
-        return True
-    return False
-
-normalized_owner_prefix = owner_prefix
-if "subagent" not in normalized_owner_prefix.lower():
-    normalized_owner_prefix = f"subagent-{normalized_owner_prefix}"
-
-branch_prefix_norm = branch_prefix.rstrip("/") or "issue"
-worktree_prefix_norm = worktree_prefix.rstrip("-_") or "issue"
-
-task_records = []
-for sprint in selected:
-    sprint_num = int(sprint.get("number", 0))
-    tasks = sprint.get("tasks", []) or []
-    for idx, task in enumerate(tasks, start=1):
-        task_id = f"S{sprint_num}T{idx}"
-        plan_task_id = (task.get("id") or "").strip()
-        task_name = (task.get("name") or task.get("id") or f"task-{idx}").strip()
-        summary = re.sub(r"\s+", " ", task_name).strip() or f"sprint-{sprint_num}-task-{idx}"
-        slug = slugify(summary, f"task-{idx}")
-
-        branch = f"{branch_prefix_norm}/s{sprint_num}-t{idx}-{slug}"
-        worktree = f"{worktree_prefix_norm}-s{sprint_num}-t{idx}"
-        owner = f"{normalized_owner_prefix}-s{sprint_num}-t{idx}"
-
-        deps = []
-        for dep in task.get("dependencies", []) or []:
-            dep_text = str(dep).strip()
-            if not is_placeholder(dep_text):
-                deps.append(dep_text)
-
-        validations = []
-        for item in task.get("validation", []) or []:
-            text = str(item).strip()
-            if not is_placeholder(text):
-                validations.append(text)
-
-        notes_parts = [f"sprint=S{sprint_num}", f"plan-task:{plan_task_id or task_id}"]
-        if deps:
-            notes_parts.append("deps=" + ",".join(deps))
-        if validations:
-            notes_parts.append("validate=" + validations[0])
-
-        task_records.append(
-            {
-                "task_id": task_id,
-                "plan_task_id": plan_task_id,
-                "sprint_num": sprint_num,
-                "summary": summary,
-                "branch": branch,
-                "worktree": worktree,
-                "owner": owner,
-                "dependencies": deps,
-                "notes_parts": notes_parts,
-            }
-        )
-
-if not task_records:
-    raise SystemExit("error: selected scope has no tasks")
-
-group_assignments = {}
-assignment_sources = []
-for raw_line in pr_group_entries_raw.splitlines():
-    entry = raw_line.strip()
-    if not entry:
-        continue
-    if "=" not in entry:
-        raise SystemExit("error: --pr-group must use <task-or-plan-id>=<group> format")
-    raw_key, raw_group = entry.split("=", 1)
-    key = raw_key.strip()
-    group_key = normalize_group_key(raw_group, "")
-    if not key or not group_key:
-        raise SystemExit("error: --pr-group must include both task key and group")
-    assignment_sources.append(key)
-    group_assignments[key] = group_key
-    group_assignments[key.casefold()] = group_key
-
-if pr_grouping == "group" and not group_assignments:
-    raise SystemExit("error: --pr-grouping group requires at least one --pr-group entry")
-if pr_grouping != "group" and group_assignments:
-    raise SystemExit("error: --pr-group can only be used when --pr-grouping group")
-
-if pr_grouping == "group":
-    known_keys = set()
-    for rec in task_records:
-        known_keys.add(rec["task_id"].casefold())
-        if rec["plan_task_id"]:
-            known_keys.add(rec["plan_task_id"].casefold())
-    unknown = [key for key in assignment_sources if key.casefold() not in known_keys]
-    if unknown:
-        preview = ", ".join(unknown[:5])
-        raise SystemExit(f"error: --pr-group references unknown task keys: {preview}")
-
-if pr_grouping == "group":
-    missing = []
-    for idx, rec in enumerate(task_records):
-        group_key = ""
-        for key in (rec["task_id"], rec["plan_task_id"]):
-            if not key:
-                continue
-            group_key = group_assignments.get(key) or group_assignments.get(key.casefold(), "")
-            if group_key:
-                break
-        if not group_key:
-            missing.append(rec["task_id"])
-            continue
-        rec["pr_group"] = group_key
-    if missing:
-        preview = ", ".join(missing[:8])
-        raise SystemExit(
-            "error: --pr-grouping group requires explicit mapping for every task; missing: "
-            + preview
-        )
-else:
-    for rec in task_records:
-        sprint_num = rec["sprint_num"]
-        rec["pr_group"] = normalize_group_key(f"s{sprint_num}", f"sprint-{sprint_num}")
-
-group_sizes = {}
-group_anchor = {}
-for rec in task_records:
-    group_key = rec["pr_group"]
-    group_sizes[group_key] = group_sizes.get(group_key, 0) + 1
-    if group_key not in group_anchor:
-        group_anchor[group_key] = rec
-
-output_path.parent.mkdir(parents=True, exist_ok=True)
-lines = ["# task_id\tsummary\tbranch\tworktree\towner\tnotes\tpr_group"]
-
-for rec in task_records:
-    notes_parts = list(rec["notes_parts"])
-    notes_parts.append(f"pr-grouping={pr_grouping}")
-    notes_parts.append(f"pr-group={rec['pr_group']}")
-    if group_sizes[rec["pr_group"]] > 1:
-        notes_parts.append(f"shared-pr-anchor={group_anchor[rec['pr_group']]['task_id']}")
-    notes = "; ".join(notes_parts)
-    row = [
-        rec["task_id"].replace("\t", " "),
-        rec["summary"].replace("\t", " "),
-        rec["branch"].replace("\t", " "),
-        rec["worktree"].replace("\t", " "),
-        rec["owner"].replace("\t", " "),
-        notes.replace("\t", " "),
-        rec["pr_group"].replace("\t", " "),
-    ]
-    lines.append("\t".join(row))
-
-output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-print(output_path)
-PY
+  mkdir -p "$(dirname "$task_spec_out")"
+  "${cmd[@]}" > "$task_spec_out"
+  printf '%s\n' "$task_spec_out"
 }
 
 run_issue_delivery() {
@@ -875,8 +696,9 @@ emit_dispatch_hints() {
   local task_spec_file="${1:-}"
   local issue_number="${2:-}"
   local issue_subagent_entrypoint="${3:-}"
+  local prompt_manifest_file="${4:-}"
 
-  python3 - "$task_spec_file" "$issue_number" "$issue_subagent_entrypoint" <<'PY'
+  python3 - "$task_spec_file" "$issue_number" "$issue_subagent_entrypoint" "$prompt_manifest_file" <<'PY'
 import csv
 import pathlib
 import shlex
@@ -885,9 +707,43 @@ import sys
 spec_path = pathlib.Path(sys.argv[1])
 issue_number = sys.argv[2].strip()
 subagent_entrypoint = sys.argv[3].strip()
+manifest_path = pathlib.Path(sys.argv[4])
 
 if not spec_path.is_file():
     raise SystemExit(f"error: task spec file not found: {spec_path}")
+if not manifest_path.is_file():
+    raise SystemExit(f"error: subagent prompt manifest not found: {manifest_path}")
+
+prompt_map: dict[str, dict[str, str]] = {}
+with manifest_path.open("r", encoding="utf-8") as handle:
+    reader = csv.reader(handle, delimiter="\t")
+    for raw in reader:
+        if not raw:
+            continue
+        if raw[0].strip().startswith("#"):
+            continue
+        if len(raw) < 6:
+            raise SystemExit("error: malformed prompt manifest row")
+        task_id = raw[0].strip()
+        prompt_path = raw[1].strip() if len(raw) >= 2 else ""
+        execution_mode = raw[2].strip() if len(raw) >= 3 else ""
+        owner = raw[3].strip() if len(raw) >= 4 else ""
+        pr_group = raw[4].strip() if len(raw) >= 5 else ""
+        branch = raw[5].strip() if len(raw) >= 6 else ""
+        if not task_id:
+            continue
+        if not prompt_path:
+            raise SystemExit(f"error: prompt manifest missing prompt path for task {task_id}")
+        prompt_file = pathlib.Path(prompt_path)
+        if not prompt_file.is_file():
+            raise SystemExit(f"error: rendered prompt file missing for task {task_id}: {prompt_file}")
+        prompt_map[task_id] = {
+            "prompt_path": prompt_path,
+            "execution_mode": execution_mode,
+            "owner": owner,
+            "pr_group": pr_group,
+            "branch": branch,
+        }
 
 rows = []
 with spec_path.open("r", encoding="utf-8") as handle:
@@ -926,6 +782,8 @@ for row in rows:
     groups[key].append(row)
 
 print("DISPATCH_HINTS_BEGIN")
+print("SUBAGENT_PROMPT_POLICY=MANDATORY_RENDERED_PROMPT")
+print("START_SUBAGENT_RULE=USE_TASK_PROMPT_PATH_AS_INIT_PROMPT")
 for group_key in group_order:
     group_rows = groups[group_key]
     leader = group_rows[0]
@@ -942,17 +800,209 @@ for group_key in group_order:
     task_list = ",".join(row["task_id"] for row in group_rows)
     print(f"PR_GROUP={group_key} HEAD={leader['branch']} TASK_COUNT={len(group_rows)} TASKS={task_list}")
     for idx, row in enumerate(group_rows):
-        create_cmd = (
-            f"{shlex.quote(subagent_entrypoint)} create-worktree "
-            f"--branch {shlex.quote(row['branch'])} --base main --worktree-name {shlex.quote(row['worktree'])}"
-        )
-        print(f"TASK={row['task_id']} OWNER={row['owner']} PR_GROUP={group_key}")
-        print(f"CREATE_WORKTREE_CMD={create_cmd}")
+        task_id = row["task_id"]
+        if task_id not in prompt_map:
+            raise SystemExit(f"error: missing rendered prompt in manifest for task {task_id}")
+        prompt_row = prompt_map[task_id]
+        execution_mode = prompt_row.get("execution_mode", "").strip() or "unknown"
+        prompt_path = prompt_row.get("prompt_path", "").strip()
+        if not prompt_path:
+            raise SystemExit(f"error: prompt manifest missing prompt path for task {task_id}")
+        print(f"TASK={task_id} OWNER={row['owner']} PR_GROUP={group_key} EXECUTION_MODE={execution_mode}")
+        print(f"TASK_PROMPT_PATH={prompt_path}")
+        print("START_SUBAGENT_INPUT=TASK_PROMPT_PATH")
         if idx == 0:
             print(f"OPEN_PR_CMD={open_cmd}")
         else:
             print("OPEN_PR_CMD=SHARED_WITH_GROUP")
 print("DISPATCH_HINTS_END")
+PY
+}
+
+render_subagent_task_prompts() {
+  local task_spec_file="${1:-}"
+  local issue_number="${2:-}"
+  local issue_subagent_entrypoint="${3:-}"
+  local prompts_out_dir="${4:-}"
+  local repo_arg="${5:-}"
+  local prompt_manifest_out="${6:-}"
+
+  [[ -f "$task_spec_file" ]] || die "task spec file not found: $task_spec_file"
+  [[ -n "$issue_number" ]] || die "issue number is required for subagent prompt rendering"
+  [[ -n "$issue_subagent_entrypoint" ]] || die "issue-subagent entrypoint is required"
+  [[ -x "$issue_subagent_entrypoint" ]] || die "missing executable: $issue_subagent_entrypoint"
+  [[ -n "$prompts_out_dir" ]] || die "subagent prompts output directory is required"
+  [[ -n "$prompt_manifest_out" ]] || die "subagent prompt manifest output path is required"
+
+  python3 - "$task_spec_file" "$issue_number" "$issue_subagent_entrypoint" "$prompts_out_dir" "$repo_arg" "$prompt_manifest_out" <<'PY'
+import csv
+import pathlib
+import re
+import subprocess
+import sys
+
+task_spec_path = pathlib.Path(sys.argv[1])
+issue_number = sys.argv[2].strip()
+subagent_entrypoint = sys.argv[3].strip()
+prompts_out_dir = pathlib.Path(sys.argv[4])
+repo_arg = sys.argv[5].strip()
+manifest_out = pathlib.Path(sys.argv[6])
+
+if not task_spec_path.is_file():
+    raise SystemExit(f"error: task spec file not found: {task_spec_path}")
+if not issue_number:
+    raise SystemExit("error: issue number is required for subagent prompt rendering")
+if not subagent_entrypoint:
+    raise SystemExit("error: issue-subagent entrypoint is required")
+if not pathlib.Path(subagent_entrypoint).is_file():
+    raise SystemExit(f"error: issue-subagent entrypoint not found: {subagent_entrypoint}")
+
+prompts_out_dir.mkdir(parents=True, exist_ok=True)
+manifest_out.parent.mkdir(parents=True, exist_ok=True)
+
+
+def extract_note_value(notes: str, key: str) -> str:
+    prefix = f"{key}="
+    prefix_lower = prefix.lower()
+    for part in (notes or "").split(";"):
+        token = part.strip()
+        if token.lower().startswith(prefix_lower):
+            return token[len(prefix) :].strip()
+    return ""
+
+
+def safe_name(value: str) -> str:
+    token = re.sub(r"[^A-Za-z0-9._-]+", "-", value or "").strip("-")
+    return token or "task"
+
+
+rows: list[dict[str, str]] = []
+with task_spec_path.open("r", encoding="utf-8") as handle:
+    reader = csv.reader(handle, delimiter="\t")
+    for raw in reader:
+        if not raw:
+            continue
+        if raw[0].strip().startswith("#"):
+            continue
+        if len(raw) < 5:
+            raise SystemExit("error: malformed task spec row")
+        task_id = raw[0].strip()
+        if not task_id:
+            continue
+        summary = raw[1].strip() if len(raw) >= 2 else ""
+        branch = raw[2].strip() if len(raw) >= 3 else ""
+        worktree = raw[3].strip() if len(raw) >= 4 else ""
+        owner = raw[4].strip() if len(raw) >= 5 else "subagent"
+        notes = raw[5].strip() if len(raw) >= 6 else ""
+        pr_group = raw[6].strip() if len(raw) >= 7 else task_id
+        grouping_mode = extract_note_value(notes, "pr-grouping").lower()
+        if grouping_mode not in {"per-sprint", "group"}:
+            raise SystemExit(
+                f"error: unsupported pr-grouping in task spec for {task_id}: {grouping_mode or '<empty>'}"
+            )
+        if not branch:
+            raise SystemExit(f"error: task spec missing branch for {task_id}")
+        if not worktree:
+            raise SystemExit(f"error: task spec missing worktree for {task_id}")
+        rows.append(
+            {
+                "task_id": task_id,
+                "summary": summary,
+                "branch": branch,
+                "worktree": worktree,
+                "owner": owner or "subagent",
+                "notes": notes,
+                "pr_group": pr_group or task_id,
+                "grouping_mode": grouping_mode,
+            }
+        )
+
+if not rows:
+    raise SystemExit("error: no sprint tasks found for subagent prompt rendering")
+
+groups: dict[str, list[dict[str, str]]] = {}
+group_order: list[str] = []
+for row in rows:
+    key = row["pr_group"] or row["task_id"]
+    if key not in groups:
+        groups[key] = []
+        group_order.append(key)
+    groups[key].append(row)
+
+manifest_rows: list[tuple[str, str, str, str, str, str]] = []
+for group_key in group_order:
+    group_rows = groups[group_key]
+    leader = group_rows[0]
+    summary = leader["summary"] or leader["task_id"]
+    if len(group_rows) > 1:
+        summary = f"{summary} (+{len(group_rows) - 1} tasks)"
+    pr_title = f"feat: {summary}"
+
+    for row in group_rows:
+        task_id = row["task_id"]
+        if row["grouping_mode"] == "per-sprint":
+            execution_mode = "per-sprint"
+        elif len(group_rows) > 1:
+            execution_mode = "pr-shared"
+        else:
+            execution_mode = "pr-isolated"
+
+        prompt_path = prompts_out_dir / f"{safe_name(task_id)}-subagent-prompt.md"
+        cmd = [
+            subagent_entrypoint,
+            "render-task-prompt",
+            "--issue",
+            issue_number,
+            "--task-id",
+            task_id,
+            "--summary",
+            row["summary"] or task_id,
+            "--owner",
+            row["owner"],
+            "--branch",
+            row["branch"],
+            "--worktree",
+            row["worktree"],
+            "--execution-mode",
+            execution_mode,
+            "--pr-title",
+            pr_title,
+            "--output",
+            str(prompt_path),
+        ]
+        if row["notes"]:
+            cmd.extend(["--notes", row["notes"]])
+        if repo_arg:
+            cmd.extend(["--repo", repo_arg])
+
+        try:
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as exc:
+            details = (exc.stderr or "").strip() or (exc.stdout or "").strip()
+            raise SystemExit(
+                f"error: failed to render subagent prompt for {task_id}: {details or exc}"
+            ) from exc
+
+        if not prompt_path.is_file() or prompt_path.stat().st_size == 0:
+            raise SystemExit(f"error: rendered prompt file missing or empty for {task_id}: {prompt_path}")
+
+        manifest_rows.append(
+            (
+                task_id,
+                str(prompt_path),
+                execution_mode,
+                row["owner"],
+                group_key,
+                row["branch"],
+            )
+        )
+
+with manifest_out.open("w", encoding="utf-8") as handle:
+    handle.write("# task_id\tprompt_path\texecution_mode\towner\tpr_group\tbranch\n")
+    for row in manifest_rows:
+        handle.write("\t".join(row) + "\n")
+
+print(manifest_out)
 PY
 }
 
@@ -1721,6 +1771,7 @@ start-sprint / ready-sprint / accept-sprint options:
   --issue <number>               Plan issue number (required)
   --sprint <number>              Sprint number (required)
   --task-spec-out <path>         Sprint task-spec output path override
+  --subagent-prompts-out <dir>   start-sprint only; rendered per-task prompt output dir
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
@@ -2248,6 +2299,7 @@ start_sprint_cmd() {
   local issue_number=''
   local sprint=''
   local task_spec_out=''
+  local subagent_prompts_out=''
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
@@ -2275,6 +2327,10 @@ start_sprint_cmd() {
         ;;
       --task-spec-out)
         task_spec_out="${2:-}"
+        shift 2
+        ;;
+      --subagent-prompts-out)
+        subagent_prompts_out="${2:-}"
         shift 2
         ;;
       --owner-prefix)
@@ -2355,9 +2411,15 @@ start_sprint_cmd() {
   if [[ -z "$task_spec_out" ]]; then
     task_spec_out="$(default_sprint_task_spec_path "$plan_file" "$sprint")"
   fi
+  if [[ -z "$subagent_prompts_out" ]]; then
+    subagent_prompts_out="$(default_sprint_prompt_dir "$plan_file" "$sprint")"
+  fi
   local pr_group_config=''
   pr_group_config="$(join_lines "${pr_group_entries[@]}")"
   render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
+  local subagent_prompt_manifest=''
+  subagent_prompt_manifest="${subagent_prompts_out%/}/manifest.tsv"
+  render_subagent_task_prompts "$task_spec_out" "$issue_number" "$issue_subagent_script" "$subagent_prompts_out" "$repo_arg" "$subagent_prompt_manifest" >/dev/null
 
   if [[ -z "$post_comment" ]]; then
     if [[ "$dry_run" == '1' ]]; then
@@ -2378,8 +2440,11 @@ start_sprint_cmd() {
   printf 'SPRINT_TASK_COUNT=%s\n' "$sprint_task_count"
   printf 'PR_GROUPING=%s\n' "$pr_grouping"
   printf 'TASK_SPEC_PATH=%s\n' "$task_spec_out"
+  printf 'SUBAGENT_PROMPTS_DIR=%s\n' "$subagent_prompts_out"
+  printf 'SUBAGENT_PROMPT_MANIFEST=%s\n' "$subagent_prompt_manifest"
+  printf 'SUBAGENT_DISPATCH_POLICY=RENDERED_TASK_PROMPT_REQUIRED\n'
 
-  emit_dispatch_hints "$task_spec_out" "$issue_number" "$issue_subagent_script"
+  emit_dispatch_hints "$task_spec_out" "$issue_number" "$issue_subagent_script" "$subagent_prompt_manifest"
   sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   local issue_body_file=''

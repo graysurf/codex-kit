@@ -46,6 +46,33 @@
       }
     },
     {
+      "name": "render-task-prompt-dry-run-issue-token",
+      "args": [
+        "render-task-prompt",
+        "--issue",
+        "DRY_RUN_PLAN_ISSUE",
+        "--task-id",
+        "T1",
+        "--summary",
+        "Render prompt for dry-run orchestration",
+        "--owner",
+        "subagent-api",
+        "--branch",
+        "issue/dry-run/t1-api",
+        "--worktree",
+        ".worktrees/issue/dry-run-t1-api",
+        "--execution-mode",
+        "per-sprint",
+        "--pr-title",
+        "feat(issue): dry run prompt"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "(?s)Issue: `#DRY_RUN_PLAN_ISSUE`.*Execution mode: `per-sprint`"
+      }
+    },
+    {
       "name": "render-task-prompt-fail-main-agent-owner",
       "args": [
         "render-task-prompt",

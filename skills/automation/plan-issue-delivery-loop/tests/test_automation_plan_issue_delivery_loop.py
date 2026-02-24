@@ -52,11 +52,16 @@ def test_plan_issue_delivery_loop_script_supports_sprint_progression_flow() -> N
     assert "validate_pr_grouping_args" in text
     assert "--pr-grouping <mode>" in text
     assert "--pr-group <task=group>" in text
+    assert "--subagent-prompts-out <dir>" in text
     assert "per-sprint | group (required; `per-spring` alias accepted)" in text
     assert "--pr-grouping is required (per-sprint|group)" in text
     assert "per-task (default)" not in text
     assert "--pr-grouping manual" not in text
     assert "--pr-grouping auto" not in text
+    assert "render_subagent_task_prompts" in text
+    assert "SUBAGENT_PROMPT_POLICY=MANDATORY_RENDERED_PROMPT" in text
+    assert "START_SUBAGENT_INPUT=TASK_PROMPT_PATH" in text
+    assert "SUBAGENT_DISPATCH_POLICY=RENDERED_TASK_PROMPT_REQUIRED" in text
     assert "PR_GROUP=" in text
     assert "OPEN_PR_CMD=SHARED_WITH_GROUP" in text
     assert "sync_issue_sprint_task_rows" in text
