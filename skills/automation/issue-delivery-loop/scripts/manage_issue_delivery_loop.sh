@@ -363,15 +363,12 @@ fetch_pr_meta_tsv() {
 
 build_status_snapshot() {
   local body_file="${1:-}"
-  local source_label="${2:-issue}"
-  local issue_ref="${3:-}"
 
   local now_utc
   now_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   local nl=$'\n'
 
   local output="## Main-Agent Status Snapshot${nl}${nl}"
-  output+="- Source: ${source_label} ${issue_ref}${nl}"
   output+="- Generated at: ${now_utc}${nl}${nl}"
   output+="| Task | Planned Status | PR | PR State | Review | Merge State | Suggested |${nl}"
   output+="| --- | --- | --- | --- | --- | --- | --- |${nl}"
@@ -460,12 +457,10 @@ build_status_snapshot() {
 
 build_review_request_body() {
   local body_file="${1:-}"
-  local issue_ref="${2:-}"
-  local summary_text="${3:-}"
+  local summary_text="${2:-}"
   local nl=$'\n'
 
   local output="## Main-Agent Review Request${nl}${nl}"
-  output+="- Issue: ${issue_ref}${nl}"
   output+="- Close gate: provide an approval comment URL, then run close-after-review.${nl}${nl}"
   output+="| Task | Summary | Status | PR |${nl}"
   output+="| --- | --- | --- | --- |${nl}"
@@ -802,7 +797,7 @@ case "$subcommand" in
 
     enforce_subagent_owner_policy "$body_file" "status ${source_label}:${source_ref}"
 
-    snapshot="$(build_status_snapshot "$body_file" "$source_label" "$source_ref")"
+    snapshot="$(build_status_snapshot "$body_file")"
     printf '%s\n' "$snapshot"
 
     if [[ -n "$temp_body" ]]; then
@@ -916,7 +911,7 @@ case "$subcommand" in
 
     enforce_subagent_owner_policy "$body_file" "ready-for-review ${issue_ref}"
 
-    review_body="$(build_review_request_body "$body_file" "$issue_ref" "$summary_text")"
+    review_body="$(build_review_request_body "$body_file" "$summary_text")"
     printf '%s\n' "$review_body"
 
     if [[ -n "$temp_body" ]]; then

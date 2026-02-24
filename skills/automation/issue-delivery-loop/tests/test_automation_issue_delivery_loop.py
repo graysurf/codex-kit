@@ -37,3 +37,17 @@ def test_issue_delivery_loop_script_enforces_subagent_owner_policy() -> None:
     assert "pr_refs=()" in text
     assert "Tasks [" in text
     assert "(tasks: " in text
+
+
+def test_issue_delivery_loop_review_request_omits_issue_line() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "scripts" / "manage_issue_delivery_loop.sh").read_text(encoding="utf-8")
+    assert "## Main-Agent Review Request" in text
+    assert 'output+="- Issue: ${issue_ref}${nl}"' not in text
+
+
+def test_issue_delivery_loop_status_snapshot_omits_source_line() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "scripts" / "manage_issue_delivery_loop.sh").read_text(encoding="utf-8")
+    assert "## Main-Agent Status Snapshot" in text
+    assert 'output+="- Source: ${source_label} ${issue_ref}${nl}"' not in text
