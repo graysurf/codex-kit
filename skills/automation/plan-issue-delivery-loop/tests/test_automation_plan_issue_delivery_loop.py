@@ -92,6 +92,8 @@ def test_plan_issue_delivery_loop_sprint_comment_prefers_issue_pr_values() -> No
     text = (skill_root / "scripts" / "plan-issue-delivery-loop.sh").read_text(encoding="utf-8")
     assert "load_issue_pr_values" in text
     assert "normalize_pr_display" in text
+    assert "Execution Mode comes from current Task Decomposition for each sprint task." in text
+    assert "| Task | Summary | Execution Mode |" in text
     assert "PR values come from current Task Decomposition; unresolved tasks remain `TBD` until PRs are linked." in text
     assert "extract_sprint_section" in text
     assert 'if mode == "start":' in text

@@ -1347,24 +1347,37 @@ print("")
 print(f"- Sprint: {sprint} ({sprint_name})")
 print(f"- Tasks in sprint: {len(rows)}")
 print(f"- Note: {lead}")
-print("- PR values come from current Task Decomposition; unresolved tasks remain `TBD` until PRs are linked.")
+if mode == "start":
+    print("- Execution Mode comes from current Task Decomposition for each sprint task.")
+else:
+    print("- PR values come from current Task Decomposition; unresolved tasks remain `TBD` until PRs are linked.")
 if approval_url:
     print(f"- Approval comment URL: {approval_url}")
 print("")
-print("| Task | Summary | PR |")
-print("| --- | --- | --- |")
-for task_id, summary, pr_group, _notes, grouping_mode in rows:
-    pr_value = normalize_pr_display(issue_pr_values.get(task_id, ""))
-    if is_placeholder(pr_value):
+if mode == "start":
+    print("| Task | Summary | Execution Mode |")
+    print("| --- | --- | --- |")
+    for task_id, summary, _pr_group, _notes, grouping_mode in rows:
         if grouping_mode == "per-sprint":
-            pr_value = "TBD (per-sprint)"
-        elif grouping_mode == "group":
-            pr_value = f"TBD (group:{pr_group})"
-        elif group_sizes.get(pr_group, 0) > 1:
-            pr_value = f"TBD (shared:{pr_group})"
+            execution_mode = "per-sprint"
         else:
-            pr_value = "TBD"
-    print(f"| {task_id} | {summary or '-'} | {pr_value} |")
+            execution_mode = "single-pr"
+        print(f"| {task_id} | {summary or '-'} | {execution_mode} |")
+else:
+    print("| Task | Summary | PR |")
+    print("| --- | --- | --- |")
+    for task_id, summary, pr_group, _notes, grouping_mode in rows:
+        pr_value = normalize_pr_display(issue_pr_values.get(task_id, ""))
+        if is_placeholder(pr_value):
+            if grouping_mode == "per-sprint":
+                pr_value = "TBD (per-sprint)"
+            elif grouping_mode == "group":
+                pr_value = f"TBD (group:{pr_group})"
+            elif group_sizes.get(pr_group, 0) > 1:
+                pr_value = f"TBD (shared:{pr_group})"
+            else:
+                pr_value = "TBD"
+        print(f"| {task_id} | {summary or '-'} | {pr_value} |")
 
 if mode == "start":
     sprint_section = extract_sprint_section(plan_path, sprint)
