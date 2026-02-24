@@ -31,6 +31,11 @@ die() {
   exit 1
 }
 
+usage_die() {
+  echo "error: $*" >&2
+  exit 2
+}
+
 require_cmd() {
   local cmd="${1:-}"
   command -v "$cmd" >/dev/null 2>&1 || die "$cmd is required"
@@ -40,28 +45,10 @@ is_positive_int() {
   [[ "${1:-}" =~ ^[1-9][0-9]*$ ]]
 }
 
-is_valid_pr_grouping() {
-  case "${1:-}" in
-    per-sprint|per-spring|group)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
 validate_pr_grouping_args() {
   local mode="${1:-}"
-  local mapping_count="${2:-0}"
-  [[ -n "$mode" ]] || die "--pr-grouping is required (per-sprint|group)"
-  is_valid_pr_grouping "$mode" || die "--pr-grouping must be one of: per-sprint, group"
-  if [[ "$mode" == "group" && "$mapping_count" -eq 0 ]]; then
-    die "--pr-grouping group requires at least one --pr-group <task-or-plan-id>=<group> entry"
-  fi
-  if [[ "$mode" != "group" && "$mapping_count" -gt 0 ]]; then
-    die "--pr-group can only be used when --pr-grouping group"
-  fi
+  [[ -n "$mode" ]] || usage_die "--pr-grouping is required (per-sprint|group)"
+  # Delegate grouping/mapping validation and error contract to plan-tooling split-prs.
 }
 
 join_lines() {
@@ -268,7 +255,7 @@ cleanup_plan_issue_worktrees() {
     [[ -f "$body_file_override" ]] || die "body file not found: $body_file_override"
     body_file="$body_file_override"
   else
-    [[ -n "$issue_number" ]] || die "--issue is required for worktree cleanup"
+    [[ -n "$issue_number" ]] || usage_die "--issue is required for worktree cleanup"
     body_file="$(mktemp)"
     cleanup_body_file='1'
     issue_read_body_cmd "$issue_number" "$body_file" "$repo_arg"
@@ -615,10 +602,6 @@ render_task_spec_from_plan_scope() {
     is_positive_int "$scope_value" || die "sprint must be a positive integer (got: ${scope_value:-<empty>})"
   fi
   [[ -n "$pr_grouping" ]] || die "pr-grouping is required"
-  if [[ "$pr_grouping" == "per-spring" ]]; then
-    pr_grouping='per-sprint'
-  fi
-  is_valid_pr_grouping "$pr_grouping" || die "unsupported pr-grouping mode: $pr_grouping"
   [[ -n "$task_spec_out" ]] || die "task-spec output path is required"
 
   local cmd=(
@@ -636,12 +619,10 @@ render_task_spec_from_plan_scope() {
     cmd+=(--sprint "$scope_value")
   fi
 
-  if [[ "$pr_grouping" == "group" ]]; then
-    while IFS= read -r entry; do
-      [[ -n "$entry" ]] || continue
-      cmd+=(--pr-group "$entry")
-    done <<<"$pr_group_entries"
-  fi
+  while IFS= read -r entry; do
+    [[ -n "$entry" ]] || continue
+    cmd+=(--pr-group "$entry")
+  done <<<"$pr_group_entries"
 
   mkdir -p "$(dirname "$task_spec_out")"
   "${cmd[@]}" > "$task_spec_out"
@@ -1838,14 +1819,14 @@ build_task_spec_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for build-task-spec: $1"
+        usage_die "unknown option for build-task-spec: $1"
         ;;
     esac
   done
 
-  [[ -n "$plan_file" ]] || die "--plan is required for build-task-spec"
-  [[ -n "$sprint" ]] || die "--sprint is required for build-task-spec"
-  is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  [[ -n "$plan_file" ]] || usage_die "--plan is required for build-task-spec"
+  [[ -n "$sprint" ]] || usage_die "--sprint is required for build-task-spec"
+  is_positive_int "$sprint" || usage_die "--sprint must be a positive integer"
   validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
 
   validate_plan "$plan_file"
@@ -1917,12 +1898,12 @@ build_plan_task_spec_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for build-plan-task-spec: $1"
+        usage_die "unknown option for build-plan-task-spec: $1"
         ;;
     esac
   done
 
-  [[ -n "$plan_file" ]] || die "--plan is required for build-plan-task-spec"
+  [[ -n "$plan_file" ]] || usage_die "--plan is required for build-plan-task-spec"
   validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   validate_plan "$plan_file"
 
@@ -2017,12 +1998,12 @@ start_plan_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for start-plan: $1"
+        usage_die "unknown option for start-plan: $1"
         ;;
     esac
   done
 
-  [[ -n "$plan_file" ]] || die "--plan is required for start-plan"
+  [[ -n "$plan_file" ]] || usage_die "--plan is required for start-plan"
   validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   validate_plan "$plan_file"
 
@@ -2112,7 +2093,7 @@ status_plan_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for status-plan: $1"
+        usage_die "unknown option for status-plan: $1"
         ;;
     esac
   done
@@ -2164,20 +2145,20 @@ ready_plan_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for ready-plan: $1"
+        usage_die "unknown option for ready-plan: $1"
         ;;
     esac
   done
 
   if [[ "$dry_run" == '1' ]]; then
     if [[ -n "$issue_number" && -n "$body_file" ]]; then
-      die "use either --issue or --body-file for ready-plan, not both"
+      usage_die "use either --issue or --body-file for ready-plan, not both"
     fi
     if [[ -z "$issue_number" && -z "$body_file" ]]; then
-      die "ready-plan requires --issue or --body-file"
+      usage_die "ready-plan requires --issue or --body-file"
     fi
-    [[ -n "$body_file" ]] || die "--body-file is required for ready-plan --dry-run"
-    [[ -f "$body_file" ]] || die "body file not found: $body_file"
+    [[ -n "$body_file" ]] || usage_die "--body-file is required for ready-plan --dry-run"
+    [[ -f "$body_file" ]] || usage_die "body file not found: $body_file"
     summary_text="$(read_optional_text "$summary_text" "$summary_file")"
     printf 'READY_PLAN_STATUS=DRY_RUN\n'
     printf 'READY_PLAN_SCOPE=LOCAL_BODY_FILE\n'
@@ -2231,28 +2212,28 @@ close_plan_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for close-plan: $1"
+        usage_die "unknown option for close-plan: $1"
         ;;
     esac
   done
 
-  [[ -n "$approved_comment_url" ]] || die "--approved-comment-url is required for close-plan"
+  [[ -n "$approved_comment_url" ]] || usage_die "--approved-comment-url is required for close-plan"
   validate_approval_comment_url_format "$approved_comment_url" >/dev/null
 
   if [[ -n "$issue_number" && -n "$body_file" ]]; then
-    die "use either --issue or --body-file for close-plan, not both"
+    usage_die "use either --issue or --body-file for close-plan, not both"
   fi
 
   if [[ "$dry_run" == '1' ]]; then
-    [[ -n "$body_file" ]] || die "--body-file is required for close-plan --dry-run"
-    [[ -f "$body_file" ]] || die "body file not found: $body_file"
+    [[ -n "$body_file" ]] || usage_die "--body-file is required for close-plan --dry-run"
+    [[ -f "$body_file" ]] || usage_die "body file not found: $body_file"
     cleanup_plan_issue_worktrees '' "$repo_arg" "$dry_run" "$body_file"
     printf 'PLAN_CLOSE_STATUS=DRY_RUN\n'
     printf 'PLAN_CLOSE_SCOPE=LOCAL_BODY_FILE\n'
     printf 'PLAN_CLOSE_BODY_FILE=%s\n' "$body_file"
   else
-    [[ -n "$issue_number" ]] || die "--issue is required for close-plan"
-    [[ -z "$body_file" ]] || die "--body-file is only supported with --dry-run"
+    [[ -n "$issue_number" ]] || usage_die "--issue is required for close-plan"
+    [[ -z "$body_file" ]] || usage_die "--body-file is only supported with --dry-run"
     run_issue_delivery "$dry_run" "$repo_arg" close-after-review "${passthrough[@]}"
     cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
     printf 'PLAN_CLOSE_STATUS=SUCCESS\n'
@@ -2285,12 +2266,12 @@ cleanup_worktrees_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for cleanup-worktrees: $1"
+        usage_die "unknown option for cleanup-worktrees: $1"
         ;;
     esac
   done
 
-  [[ -n "$issue_number" ]] || die "--issue is required for cleanup-worktrees"
+  [[ -n "$issue_number" ]] || usage_die "--issue is required for cleanup-worktrees"
   cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
 }
 
@@ -2382,15 +2363,15 @@ start_sprint_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for start-sprint: $1"
+        usage_die "unknown option for start-sprint: $1"
         ;;
     esac
   done
 
-  [[ -n "$plan_file" ]] || die "--plan is required for start-sprint"
-  [[ -n "$issue_number" ]] || die "--issue is required for start-sprint"
-  [[ -n "$sprint" ]] || die "--sprint is required for start-sprint"
-  is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  [[ -n "$plan_file" ]] || usage_die "--plan is required for start-sprint"
+  [[ -n "$issue_number" ]] || usage_die "--issue is required for start-sprint"
+  [[ -n "$sprint" ]] || usage_die "--sprint is required for start-sprint"
+  is_positive_int "$sprint" || usage_die "--sprint must be a positive integer"
   validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   summary_text="$(read_optional_text "$summary_text" "$summary_file")"
 
@@ -2552,15 +2533,15 @@ ready_sprint_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for ready-sprint: $1"
+        usage_die "unknown option for ready-sprint: $1"
         ;;
     esac
   done
 
-  [[ -n "$plan_file" ]] || die "--plan is required for ready-sprint"
-  [[ -n "$issue_number" ]] || die "--issue is required for ready-sprint"
-  [[ -n "$sprint" ]] || die "--sprint is required for ready-sprint"
-  is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  [[ -n "$plan_file" ]] || usage_die "--plan is required for ready-sprint"
+  [[ -n "$issue_number" ]] || usage_die "--issue is required for ready-sprint"
+  [[ -n "$sprint" ]] || usage_die "--sprint is required for ready-sprint"
+  is_positive_int "$sprint" || usage_die "--sprint must be a positive integer"
   validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   summary_text="$(read_optional_text "$summary_text" "$summary_file")"
 
@@ -2697,16 +2678,16 @@ accept_sprint_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for accept-sprint: $1"
+        usage_die "unknown option for accept-sprint: $1"
         ;;
     esac
   done
 
-  [[ -n "$plan_file" ]] || die "--plan is required for accept-sprint"
-  [[ -n "$issue_number" ]] || die "--issue is required for accept-sprint"
-  [[ -n "$sprint" ]] || die "--sprint is required for accept-sprint"
-  [[ -n "$approved_comment_url" ]] || die "--approved-comment-url is required for accept-sprint"
-  is_positive_int "$sprint" || die "--sprint must be a positive integer"
+  [[ -n "$plan_file" ]] || usage_die "--plan is required for accept-sprint"
+  [[ -n "$issue_number" ]] || usage_die "--issue is required for accept-sprint"
+  [[ -n "$sprint" ]] || usage_die "--sprint is required for accept-sprint"
+  [[ -n "$approved_comment_url" ]] || usage_die "--approved-comment-url is required for accept-sprint"
+  is_positive_int "$sprint" || usage_die "--sprint must be a positive integer"
   validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
   summary_text="$(read_optional_text "$summary_text" "$summary_file")"
   validate_approval_comment_url_format "$approved_comment_url" >/dev/null
@@ -2788,13 +2769,13 @@ multi_sprint_guide_cmd() {
         exit 0
         ;;
       *)
-        die "unknown option for multi-sprint-guide: $1"
+        usage_die "unknown option for multi-sprint-guide: $1"
         ;;
     esac
   done
 
-  [[ -n "$plan_file" ]] || die "--plan is required for multi-sprint-guide"
-  is_positive_int "$from_sprint" || die "--from-sprint must be a positive integer"
+  [[ -n "$plan_file" ]] || usage_die "--plan is required for multi-sprint-guide"
+  is_positive_int "$from_sprint" || usage_die "--from-sprint must be a positive integer"
 
   validate_plan "$plan_file"
 
@@ -2804,9 +2785,9 @@ multi_sprint_guide_cmd() {
   if [[ -z "$to_sprint" ]]; then
     to_sprint="$max_sprint"
   fi
-  is_positive_int "$to_sprint" || die "--to-sprint must be a positive integer"
+  is_positive_int "$to_sprint" || usage_die "--to-sprint must be a positive integer"
   if [[ "$from_sprint" -gt "$to_sprint" ]]; then
-    die "--from-sprint must be <= --to-sprint"
+    usage_die "--from-sprint must be <= --to-sprint"
   fi
 
   local dry_run_issue_number=''
@@ -2877,7 +2858,7 @@ multi_sprint_guide_cmd() {
 subcommand="${1:-}"
 if [[ -z "$subcommand" ]]; then
   usage >&2
-  exit 1
+  exit 2
 fi
 shift || true
 
