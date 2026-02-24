@@ -30,15 +30,19 @@ Delivery requirements
 2) Run relevant tests for impacted areas and capture results.
 3) Keep commits and PR description traceable to task IDs.
 4) Surface risks early with concrete mitigation options.
+5) Wait for required PR CI checks to finish before marking work ready for review/merge.
+6) If PR CI fails, diagnose and fix the failures, push updates, and repeat until required checks pass (or escalate external blockers with evidence).
 
 Update format (every checkpoint)
 - Task IDs completed/in progress:
 - Files/components changed:
 - Tests run + key results:
 - PR reference (#<number> or URL):
+- PR CI status (required checks):
 - Risks/blockers and what is needed:
 
 Done criteria
 - Assigned tasks are implemented, tested, and linked in PR(s).
 - PR content is reviewable, with clear task mapping and no hidden scope changes.
+- Required PR CI checks are passing, or external blockers are escalated with concrete evidence and mitigation options.
 ```
