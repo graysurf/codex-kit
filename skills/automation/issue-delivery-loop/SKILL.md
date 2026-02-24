@@ -90,6 +90,7 @@ Failure modes:
 4. Main-agent dispatches implementation tasks to subagents (for example via `issue-subagent-pr`), while remaining orchestration/review-only.
 5. As subagent PRs progress, update the issue task table and PR links so task state stays consistent.
    - Fill real `Owner` / `Branch` / `Worktree` / `Execution Mode` / `PR` values as execution happens (initial `TBD` rows are expected).
+   - Use canonical PR references as `#<number>` for tables/comments.
 6. Run `status` to generate a main-agent snapshot comment for task/PR/review state checkpoints.
 7. Run `ready-for-review` when the issue is ready for main-agent review handoff (adds review comment/labels as configured).
 8. Main-agent reviews subagent PRs (typically with `issue-pr-review`), requests follow-up or merges until close gates are satisfied.

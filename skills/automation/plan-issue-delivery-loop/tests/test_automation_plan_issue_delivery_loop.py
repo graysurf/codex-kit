@@ -54,6 +54,9 @@ def test_plan_issue_delivery_loop_script_supports_sprint_progression_flow() -> N
     assert "--pr-group <task=group>" in text
     assert "PR_GROUP=" in text
     assert "OPEN_PR_CMD=SHARED_WITH_GROUP" in text
+    assert "sync_issue_sprint_task_rows" in text
+    assert "PR values come from current Task Decomposition" in text
+    assert "group_anchor" in text
 
 
 def test_plan_issue_delivery_loop_close_plan_enforces_worktree_cleanup() -> None:
@@ -78,4 +81,7 @@ def test_plan_issue_delivery_loop_sprint_comment_prefers_issue_pr_values() -> No
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "scripts" / "plan-issue-delivery-loop.sh").read_text(encoding="utf-8")
     assert "load_issue_pr_values" in text
-    assert "PR values prefer current Task Decomposition values when present" in text
+    assert "normalize_pr_display" in text
+    assert "PR values come from current Task Decomposition; unresolved tasks remain `TBD` until PRs are linked." in text
+    assert "extract_sprint_section" in text
+    assert 'if mode == "start":' in text

@@ -25,3 +25,12 @@ def test_issue_subagent_pr_skill_mentions_worktree_isolation() -> None:
     text = skill_md.read_text(encoding="utf-8")
     assert "worktree" in text.lower()
     assert "Subagents" in text
+    assert "Task Decomposition.PR" in text
+
+
+def test_issue_subagent_pr_script_syncs_issue_pr_fields_on_open() -> None:
+    script_path = Path(__file__).resolve().parents[1] / "scripts" / "manage_issue_subagent_pr.sh"
+    text = script_path.read_text(encoding="utf-8")
+    assert "sync_issue_task_pr_by_branch" in text
+    assert "refresh_sprint_start_comments_pr_values" in text
+    assert "UPDATED_TASK_IDS=" in text

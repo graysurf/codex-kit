@@ -264,6 +264,411 @@ normalize_pr_announcement_ref() {
   printf '%s\n' "$value"
 }
 
+issue_read_body_cmd() {
+  local issue_number="${1:-}"
+  local out_file="${2:-}"
+  local repo="${3:-}"
+  [[ -n "$issue_number" ]] || die "issue number is required"
+  [[ -n "$out_file" ]] || die "output file path is required"
+
+  require_cmd gh
+  local cmd=(gh issue view "$issue_number")
+  if [[ -n "$repo" ]]; then
+    cmd+=(-R "$repo")
+  fi
+  cmd+=(--json body -q .body)
+  "${cmd[@]}" >"$out_file"
+}
+
+issue_update_body_cmd() {
+  local issue_number="${1:-}"
+  local body_file="${2:-}"
+  local repo="${3:-}"
+  [[ -n "$issue_number" ]] || die "issue number is required"
+  [[ -f "$body_file" ]] || die "body file not found: $body_file"
+
+  require_cmd gh
+  local cmd=(gh issue edit "$issue_number" --body-file "$body_file")
+  if [[ -n "$repo" ]]; then
+    cmd+=(--repo "$repo")
+  fi
+  "${cmd[@]}" >/dev/null
+}
+
+resolve_repo_name_with_owner() {
+  local repo="${1:-}"
+  if [[ -n "$repo" ]]; then
+    printf '%s\n' "$repo"
+    return 0
+  fi
+  require_cmd gh
+  gh repo view --json nameWithOwner -q .nameWithOwner
+}
+
+refresh_sprint_start_comments_pr_values() {
+  local issue_number="${1:-}"
+  local task_ids_csv="${2:-}"
+  local pr_ref="${3:-}"
+  local repo="${4:-}"
+  local is_dry_run="${5:-0}"
+  [[ -n "$issue_number" ]] || die "issue number is required for sprint comment sync"
+
+  if [[ -z "$task_ids_csv" ]]; then
+    return 0
+  fi
+  if [[ "$is_dry_run" == "1" ]]; then
+    echo "dry-run: refresh sprint start comments PR values for issue #${issue_number}" >&2
+    return 0
+  fi
+
+  local resolved_repo=''
+  resolved_repo="$(resolve_repo_name_with_owner "$repo")"
+
+  local refresh_out=''
+  refresh_out="$(python3 - "$issue_number" "$task_ids_csv" "$pr_ref" "$resolved_repo" <<'PY'
+import json
+import pathlib
+import re
+import subprocess
+import sys
+import tempfile
+
+issue_number = sys.argv[1].strip()
+task_ids_csv = sys.argv[2].strip()
+pr_ref = sys.argv[3].strip()
+repo = sys.argv[4].strip()
+
+if not issue_number:
+    raise SystemExit("error: issue number is required")
+if not repo:
+    raise SystemExit("error: repo is required")
+
+target_tasks = {token.strip() for token in task_ids_csv.split(",") if token.strip()}
+if not target_tasks:
+    print("UPDATED_START_COMMENTS=0")
+    raise SystemExit(0)
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def update_start_comment_body(body: str) -> tuple[str, int]:
+    lines = body.splitlines()
+    changed_rows = 0
+
+    idx = 0
+    while idx < len(lines):
+        if lines[idx].strip() != "| Task | Summary | PR |":
+            idx += 1
+            continue
+        header = parse_row(lines[idx])
+        if idx + 1 >= len(lines):
+            break
+        sep = parse_row(lines[idx + 1])
+        if not header or not sep or len(header) != len(sep):
+            idx += 1
+            continue
+        header_idx = {name: col for col, name in enumerate(header)}
+        if "Task" not in header_idx or "PR" not in header_idx:
+            idx += 1
+            continue
+
+        row_i = idx + 2
+        while row_i < len(lines):
+            row = parse_row(lines[row_i])
+            if not row or len(row) != len(header):
+                break
+            task_id = row[header_idx["Task"]].strip()
+            if task_id in target_tasks:
+                if row[header_idx["PR"]].strip() != pr_ref:
+                    row[header_idx["PR"]] = pr_ref
+                    lines[row_i] = "| " + " | ".join(row) + " |"
+                    changed_rows += 1
+            row_i += 1
+        idx = row_i + 1
+
+    if changed_rows == 0:
+        return body, 0
+    return "\n".join(lines) + "\n", changed_rows
+
+
+view_cmd = ["gh", "issue", "view", issue_number, "--repo", repo, "--json", "comments"]
+view = subprocess.run(view_cmd, capture_output=True, text=True, check=True)
+comments = json.loads(view.stdout).get("comments", [])
+
+updated_comments = 0
+for comment in comments:
+    body = comment.get("body", "")
+    new_body, changed_rows = update_start_comment_body(body)
+    if changed_rows == 0:
+        continue
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as tmp:
+        payload_path = pathlib.Path(tmp.name)
+        json.dump({"body": new_body}, tmp)
+    try:
+        patch_cmd = [
+            "gh",
+            "api",
+            f"repos/{repo}/issues/comments/{comment['id']}",
+            "--method",
+            "PATCH",
+            "--input",
+            str(payload_path),
+        ]
+        subprocess.run(patch_cmd, capture_output=True, text=True, check=True)
+        updated_comments += 1
+    finally:
+        payload_path.unlink(missing_ok=True)
+
+print(f"UPDATED_START_COMMENTS={updated_comments}")
+PY
+)"
+
+  if [[ -n "$refresh_out" ]]; then
+    echo "$refresh_out" >&2
+  fi
+}
+
+sync_issue_task_pr_by_branch() {
+  local issue_number="${1:-}"
+  local head_branch="${2:-}"
+  local pr_ref="${3:-}"
+  local repo="${4:-}"
+  local is_dry_run="${5:-0}"
+  [[ -n "$issue_number" ]] || die "issue number is required for task PR sync"
+  [[ -n "$head_branch" ]] || die "head branch is required for task PR sync"
+
+  if [[ "$is_dry_run" == "1" ]]; then
+    echo "dry-run: sync Task Decomposition PR by branch ${head_branch} -> ${pr_ref}" >&2
+    return 0
+  fi
+
+  local issue_body_file=''
+  issue_body_file="$(mktemp)"
+  issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo"
+
+  local synced_body_file=''
+  synced_body_file="$(mktemp)"
+
+  local sync_out=''
+  sync_out="$(python3 - "$issue_body_file" "$head_branch" "$pr_ref" "$synced_body_file" <<'PY'
+import pathlib
+import re
+import sys
+
+body_path = pathlib.Path(sys.argv[1])
+head_branch = sys.argv[2].strip()
+pr_ref = sys.argv[3].strip()
+output_path = pathlib.Path(sys.argv[4])
+
+if not body_path.is_file():
+    raise SystemExit(f"error: issue body file not found: {body_path}")
+if not head_branch:
+    raise SystemExit("error: head branch is required")
+
+lines = body_path.read_text(encoding="utf-8").splitlines()
+
+
+def section_bounds(heading: str) -> tuple[int, int]:
+    start = None
+    for idx, line in enumerate(lines):
+        if line.strip() == heading:
+            start = idx + 1
+            break
+    if start is None:
+        raise SystemExit(f"error: missing required heading: {heading}")
+    end = len(lines)
+    for idx in range(start, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+    return start, end
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def normalize_branch(value: str) -> str:
+    token = (value or "").strip()
+    if token.startswith("`") and token.endswith("`") and len(token) >= 2:
+        token = token[1:-1].strip()
+    return token
+
+
+def extract_pr_group(notes: str) -> str:
+    m = re.search(r"(?:^|;)\s*pr-group=([^;]+)", notes or "", flags=re.IGNORECASE)
+    if not m:
+        return ""
+    return m.group(1).strip()
+
+
+def is_placeholder(value: str) -> bool:
+    token = (value or "").strip().lower()
+    if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
+        return True
+    if token.startswith("tbd"):
+        return True
+    if token.startswith("<") and token.endswith(">"):
+        return True
+    if "task ids" in token:
+        return True
+    return False
+
+
+def normalize_pr_display(value: str) -> str:
+    token = (value or "").strip()
+    if is_placeholder(token):
+        return "TBD"
+    if m := re.fullmatch(r"PR#(\d+)", token, flags=re.IGNORECASE):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(
+        r"https://github\.com/[^/\s]+/[^/\s]+/pull/(\d+)(?:[/?#].*)?",
+        token,
+        flags=re.IGNORECASE,
+    ):
+        return f"#{m.group(1)}"
+    return token
+
+
+start, end = section_bounds("## Task Decomposition")
+table_rows = [idx for idx in range(start, end) if lines[idx].strip().startswith("|")]
+if len(table_rows) < 3:
+    raise SystemExit("error: Task Decomposition must contain a markdown table with at least one task row")
+
+headers = parse_row(lines[table_rows[0]])
+required = ["Task", "Branch", "PR"]
+missing = [name for name in required if name not in headers]
+if missing:
+    raise SystemExit("error: missing Task Decomposition columns: " + ", ".join(missing))
+header_idx = {name: idx for idx, name in enumerate(headers)}
+status_idx = header_idx.get("Status")
+notes_idx = header_idx.get("Notes")
+
+entries = []
+normalized_pr_rows = 0
+for idx in table_rows[2:]:
+    cells = parse_row(lines[idx])
+    if not cells or len(cells) != len(headers):
+        continue
+
+    normalized_pr = normalize_pr_display(cells[header_idx["PR"]].strip())
+    if cells[header_idx["PR"]].strip() != normalized_pr:
+        cells[header_idx["PR"]] = normalized_pr
+        lines[idx] = "| " + " | ".join(cells) + " |"
+        normalized_pr_rows += 1
+
+    task_id = cells[header_idx["Task"]].strip()
+    branch = normalize_branch(cells[header_idx["Branch"]])
+    notes = cells[notes_idx].strip() if notes_idx is not None else ""
+    pr_group = extract_pr_group(notes)
+    entries.append(
+        {
+            "line_idx": idx,
+            "cells": cells,
+            "task": task_id,
+            "branch": branch,
+            "pr_group": pr_group,
+        }
+    )
+
+target_groups = set()
+target_indices = set()
+for entry in entries:
+    if entry["branch"] != head_branch:
+        continue
+    target_indices.add(entry["line_idx"])
+    if entry["pr_group"]:
+        target_groups.add(entry["pr_group"])
+
+for entry in entries:
+    if entry["pr_group"] and entry["pr_group"] in target_groups:
+        target_indices.add(entry["line_idx"])
+
+updated_tasks = []
+for entry in entries:
+    if entry["line_idx"] not in target_indices:
+        continue
+    cells = entry["cells"]
+    changed = False
+    if cells[header_idx["PR"]].strip() != pr_ref:
+        cells[header_idx["PR"]] = pr_ref
+        changed = True
+    if status_idx is not None:
+        status_value = (cells[status_idx] or "").strip().lower()
+        if status_value == "planned":
+            cells[status_idx] = "in-progress"
+            changed = True
+    if changed:
+        lines[entry["line_idx"]] = "| " + " | ".join(cells) + " |"
+        updated_tasks.append(entry["task"])
+
+output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+print(f"UPDATED_TASK_COUNT={len(updated_tasks)}")
+print("UPDATED_TASK_IDS=" + ",".join(updated_tasks))
+print(f"NORMALIZED_PR_ROWS={normalized_pr_rows}")
+PY
+)"
+
+  local updated_count=''
+  local updated_task_ids=''
+  local normalized_pr_rows=''
+  updated_count="$(printf '%s\n' "$sync_out" | awk -F= '/^UPDATED_TASK_COUNT=/{print $2; exit}')"
+  updated_task_ids="$(printf '%s\n' "$sync_out" | awk -F= '/^UPDATED_TASK_IDS=/{print $2; exit}')"
+  normalized_pr_rows="$(printf '%s\n' "$sync_out" | awk -F= '/^NORMALIZED_PR_ROWS=/{print $2; exit}')"
+  updated_count="${updated_count:-0}"
+  normalized_pr_rows="${normalized_pr_rows:-0}"
+
+  local should_update='0'
+  if [[ "$updated_count" =~ ^[0-9]+$ ]] && [[ "$updated_count" -gt 0 ]]; then
+    should_update='1'
+  fi
+  if [[ "$normalized_pr_rows" =~ ^[0-9]+$ ]] && [[ "$normalized_pr_rows" -gt 0 ]]; then
+    should_update='1'
+  fi
+
+  if [[ "$should_update" == '1' ]]; then
+    issue_update_body_cmd "$issue_number" "$synced_body_file" "$repo"
+    echo "TASK_DECOMPOSITION_PR_SYNC=updated tasks=${updated_task_ids} normalized_pr_rows=${normalized_pr_rows}" >&2
+    if [[ -n "$updated_task_ids" ]]; then
+      refresh_sprint_start_comments_pr_values "$issue_number" "$updated_task_ids" "$pr_ref" "$repo" "$is_dry_run"
+    fi
+  else
+    echo "TASK_DECOMPOSITION_PR_SYNC=no matching task rows for branch ${head_branch}" >&2
+  fi
+
+  rm -f "$issue_body_file" "$synced_body_file"
+}
+
+best_effort_sync_issue_task_pr_by_branch() {
+  local issue_number="${1:-}"
+  local head_branch="${2:-}"
+  local pr_ref="${3:-}"
+  local repo="${4:-}"
+  local is_dry_run="${5:-0}"
+
+  set +e
+  sync_issue_task_pr_by_branch "$issue_number" "$head_branch" "$pr_ref" "$repo" "$is_dry_run"
+  local sync_rc=$?
+  set -e
+
+  if [[ "$sync_rc" -ne 0 ]]; then
+    echo "warn: unable to sync issue task PR fields automatically (issue #${issue_number}, branch=${head_branch})" >&2
+  fi
+  return 0
+}
+
 render_task_prompt_template_text() {
   local template_file="${1:-}"
   [[ -f "$template_file" ]] || die "template file not found: $template_file"
@@ -508,6 +913,7 @@ case "$subcommand" in
       run_cmd "${cmd[@]}"
       pr_url="DRY-RUN-PR-URL"
       pr_comment_ref="$(normalize_pr_announcement_ref "$pr_url")"
+      best_effort_sync_issue_task_pr_by_branch "$issue_number" "$head_branch" "$pr_comment_ref" "$repo_arg" "$dry_run"
       if [[ "$comment_issue" == "1" ]]; then
         issue_cmd=(gh issue comment "$issue_number")
         if [[ -n "$repo_arg" ]]; then
@@ -522,6 +928,7 @@ case "$subcommand" in
 
     pr_url="$(run_cmd "${cmd[@]}")"
     pr_comment_ref="$(normalize_pr_announcement_ref "$pr_url")"
+    best_effort_sync_issue_task_pr_by_branch "$issue_number" "$head_branch" "$pr_comment_ref" "$repo_arg" "$dry_run"
     if [[ "$comment_issue" == "1" ]]; then
       issue_cmd=(gh issue comment "$issue_number")
       if [[ -n "$repo_arg" ]]; then

@@ -202,6 +202,23 @@ normalize_pr_ref() {
   printf '%s\n' "$value"
 }
 
+canonical_pr_display() {
+  local value
+  value="$(trim_text "${1:-}")"
+  if is_pr_placeholder "$value"; then
+    printf 'TBD\n'
+    return 0
+  fi
+
+  local normalized
+  normalized="$(normalize_pr_ref "$value")"
+  if [[ "$normalized" =~ ^[0-9]+$ ]]; then
+    printf '#%s\n' "$normalized"
+    return 0
+  fi
+  printf '%s\n' "$normalized"
+}
+
 extract_issue_number_from_url() {
   local issue_url="${1:-}"
   if [[ "$issue_url" =~ /issues/([0-9]+)$ ]]; then
@@ -411,7 +428,7 @@ build_status_snapshot() {
     else
       local pr_ref
       pr_ref="$(normalize_pr_ref "$pr_value")"
-      pr_display="$pr_ref"
+      pr_display="$(canonical_pr_display "$pr_value")"
 
       if [[ "$dry_run" == "1" ]]; then
         pr_state="UNKNOWN"
@@ -488,6 +505,7 @@ build_review_request_body() {
 
     if ! is_pr_placeholder "$pr_value"; then
       pr_count=$((pr_count + 1))
+      pr_value="$(canonical_pr_display "$pr_value")"
     else
       pr_value="TBD"
     fi

@@ -955,6 +955,188 @@ print("DISPATCH_HINTS_END")
 PY
 }
 
+sync_issue_sprint_task_rows() {
+  local issue_number="${1:-}"
+  local task_spec_file="${2:-}"
+  local repo_arg="${3:-}"
+  local dry_run="${4:-0}"
+
+  [[ -n "$issue_number" ]] || die "issue number is required for sprint task sync"
+  [[ -f "$task_spec_file" ]] || die "task spec file not found: $task_spec_file"
+  if [[ "$dry_run" == '1' ]]; then
+    return 0
+  fi
+
+  local issue_body_file=''
+  issue_body_file="$(mktemp)"
+  issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+
+  local synced_body_file=''
+  synced_body_file="$(mktemp)"
+
+  python3 - "$issue_body_file" "$task_spec_file" "$synced_body_file" <<'PY'
+import csv
+import pathlib
+import re
+import sys
+
+body_path = pathlib.Path(sys.argv[1])
+task_spec_path = pathlib.Path(sys.argv[2])
+output_path = pathlib.Path(sys.argv[3])
+
+if not body_path.is_file():
+    raise SystemExit(f"error: issue body file not found: {body_path}")
+if not task_spec_path.is_file():
+    raise SystemExit(f"error: task spec file not found: {task_spec_path}")
+
+lines = body_path.read_text(encoding="utf-8").splitlines()
+
+
+def section_bounds(heading: str) -> tuple[int, int]:
+    start = None
+    for idx, line in enumerate(lines):
+        if line.strip() == heading:
+            start = idx + 1
+            break
+    if start is None:
+        raise SystemExit(f"error: missing required heading: {heading}")
+    end = len(lines)
+    for idx in range(start, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+    return start, end
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def is_placeholder(value: str) -> bool:
+    token = (value or "").strip().lower().strip("`")
+    if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
+        return True
+    if token.startswith("tbd"):
+        return True
+    if token.startswith("<") and token.endswith(">"):
+        return True
+    if "task ids" in token:
+        return True
+    return False
+
+
+def normalize_pr_display(value: str) -> str:
+    token = (value or "").strip()
+    if is_placeholder(token):
+        return "TBD"
+    if m := re.fullmatch(r"PR#(\d+)", token, flags=re.IGNORECASE):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(
+        r"https://github\.com/[^/\s]+/[^/\s]+/pull/(\d+)(?:[/?#].*)?",
+        token,
+        flags=re.IGNORECASE,
+    ):
+        return f"#{m.group(1)}"
+    return token
+
+
+spec_rows: dict[str, dict[str, str]] = {}
+group_sizes: dict[str, int] = {}
+group_anchor: dict[str, dict[str, str]] = {}
+with task_spec_path.open("r", encoding="utf-8") as handle:
+    reader = csv.reader(handle, delimiter="\t")
+    for raw in reader:
+        if not raw:
+            continue
+        if raw[0].strip().startswith("#"):
+            continue
+        if len(raw) < 7:
+            raise SystemExit("error: malformed task spec row")
+        task_id = raw[0].strip()
+        summary = raw[1].strip()
+        branch = raw[2].strip()
+        worktree = raw[3].strip()
+        owner = raw[4].strip()
+        notes = raw[5].strip()
+        pr_group = raw[6].strip() or task_id
+        if not task_id:
+            continue
+        spec_rows[task_id] = {
+            "summary": summary,
+            "branch": branch,
+            "worktree": worktree,
+            "owner": owner,
+            "notes": notes,
+            "pr_group": pr_group,
+        }
+        group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
+        if pr_group not in group_anchor:
+            group_anchor[pr_group] = {
+                "branch": branch,
+                "worktree": worktree,
+                "owner": owner,
+            }
+
+if not spec_rows:
+    raise SystemExit("error: sprint task spec has no rows")
+
+start, end = section_bounds("## Task Decomposition")
+table_rows = [idx for idx in range(start, end) if lines[idx].strip().startswith("|")]
+if len(table_rows) < 3:
+    raise SystemExit("error: Task Decomposition must contain a markdown table with at least one task row")
+
+header_line_index = table_rows[0]
+headers = parse_row(lines[header_line_index])
+required_columns = ["Task", "Owner", "Branch", "Worktree", "Execution Mode", "PR", "Status", "Notes"]
+missing = [name for name in required_columns if name not in headers]
+if missing:
+    raise SystemExit("error: missing Task Decomposition columns: " + ", ".join(missing))
+header_index = {name: idx for idx, name in enumerate(headers)}
+
+for idx in table_rows[2:]:
+    cells = parse_row(lines[idx])
+    if not cells or len(cells) != len(headers):
+        continue
+    row_changed = False
+    existing_pr = cells[header_index["PR"]]
+    normalized_pr = normalize_pr_display(existing_pr)
+    if existing_pr.strip() != normalized_pr:
+        cells[header_index["PR"]] = normalized_pr
+        row_changed = True
+
+    task_id = cells[header_index["Task"]].strip()
+    spec = spec_rows.get(task_id)
+    if spec is not None:
+        pr_group = spec["pr_group"]
+        mode = "single-pr" if group_sizes.get(pr_group, 0) > 1 else "per-task"
+        execution_source = group_anchor.get(pr_group, spec) if mode == "single-pr" else spec
+
+        cells[header_index["Owner"]] = execution_source["owner"] or cells[header_index["Owner"]]
+        cells[header_index["Branch"]] = f"`{execution_source['branch']}`"
+        cells[header_index["Worktree"]] = f"`{execution_source['worktree']}`"
+        cells[header_index["Execution Mode"]] = mode
+        if spec["notes"]:
+            cells[header_index["Notes"]] = spec["notes"]
+        row_changed = True
+
+    if row_changed:
+        lines[idx] = "| " + " | ".join(cells) + " |"
+
+output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+print(output_path)
+PY
+
+  run_issue_lifecycle "$dry_run" "$repo_arg" update --issue "$issue_number" --body-file "$synced_body_file" >/dev/null
+  rm -f "$issue_body_file" "$synced_body_file"
+}
+
 render_sprint_comment_body() {
   local mode="${1:-}"   # start|ready|accepted
   local plan_file="${2:-}"
@@ -969,6 +1151,7 @@ render_sprint_comment_body() {
   python3 - "$mode" "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_file" "$note_text" "$approval_comment_url" "$issue_body_file" <<'PY'
 import csv
 import pathlib
+import re
 import sys
 
 mode = sys.argv[1].strip()
@@ -992,7 +1175,7 @@ def is_placeholder(value: str) -> bool:
     token = (value or "").strip().lower()
     if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
         return True
-    if token.startswith("tbd "):
+    if token.startswith("tbd"):
         return True
     if token.startswith("<") and token.endswith(">"):
         return True
@@ -1001,11 +1184,55 @@ def is_placeholder(value: str) -> bool:
     return False
 
 
+def normalize_pr_display(value: str) -> str:
+    token = (value or "").strip()
+    if is_placeholder(token):
+        return ""
+    if m := re.fullmatch(r"PR#(\d+)", token, flags=re.IGNORECASE):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(
+        r"https://github\.com/[^/\s]+/[^/\s]+/pull/(\d+)(?:[/?#].*)?",
+        token,
+        flags=re.IGNORECASE,
+    ):
+        return f"#{m.group(1)}"
+    return token
+
+
 def parse_row(line: str) -> list[str]:
     s = line.strip()
     if not (s.startswith("|") and s.endswith("|")):
         return []
     return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def extract_sprint_section(plan_path: pathlib.Path, sprint_number: str) -> str:
+    if not plan_path.is_file():
+        raise SystemExit(f"error: plan file not found: {plan_path}")
+
+    lines = plan_path.read_text(encoding="utf-8").splitlines()
+    target_re = re.compile(rf"^##\s+Sprint\s+{re.escape(sprint_number)}\b")
+
+    start = None
+    for idx, line in enumerate(lines):
+        if target_re.match(line.strip()):
+            start = idx
+            break
+
+    if start is None:
+        return ""
+
+    end = len(lines)
+    for idx in range(start + 1, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+
+    return "\n".join(lines[start:end]).strip()
 
 
 def section_bounds(lines: list[str], heading: str) -> tuple[int, int]:
@@ -1073,6 +1300,7 @@ group_sizes = {}
 for _task_id, _summary, pr_group, _notes in rows:
     group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
 issue_pr_values = load_issue_pr_values(issue_body_path)
+plan_path = pathlib.Path(plan_file)
 
 if mode == "start":
     heading = f"## Sprint {sprint} Start"
@@ -1089,20 +1317,27 @@ print("")
 print(f"- Sprint: {sprint} ({sprint_name})")
 print(f"- Tasks in sprint: {len(rows)}")
 print(f"- Note: {lead}")
-print("- PR values prefer current Task Decomposition values when present; otherwise use planning placeholders.")
+print("- PR values come from current Task Decomposition; unresolved tasks remain `TBD` until PRs are linked.")
 if approval_url:
     print(f"- Approval comment URL: {approval_url}")
 print("")
 print("| Task | Summary | PR |")
 print("| --- | --- | --- |")
 for task_id, summary, pr_group, _notes in rows:
-    pr_value = issue_pr_values.get(task_id, "")
+    pr_value = normalize_pr_display(issue_pr_values.get(task_id, ""))
     if is_placeholder(pr_value):
         if group_sizes.get(pr_group, 0) > 1:
             pr_value = f"TBD (shared:{pr_group})"
         else:
             pr_value = "TBD (per-task)"
     print(f"| {task_id} | {summary or '-'} | {pr_value} |")
+
+if mode == "start":
+    sprint_section = extract_sprint_section(plan_path, sprint)
+    if sprint_section:
+        print("")
+        print(sprint_section)
+
 if note_text.strip():
     print("")
     print("## Main-Agent Notes")
@@ -1792,6 +2027,7 @@ start_sprint_cmd() {
   printf 'TASK_SPEC_PATH=%s\n' "$task_spec_out"
 
   emit_dispatch_hints "$task_spec_out" "$issue_number" "$issue_subagent_script"
+  sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   local issue_body_file=''
   if [[ "$dry_run" != '1' ]]; then
@@ -1922,6 +2158,7 @@ ready_sprint_cmd() {
   local pr_group_config=''
   pr_group_config="$(join_lines "${pr_group_entries[@]}")"
   render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
+  sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   if [[ -z "$post_comment" ]]; then
     post_comment='1'
@@ -2063,6 +2300,7 @@ accept_sprint_cmd() {
   local pr_group_config=''
   pr_group_config="$(join_lines "${pr_group_entries[@]}")"
   render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
+  sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   if [[ -z "$post_comment" ]]; then
     post_comment='1'

@@ -26,6 +26,7 @@ Outputs:
 - Dedicated worktree path for the task.
 - Parameterized subagent task prompt rendered from assigned execution facts (issue/task/owner/branch/worktree/execution mode).
 - Draft PR URL for the implementation branch.
+- Automatic writeback of `Task Decomposition.PR` (and related sprint comment table rows) for tasks matched by the opened PR head branch / shared `pr-group`.
 - PR body validation gate that rejects unfilled templates/placeholders before PR open.
 - PR follow-up comments referencing main-agent review comment URLs.
 - Optional mirrored issue comments for traceability.
@@ -72,6 +73,7 @@ Failure modes:
 ## Notes
 
 - Use `--dry-run` in orchestration/testing contexts.
+- `open-pr` now syncs the issue task table PR references using canonical `#<number>` format and marks matched `planned` rows as `in-progress`.
 - `render-task-prompt` is intended to freeze real execution facts (`Owner/Branch/Worktree/Execution Mode/PR title`) into a reusable subagent handoff prompt and reduce manual dispatch mistakes.
 - `open-pr --use-template` is not a substitute for filling the PR body; subagent must submit a fully edited body that passes validation.
 - Keep implementation details and evidence in PR comments; issue comments should summarize status and link back to PR artifacts.
