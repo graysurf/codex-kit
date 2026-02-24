@@ -25,7 +25,7 @@ Outputs:
 
 - Issue created/updated/closed/reopened via GitHub Issues.
 - Optional decomposition markdown comment posted to the issue.
-- Deterministic consistency checks between `Task Decomposition` and `Subagent PRs`.
+- Deterministic consistency checks on `Task Decomposition` (single source of truth).
 - Deterministic CLI output suitable for orchestration scripts.
 - Owner policy enforcement for implementation tasks: `Owner` must reference a subagent identity.
 
@@ -39,7 +39,7 @@ Failure modes:
 - Missing required subcommand flags (`--title`, `--issue`, `--spec`, etc.).
 - Ambiguous body inputs (`--body` and `--body-file` together).
 - Decomposition spec malformed (wrong TSV shape or empty rows).
-- Template consistency violations (task mismatch, PR mismatch, invalid status, duplicated branch/worktree).
+- Template consistency violations (invalid status/execution mode, missing execution metadata for active tasks, duplicated branch/worktree under `per-task` mode).
 - Owner policy violations (`Owner` missing, placeholder, or main-agent/non-subagent identity).
 - `gh` auth/permission failures.
 
@@ -73,6 +73,9 @@ Failure modes:
 ## Notes
 
 - Use `--dry-run` whenever composing commands from a higher-level orchestrator.
-- `open` / `update` automatically validate template consistency when body contains `## Task Decomposition` / `## Subagent PRs`; use `--skip-consistency-check` only for exceptional cases.
+- `Task Decomposition` is the only execution-state table in the issue body. `Owner` / `Branch` / `Worktree` / `Execution Mode` / `PR` should start as `TBD` and be updated with actual values during execution.
+- `Execution Mode` values: `per-task`, `per-sprint`, `pr-isolated`, `pr-shared` (or `TBD` before assignment). Branch/worktree uniqueness is enforced only for `per-task`.
+- `open` / `update` automatically validate template consistency when body contains `## Task Decomposition`; use `--skip-consistency-check` only for exceptional cases.
+- `sync` normalizes the task table shape (including `Execution Mode`) and removes any legacy `## Subagent PRs` section.
 - Keep decomposition and status notes in issue comments so execution history remains traceable.
 - In issue-driven implementation loops, `Owner` is for subagents only; main-agent remains orchestration/review-only.

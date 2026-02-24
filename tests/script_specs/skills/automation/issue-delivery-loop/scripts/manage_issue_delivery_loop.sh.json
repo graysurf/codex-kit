@@ -55,7 +55,7 @@
       "timeout_sec": 15,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "## Main-Agent Review Request"
+        "stdout_regex": "(?s)## Main-Agent Review Request.*\\| Task \\| Summary \\| Status \\| PR \\|"
       }
     },
     {

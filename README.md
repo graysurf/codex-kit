@@ -93,6 +93,9 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | PR / Feature | [deliver-feature-pr](./skills/workflows/pr/feature/deliver-feature-pr/) | Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR |
+| PR / Bug | [create-bug-pr](./skills/workflows/pr/bug/create-bug-pr/) | Create a new bugfix branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates |
+| PR / Bug | [close-bug-pr](./skills/workflows/pr/bug/close-bug-pr/) | Merge and close a bug PR with gh after a quick PR hygiene review (title, required sections, testing notes) aligned with create-bug-pr |
+| PR / Bug | [deliver-bug-pr](./skills/workflows/pr/bug/deliver-bug-pr/) | Define the default end-to-end bug PR delivery method: create PR, wait/fix CI until green, then close PR |
 
 ### Tools
 
@@ -124,6 +127,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Area | Skill | Description |
 | --- | --- | --- |
 | CI | [gh-fix-ci](./skills/automation/gh-fix-ci/) | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green |
+| Issue | [plan-issue-delivery-loop](./skills/automation/plan-issue-delivery-loop/) | Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation. |
 | DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
 | Issue | [issue-delivery-loop](./skills/automation/issue-delivery-loop/) | Orchestrate issue execution loops end-to-end: open issue, track status, request review, and close only after approval + merged PR gates |
 | Maintenance | [fix-bug-pr](./skills/automation/fix-bug-pr/) | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced |

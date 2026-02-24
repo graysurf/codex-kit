@@ -137,11 +137,19 @@ enforce_subagent_owner_policy() {
   fi
 
   local errors=()
-  while IFS=$'\t' read -r task _summary owner _branch _worktree _pr _status _notes; do
-    local task_id owner_value
+  while IFS=$'\t' read -r task _summary owner branch worktree execution_mode _pr status _notes; do
+    local task_id owner_value branch_value worktree_value mode_value status_value
     task_id="$(trim_text "$task")"
     owner_value="$(trim_text "$owner")"
+    branch_value="$(trim_text "$branch")"
+    worktree_value="$(trim_text "$worktree")"
+    mode_value="$(trim_text "$execution_mode")"
+    status_value="$(to_lower "$(trim_text "$status")")"
 
+    # Planning/blocked rows can remain TBD until execution details are real.
+    if [[ "$status_value" == "planned" || "$status_value" == "blocked" ]]; then
+      continue
+    fi
     if is_owner_placeholder "$owner_value"; then
       errors+=("${task_id}: Owner must reference a subagent identity (got: ${owner_value:-<empty>})")
       continue
@@ -153,6 +161,15 @@ enforce_subagent_owner_policy() {
     if ! is_subagent_owner "$owner_value"; then
       errors+=("${task_id}: Owner must include 'subagent' to mark delegated implementation ownership")
       continue
+    fi
+    if is_owner_placeholder "$branch_value"; then
+      errors+=("${task_id}: Branch must not be TBD when Status is ${status_value:-<empty>}")
+    fi
+    if is_owner_placeholder "$worktree_value"; then
+      errors+=("${task_id}: Worktree must not be TBD when Status is ${status_value:-<empty>}")
+    fi
+    if is_owner_placeholder "$mode_value"; then
+      errors+=("${task_id}: Execution Mode must not be TBD when Status is ${status_value:-<empty>}")
     fi
   done < <(parse_issue_tasks_tsv "$body_file")
 
@@ -183,6 +200,23 @@ normalize_pr_ref() {
     return 0
   fi
   printf '%s\n' "$value"
+}
+
+canonical_pr_display() {
+  local value
+  value="$(trim_text "${1:-}")"
+  if is_pr_placeholder "$value"; then
+    printf 'TBD\n'
+    return 0
+  fi
+
+  local normalized
+  normalized="$(normalize_pr_ref "$value")"
+  if [[ "$normalized" =~ ^[0-9]+$ ]]; then
+    printf '#%s\n' "$normalized"
+    return 0
+  fi
+  printf '%s\n' "$normalized"
 }
 
 extract_issue_number_from_url() {
@@ -227,6 +261,19 @@ issue_read_cmd() {
   cmd+=(--json body -q .body)
 
   "${cmd[@]}" >"$out_file"
+}
+
+fetch_issue_state() {
+  local issue_number="${1:-}"
+  [[ -n "$issue_number" ]] || die "issue number is required"
+  require_cmd gh
+
+  local cmd=(gh issue view "$issue_number")
+  if [[ -n "$repo_arg" ]]; then
+    cmd+=(-R "$repo_arg")
+  fi
+  cmd+=(--json state -q .state)
+  "${cmd[@]}"
 }
 
 parse_issue_tasks_tsv() {
@@ -286,6 +333,8 @@ for raw in table_lines[2:]:
     if len(cells) != len(headers):
         raise SystemExit("error: malformed Task Decomposition row")
     row = {headers[idx]: cells[idx] for idx in range(len(headers))}
+    if "Execution Mode" not in row:
+        row["Execution Mode"] = "TBD"
     if not any(v.strip() for v in cells):
         continue
     rows.append(row)
@@ -300,6 +349,7 @@ for row in rows:
         row.get("Owner", "").replace("\t", " "),
         row.get("Branch", "").replace("\t", " "),
         row.get("Worktree", "").replace("\t", " "),
+        row.get("Execution Mode", "").replace("\t", " "),
         row.get("PR", "").replace("\t", " "),
         row.get("Status", "").replace("\t", " "),
         row.get("Notes", "").replace("\t", " "),
@@ -335,7 +385,7 @@ fetch_pr_meta_tsv() {
     --json
     "number,url,state,isDraft,reviewDecision,mergeStateStatus,mergedAt"
     -q
-    '[.number, .url, .state, (if .isDraft then "true" else "false" end), (.reviewDecision // "NONE"), (.mergeStateStatus // "UNKNOWN"), (.mergedAt // "")] | @tsv'
+    '[.number, .url, .state, (if .isDraft then "true" else "false" end), ((.reviewDecision // "") | if . == "" then "NONE" else . end), ((.mergeStateStatus // "") | if . == "" then "UNKNOWN" else . end), (.mergedAt // "")] | @tsv'
   )
 
   "${cmd[@]}"
@@ -343,34 +393,31 @@ fetch_pr_meta_tsv() {
 
 build_status_snapshot() {
   local body_file="${1:-}"
-  local source_label="${2:-issue}"
-  local issue_ref="${3:-}"
 
   local now_utc
   now_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   local nl=$'\n'
 
   local output="## Main-Agent Status Snapshot${nl}${nl}"
-  output+="- Source: ${source_label} ${issue_ref}${nl}"
   output+="- Generated at: ${now_utc}${nl}${nl}"
-  output+="| Task | Planned Status | PR | PR State | Review | Merge State | Suggested |${nl}"
+  output+="| Task | Summary | Planned Status | PR | PR State | Review | Suggested |${nl}"
   output+="| --- | --- | --- | --- | --- | --- | --- |${nl}"
 
   local errors=()
   local has_rows="0"
 
-  while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
+  while IFS=$'\t' read -r task summary _owner _branch _worktree _execution_mode pr status _notes; do
     has_rows="1"
-    local task_id pr_value planned_status
+    local task_id summary_value pr_value planned_status
     task_id="$(trim_text "$task")"
+    summary_value="$(trim_text "$summary")"
     pr_value="$(trim_text "$pr")"
     planned_status="$(trim_text "$status")"
 
-    local pr_display pr_state review_state merge_state suggested
+    local pr_display pr_state review_state suggested
     pr_display="$pr_value"
     pr_state="NO_PR"
     review_state="-"
-    merge_state="-"
     suggested="planned"
 
     if is_pr_placeholder "$pr_value"; then
@@ -381,12 +428,11 @@ build_status_snapshot() {
     else
       local pr_ref
       pr_ref="$(normalize_pr_ref "$pr_value")"
-      pr_display="$pr_ref"
+      pr_display="$(canonical_pr_display "$pr_value")"
 
       if [[ "$dry_run" == "1" ]]; then
         pr_state="UNKNOWN"
         review_state="UNKNOWN"
-        merge_state="UNKNOWN"
         suggested="in-progress"
       else
         local meta
@@ -398,15 +444,13 @@ build_status_snapshot() {
           errors+=("${task_id}: failed to query PR ${pr_ref}: ${meta}")
           pr_state="ERROR"
           review_state="ERROR"
-          merge_state="ERROR"
           suggested="blocked"
         else
-          local _pr_number pr_url state _is_draft review_decision merge_status merged_at
-          IFS=$'\t' read -r _pr_number pr_url state _is_draft review_decision merge_status merged_at <<<"$meta"
+          local _pr_number pr_url state _is_draft review_decision _merge_status merged_at
+          IFS=$'\t' read -r _pr_number pr_url state _is_draft review_decision _merge_status merged_at <<<"$meta"
           pr_display="${pr_url:-$pr_ref}"
           pr_state="${state:-UNKNOWN}"
           review_state="${review_decision:-UNKNOWN}"
-          merge_state="${merge_status:-UNKNOWN}"
 
           if [[ -n "$merged_at" ]]; then
             suggested="done"
@@ -421,7 +465,7 @@ build_status_snapshot() {
       fi
     fi
 
-    output+="| ${task_id} | ${planned_status:-unknown} | ${pr_display} | ${pr_state} | ${review_state} | ${merge_state} | ${suggested} |${nl}"
+    output+="| ${task_id} | ${summary_value:-'-'} | ${planned_status:-unknown} | ${pr_display} | ${pr_state} | ${review_state} | ${suggested} |${nl}"
   done < <(parse_issue_tasks_tsv "$body_file")
 
   [[ "$has_rows" == "1" ]] || die "no task rows found in issue body"
@@ -440,33 +484,33 @@ build_status_snapshot() {
 
 build_review_request_body() {
   local body_file="${1:-}"
-  local issue_ref="${2:-}"
-  local summary_text="${3:-}"
+  local summary_text="${2:-}"
   local nl=$'\n'
 
   local output="## Main-Agent Review Request${nl}${nl}"
-  output+="- Issue: ${issue_ref}${nl}"
   output+="- Close gate: provide an approval comment URL, then run close-after-review.${nl}${nl}"
-  output+="| Task | Status | PR |${nl}"
-  output+="| --- | --- | --- |${nl}"
+  output+="| Task | Summary | Status | PR |${nl}"
+  output+="| --- | --- | --- | --- |${nl}"
 
   local task_count=0
   local pr_count=0
 
-  while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
+  while IFS=$'\t' read -r task summary _owner _branch _worktree _execution_mode pr status _notes; do
     task_count=$((task_count + 1))
-    local task_id status_value pr_value
+    local task_id summary_value status_value pr_value
     task_id="$(trim_text "$task")"
+    summary_value="$(trim_text "$summary")"
     status_value="$(trim_text "$status")"
     pr_value="$(trim_text "$pr")"
 
     if ! is_pr_placeholder "$pr_value"; then
       pr_count=$((pr_count + 1))
+      pr_value="$(canonical_pr_display "$pr_value")"
     else
       pr_value="TBD"
     fi
 
-    output+="| ${task_id} | ${status_value} | ${pr_value} |${nl}"
+    output+="| ${task_id} | ${summary_value:-'-'} | ${status_value} | ${pr_value} |${nl}"
   done < <(parse_issue_tasks_tsv "$body_file")
 
   [[ "$task_count" -gt 0 ]] || die "issue has no tasks in Task Decomposition"
@@ -781,7 +825,7 @@ case "$subcommand" in
 
     enforce_subagent_owner_policy "$body_file" "status ${source_label}:${source_ref}"
 
-    snapshot="$(build_status_snapshot "$body_file" "$source_label" "$source_ref")"
+    snapshot="$(build_status_snapshot "$body_file")"
     printf '%s\n' "$snapshot"
 
     if [[ -n "$temp_body" ]]; then
@@ -895,16 +939,11 @@ case "$subcommand" in
 
     enforce_subagent_owner_policy "$body_file" "ready-for-review ${issue_ref}"
 
-    review_body="$(build_review_request_body "$body_file" "$issue_ref" "$summary_text")"
+    review_body="$(build_review_request_body "$body_file" "$summary_text")"
     printf '%s\n' "$review_body"
 
     if [[ -n "$temp_body" ]]; then
       rm -f "$temp_body"
-    fi
-
-    if [[ "$post_comment" == "1" ]]; then
-      [[ -n "$issue_number" ]] || die "--comment requires --issue"
-      run_issue_lifecycle comment --issue "$issue_number" --body "$review_body" >/dev/null
     fi
 
     if [[ "$label_update" == "1" && -n "$issue_number" ]]; then
@@ -920,6 +959,11 @@ case "$subcommand" in
         run_issue_lifecycle "${update_args[@]}" >/dev/null
       fi
     fi
+
+    if [[ "$post_comment" == "1" ]]; then
+      [[ -n "$issue_number" ]] || die "--comment requires --issue"
+      run_issue_lifecycle comment --issue "$issue_number" --body "$review_body" >/dev/null
+    fi
     ;;
 
   close-after-review)
@@ -930,6 +974,7 @@ case "$subcommand" in
     close_comment=""
     close_comment_file=""
     allow_not_done="0"
+    issue_state=""
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -1013,6 +1058,9 @@ case "$subcommand" in
 
     temp_body=""
     if [[ -n "$issue_number" ]]; then
+      # Re-normalize the issue body before the final gate so main-agent closes against
+      # the latest corrected Task Decomposition shape (including legacy section cleanup).
+      run_issue_lifecycle sync --issue "$issue_number" >/dev/null
       run_issue_lifecycle validate --issue "$issue_number" >/dev/null
       temp_body="$(mktemp)"
       issue_read_cmd "$issue_number" "$temp_body"
@@ -1027,8 +1075,10 @@ case "$subcommand" in
     merged_rows=""
     gate_errors=()
     nl=$'\n'
+    pr_refs=()
+    pr_tasks=()
 
-    while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
+    while IFS=$'\t' read -r task _summary _owner _branch _worktree _execution_mode pr status _notes; do
       task_id="$(trim_text "$task")"
       pr_value="$(trim_text "$pr")"
       status_value="$(to_lower "$status")"
@@ -1042,8 +1092,27 @@ case "$subcommand" in
       fi
 
       pr_ref="$(normalize_pr_ref "$pr_value")"
+      pr_index='-1'
+      for i in "${!pr_refs[@]}"; do
+        if [[ "${pr_refs[$i]}" == "$pr_ref" ]]; then
+          pr_index="$i"
+          break
+        fi
+      done
+      if [[ "$pr_index" == '-1' ]]; then
+        pr_refs+=("$pr_ref")
+        pr_tasks+=("$task_id")
+      else
+        pr_tasks[$pr_index]+=", ${task_id}"
+      fi
+    done < <(parse_issue_tasks_tsv "$body_file")
+
+    for i in "${!pr_refs[@]}"; do
+      pr_ref="${pr_refs[$i]}"
+      task_list="${pr_tasks[$i]}"
+
       if [[ "$dry_run" == "1" && -z "$issue_number" ]]; then
-        merged_rows+="- ${task_id}: ${pr_ref} (merge check skipped in dry-run body-file mode)${nl}"
+        merged_rows+="- ${pr_ref} (tasks: ${task_list}; merge check skipped in dry-run body-file mode)${nl}"
         continue
       fi
 
@@ -1052,17 +1121,18 @@ case "$subcommand" in
       pr_meta_code=$?
       set -e
       if [[ "$pr_meta_code" -ne 0 ]]; then
-        gate_errors+=("${task_id}: failed to query PR ${pr_ref}: ${pr_meta}")
+        pr_meta="${pr_meta//$'\n'/ }"
+        gate_errors+=("Tasks [${task_list}]: failed to query PR ${pr_ref}: ${pr_meta}")
         continue
       fi
 
       IFS=$'\t' read -r _pr_number pr_url pr_state _is_draft _review_decision _merge_state merged_at <<<"$pr_meta"
       if [[ -z "$merged_at" ]]; then
-        gate_errors+=("${task_id}: PR is not merged (${pr_url:-$pr_ref}, state=${pr_state})")
+        gate_errors+=("Tasks [${task_list}]: PR is not merged (${pr_url:-$pr_ref}, state=${pr_state})")
       else
-        merged_rows+="- ${task_id}: ${pr_url:-$pr_ref}${nl}"
+        merged_rows+="- ${pr_url:-$pr_ref} (tasks: ${task_list})${nl}"
       fi
-    done < <(parse_issue_tasks_tsv "$body_file")
+    done
 
     if [[ -n "$temp_body" ]]; then
       rm -f "$temp_body"
@@ -1080,8 +1150,21 @@ case "$subcommand" in
 
     if [[ -n "$issue_number" ]]; then
       run_issue_lifecycle close --issue "$issue_number" --reason "$close_reason" --comment "$final_close_comment" >/dev/null
+      if [[ "$dry_run" == "1" ]]; then
+        printf 'ISSUE_CLOSE_STATUS=DRY_RUN\n'
+      else
+        issue_state="$(fetch_issue_state "$issue_number")"
+        if [[ "$issue_state" != "CLOSED" ]]; then
+          die "close-after-review did not close issue #${issue_number} (state=${issue_state})"
+        fi
+        printf 'ISSUE_CLOSE_STATUS=SUCCESS\n'
+        printf 'ISSUE_NUMBER=%s\n' "$issue_number"
+        printf 'ISSUE_STATE=%s\n' "$issue_state"
+        printf 'DONE_CRITERIA=ISSUE_CLOSED\n'
+      fi
     else
       echo "DRY-RUN-CLOSE-SKIPPED"
+      printf 'ISSUE_CLOSE_STATUS=DRY_RUN\n'
     fi
     ;;
 

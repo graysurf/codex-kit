@@ -2,11 +2,15 @@
 
 This doc lists canonical executable entrypoints (under `skills/**/scripts/` plus PATH-installed tooling).
 Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
+For skill directory layout/path rules, use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference.
+For create/validate/remove workflows, see `skills/tools/skill-management/README.md`.
 
 ## SKILL.md format
 
 - SKILL.md format spec:
   - `docs/runbooks/skills/SKILL_MD_FORMAT_V1.md`
+- Skill directory anatomy (canonical):
+  - `docs/runbooks/skills/SKILLS_ANATOMY_V2.md`
 
 ## Skill governance
 
@@ -48,3 +52,5 @@ Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, a
 
 - End-to-end orchestration (`start` / `status` / `ready-for-review` / `close-after-review`):
   - `$AGENT_HOME/skills/automation/issue-delivery-loop/scripts/manage_issue_delivery_loop.sh`
+- Plan-driven sprint orchestration (`start-plan` / `start-sprint` / `ready-sprint` / `accept-sprint` / `ready-plan` / `close-plan`):
+  - `$AGENT_HOME/skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh`

@@ -37,6 +37,26 @@
       "expect": {
         "exit_codes": [0]
       }
+    },
+    {
+      "name": "merge-dry-run-fail-invalid-pr-body-override",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--pr-body-file",
+        "tests/fixtures/issue/pr_body_invalid_placeholder.md",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "invalid PR body content"
+      }
     }
   ]
 }

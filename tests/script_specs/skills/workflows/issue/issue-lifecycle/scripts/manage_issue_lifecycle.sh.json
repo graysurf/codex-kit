@@ -65,12 +65,12 @@
       "args": [
         "validate",
         "--body-file",
-        "tests/fixtures/issue/issue_body_mismatch.md"
+        "tests/fixtures/issue/issue_body_duplicate_per_task.md"
       ],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [1],
-        "stderr_regex": "PR mismatch between table"
+        "stderr_regex": "Branch duplicates .* under per-task mode"
       }
     },
     {
@@ -96,7 +96,7 @@
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "(?s)- T1: TBD.*- T2: https://github\\.com/graysurf/agent-kit/pull/105"
+        "stdout_regex": "(?s)\\| Task \\| Summary \\| Owner \\| Branch \\| Worktree \\| Execution Mode \\| PR \\| Status \\| Notes \\|.*\\| T1 \\| Build scaffold \\| TBD \\| TBD \\| TBD \\| TBD \\| TBD \\| planned \\| setup \\|.*\\| T2 \\| Ship endpoint \\| subagent-2 \\| `issue/201/t2` \\| `\\.worktrees/issue/201-t2` \\| TBD \\| #105 \\| planned \\| impl \\|"
       }
     }
   ]

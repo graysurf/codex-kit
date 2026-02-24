@@ -1,12 +1,16 @@
 # Skills Anatomy v2
 
-Status: Draft
+Status: Canonical reference (v2)
+
+`docs/runbooks/skills/SKILLS_ANATOMY_V2.md` is the canonical source for tracked skill directory anatomy and path rules.
+Use `skills/README.md` as the shorter landing-page summary for repo navigation.
 
 ## Purpose
 
 - Define the v2 directory anatomy for tracked skills under `skills/`.
 - Distinguish skill entrypoints from shared, non-executable code/assets.
 - Standardize tests and path conventions for runnable instructions.
+- Provide the canonical wording referenced by `skills/README.md` and skill-management docs.
 
 ## Scope
 

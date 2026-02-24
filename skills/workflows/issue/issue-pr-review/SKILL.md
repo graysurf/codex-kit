@@ -20,12 +20,14 @@ Inputs:
 - PR number and related issue number.
 - Review feedback body (inline or file).
 - Merge/close strategy (`merge|squash|rebase`, optional issue close metadata).
+- Optional corrected PR body (`--pr-body` / `--pr-body-file`) for hygiene fixes before merge/close.
 
 Outputs:
 
 - PR review comments with explicit follow-up requirements.
 - Issue timeline comments containing the exact PR comment URL.
 - Merged or closed PR state, with optional issue close/update actions.
+- PR body hygiene re-check before merge/close, with optional automatic correction via `gh pr edit`.
 
 Exit codes:
 
@@ -37,6 +39,7 @@ Failure modes:
 - Missing required identifiers (`--pr`, `--issue` for follow-up sync).
 - Ambiguous comment input (`--body` and `--body-file`).
 - Invalid merge method or issue close reason.
+- PR body fails required-section/placeholder validation before merge/close.
 - `gh` auth/permission failures for PR/issue operations.
 
 ## Entrypoint
@@ -49,6 +52,8 @@ Failure modes:
    - `.../manage_issue_pr_review.sh request-followup --pr 456 --issue 123 --body-file references/REQUEST_CHANGES_TEMPLATE.md`
 2. Merge PR and close issue when complete:
    - `.../manage_issue_pr_review.sh merge --pr 456 --method merge --issue 123 --close-issue --issue-comment "Completed in #456"`
+   - If PR body is stale/placeholder-filled, provide a corrected body:
+   - `.../manage_issue_pr_review.sh merge --pr 456 --issue 123 --pr-body-file /tmp/pr-456-fixed.md --method squash`
 3. Close PR without merge and preserve issue traceability:
    - `.../manage_issue_pr_review.sh close-pr --pr 456 --comment "Superseded" --issue 123 --issue-comment "PR #456 closed, replacement pending"`
 
@@ -61,5 +66,6 @@ Failure modes:
 
 - Important review instructions should remain in PR comments; always mirror the exact comment URL into the issue to direct subagents unambiguously.
 - Use `--dry-run` in workflow simulations before touching live GitHub state.
+- Before `merge`/`close-pr`, main-agent re-validates the current PR body using the `issue-subagent-pr` PR-body validator and must correct invalid placeholder content.
 - Main-agent performs review/acceptance only; implementation changes belong to subagent-owned task branches/PRs.
 - This skill is the canonical path for main-agent review decisions in issue-delivery loops.

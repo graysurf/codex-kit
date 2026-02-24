@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+skill_dir="$(cd "${script_dir}/.." && pwd -P)"
+repo_root_default="$(cd "${skill_dir}/../../../.." && pwd -P)"
+agent_home="${AGENT_HOME:-$repo_root_default}"
+
+issue_subagent_pr_script="${repo_root_default}/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh"
+if [[ ! -x "$issue_subagent_pr_script" ]]; then
+  issue_subagent_pr_script="${agent_home%/}/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh"
+fi
+
 die() {
   echo "error: $*" >&2
   exit 1
@@ -53,6 +63,8 @@ merge options:
   --pr <number>                  PR number (required)
   --method <merge|squash|rebase> Merge method (default: merge)
   --delete-branch                Ask gh to delete branch after merge
+  --pr-body <text>               Corrected PR body to apply before merge if current body fails validation
+  --pr-body-file <path>          Corrected PR body file to apply before merge if current body fails validation
   --issue <number>               Related issue number
   --close-issue                  Close the related issue after merge
   --reason <completed|not planned>
@@ -61,6 +73,8 @@ merge options:
 
 close-pr options:
   --pr <number>                  PR number (required)
+  --pr-body <text>               Corrected PR body to apply before close if current body fails validation
+  --pr-body-file <path>          Corrected PR body file to apply before close if current body fails validation
   --comment <text>               Comment to leave on PR close
   --issue <number>               Related issue number (optional)
   --issue-comment <text>         Optional issue comment for traceability
@@ -82,6 +96,86 @@ load_body() {
   fi
 
   printf '%s' "$body_text"
+}
+
+ensure_issue_subagent_pr_script() {
+  [[ -x "$issue_subagent_pr_script" ]] || die "missing executable: $issue_subagent_pr_script"
+}
+
+validate_pr_body_via_subagent_script() {
+  local body_text="${1:-}"
+  local body_file="${2:-}"
+  local issue_number="${3:-}"
+  local source_label="${4:-pr-body-check}"
+
+  ensure_issue_subagent_pr_script
+  local cmd=("$issue_subagent_pr_script" validate-pr-body)
+  if [[ -n "$body_text" && -n "$body_file" ]]; then
+    die "use either --pr-body or --pr-body-file, not both"
+  fi
+  if [[ -n "$body_file" ]]; then
+    cmd+=(--body-file "$body_file")
+  else
+    cmd+=(--body "$body_text")
+  fi
+  if [[ -n "$issue_number" ]]; then
+    cmd+=(--issue "$issue_number")
+  fi
+  if ! "${cmd[@]}" >/dev/null 2>&1; then
+    # Re-run once without redirect to preserve the underlying validation error.
+    "${cmd[@]}" >/dev/null
+  fi
+}
+
+ensure_pr_body_hygiene_for_close() {
+  local pr_number="${1:-}"
+  local issue_number="${2:-}"
+  local override_body="${3:-}"
+  local override_body_file="${4:-}"
+  local action_label="${5:-merge}"
+
+  [[ -n "$pr_number" ]] || die "PR number is required for PR body hygiene check"
+
+  if [[ "$dry_run" == "1" ]]; then
+    if [[ -n "$override_body" || -n "$override_body_file" ]]; then
+      validate_pr_body_via_subagent_script "$override_body" "$override_body_file" "$issue_number" "${action_label}-override"
+    fi
+    return 0
+  fi
+
+  require_cmd gh
+
+  local view_cmd=(gh pr view "$pr_number")
+  if [[ -n "$repo_arg" ]]; then
+    view_cmd+=(-R "$repo_arg")
+  fi
+  view_cmd+=(--json body -q .body)
+  local current_body=''
+  current_body="$(run_cmd "${view_cmd[@]}")"
+
+  if validate_pr_body_via_subagent_script "$current_body" "" "$issue_number" "${action_label}-current"; then
+    return 0
+  fi
+
+  if [[ -z "$override_body" && -z "$override_body_file" ]]; then
+    die "PR #$pr_number body failed validation before ${action_label}; provide --pr-body or --pr-body-file to correct it"
+  fi
+
+  validate_pr_body_via_subagent_script "$override_body" "$override_body_file" "$issue_number" "${action_label}-override"
+
+  local edit_cmd=(gh pr edit "$pr_number")
+  if [[ -n "$repo_arg" ]]; then
+    edit_cmd+=(-R "$repo_arg")
+  fi
+  if [[ -n "$override_body" ]]; then
+    edit_cmd+=(--body "$override_body")
+  else
+    edit_cmd+=(--body-file "$override_body_file")
+  fi
+  run_cmd "${edit_cmd[@]}" >/dev/null
+
+  current_body="$(run_cmd "${view_cmd[@]}")"
+  validate_pr_body_via_subagent_script "$current_body" "" "$issue_number" "${action_label}-updated"
 }
 
 subcommand="${1:-}"
@@ -203,6 +297,8 @@ case "$subcommand" in
     pr_number=""
     method="merge"
     delete_branch="0"
+    pr_body=""
+    pr_body_file=""
     issue_number=""
     close_issue="0"
     close_reason="completed"
@@ -221,6 +317,14 @@ case "$subcommand" in
         --delete-branch)
           delete_branch="1"
           shift
+          ;;
+        --pr-body)
+          pr_body="${2:-}"
+          shift 2
+          ;;
+        --pr-body-file)
+          pr_body_file="${2:-}"
+          shift 2
           ;;
         --issue)
           issue_number="${2:-}"
@@ -265,12 +369,19 @@ case "$subcommand" in
     if [[ "$close_issue" == "1" && -z "$issue_number" ]]; then
       die "--issue is required when --close-issue is set"
     fi
+    if [[ -n "$pr_body" && -n "$pr_body_file" ]]; then
+      die "use either --pr-body or --pr-body-file, not both"
+    fi
+    if [[ -n "$pr_body_file" && ! -f "$pr_body_file" ]]; then
+      die "pr body file not found: $pr_body_file"
+    fi
 
     if [[ "$close_reason" != "completed" && "$close_reason" != "not planned" ]]; then
       die "--reason must be one of: completed, not planned"
     fi
 
     require_cmd gh
+    ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "merge"
 
     # `gh pr merge` rejects draft PRs; auto-ready them for deterministic merge flows.
     pr_is_draft="false"
@@ -334,6 +445,8 @@ case "$subcommand" in
 
   close-pr)
     pr_number=""
+    pr_body=""
+    pr_body_file=""
     pr_comment=""
     issue_number=""
     issue_comment=""
@@ -342,6 +455,14 @@ case "$subcommand" in
       case "${1:-}" in
         --pr)
           pr_number="${2:-}"
+          shift 2
+          ;;
+        --pr-body)
+          pr_body="${2:-}"
+          shift 2
+          ;;
+        --pr-body-file)
+          pr_body_file="${2:-}"
           shift 2
           ;;
         --comment)
@@ -375,8 +496,15 @@ case "$subcommand" in
     done
 
     [[ -n "$pr_number" ]] || die "--pr is required for close-pr"
+    if [[ -n "$pr_body" && -n "$pr_body_file" ]]; then
+      die "use either --pr-body or --pr-body-file, not both"
+    fi
+    if [[ -n "$pr_body_file" && ! -f "$pr_body_file" ]]; then
+      die "pr body file not found: $pr_body_file"
+    fi
 
     require_cmd gh
+    ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "close-pr"
 
     close_pr_cmd=(gh pr close "$pr_number")
     if [[ -n "$repo_arg" ]]; then

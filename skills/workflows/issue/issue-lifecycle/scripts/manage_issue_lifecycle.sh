@@ -46,8 +46,8 @@ Subcommands:
   open       Create a new issue owned by the main agent
   update     Update title/body/labels/assignees/projects for an issue
   decompose  Render task split markdown from a TSV and optionally comment on issue
-  validate   Validate issue body consistency between Task Decomposition and Subagent PRs
-  sync       Sync Subagent PRs section from Task Decomposition PR column
+  validate   Validate issue body Task Decomposition consistency
+  sync       Normalize Task Decomposition (and strip legacy Subagent PRs section)
   comment    Add an issue progress comment
   close      Close an issue with optional completion comment
   reopen     Reopen an issue with optional comment
@@ -156,12 +156,12 @@ if not rows:
 
 print(f"## {header}")
 print("")
-print("| Task | Summary | Owner | Branch | Worktree | PR | Status | Notes |")
-print("| --- | --- | --- | --- | --- | --- | --- | --- |")
+print("| Task | Summary | Owner | Branch | Worktree | Execution Mode | PR | Status | Notes |")
+print("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
 for task_id, summary, branch, worktree, owner, notes in rows:
     notes_value = notes if notes else "-"
     print(
-        f"| {task_id} | {summary} | {owner} | `{branch}` | `{worktree}` | TBD | planned | {notes_value} |"
+        f"| {task_id} | {summary} | {owner} | `{branch}` | `{worktree}` | per-task | TBD | planned | {notes_value} |"
     )
 
 print("")
@@ -198,9 +198,21 @@ text = body_path.read_text(encoding="utf-8")
 lines = text.splitlines()
 
 required_columns = ["Task", "Summary", "Owner", "Branch", "Worktree", "PR", "Status", "Notes"]
+canonical_columns = [
+    "Task",
+    "Summary",
+    "Owner",
+    "Branch",
+    "Worktree",
+    "Execution Mode",
+    "PR",
+    "Status",
+    "Notes",
+]
 allowed_statuses = {"planned", "in-progress", "blocked", "done"}
+allowed_execution_modes = {"per-task", "per-sprint", "pr-isolated", "pr-shared"}
 placeholder_pr = {"", "-", "tbd", "none", "n/a", "na"}
-placeholder_owner = {"", "-", "tbd", "none", "n/a", "na"}
+placeholder_tokens = {"", "-", "tbd", "none", "n/a", "na"}
 
 
 def section_bounds(heading: str) -> tuple[int, int]:
@@ -227,11 +239,12 @@ def parse_row(line: str) -> list[str]:
     return [cell.strip() for cell in stripped[1:-1].split("|")]
 
 
-def parse_task_rows() -> tuple[list[dict[str, str]], list[str]]:
+def parse_task_rows() -> tuple[list[dict[str, str]], list[str], tuple[int, int, int, int]]:
     start, end = section_bounds("## Task Decomposition")
     section = lines[start:end]
 
-    table_lines = [line for line in section if line.strip().startswith("|")]
+    table_rel_idx = [idx for idx, line in enumerate(section) if line.strip().startswith("|")]
+    table_lines = [section[idx] for idx in table_rel_idx]
     if len(table_lines) < 3:
         raise SystemExit("error: Task Decomposition must contain a markdown table with at least one row")
 
@@ -256,33 +269,25 @@ def parse_task_rows() -> tuple[list[dict[str, str]], list[str]]:
         row = {header: cells[idx] for idx, header in enumerate(headers)}
         if not any(cell.strip() for cell in cells):
             continue
+        if "Execution Mode" not in row:
+            row["Execution Mode"] = "TBD"
         rows.append(row)
 
     if not rows:
         raise SystemExit("error: Task Decomposition table must include at least one task row")
 
-    return rows, headers
+    first_table_abs = start + table_rel_idx[0]
+    last_table_abs = start + table_rel_idx[-1]
+    return rows, headers, (start, end, first_table_abs, last_table_abs)
 
 
-def parse_subagent_pr_entries() -> tuple[list[tuple[str, str]], tuple[int, int]]:
-    start, end = section_bounds("## Subagent PRs")
-    section = lines[start:end]
-    entries: list[tuple[str, str]] = []
-    pattern = re.compile(r"^-\s*([A-Za-z0-9._/-]+)\s*:\s*(.+?)\s*$")
-
-    for raw in section:
-        line = raw.strip()
-        if not line:
-            continue
-        match = pattern.match(line)
-        if not match:
-            raise SystemExit(f"error: invalid Subagent PRs line (expected '- <Task>: <PR>'): {raw}")
-        entries.append((match.group(1), match.group(2).strip()))
-
-    if not entries:
-        raise SystemExit("error: Subagent PRs section must include at least one '- <Task>: <PR>' entry")
-
-    return entries, (start, end)
+def maybe_section_bounds(heading: str) -> tuple[int, int] | None:
+    try:
+        return section_bounds(heading)
+    except SystemExit as exc:
+        if "missing required heading" in str(exc):
+            return None
+        raise
 
 
 def normalize_pr(value: str) -> str:
@@ -305,13 +310,20 @@ def normalize_pr(value: str) -> str:
     ):
         match = re.match(pattern, current, flags=re.IGNORECASE)
         if match:
-            return f"PR#{match.group(1)}"
+            return f"#{match.group(1)}"
 
     return current
 
 
 def is_pr_placeholder(value: str) -> bool:
     return normalize_pr(value) == "TBD"
+
+
+def normalize_placeholder(value: str) -> str:
+    current = value.strip()
+    if current.lower() in placeholder_tokens:
+        return "TBD"
+    return current
 
 
 def normalize_owner_token(value: str) -> str:
@@ -331,112 +343,130 @@ def is_main_agent_owner(value: str) -> bool:
     return False
 
 
-task_rows, task_headers = parse_task_rows()
+def normalize_execution_mode(value: str) -> str:
+    raw = value.strip()
+    if not raw:
+        return "TBD"
+    lowered = raw.lower().replace("_", "-").replace(" ", "-")
+    if lowered in placeholder_tokens:
+        return "TBD"
+    if lowered in allowed_execution_modes:
+        return lowered
+    if lowered == "persprint":
+        return "per-sprint"
+    if lowered == "pertask":
+        return "per-task"
+    if lowered == "prshared":
+        return "pr-shared"
+    if lowered == "prisolated":
+        return "pr-isolated"
+    return raw
+
+
+task_rows, task_headers, task_table_meta = parse_task_rows()
 
 if mode == "sync":
-    _, (sub_start, sub_end) = parse_subagent_pr_entries()
-    bullet_lines = []
+    _start, _end, first_table_abs, last_table_abs = task_table_meta
+    normalized_table = [
+        "| Task | Summary | Owner | Branch | Worktree | Execution Mode | PR | Status | Notes |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
     for row in task_rows:
-        task_id = row.get("Task", "").strip()
-        pr_value = row.get("PR", "").strip() or "TBD"
-        bullet_lines.append(f"- {task_id}: {pr_value}")
+        cells = []
+        for col in canonical_columns:
+            if col == "Execution Mode":
+                value = normalize_execution_mode(row.get(col, ""))
+            elif col == "PR":
+                value = normalize_pr(row.get(col, ""))
+            elif col in {"Owner", "Branch", "Worktree"}:
+                value = normalize_placeholder(row.get(col, ""))
+            else:
+                value = (row.get(col, "") or "").strip()
+            if col in {"Owner", "Branch", "Worktree", "Execution Mode", "PR"}:
+                cells.append(value or "TBD")
+            else:
+                cells.append(value)
+        normalized_table.append("| " + " | ".join(cells) + " |")
 
-    # heading line index is one line before the section start.
-    heading_index = sub_start - 1
-    replacement = ["## Subagent PRs", ""] + bullet_lines + [""]
-    new_lines = lines[:heading_index] + replacement + lines[sub_end:]
+    new_lines = lines[:first_table_abs] + normalized_table + lines[last_table_abs + 1 :]
+    legacy_bounds = maybe_section_bounds("## Subagent PRs")
+    if legacy_bounds is not None:
+        sub_start, sub_end = legacy_bounds
+        heading_index = sub_start - 1
+        if heading_index > 0 and new_lines[heading_index - 1].strip() == "":
+            heading_index -= 1
+        new_lines = new_lines[:heading_index] + new_lines[sub_end:]
+
     output = "\n".join(new_lines).rstrip("\n") + "\n"
     sys.stdout.write(output)
     raise SystemExit(0)
 
-entries, _ = parse_subagent_pr_entries()
 errors: list[str] = []
 
-task_order: list[str] = []
-task_to_pr: dict[str, str] = {}
-seen_branch: dict[str, str] = {}
-seen_worktree: dict[str, str] = {}
+seen_branch_per_task: dict[str, str] = {}
+seen_worktree_per_task: dict[str, str] = {}
 
 for idx, row in enumerate(task_rows, start=1):
     task_id = row.get("Task", "").strip()
-    owner = row.get("Owner", "").strip()
-    branch = row.get("Branch", "").strip()
-    worktree = row.get("Worktree", "").strip()
+    owner = normalize_placeholder(row.get("Owner", ""))
+    branch = normalize_placeholder(row.get("Branch", ""))
+    worktree = normalize_placeholder(row.get("Worktree", ""))
+    exec_mode_raw = row.get("Execution Mode", "")
+    exec_mode = normalize_execution_mode(exec_mode_raw)
     pr_value = row.get("PR", "").strip() or "TBD"
     status = row.get("Status", "").strip().lower()
 
     if not task_id:
         errors.append(f"Task Decomposition row {idx} has empty Task id")
         continue
-    if task_id in task_to_pr:
-        errors.append(f"duplicate Task id in Task Decomposition: {task_id}")
-        continue
 
-    if not owner:
-        errors.append(f"{task_id}: Owner must be non-empty")
-    else:
+    if owner and owner != "TBD":
         owner_lower = owner.lower()
         owner_token = normalize_owner_token(owner)
-        if owner_lower in placeholder_owner or owner_token in placeholder_owner:
-            errors.append(f"{task_id}: Owner must reference a subagent identity (not placeholder)")
+        if owner_lower in placeholder_tokens or owner_token in placeholder_tokens:
+            owner = "TBD"
         elif is_main_agent_owner(owner):
             errors.append(f"{task_id}: Owner must not be main-agent (main-agent is orchestration/review-only)")
         elif "subagent" not in owner_lower:
             errors.append(f"{task_id}: Owner must reference a subagent identity (must include 'subagent')")
-    if not branch:
-        errors.append(f"{task_id}: Branch must be non-empty")
-    if not worktree:
-        errors.append(f"{task_id}: Worktree must be non-empty")
+
     if status not in allowed_statuses:
         errors.append(f"{task_id}: Status must be one of {sorted(allowed_statuses)} (got: {row.get('Status', '').strip()})")
+    if exec_mode != "TBD" and exec_mode not in allowed_execution_modes:
+        errors.append(
+            f"{task_id}: Execution Mode must be one of {sorted(allowed_execution_modes)} or TBD "
+            f"(got: {exec_mode_raw.strip() or '<empty>'})"
+        )
     if status in {"in-progress", "done"} and is_pr_placeholder(pr_value):
         errors.append(f"{task_id}: PR must not be TBD when Status is {status}")
+    if status in {"in-progress", "done"}:
+        if owner == "TBD":
+            errors.append(f"{task_id}: Owner must not be TBD when Status is {status}")
+        if branch == "TBD":
+            errors.append(f"{task_id}: Branch must not be TBD when Status is {status}")
+        if worktree == "TBD":
+            errors.append(f"{task_id}: Worktree must not be TBD when Status is {status}")
+        if exec_mode == "TBD":
+            errors.append(f"{task_id}: Execution Mode must not be TBD when Status is {status}")
 
-    if branch:
-        if branch in seen_branch:
-            errors.append(f"{task_id}: Branch duplicates {seen_branch[branch]} ({branch})")
-        else:
-            seen_branch[branch] = task_id
-    if worktree:
-        if worktree in seen_worktree:
-            errors.append(f"{task_id}: Worktree duplicates {seen_worktree[worktree]} ({worktree})")
-        else:
-            seen_worktree[worktree] = task_id
-
-    task_order.append(task_id)
-    task_to_pr[task_id] = pr_value
-
-sub_to_pr: dict[str, str] = {}
-for task_id, value in entries:
-    if task_id in sub_to_pr:
-        errors.append(f"duplicate Task id in Subagent PRs: {task_id}")
-        continue
-    sub_to_pr[task_id] = value
-
-missing_sub = [task_id for task_id in task_order if task_id not in sub_to_pr]
-if missing_sub:
-    errors.append("Subagent PRs missing Task ids: " + ", ".join(missing_sub))
-
-extra_sub = [task_id for task_id in sub_to_pr if task_id not in task_to_pr]
-if extra_sub:
-    errors.append("Subagent PRs contains unknown Task ids: " + ", ".join(extra_sub))
-
-for task_id in task_order:
-    if task_id not in sub_to_pr:
-        continue
-    table_pr = task_to_pr[task_id]
-    sub_pr = sub_to_pr[task_id]
-    if normalize_pr(table_pr) != normalize_pr(sub_pr):
-        errors.append(
-            f"{task_id}: PR mismatch between table ({table_pr}) and Subagent PRs ({sub_pr})"
-        )
+    if exec_mode == "per-task":
+        if branch and branch != "TBD":
+            if branch in seen_branch_per_task:
+                errors.append(f"{task_id}: Branch duplicates {seen_branch_per_task[branch]} ({branch}) under per-task mode")
+            else:
+                seen_branch_per_task[branch] = task_id
+        if worktree and worktree != "TBD":
+            if worktree in seen_worktree_per_task:
+                errors.append(f"{task_id}: Worktree duplicates {seen_worktree_per_task[worktree]} ({worktree}) under per-task mode")
+            else:
+                seen_worktree_per_task[worktree] = task_id
 
 if errors:
     for message in errors:
         print(f"error: {message}", file=sys.stderr)
     raise SystemExit(1)
 
-print(f"ok: issue body consistency passed ({len(task_order)} tasks)")
+print(f"ok: issue body consistency passed ({len(task_rows)} tasks)")
 PY
 }
 
@@ -455,7 +485,7 @@ sync_issue_body_file() {
 maybe_validate_issue_body_file() {
   local body_file="${1:-}"
   [[ -f "$body_file" ]] || die "body file not found: $body_file"
-  if grep -Eq '^## (Task Decomposition|Subagent PRs)$' "$body_file"; then
+  if grep -Eq '^## Task Decomposition$' "$body_file"; then
     validate_issue_body_file "$body_file" >/dev/null
   fi
 }
@@ -958,7 +988,7 @@ case "$subcommand" in
 
       run_cmd "${edit_cmd[@]}"
       rm -f "$tmp_body" "$tmp_synced"
-      echo "ok: synced issue #${issue_number} Subagent PRs"
+      echo "ok: normalized issue #${issue_number} Task Decomposition"
       exit 0
     fi
 
@@ -976,7 +1006,7 @@ case "$subcommand" in
       fi
       cp "$tmp_synced" "$body_file"
       rm -f "$tmp_synced"
-      echo "ok: synced $body_file"
+      echo "ok: normalized $body_file"
       exit 0
     fi
 

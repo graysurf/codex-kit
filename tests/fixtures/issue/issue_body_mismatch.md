@@ -1,20 +1,20 @@
-# issue-body: mismatch
+# issue-body: legacy normalization fixture
 
 ## Goal
-- Demonstrate sync/validate behavior.
+- Demonstrate sync normalization behavior for legacy issue bodies.
 
 ## Task Decomposition
 | Task | Summary | Owner | Branch | Worktree | PR | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | Build scaffold | subagent-1 | `issue/201/t1` | `.worktrees/issue/201-t1` | TBD | planned | setup |
-| T2 | Ship endpoint | subagent-2 | `issue/201/t2` | `.worktrees/issue/201-t2` | https://github.com/graysurf/agent-kit/pull/105 | in-progress | impl |
+| T1 | Build scaffold | - | - | - | n/a | planned | setup |
+| T2 | Ship endpoint | subagent-2 | `issue/201/t2` | `.worktrees/issue/201-t2` | #105 | planned | impl |
 
 ## Subagent PRs
-- T1: https://github.com/graysurf/agent-kit/pull/777
-- T2: TBD
+- T1: TBD
+- T2: https://github.com/graysurf/agent-kit/pull/999
 
 ## Risks / Uncertainties
 - None.
 
 ## Evidence
-- Local fixture for mismatch test.
+- Local fixture for legacy sync normalization test.

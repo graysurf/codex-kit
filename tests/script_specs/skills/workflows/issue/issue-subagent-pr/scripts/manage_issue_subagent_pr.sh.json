@@ -17,6 +17,62 @@
       }
     },
     {
+      "name": "render-task-prompt",
+      "args": [
+        "render-task-prompt",
+        "--issue",
+        "999",
+        "--task-id",
+        "T1",
+        "--summary",
+        "Implement API validation",
+        "--owner",
+        "subagent-api",
+        "--branch",
+        "issue/999/t1-api",
+        "--worktree",
+        ".worktrees/issue/999-t1-api",
+        "--execution-mode",
+        "per-task",
+        "--pr-title",
+        "feat(issue): implement API validation",
+        "--acceptance",
+        "Return stable error codes for invalid input"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "(?s)## Assigned Execution Facts.*Assigned worktree: `\\.worktrees/issue/999-t1-api`.*Execution mode: `per-task`.*validate-pr-body.*open-pr"
+      }
+    },
+    {
+      "name": "render-task-prompt-fail-main-agent-owner",
+      "args": [
+        "render-task-prompt",
+        "--issue",
+        "999",
+        "--task-id",
+        "T1",
+        "--summary",
+        "Implement API validation",
+        "--owner",
+        "main-agent",
+        "--branch",
+        "issue/999/t1-api",
+        "--worktree",
+        ".worktrees/issue/999-t1-api",
+        "--execution-mode",
+        "per-task",
+        "--pr-title",
+        "feat(issue): implement API validation"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "owner must not be main-agent"
+      }
+    },
+    {
       "name": "open-pr-dry-run",
       "args": [
         "open-pr",
@@ -28,14 +84,29 @@
         "main",
         "--head",
         "feat/issue-999-api",
-        "--body",
-        "Fixture PR body",
+        "--body-file",
+        "tests/fixtures/issue/pr_body_valid.md",
         "--dry-run"
       ],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
         "stdout_regex": "DRY-RUN-PR-URL"
+      }
+    },
+    {
+      "name": "validate-pr-body-fail-placeholder",
+      "args": [
+        "validate-pr-body",
+        "--issue",
+        "999",
+        "--body-file",
+        "tests/fixtures/issue/pr_body_invalid_placeholder.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "invalid PR body content"
       }
     },
     {

@@ -13,14 +13,10 @@
   - Real implementation.
 
 ## Task Decomposition
-| Task | Summary | Owner | Branch | Worktree | PR | Status | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | Keep planning state | subagent-1 | `issue/200/t1-state` | `.worktrees/issue/200-t1` | TBD | planned | bootstrap |
-| T2 | Build API output | subagent-2 | `issue/200/t2-api` | `.worktrees/issue/200-t2` | https://github.com/graysurf/agent-kit/pull/105 | in-progress | wiring |
-
-## Subagent PRs
-- T1: TBD
-- T2: https://github.com/graysurf/agent-kit/pull/105
+| Task | Summary | Owner | Branch | Worktree | Execution Mode | PR | Status | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T1 | Keep planning state | TBD | TBD | TBD | TBD | TBD | planned | bootstrap |
+| T2 | Build API output | subagent-2 | `issue/200/t2-api` | `.worktrees/issue/200-t2` | per-task | https://github.com/graysurf/agent-kit/pull/105 | in-progress | wiring |
 
 ## Risks / Uncertainties
 - None.

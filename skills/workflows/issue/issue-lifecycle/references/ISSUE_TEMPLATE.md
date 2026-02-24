@@ -17,22 +17,17 @@
 
 ## Task Decomposition
 
-| Task | Summary | Owner | Branch | Worktree | PR | Status | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | <summary> | <subagent-id> | `issue/<issue-number>/t1-<slug>` | `<worktree path>` | TBD | planned | <notes> |
-
-## Subagent PRs
-
-- T1: TBD
+| Task | Summary | Owner | Branch | Worktree | Execution Mode | PR | Status | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T1 | <summary> | TBD | TBD | TBD | TBD | TBD | planned | <notes> |
 
 ## Consistency Rules
 
-- Every `Task` in `Task Decomposition` must appear exactly once in `Subagent PRs` as `- <Task>: <PR>`.
-- `Task Decomposition.PR` and `Subagent PRs` values must match for the same task.
 - `Status` must be one of: `planned`, `in-progress`, `blocked`, `done`.
-- `Status` = `in-progress` or `done` requires a non-`TBD` PR.
-- `Owner` must be a subagent identifier (contains `subagent`); `main-agent` ownership is invalid for implementation tasks.
-- `Owner`, `Branch`, and `Worktree` must be non-empty; `Branch` and `Worktree` must be unique across tasks.
+- `Status` = `in-progress` or `done` requires non-`TBD` execution metadata (`Owner`, `Branch`, `Worktree`, `Execution Mode`, `PR`).
+- `Owner` must be a subagent identifier (contains `subagent`) once the task is assigned; `main-agent` ownership is invalid for implementation tasks.
+- `Execution Mode` should be one of: `per-task`, `per-sprint`, `pr-isolated`, `pr-shared` (or `TBD` before assignment).
+- `Branch` and `Worktree` uniqueness is enforced only for rows using `Execution Mode = per-task`.
 
 ## Risks / Uncertainties
 
