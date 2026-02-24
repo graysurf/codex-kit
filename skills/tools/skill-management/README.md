@@ -2,6 +2,17 @@
 
 This folder groups tools for maintaining the `skills/` tree (create/validate/remove).
 
+## Canonical references
+
+- Skill directory anatomy and path rules (canonical):
+  - `docs/runbooks/skills/SKILLS_ANATOMY_V2.md`
+- SKILL.md contract format spec:
+  - `docs/runbooks/skills/SKILL_MD_FORMAT_V1.md`
+- Executable entrypoint catalog (operator-facing):
+  - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
+- `skills/` landing page summary (repo navigation):
+  - `skills/README.md`
+
 ## Quick start
 
 - Create a new skill skeleton (writes files, then validates):
@@ -37,6 +48,7 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
 
 - Skill paths: `skills/<category>/<area>/<skill-name>` (kebab-case directory names).
 - Entry points live under `skills/**/scripts/` and must support `--help` with exit code `0` (required by repo script regression tests).
+- Use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full v2 directory anatomy and canonical path-rule wording.
 - Shared, non-entrypoint code/assets:
   - Prefer category-level `_shared/` (e.g. `skills/tools/<area>/_shared/`) or global `skills/_shared/`.
   - `_shared/` must not contain `SKILL.md`, `scripts/`, or `tests/`.
