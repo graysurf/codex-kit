@@ -1,5 +1,5 @@
 ---
-description: English init prompt for implementation-owned subagents in plan-issue-delivery-loop.
+description: Init prompt for implementation-owned subagents in plan-issue-delivery-loop.
 argument-hint: optional overrides for task/worktree/branch/pr-mode
 ---
 
