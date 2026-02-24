@@ -505,7 +505,7 @@ text = template_path.read_text(encoding="utf-8")
 lines = text.splitlines()
 
 if lines and lines[0].startswith("# "):
-    lines[0] = f"# plan: {plan_title}"
+    lines[0] = f"# {plan_title}"
 
 
 def replace_section(heading: str, body_lines: list[str]) -> None:
@@ -1415,7 +1415,7 @@ start_plan_cmd() {
   render_plan_issue_body_from_task_spec "$issue_lifecycle_template" "$plan_file" "$plan_title" "$task_spec_out" "$issue_body_out" >/dev/null
 
   if [[ -z "$issue_title" ]]; then
-    issue_title="[Plan] ${plan_title}"
+    issue_title="${plan_title}"
   fi
 
   if [[ ${#labels[@]} -eq 0 ]]; then
