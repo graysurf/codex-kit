@@ -1,12 +1,15 @@
 # Plan: Duck plan for plan issue delivery loop
 
 ## Overview
-This plan creates disposable test deliverables under `tests/issues/duck-loop/` to validate `plan-issue-delivery-loop` orchestration. Each sprint explicitly includes one single-task PR path and one two-task shared-PR path so both grouping styles can be exercised repeatedly. The plan is execution-only for test fixtures and avoids production code changes, making cleanup straightforward after verification.
+This plan creates disposable test deliverables under `tests/issues/duck-loop/` to validate `plan-issue-delivery-loop` orchestration using three distinct execution profiles. The three sprints intentionally cover both supported grouping styles and avoid ambiguous naming between task summaries and grouping behavior.
 
 ## Scope
 - In scope:
   - Create sprint-scoped fixture content only under `tests/issues/duck-loop/`.
-  - Validate `per-sprint` and `group` PR grouping behavior for every sprint.
+  - Validate three explicit execution profiles:
+    - Sprint 1: `per-sprint`.
+    - Sprint 2: `group` with one shared pair.
+    - Sprint 3: `group` with all tasks isolated.
   - Generate task-spec artifacts in `$AGENT_HOME/out/plan-issue-delivery-loop/` during validation.
 - Out of scope:
   - Any production logic changes outside `tests/issues/duck-loop/`.
@@ -19,214 +22,205 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
 3. GitHub approval/merge gates are validated when the orchestration workflow runs, not in this planning step.
 
 ## Success criteria
-- The plan has at least 3 sprints and every sprint contains:
-  - one task intended for single-task single-PR delivery.
-  - two tasks intended for shared-PR delivery.
+- The plan has 3 sprints and each sprint validates one explicit execution profile.
+- Sprint 1 (`per-sprint`) produces exactly one `pr_group` value for all sprint tasks.
+- Sprint 2 (`group`) produces one isolated task group plus one shared two-task group.
+- Sprint 3 (`group`) produces all isolated groups (no shared group).
+- Task summaries, task descriptions, and grouping commands are semantically aligned (no "single-task PR" wording inside a `per-sprint` sprint).
 - All implementation artifacts are isolated under `tests/issues/duck-loop/`.
-- Sprint validation commands show:
-  - `per-sprint` mode yields one `pr_group` value per sprint.
-  - `group` mode can group two specified tasks into one `pr_group`.
 
-## Sprint 1: Baseline fixture and grouping smoke
-**Goal**: Establish disposable test area and validate grouping behavior on first sprint tasks.
+## Sprint 1: Per-sprint baseline
+**Goal**: Validate pure `per-sprint` orchestration with naming/content explicitly aligned to per-sprint execution.
 **Demo/Validation**:
 - Command(s):
   - `plan-tooling validate --file docs/plans/duck-issue-loop-test-plan.md`
   - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-per-sprint.tsv"`
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping group --pr-group S1T1=s1-single-1 --pr-group S1T2=s1-single-2 --pr-group S1T3=s1-shared --pr-group S1T4=s1-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-group.tsv"`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-group.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s1-shared\") == 2, groups\nprint(\"ok\")\nPY`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-per-sprint.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups={r[6] for r in data}\nassert len(groups)==1, groups\nprint("ok")\nPY`
 - Verify:
-  - Sprint 1 task-spec files exist under `$AGENT_HOME/out/plan-issue-delivery-loop/`.
-  - Group-mode output contains exactly two tasks in `s1-shared`.
+  - Sprint 1 task-spec file exists under `$AGENT_HOME/out/plan-issue-delivery-loop/`.
+  - All Sprint 1 rows share one `pr_group`.
 **Parallelizable tasks**:
 - `Task 1.2` and `Task 1.3` can run in parallel after `Task 1.1`.
-- `Task 1.4` depends on `Task 1.3`.
 
-### Task 1.1: Create disposable duck-loop root and cleanup notes
+### Task 1.1: Create disposable duck-loop root and execution matrix notes
 - **Location**:
   - `tests/issues/duck-loop/README.md`
   - `tests/issues/duck-loop/CLEANUP.md`
-- **Description**: Create the root fixture directory with purpose, execution notes, and a one-command cleanup instruction (`rm -rf tests/issues/duck-loop`).
+- **Description**: Create the root fixture directory with purpose, execution-profile matrix (`per-sprint`, `group-shared`, `group-isolated`), and one-command cleanup instruction (`rm -rf tests/issues/duck-loop`).
 - **Dependencies**: none
 - **Complexity**: 2
 - **Acceptance criteria**:
   - Root README states this folder is test-only and disposable.
+  - Root README lists the three execution profiles by name.
   - Cleanup doc includes explicit removal command.
 - **Validation**:
   - `test -f tests/issues/duck-loop/README.md && test -f tests/issues/duck-loop/CLEANUP.md`
+  - `rg -n 'per-sprint|group-shared|group-isolated' tests/issues/duck-loop/README.md`
   - `rg -n 'rm -rf tests/issues/duck-loop' tests/issues/duck-loop/CLEANUP.md`
 
-### Task 1.2: Sprint 1 single-task single-PR fixture
+### Task 1.2: Sprint 1 per-sprint fixture part A
 - **Location**:
-  - `tests/issues/duck-loop/sprint1/single-pr/task.md`
-- **Description**: Add a fixture representing the one-task one-PR path for Sprint 1, including a marker that this task should stay isolated from grouped PR tasks.
+  - `tests/issues/duck-loop/sprint1/per-sprint/task-a.md`
+- **Description**: Add Sprint 1 fixture content for `per-sprint` mode, including an explicit `execution-profile: per-sprint` marker.
 - **Dependencies**:
   - Task 1.1
 - **Complexity**: 2
 - **Acceptance criteria**:
-  - File content includes `mode: single-task-pr`.
-  - File content references Sprint 1 single-task scenario.
+  - File exists and includes `execution-profile: per-sprint`.
+  - File references Sprint 1 per-sprint baseline.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint1/single-pr/task.md`
-  - `rg -n 'mode: single-task-pr' tests/issues/duck-loop/sprint1/single-pr/task.md`
+  - `test -f tests/issues/duck-loop/sprint1/per-sprint/task-a.md`
+  - `rg -n 'execution-profile: per-sprint' tests/issues/duck-loop/sprint1/per-sprint/task-a.md`
 
-### Task 1.3: Sprint 1 grouped-PR fixture part A
+### Task 1.3: Sprint 1 per-sprint fixture part B
 - **Location**:
-  - `tests/issues/duck-loop/sprint1/grouped-pr/task-a.md`
-- **Description**: Add the first of two tasks that should be grouped into one PR for Sprint 1 grouped mode validation.
+  - `tests/issues/duck-loop/sprint1/per-sprint/task-b.md`
+- **Description**: Add second Sprint 1 per-sprint fixture file to verify same-group multi-task delivery under one sprint-level PR group.
 - **Dependencies**:
   - Task 1.1
 - **Complexity**: 2
 - **Acceptance criteria**:
-  - File content includes `mode: grouped-pr`.
-  - File identifies itself as grouped pair part A.
+  - File exists and includes `execution-profile: per-sprint`.
+  - File identifies itself as Sprint 1 per-sprint part B.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint1/grouped-pr/task-a.md`
-  - `rg -n 'mode: grouped-pr' tests/issues/duck-loop/sprint1/grouped-pr/task-a.md`
+  - `test -f tests/issues/duck-loop/sprint1/per-sprint/task-b.md`
+  - `rg -n 'part: B|execution-profile: per-sprint' tests/issues/duck-loop/sprint1/per-sprint/task-b.md`
 
-### Task 1.4: Sprint 1 grouped-PR fixture part B
-- **Location**:
-  - `tests/issues/duck-loop/sprint1/grouped-pr/task-b.md`
-- **Description**: Add the second grouped task and encode dependency metadata to preserve execution ordering for a shared PR path.
-- **Dependencies**:
-  - Task 1.3
-- **Complexity**: 2
-- **Acceptance criteria**:
-  - File content includes grouped mode marker.
-  - File content records dependency on `Task 1.3`.
-- **Validation**:
-  - `test -f tests/issues/duck-loop/sprint1/grouped-pr/task-b.md`
-  - `rg -n 'depends-on: Task 1.3' tests/issues/duck-loop/sprint1/grouped-pr/task-b.md`
-
-## Sprint 2: Repeatability with second fixture set
-**Goal**: Re-run the same two PR-delivery styles with a new sprint fixture set to verify repeatability across explicit `accept-sprint` + `start-sprint` orchestration.
+## Sprint 2: Group mode with shared pair
+**Goal**: Validate `group` mode with one isolated task plus one shared two-task group.
 **Demo/Validation**:
 - Command(s):
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-per-sprint.tsv"`
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping group --pr-group S2T1=s2-single --pr-group S2T2=s2-shared --pr-group S2T3=s2-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group.tsv"`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s2-shared\") == 2, groups\nprint(\"ok\")\nPY`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping group --pr-group S2T1=s2-isolated --pr-group S2T2=s2-shared --pr-group S2T3=s2-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group-shared.tsv"`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group-shared.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups=[r[6] for r in data]\nassert groups.count("s2-shared")==2, groups\nassert groups.count("s2-isolated")==1, groups\nprint("ok")\nPY`
 - Verify:
-  - Sprint 2 per-sprint output has one `pr_group` for the sprint.
-  - Sprint 2 group output groups exactly two tasks into `s2-shared`.
+  - Sprint 2 group output has one isolated group (`s2-isolated`) and one shared pair (`s2-shared`).
 **Parallelizable tasks**:
 - `Task 2.1` and `Task 2.2` can run in parallel.
 - `Task 2.3` depends on `Task 2.2`.
 
-### Task 2.1: Sprint 2 single-task single-PR fixture
+### Task 2.1: Sprint 2 group isolated fixture
 - **Location**:
-  - `tests/issues/duck-loop/sprint2/single-pr/task.md`
-- **Description**: Create Sprint 2 single-task PR fixture content with unique sprint marker.
+  - `tests/issues/duck-loop/sprint2/group-shared/isolated/task.md`
+- **Description**: Create the Sprint 2 fixture that is intentionally mapped to an isolated group (`s2-isolated`) in `group` mode.
 - **Dependencies**: none
 - **Complexity**: 2
 - **Acceptance criteria**:
-  - File exists and includes `mode: single-task-pr`.
-  - File includes `sprint: 2`.
+  - File exists with `execution-profile: group`.
+  - File includes `planned-pr-group: s2-isolated`.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint2/single-pr/task.md`
-  - `rg -n 'sprint: 2' tests/issues/duck-loop/sprint2/single-pr/task.md`
+  - `test -f tests/issues/duck-loop/sprint2/group-shared/isolated/task.md`
+  - `rg -n 'execution-profile: group|planned-pr-group: s2-isolated' tests/issues/duck-loop/sprint2/group-shared/isolated/task.md`
 
-### Task 2.2: Sprint 2 grouped-PR fixture part A
+### Task 2.2: Sprint 2 group shared fixture part A
 - **Location**:
-  - `tests/issues/duck-loop/sprint2/grouped-pr/task-a.md`
-- **Description**: Create grouped fixture part A for Sprint 2 shared PR test.
+  - `tests/issues/duck-loop/sprint2/group-shared/shared/task-a.md`
+- **Description**: Create part A of the shared pair that must be mapped to `s2-shared` under `group` mode.
 - **Dependencies**: none
 - **Complexity**: 2
 - **Acceptance criteria**:
-  - File exists with grouped mode marker.
-  - File identifies itself as part A.
+  - File exists with `execution-profile: group`.
+  - File includes `planned-pr-group: s2-shared` and `part: A`.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint2/grouped-pr/task-a.md`
-  - `rg -n 'part: A' tests/issues/duck-loop/sprint2/grouped-pr/task-a.md`
+  - `test -f tests/issues/duck-loop/sprint2/group-shared/shared/task-a.md`
+  - `rg -n 'planned-pr-group: s2-shared|part: A' tests/issues/duck-loop/sprint2/group-shared/shared/task-a.md`
 
-### Task 2.3: Sprint 2 grouped-PR fixture part B
+### Task 2.3: Sprint 2 group shared fixture part B
 - **Location**:
-  - `tests/issues/duck-loop/sprint2/grouped-pr/task-b.md`
-- **Description**: Create grouped fixture part B for Sprint 2 and keep dependency on grouped part A.
+  - `tests/issues/duck-loop/sprint2/group-shared/shared/task-b.md`
+- **Description**: Create part B of the shared pair and encode dependency on Task 2.2 to preserve ordered execution within the shared group.
 - **Dependencies**:
   - Task 2.2
 - **Complexity**: 2
 - **Acceptance criteria**:
-  - File exists with grouped mode marker.
-  - File includes `depends-on: Task 2.2`.
+  - File exists with `execution-profile: group`.
+  - File includes `planned-pr-group: s2-shared` and `depends-on: Task 2.2`.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint2/grouped-pr/task-b.md`
-  - `rg -n 'depends-on: Task 2.2' tests/issues/duck-loop/sprint2/grouped-pr/task-b.md`
+  - `test -f tests/issues/duck-loop/sprint2/group-shared/shared/task-b.md`
+  - `rg -n 'planned-pr-group: s2-shared|depends-on: Task 2.2' tests/issues/duck-loop/sprint2/group-shared/shared/task-b.md`
 
-## Sprint 3: Final sprint and cleanup readiness
-**Goal**: Validate both PR styles one more time and prepare explicit cleanup metadata for post-test teardown.
+## Sprint 3: Group mode with all isolated tasks
+**Goal**: Validate `group` mode where every task is explicitly isolated (no shared pair), and finalize cleanup manifest indexing.
 **Demo/Validation**:
 - Command(s):
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-per-sprint.tsv"`
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping group --pr-group S3T1=s3-single --pr-group S3T2=s3-shared --pr-group S3T3=s3-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group.tsv"`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s3-shared\") == 2, groups\nprint(\"ok\")\nPY`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping group --pr-group S3T1=s3-a --pr-group S3T2=s3-b --pr-group S3T3=s3-c --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group-isolated.tsv"`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group-isolated.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups=[r[6] for r in data]\nassert len(set(groups))==3, groups\nprint("ok")\nPY`
 - Verify:
-  - Sprint 3 group spec groups the targeted two tasks.
-  - Cleanup manifest includes all sprint fixture paths.
+  - Sprint 3 group output has three unique groups (`s3-a`, `s3-b`, `s3-c`).
+  - Cleanup manifest includes all profile directories.
 **Parallelizable tasks**:
 - `Task 3.1` and `Task 3.2` can run in parallel.
-- `Task 3.3` depends on `Task 3.2`.
+- `Task 3.3` depends on both `Task 3.1` and `Task 3.2`.
 
-### Task 3.1: Sprint 3 single-task single-PR fixture
+### Task 3.1: Sprint 3 isolated group fixture A
 - **Location**:
-  - `tests/issues/duck-loop/sprint3/single-pr/task.md`
-- **Description**: Create Sprint 3 single-task fixture used to validate independent PR creation in final sprint.
+  - `tests/issues/duck-loop/sprint3/group-isolated/task-a.md`
+- **Description**: Create isolated group fixture A for Sprint 3, mapped to `s3-a`.
 - **Dependencies**: none
 - **Complexity**: 2
 - **Acceptance criteria**:
-  - File exists and includes single-task PR marker.
-  - File includes sprint index marker.
+  - File exists with `execution-profile: group`.
+  - File includes `planned-pr-group: s3-a`.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint3/single-pr/task.md`
-  - `rg -n 'mode: single-task-pr' tests/issues/duck-loop/sprint3/single-pr/task.md`
+  - `test -f tests/issues/duck-loop/sprint3/group-isolated/task-a.md`
+  - `rg -n 'execution-profile: group|planned-pr-group: s3-a' tests/issues/duck-loop/sprint3/group-isolated/task-a.md`
 
-### Task 3.2: Sprint 3 grouped-PR fixture part A
+### Task 3.2: Sprint 3 isolated group fixture B
 - **Location**:
-  - `tests/issues/duck-loop/sprint3/grouped-pr/task-a.md`
-- **Description**: Create grouped task A for final sprint shared PR validation.
+  - `tests/issues/duck-loop/sprint3/group-isolated/task-b.md`
+- **Description**: Create isolated group fixture B for Sprint 3, mapped to `s3-b`.
 - **Dependencies**: none
 - **Complexity**: 2
 - **Acceptance criteria**:
-  - File exists with grouped mode marker.
-  - File identifies itself as grouped part A.
+  - File exists with `execution-profile: group`.
+  - File includes `planned-pr-group: s3-b`.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint3/grouped-pr/task-a.md`
-  - `rg -n 'mode: grouped-pr' tests/issues/duck-loop/sprint3/grouped-pr/task-a.md`
+  - `test -f tests/issues/duck-loop/sprint3/group-isolated/task-b.md`
+  - `rg -n 'execution-profile: group|planned-pr-group: s3-b' tests/issues/duck-loop/sprint3/group-isolated/task-b.md`
 
-### Task 3.3: Sprint 3 grouped-PR fixture part B and cleanup index
+### Task 3.3: Sprint 3 isolated group fixture C and cleanup index
 - **Location**:
-  - `tests/issues/duck-loop/sprint3/grouped-pr/task-b.md`
+  - `tests/issues/duck-loop/sprint3/group-isolated/task-c.md`
   - `tests/issues/duck-loop/CLEANUP.md`
-- **Description**: Create grouped task B for final sprint and update cleanup notes with all sprint directories for one-shot teardown.
+- **Description**: Create isolated group fixture C for Sprint 3, mapped to `s3-c`, and update cleanup notes with all profile directories for one-shot teardown.
 - **Dependencies**:
+  - Task 3.1
   - Task 3.2
 - **Complexity**: 3
 - **Acceptance criteria**:
-  - `task-b.md` exists and references dependency on `Task 3.2`.
-  - Cleanup notes list Sprint 1-3 directories and root delete command.
+  - `task-c.md` exists and includes `planned-pr-group: s3-c`.
+  - Cleanup notes list `sprint1/per-sprint`, `sprint2/group-shared`, and `sprint3/group-isolated` plus root delete command.
 - **Validation**:
-  - `test -f tests/issues/duck-loop/sprint3/grouped-pr/task-b.md`
-  - `rg -n 'depends-on: Task 3.2' tests/issues/duck-loop/sprint3/grouped-pr/task-b.md`
-  - `rg -n 'sprint1|sprint2|sprint3' tests/issues/duck-loop/CLEANUP.md`
+  - `test -f tests/issues/duck-loop/sprint3/group-isolated/task-c.md`
+  - `rg -n 'planned-pr-group: s3-c' tests/issues/duck-loop/sprint3/group-isolated/task-c.md`
+  - `rg -n 'sprint1/per-sprint|sprint2/group-shared|sprint3/group-isolated' tests/issues/duck-loop/CLEANUP.md`
 
 ## Testing Strategy
 - Unit:
   - Not applicable (fixture-content plan only).
 - Integration:
-  - For each sprint, run `build-task-spec` in `per-sprint` and `group` modes and inspect `pr_group` column behavior.
+  - Sprint 1: run `build-task-spec` with `per-sprint` and assert single group.
+  - Sprint 2: run `build-task-spec` with `group` and assert one shared pair + one isolated task.
+  - Sprint 3: run `build-task-spec` with `group` and assert all tasks isolated.
   - Run `plan-tooling validate --file docs/plans/duck-issue-loop-test-plan.md` before orchestration.
 - E2E/manual:
-  - Execute the full flow in local dry-run mode: `start-plan --dry-run`, then `start-sprint/ready-sprint/accept-sprint --dry-run`, then `ready-plan --body-file <plan-issue-body> --dry-run`, and `close-plan --body-file <plan-issue-body> --dry-run`.
-  - Confirm subagent dispatch hints include one isolated task and one shared group of two tasks in each sprint.
+  - Execute full issue loop with mode transitions by sprint:
+    - Sprint 1 with `--pr-grouping per-sprint`.
+    - Sprint 2 with `--pr-grouping group` + Sprint 2 `--pr-group` mappings.
+    - Sprint 3 with `--pr-grouping group` + Sprint 3 isolated `--pr-group` mappings.
+  - Confirm issue table `Execution Mode` reflects:
+    - `per-sprint` for Sprint 1.
+    - `single-pr` for Sprint 2/3 (`group` mode is represented as `single-pr` in task rows).
   - After final verification, remove `tests/issues/duck-loop/` in one command.
 
 ## Risks & gotchas
 - Grouping keys must match generated task IDs (`SxTy`) or plan task IDs exactly; mismatches fail command execution.
 - `group` mode requires explicit `--pr-group` mappings for every task in scope.
 - If tasks are renumbered during plan edits, `--pr-group` mappings in run commands must be updated.
+- In issue task rows, `group` mode is displayed as `single-pr`; treat `pr_group` mappings as the source of truth for grouped behavior.
 - Fixture files are disposable by design; avoid using them as persistent docs or examples outside this test.
 - GitHub approval URL gates are required for acceptance/close operations and cannot be bypassed in normal flow.
 
 ## Rollback plan
 - Keep each sprint delivered via separate PR(s) so any failed experiment can be reverted sprint-by-sprint.
-- If grouped PR behavior is incorrect, revert only the affected sprint PR and regenerate task-spec with corrected `--pr-group` mappings.
+- If grouping behavior is incorrect, revert only the affected sprint PR and regenerate task-spec with corrected `--pr-group` mappings.
 - If the full test becomes invalid, delete `tests/issues/duck-loop/` and close the plan issue with an explicit not-done reason.
