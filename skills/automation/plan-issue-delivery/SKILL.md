@@ -1,9 +1,9 @@
 ---
-name: plan-issue-delivery-loop
+name: plan-issue-delivery
 description: "Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation."
 ---
 
-# Plan Issue Delivery Loop
+# Plan Issue Delivery
 
 ## Contract
 

@@ -160,8 +160,8 @@ Review all tracked documentation files in this repo, identify outdated content, 
   - `skills/workflows/issue/issue-lifecycle/SKILL.md`
   - `skills/workflows/issue/issue-subagent-pr/SKILL.md`
   - `skills/workflows/issue/issue-pr-review/SKILL.md`
-  - `skills/automation/issue-delivery-loop/SKILL.md`
-  - `skills/automation/plan-issue-delivery-loop/SKILL.md`
+  - `skills/automation/issue-delivery/SKILL.md`
+  - `skills/automation/plan-issue-delivery/SKILL.md`
   - `skills/workflows/issue/issue-lifecycle/references/ISSUE_TEMPLATE.md`
   - `skills/workflows/issue/issue-subagent-pr/references/PR_BODY_TEMPLATE.md`
   - `skills/workflows/issue/issue-pr-review/references/ISSUE_SYNC_TEMPLATE.md`
@@ -175,8 +175,8 @@ Review all tracked documentation files in this repo, identify outdated content, 
   - Any stale references to deleted or renamed companion skills are removed or redirected.
   - The issue workflow chain (`issue-lifecycle` -> `issue-subagent-pr` -> `issue-pr-review` -> delivery loop wrappers) is documented without contradictions.
 - **Validation**:
-  - `rg -n 'issue-[a-z-]+' skills/workflows/issue skills/automation/issue-delivery-loop skills/automation/plan-issue-delivery-loop -g '*.md'`
-  - `git diff -- skills/workflows/issue skills/automation/issue-delivery-loop skills/automation/plan-issue-delivery-loop`
+  - `rg -n 'issue-[a-z-]+' skills/workflows/issue skills/automation/issue-delivery skills/automation/plan-issue-delivery -g '*.md'`
+  - `git diff -- skills/workflows/issue skills/automation/issue-delivery skills/automation/plan-issue-delivery`
 
 ### Task 2.4: Run repo-wide stale-name and stale-path cleanup sweep
 - **Location**:
@@ -187,7 +187,7 @@ Review all tracked documentation files in this repo, identify outdated content, 
   - `skills/README.md`
   - `skills/tools/skill-management/README.md`
   - `skills/workflows/issue/issue-lifecycle/SKILL.md`
-  - `skills/automation/issue-delivery-loop/SKILL.md`
+  - `skills/automation/issue-delivery/SKILL.md`
   - `docker/agent-env/README.md`
   - `scripts/README.md`
   - `prompts/parallel-first.md`

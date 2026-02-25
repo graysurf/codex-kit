@@ -5,12 +5,12 @@ from pathlib import Path
 from skills._shared.python.skill_testing import assert_skill_contract
 
 
-def test_automation_issue_delivery_loop_contract() -> None:
+def test_automation_issue_delivery_contract() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     assert_skill_contract(skill_root)
 
 
-def test_issue_delivery_loop_skill_enforces_main_agent_role_boundary() -> None:
+def test_issue_delivery_skill_enforces_main_agent_role_boundary() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "Main-agent is limited to issue orchestration" in text
@@ -18,7 +18,7 @@ def test_issue_delivery_loop_skill_enforces_main_agent_role_boundary() -> None:
     assert "implementation must be produced by a subagent PR" in text
 
 
-def test_issue_delivery_loop_skill_requires_close_for_done() -> None:
+def test_issue_delivery_skill_requires_close_for_done() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "Definition of done: execution is complete only when `close-plan` succeeds and the target issue is actually closed." in text
@@ -26,7 +26,7 @@ def test_issue_delivery_loop_skill_requires_close_for_done() -> None:
     assert "If close gates fail, treat the run as unfinished" in text
 
 
-def test_issue_delivery_loop_skill_uses_binary_first_command_contract() -> None:
+def test_issue_delivery_skill_uses_binary_first_command_contract() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "plan-issue" in text
@@ -37,7 +37,7 @@ def test_issue_delivery_loop_skill_uses_binary_first_command_contract() -> None:
     assert "close-plan" in text
 
 
-def test_issue_delivery_loop_skill_excludes_deleted_wrapper_script() -> None:
+def test_issue_delivery_skill_excludes_deleted_wrapper_script() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert ("manage_issue_delivery_loop" + ".sh") not in text

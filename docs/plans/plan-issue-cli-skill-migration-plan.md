@@ -5,7 +5,7 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 
 ## Scope
 - In scope:
-  - Rewrite all `plan-issue-delivery-loop` related skill contracts to use `plan-issue` / `plan-issue-local` command surface.
+  - Rewrite all `plan-issue-delivery` related skill contracts to use `plan-issue` / `plan-issue-local` command surface.
   - Remove deprecated shell wrappers in affected skills.
   - Update dependent tests and docs that currently assert legacy script paths/behavior.
   - Keep command examples and validation flow aligned with the typed Rust CLI contract.
@@ -26,10 +26,10 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 
 ## Success criteria
 - Skill docs no longer require these deleted entrypoints:
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh`
-  - `skills/automation/issue-delivery-loop/scripts/manage_issue_delivery_loop.sh`
+  - `skills/automation/plan-issue-delivery/scripts/plan-issue-delivery.sh`
+  - `skills/automation/issue-delivery/scripts/manage_issue_delivery_loop.sh`
   - `skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh`
-- `plan-issue-delivery-loop` skill contract and command examples are fully binary-first (`plan-issue`, `plan-issue-local`).
+- `plan-issue-delivery` skill contract and command examples are fully binary-first (`plan-issue`, `plan-issue-local`).
 - Related skills inventory is explicit and reflected in updated docs/tests.
 - All affected tests pass after contract updates.
 
@@ -41,7 +41,7 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 - `TotalComplexity`: 11
 - `CriticalPathComplexity`: 7
 - `MaxBatchWidth`: 2
-- `OverlapHotspots`: `skills/automation/plan-issue-delivery-loop/SKILL.md`, `skills/automation/issue-delivery-loop/SKILL.md`
+- `OverlapHotspots`: `skills/automation/plan-issue-delivery/SKILL.md`, `skills/automation/issue-delivery/SKILL.md`
 **Demo/Validation**:
 - Command(s):
   - `plan-tooling validate --file docs/plans/plan-issue-cli-skill-migration-plan.md`
@@ -50,19 +50,19 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
   - `plan-tooling split-prs --file docs/plans/plan-issue-cli-skill-migration-plan.md --scope sprint --sprint 1 --pr-grouping per-sprint --strategy deterministic --format json`
 - Verify:
   - Migration inventory includes every impacted skill, test, doc, and script path.
-  - `plan-issue-delivery-loop` and `issue-delivery-loop` skills point to `plan-issue` command usage, not legacy wrappers.
+  - `plan-issue-delivery` and `issue-delivery` skills point to `plan-issue` command usage, not legacy wrappers.
 **Parallelizable tasks**:
 - `Task 1.2` and `Task 1.3` can run in parallel after `Task 1.1`.
 
 ### Task 1.1: Build migration inventory and command parity matrix
 - **Location**:
   - `docs/migrations/plan-issue-cli-skill-mapping.md`
-  - `skills/automation/plan-issue-delivery-loop/SKILL.md`
-  - `skills/automation/issue-delivery-loop/SKILL.md`
+  - `skills/automation/plan-issue-delivery/SKILL.md`
+  - `skills/automation/issue-delivery/SKILL.md`
   - `skills/workflows/issue/issue-subagent-pr/SKILL.md`
   - `skills/workflows/issue/issue-pr-review/SKILL.md`
-  - `skills/automation/plan-issue-delivery-loop/tests/test_automation_plan_issue_delivery_loop.py`
-  - `skills/automation/issue-delivery-loop/tests/test_automation_issue_delivery_loop.py`
+  - `skills/automation/plan-issue-delivery/tests/test_automation_plan_issue_delivery.py`
+  - `skills/automation/issue-delivery/tests/test_automation_issue_delivery.py`
   - `skills/workflows/issue/issue-subagent-pr/tests/test_workflows_issue_issue_subagent_pr.py`
   - `skills/workflows/issue/issue-pr-review/tests/test_workflows_issue_issue_pr_review.py`
   - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
@@ -73,12 +73,12 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
   - Inventory lists all directly impacted skills and transitive dependencies.
   - Mapping covers each migrated command family (`start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`, `ready-plan`, `close-plan`, status/build commands).
 - **Validation**:
-  - `rg -n 'manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh|plan-issue-delivery-loop\.sh' skills docs/runbooks/skills/TOOLING_INDEX_V2.md`
+  - `rg -n 'manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh|plan-issue-delivery\.sh' skills docs/runbooks/skills/TOOLING_INDEX_V2.md`
   - `rg -n '^\\| Legacy Command \\| New Command \\| Scope \\|$|start-plan|start-sprint|ready-sprint|accept-sprint|ready-plan|close-plan' docs/migrations/plan-issue-cli-skill-mapping.md`
 
-### Task 1.2: Rewrite plan-issue-delivery-loop skill contract to binary-first
+### Task 1.2: Rewrite plan-issue-delivery skill contract to binary-first
 - **Location**:
-  - `skills/automation/plan-issue-delivery-loop/SKILL.md`
+  - `skills/automation/plan-issue-delivery/SKILL.md`
 - **Description**: Replace legacy script prereqs/entrypoint sections with the Rust CLI contract (`plan-issue`, `plan-issue-local`), including dry-run/local rehearsal behavior and required grouping controls.
 - **Dependencies**:
   - Task 1.1
@@ -86,14 +86,14 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 - **Acceptance criteria**:
   - SKILL contract references only `plan-issue`/`plan-issue-local` as orchestration entrypoints.
   - Workflow and completion policy keep existing gate semantics and role boundaries.
-  - No references remain to `plan-issue-delivery-loop.sh` or inherited shell wrappers.
+  - No references remain to `plan-issue-delivery.sh` or inherited shell wrappers.
 - **Validation**:
-  - `rg -n 'plan-issue|plan-issue-local|start-plan|start-sprint|ready-sprint|accept-sprint|ready-plan|close-plan' skills/automation/plan-issue-delivery-loop/SKILL.md`
-  - `rg -n 'plan-issue-delivery-loop\.sh|manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh' skills/automation/plan-issue-delivery-loop/SKILL.md && exit 1 || true`
+  - `rg -n 'plan-issue|plan-issue-local|start-plan|start-sprint|ready-sprint|accept-sprint|ready-plan|close-plan' skills/automation/plan-issue-delivery/SKILL.md`
+  - `rg -n 'plan-issue-delivery\.sh|manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh' skills/automation/plan-issue-delivery/SKILL.md && exit 1 || true`
 
-### Task 1.3: Rewrite issue-delivery-loop skill to align with plan-issue orchestration boundary
+### Task 1.3: Rewrite issue-delivery skill to align with plan-issue orchestration boundary
 - **Location**:
-  - `skills/automation/issue-delivery-loop/SKILL.md`
+  - `skills/automation/issue-delivery/SKILL.md`
 - **Description**: Retire direct dependency on `manage_issue_delivery_loop.sh`; document orchestration through typed CLI flows and keep `issue-pr-review` as review decision path.
 - **Dependencies**:
   - Task 1.1
@@ -103,8 +103,8 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
   - Main-agent orchestration-only contract remains explicit.
   - Command examples are executable with currently supported binaries/tools.
 - **Validation**:
-  - `rg -n 'plan-issue|plan-issue-local|status-plan|ready-plan|close-plan|issue-pr-review' skills/automation/issue-delivery-loop/SKILL.md`
-  - `rg -n 'manage_issue_delivery_loop\.sh' skills/automation/issue-delivery-loop/SKILL.md && exit 1 || true`
+  - `rg -n 'plan-issue|plan-issue-local|status-plan|ready-plan|close-plan|issue-pr-review' skills/automation/issue-delivery/SKILL.md`
+  - `rg -n 'manage_issue_delivery_loop\.sh' skills/automation/issue-delivery/SKILL.md && exit 1 || true`
 
 ## Sprint 2: Script removal and dependency rewiring
 **Goal**: Delete legacy wrappers and remove hard runtime dependencies on those files.
@@ -130,8 +130,8 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 
 ### Task 2.1: Delete deprecated plan/issue shell wrappers
 - **Location**:
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh`
-  - `skills/automation/issue-delivery-loop/scripts/manage_issue_delivery_loop.sh`
+  - `skills/automation/plan-issue-delivery/scripts/plan-issue-delivery.sh`
+  - `skills/automation/issue-delivery/scripts/manage_issue_delivery_loop.sh`
   - `skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh`
 - **Description**: Remove all legacy shell entrypoints that are superseded by the Rust `plan-issue` command contract.
 - **Dependencies**: none
@@ -139,8 +139,8 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 - **Acceptance criteria**:
   - All three files are deleted from git tracking.
 - **Validation**:
-  - `test ! -f skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh`
-  - `test ! -f skills/automation/issue-delivery-loop/scripts/manage_issue_delivery_loop.sh`
+  - `test ! -f skills/automation/plan-issue-delivery/scripts/plan-issue-delivery.sh`
+  - `test ! -f skills/automation/issue-delivery/scripts/manage_issue_delivery_loop.sh`
   - `test ! -f skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh`
 
 ### Task 2.2: Rewire issue-subagent-pr contract away from deleted script dependency
@@ -174,8 +174,8 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 
 ### Task 2.4: Update migration-affected tests for binary-first contracts
 - **Location**:
-  - `skills/automation/plan-issue-delivery-loop/tests/test_automation_plan_issue_delivery_loop.py`
-  - `skills/automation/issue-delivery-loop/tests/test_automation_issue_delivery_loop.py`
+  - `skills/automation/plan-issue-delivery/tests/test_automation_plan_issue_delivery.py`
+  - `skills/automation/issue-delivery/tests/test_automation_issue_delivery.py`
   - `skills/workflows/issue/issue-subagent-pr/tests/test_workflows_issue_issue_subagent_pr.py`
   - `skills/workflows/issue/issue-pr-review/tests/test_workflows_issue_issue_pr_review.py`
 - **Description**: Replace script-content assertions and script-entrypoint existence checks with binary-contract assertions and SKILL contract invariants.
@@ -188,7 +188,7 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
   - Tests enforce `plan-issue`/`plan-issue-local` references where expected.
   - Updated tests pass locally.
 - **Validation**:
-  - `scripts/test.sh skills/automation/plan-issue-delivery-loop/tests/test_automation_plan_issue_delivery_loop.py skills/automation/issue-delivery-loop/tests/test_automation_issue_delivery_loop.py skills/workflows/issue/issue-subagent-pr/tests/test_workflows_issue_issue_subagent_pr.py skills/workflows/issue/issue-pr-review/tests/test_workflows_issue_issue_pr_review.py`
+  - `scripts/test.sh skills/automation/plan-issue-delivery/tests/test_automation_plan_issue_delivery.py skills/automation/issue-delivery/tests/test_automation_issue_delivery.py skills/workflows/issue/issue-subagent-pr/tests/test_workflows_issue_issue_subagent_pr.py skills/workflows/issue/issue-pr-review/tests/test_workflows_issue_issue_pr_review.py`
 
 ## Sprint 3: Documentation sync and local rehearsal hardening
 **Goal**: Remove stale references, codify local-first rehearsal, and finish end-to-end validation.
@@ -199,7 +199,7 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 - `TotalComplexity`: 11
 - `CriticalPathComplexity`: 8
 - `MaxBatchWidth`: 2
-- `OverlapHotspots`: docs references under `docs/runbooks/skills/`, sprint-flow examples in `skills/automation/plan-issue-delivery-loop/SKILL.md`
+- `OverlapHotspots`: docs references under `docs/runbooks/skills/`, sprint-flow examples in `skills/automation/plan-issue-delivery/SKILL.md`
 **Demo/Validation**:
 - Command(s):
   - `plan-tooling to-json --file docs/plans/plan-issue-cli-skill-migration-plan.md --sprint 3`
@@ -225,12 +225,12 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
   - No deleted script paths remain in targeted docs.
   - Tooling index reflects `plan-issue` and `plan-issue-local` usage paths.
 - **Validation**:
-  - `rg -n 'plan-issue-delivery-loop\.sh|manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh' docs/runbooks/skills/TOOLING_INDEX_V2.md docs/plans/duck-issue-loop-test-plan.md && exit 1 || true`
+  - `rg -n 'plan-issue-delivery\.sh|manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh' docs/runbooks/skills/TOOLING_INDEX_V2.md docs/plans/duck-issue-loop-test-plan.md && exit 1 || true`
   - `rg -n 'plan-issue|plan-issue-local' docs/runbooks/skills/TOOLING_INDEX_V2.md docs/plans/duck-issue-loop-test-plan.md`
 
-### Task 3.2: Harden local rehearsal guidance in plan-issue-delivery-loop skill
+### Task 3.2: Harden local rehearsal guidance in plan-issue-delivery skill
 - **Location**:
-  - `skills/automation/plan-issue-delivery-loop/SKILL.md`
+  - `skills/automation/plan-issue-delivery/SKILL.md`
 - **Description**: Make local-first practice explicit with `plan-issue-local` command sequence, required `--body-file` dry-run gates, and expected outputs for non-GitHub rehearsal.
 - **Dependencies**: none
 - **Complexity**: 4
@@ -238,12 +238,12 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
   - SKILL includes complete local rehearsal path from `start-plan` through `close-plan` dry-run semantics.
   - Distinction between live and local binaries is explicit and non-ambiguous.
 - **Validation**:
-  - `rg -n 'plan-issue-local|--body-file|--dry-run|start-plan|start-sprint|ready-sprint|accept-sprint|ready-plan|close-plan' skills/automation/plan-issue-delivery-loop/SKILL.md`
+  - `rg -n 'plan-issue-local|--body-file|--dry-run|start-plan|start-sprint|ready-sprint|accept-sprint|ready-plan|close-plan' skills/automation/plan-issue-delivery/SKILL.md`
 
 ### Task 3.3: Final validation pass and migration closure checks
 - **Location**:
-  - `skills/automation/plan-issue-delivery-loop/SKILL.md`
-  - `skills/automation/issue-delivery-loop/SKILL.md`
+  - `skills/automation/plan-issue-delivery/SKILL.md`
+  - `skills/automation/issue-delivery/SKILL.md`
   - `skills/workflows/issue/issue-subagent-pr/SKILL.md`
   - `skills/workflows/issue/issue-pr-review/SKILL.md`
   - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
@@ -257,9 +257,9 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
   - Migration-target tests are green.
   - No stale references remain in migrated skill/doc scope.
 - **Validation**:
-  - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/automation/plan-issue-delivery-loop/SKILL.md --file skills/automation/issue-delivery-loop/SKILL.md --file skills/workflows/issue/issue-subagent-pr/SKILL.md --file skills/workflows/issue/issue-pr-review/SKILL.md`
-  - `scripts/test.sh skills/automation/plan-issue-delivery-loop/tests/test_automation_plan_issue_delivery_loop.py skills/automation/issue-delivery-loop/tests/test_automation_issue_delivery_loop.py skills/workflows/issue/issue-subagent-pr/tests/test_workflows_issue_issue_subagent_pr.py skills/workflows/issue/issue-pr-review/tests/test_workflows_issue_issue_pr_review.py`
-  - `rg -n 'plan-issue-delivery-loop\.sh|manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh' skills/automation/plan-issue-delivery-loop skills/automation/issue-delivery-loop skills/workflows/issue/issue-subagent-pr skills/workflows/issue/issue-pr-review docs/runbooks/skills/TOOLING_INDEX_V2.md && exit 1 || true`
+  - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/automation/plan-issue-delivery/SKILL.md --file skills/automation/issue-delivery/SKILL.md --file skills/workflows/issue/issue-subagent-pr/SKILL.md --file skills/workflows/issue/issue-pr-review/SKILL.md`
+  - `scripts/test.sh skills/automation/plan-issue-delivery/tests/test_automation_plan_issue_delivery.py skills/automation/issue-delivery/tests/test_automation_issue_delivery.py skills/workflows/issue/issue-subagent-pr/tests/test_workflows_issue_issue_subagent_pr.py skills/workflows/issue/issue-pr-review/tests/test_workflows_issue_issue_pr_review.py`
+  - `rg -n 'plan-issue-delivery\.sh|manage_issue_delivery_loop\.sh|manage_issue_subagent_pr\.sh' skills/automation/plan-issue-delivery skills/automation/issue-delivery skills/workflows/issue/issue-subagent-pr skills/workflows/issue/issue-pr-review docs/runbooks/skills/TOOLING_INDEX_V2.md && exit 1 || true`
 
 ## Testing Strategy
 - Unit:
@@ -280,4 +280,4 @@ This plan migrates plan-issue delivery orchestration skills from legacy shell wr
 - Keep migration changes split by sprint/PR so each layer can be reverted independently.
 - If script deletion causes unexpected runtime regressions, temporarily restore only the affected script(s) from the previous commit while preserving updated docs/tests in a separate revert PR.
 - If `issue-pr-review` rewiring is unstable, disable merge/close automation changes first and keep review workflow read-only until validation is fixed.
-- If the full migration must pause, keep `plan-issue-delivery-loop` skill in binary-first mode and mark other impacted skills as follow-up items in a tracked issue.
+- If the full migration must pause, keep `plan-issue-delivery` skill in binary-first mode and mark other impacted skills as follow-up items in a tracked issue.

@@ -1,5 +1,5 @@
 ---
-description: Init prompt for the orchestration-only main agent in plan-issue-delivery-loop.
+description: Init prompt for the orchestration-only main agent in plan-issue-delivery.
 argument-hint: optional overrides for repo/plan/issue/sprint/grouping
 ---
 

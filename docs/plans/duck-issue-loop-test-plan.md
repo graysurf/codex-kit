@@ -10,7 +10,7 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
     - Sprint 1: `per-sprint`.
     - Sprint 2: `group` with one shared pair.
     - Sprint 3: `group` with all tasks isolated.
-  - Generate task-spec artifacts in `$AGENT_HOME/out/plan-issue-delivery-loop/` during validation.
+  - Generate task-spec artifacts in `$AGENT_HOME/out/plan-issue-delivery/` during validation.
 - Out of scope:
   - Any production logic changes outside `tests/issues/duck-loop/`.
   - Permanent docs updates outside this plan file.
@@ -34,10 +34,10 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
 **Demo/Validation**:
 - Command(s):
   - `plan-tooling validate --file docs/plans/duck-issue-loop-test-plan.md`
-  - `plan-issue-local build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-per-sprint.tsv" --dry-run`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-per-sprint.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups={r[6] for r in data}\nassert len(groups)==1, groups\nprint("ok")\nPY`
+  - `plan-issue-local build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery/duck-s1-per-sprint.tsv" --dry-run`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery/duck-s1-per-sprint.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups={r[6] for r in data}\nassert len(groups)==1, groups\nprint("ok")\nPY`
 - Verify:
-  - Sprint 1 task-spec file exists under `$AGENT_HOME/out/plan-issue-delivery-loop/`.
+  - Sprint 1 task-spec file exists under `$AGENT_HOME/out/plan-issue-delivery/`.
   - All Sprint 1 rows share one `pr_group`.
 **Parallelizable tasks**:
 - `Task 1.2` and `Task 1.3` can run in parallel after `Task 1.1`.
@@ -90,8 +90,8 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
 **Goal**: Validate `group` mode with one isolated task plus one shared two-task group.
 **Demo/Validation**:
 - Command(s):
-  - `plan-issue-local build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping group --pr-group S2T1=s2-isolated --pr-group S2T2=s2-shared --pr-group S2T3=s2-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group-shared.tsv" --dry-run`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group-shared.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups=[r[6] for r in data]\nassert groups.count("s2-shared")==2, groups\nassert groups.count("s2-isolated")==1, groups\nprint("ok")\nPY`
+  - `plan-issue-local build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping group --pr-group S2T1=s2-isolated --pr-group S2T2=s2-shared --pr-group S2T3=s2-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery/duck-s2-group-shared.tsv" --dry-run`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery/duck-s2-group-shared.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups=[r[6] for r in data]\nassert groups.count("s2-shared")==2, groups\nassert groups.count("s2-isolated")==1, groups\nprint("ok")\nPY`
 - Verify:
   - Sprint 2 group output has one isolated group (`s2-isolated`) and one shared pair (`s2-shared`).
 **Parallelizable tasks**:
@@ -142,8 +142,8 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
 **Goal**: Validate `group` mode where every task is explicitly isolated (no shared pair), and finalize cleanup manifest indexing.
 **Demo/Validation**:
 - Command(s):
-  - `plan-issue-local build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping group --pr-group S3T1=s3-a --pr-group S3T2=s3-b --pr-group S3T3=s3-c --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group-isolated.tsv" --dry-run`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group-isolated.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups=[r[6] for r in data]\nassert len(set(groups))==3, groups\nprint("ok")\nPY`
+  - `plan-issue-local build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping group --pr-group S3T1=s3-a --pr-group S3T2=s3-b --pr-group S3T3=s3-c --task-spec-out "$AGENT_HOME/out/plan-issue-delivery/duck-s3-group-isolated.tsv" --dry-run`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path("$AGENT_HOME/out/plan-issue-delivery/duck-s3-group-isolated.tsv").open(), delimiter="\t"))\ndata=[r for r in rows if r and not r[0].startswith("#")]\ngroups=[r[6] for r in data]\nassert len(set(groups))==3, groups\nprint("ok")\nPY`
 - Verify:
   - Sprint 3 group output has three unique groups (`s3-a`, `s3-b`, `s3-c`).
   - Cleanup manifest includes all profile directories.

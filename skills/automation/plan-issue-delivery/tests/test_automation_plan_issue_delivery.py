@@ -5,12 +5,12 @@ from pathlib import Path
 from skills._shared.python.skill_testing import assert_skill_contract
 
 
-def test_automation_plan_issue_delivery_loop_contract() -> None:
+def test_automation_plan_issue_delivery_contract() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     assert_skill_contract(skill_root)
 
 
-def test_plan_issue_delivery_loop_skill_enforces_main_agent_role_boundary() -> None:
+def test_plan_issue_delivery_skill_enforces_main_agent_role_boundary() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "Main-agent is orchestration/review-only." in text
@@ -24,7 +24,7 @@ def test_plan_issue_delivery_loop_skill_enforces_main_agent_role_boundary() -> N
     assert "## Full Skill Flow" in text
 
 
-def test_plan_issue_delivery_loop_skill_requires_close_for_done() -> None:
+def test_plan_issue_delivery_skill_requires_close_for_done() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed" in text
@@ -33,7 +33,7 @@ def test_plan_issue_delivery_loop_skill_requires_close_for_done() -> None:
     assert "If any close gate fails, treat the run as unfinished" in text
 
 
-def test_plan_issue_delivery_loop_skill_uses_binary_first_command_contract() -> None:
+def test_plan_issue_delivery_skill_uses_binary_first_command_contract() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "plan-issue" in text
@@ -48,7 +48,7 @@ def test_plan_issue_delivery_loop_skill_uses_binary_first_command_contract() -> 
     assert "close-plan" in text
 
 
-def test_plan_issue_delivery_loop_skill_mentions_split_prs_v2_runtime_ownership() -> None:
+def test_plan_issue_delivery_skill_mentions_split_prs_v2_runtime_ownership() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "split-prs" in text
@@ -56,9 +56,9 @@ def test_plan_issue_delivery_loop_skill_mentions_split_prs_v2_runtime_ownership(
     assert "materializes runtime metadata" in text
 
 
-def test_plan_issue_delivery_loop_skill_excludes_deleted_wrapper_scripts() -> None:
+def test_plan_issue_delivery_skill_excludes_deleted_wrapper_scripts() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
-    assert ("plan-issue-delivery-loop" + ".sh") not in text
+    assert ("plan-issue-delivery" + ".sh") not in text
     assert ("manage_issue_delivery_loop" + ".sh") not in text
     assert ("manage_issue_subagent_pr" + ".sh") not in text
