@@ -1,9 +1,9 @@
 ---
-name: issue-delivery-loop
+name: issue-delivery
 description: "Orchestrate plan-issue review/close loops where main-agent owns orchestration and review only, subagents own implementation PRs, and close gates require approval plus merged PRs."
 ---
 
-# Issue Delivery Loop
+# Issue Delivery
 
 ## Contract
 

@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - New bug PR workflows: `create-bug-pr`, `deliver-bug-pr`, and `close-bug-pr`.
 - New issue workflows: `issue-lifecycle`, `issue-pr-review`, and `issue-subagent-pr`.
-- New issue-delivery automation flows: `issue-delivery-loop` and `plan-issue-delivery-loop`.
+- New issue-delivery automation flows: `issue-delivery` and `plan-issue-delivery`.
 - Plan-issue delivery prompts now support rendered subagent prompt enforcement.
 
 ### Changed
@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Issue workflows now enforce `pr-isolated` execution mode.
-- `plan-issue-delivery-loop` now returns clearer usage errors.
+- `plan-issue-delivery` now returns clearer usage errors.
 - Issue workflow smoke scripts now support Bash 3.2 compatibility.
 
 ## v2.2.9 - 2026-02-24
