@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from skills._shared.python.skill_testing import assert_entrypoints_exist, assert_skill_contract
+from skills._shared.python.skill_testing import assert_skill_contract
 
 
 def test_workflows_issue_issue_subagent_pr_contract() -> None:
@@ -10,38 +10,33 @@ def test_workflows_issue_issue_subagent_pr_contract() -> None:
     assert_skill_contract(skill_root)
 
 
-def test_workflows_issue_issue_subagent_pr_entrypoints_exist() -> None:
-    skill_root = Path(__file__).resolve().parents[1]
-    assert_entrypoints_exist(
-        skill_root,
-        [
-            "scripts/manage_issue_subagent_pr.sh",
-        ],
-    )
-
-
 def test_issue_subagent_pr_skill_mentions_worktree_isolation() -> None:
     skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
     text = skill_md.read_text(encoding="utf-8")
     assert "worktree" in text.lower()
-    assert "Subagents" in text
-    assert "Task Decomposition.PR" in text
+    assert "Subagent" in text
+    assert "Task Decomposition" in text
 
 
-def test_issue_subagent_pr_script_syncs_issue_pr_fields_on_open() -> None:
-    script_path = Path(__file__).resolve().parents[1] / "scripts" / "manage_issue_subagent_pr.sh"
-    text = script_path.read_text(encoding="utf-8")
-    assert "sync_issue_task_pr_by_branch" in text
-    assert "refresh_sprint_start_comments_pr_values" in text
-    assert "UPDATED_TASK_IDS=" in text
+def test_issue_subagent_pr_skill_requires_native_git_gh_commands() -> None:
+    skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
+    text = skill_md.read_text(encoding="utf-8")
+    assert "git worktree" in text
+    assert "gh pr create" in text
+    assert "gh pr comment" in text
 
 
-def test_issue_subagent_pr_execution_modes_are_explicit_and_non_legacy() -> None:
-    skill_root = Path(__file__).resolve().parents[1]
-    script_text = (skill_root / "scripts" / "manage_issue_subagent_pr.sh").read_text(encoding="utf-8")
-    prompt_template = (skill_root / "references" / "SUBAGENT_TASK_PROMPT_TEMPLATE.md").read_text(encoding="utf-8")
+def test_issue_subagent_pr_skill_excludes_deleted_wrapper_script() -> None:
+    skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
+    text = skill_md.read_text(encoding="utf-8")
+    assert ("manage_issue_subagent_pr" + ".sh") not in text
 
-    assert "pr-isolated" in script_text
-    assert "pr-shared" in script_text
-    assert "single-pr" not in script_text
+
+def test_issue_subagent_prompt_template_excludes_legacy_single_pr_mode() -> None:
+    prompt_template = (
+        Path(__file__).resolve().parents[1] / "references" / "SUBAGENT_TASK_PROMPT_TEMPLATE.md"
+    ).read_text(encoding="utf-8")
+
+    assert "pr-shared" in prompt_template
+    assert "pr-isolated" in prompt_template
     assert "single-pr" not in prompt_template

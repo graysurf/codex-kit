@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-skill_dir="$(cd "${script_dir}/.." && pwd -P)"
-repo_root_default="$(cd "${skill_dir}/../../../.." && pwd -P)"
-agent_home="${AGENT_HOME:-$repo_root_default}"
-
-issue_subagent_pr_script="${repo_root_default}/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh"
-if [[ ! -x "$issue_subagent_pr_script" ]]; then
-  issue_subagent_pr_script="${agent_home%/}/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh"
-fi
-
 die() {
   echo "error: $*" >&2
   exit 1
@@ -98,33 +88,78 @@ load_body() {
   printf '%s' "$body_text"
 }
 
-ensure_issue_subagent_pr_script() {
-  [[ -x "$issue_subagent_pr_script" ]] || die "missing executable: $issue_subagent_pr_script"
+validate_pr_body_hygiene_text() {
+  local body_text="${1:-}"
+  local issue_number="${2:-}"
+  local source_label="${3:-pr-body-check}"
+
+  if [[ -z "${body_text//[[:space:]]/}" ]]; then
+    echo "error: ${source_label}: PR body cannot be empty" >&2
+    return 1
+  fi
+
+  local required_heading_regexes=(
+    '^[[:space:]]*##[[:space:]]+Summary[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Scope[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Testing[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Issue[[:space:]]*$'
+  )
+  local required_heading_labels=(
+    '## Summary'
+    '## Scope'
+    '## Testing'
+    '## Issue'
+  )
+  local i=0
+  for i in "${!required_heading_regexes[@]}"; do
+    if ! printf '%s\n' "$body_text" | grep -Eq "${required_heading_regexes[$i]}"; then
+      echo "error: ${source_label}: missing required heading '${required_heading_labels[$i]}'" >&2
+      return 1
+    fi
+  done
+
+  local placeholder_regexes=(
+    '<[^>]+>'
+    '(^|[^[:alnum:]_])TODO([^[:alnum:]_]|$)'
+    '(^|[^[:alnum:]_])TBD([^[:alnum:]_]|$)'
+    '#<number>'
+    'not[[:space:]]+run[[:space:]]*\(reason\)'
+    '<command>[[:space:]]*\(pass\)'
+  )
+  local placeholder_labels=(
+    '<...>'
+    'TODO'
+    'TBD'
+    '#<number>'
+    'not run (reason)'
+    '<command> (pass)'
+  )
+  for i in "${!placeholder_regexes[@]}"; do
+    if printf '%s\n' "$body_text" | grep -Eiq "${placeholder_regexes[$i]}"; then
+      echo "error: ${source_label}: disallowed placeholder found: ${placeholder_labels[$i]}" >&2
+      return 1
+    fi
+  done
+
+  if [[ -n "$issue_number" ]]; then
+    if ! printf '%s\n' "$body_text" | grep -Eq "^[[:space:]]*-[[:space:]]*#${issue_number}([^0-9]|$)"; then
+      echo "error: ${source_label}: missing required issue bullet '- #${issue_number}'" >&2
+      return 1
+    fi
+  fi
+
+  return 0
 }
 
-validate_pr_body_via_subagent_script() {
+validate_pr_body_hygiene_input() {
   local body_text="${1:-}"
   local body_file="${2:-}"
   local issue_number="${3:-}"
   local source_label="${4:-pr-body-check}"
 
-  ensure_issue_subagent_pr_script
-  local cmd=("$issue_subagent_pr_script" validate-pr-body)
-  if [[ -n "$body_text" && -n "$body_file" ]]; then
-    die "use either --pr-body or --pr-body-file, not both"
-  fi
-  if [[ -n "$body_file" ]]; then
-    cmd+=(--body-file "$body_file")
-  else
-    cmd+=(--body "$body_text")
-  fi
-  if [[ -n "$issue_number" ]]; then
-    cmd+=(--issue "$issue_number")
-  fi
-  if ! "${cmd[@]}" >/dev/null 2>&1; then
-    # Re-run once without redirect to preserve the underlying validation error.
-    "${cmd[@]}" >/dev/null
-  fi
+  local normalized_body=''
+  normalized_body="$(load_body "$body_text" "$body_file")"
+  validate_pr_body_hygiene_text "$normalized_body" "$issue_number" "$source_label"
 }
 
 ensure_pr_body_hygiene_for_close() {
@@ -138,7 +173,7 @@ ensure_pr_body_hygiene_for_close() {
 
   if [[ "$dry_run" == "1" ]]; then
     if [[ -n "$override_body" || -n "$override_body_file" ]]; then
-      validate_pr_body_via_subagent_script "$override_body" "$override_body_file" "$issue_number" "${action_label}-override"
+      validate_pr_body_hygiene_input "$override_body" "$override_body_file" "$issue_number" "${action_label}-override"
     fi
     return 0
   fi
@@ -153,7 +188,7 @@ ensure_pr_body_hygiene_for_close() {
   local current_body=''
   current_body="$(run_cmd "${view_cmd[@]}")"
 
-  if validate_pr_body_via_subagent_script "$current_body" "" "$issue_number" "${action_label}-current"; then
+  if validate_pr_body_hygiene_input "$current_body" "" "$issue_number" "${action_label}-current"; then
     return 0
   fi
 
@@ -161,7 +196,7 @@ ensure_pr_body_hygiene_for_close() {
     die "PR #$pr_number body failed validation before ${action_label}; provide --pr-body or --pr-body-file to correct it"
   fi
 
-  validate_pr_body_via_subagent_script "$override_body" "$override_body_file" "$issue_number" "${action_label}-override"
+  validate_pr_body_hygiene_input "$override_body" "$override_body_file" "$issue_number" "${action_label}-override"
 
   local edit_cmd=(gh pr edit "$pr_number")
   if [[ -n "$repo_arg" ]]; then
@@ -175,7 +210,7 @@ ensure_pr_body_hygiene_for_close() {
   run_cmd "${edit_cmd[@]}" >/dev/null
 
   current_body="$(run_cmd "${view_cmd[@]}")"
-  validate_pr_body_via_subagent_script "$current_body" "" "$issue_number" "${action_label}-updated"
+  validate_pr_body_hygiene_input "$current_body" "" "$issue_number" "${action_label}-updated"
 }
 
 subcommand="${1:-}"

@@ -1,6 +1,6 @@
 # Skills Tooling Index v2
 
-This doc lists canonical executable entrypoints (under `skills/**/scripts/` plus PATH-installed tooling).
+This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and scriptless command contracts).
 Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
 For skill directory layout/path rules, use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference.
 For create/validate/remove workflows, see `skills/tools/skill-management/README.md`.
@@ -44,13 +44,15 @@ For create/validate/remove workflows, see `skills/tools/skill-management/README.
 - Main-agent issue lifecycle:
   - `$AGENT_HOME/skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh`
 - Subagent worktree + PR execution:
-  - `$AGENT_HOME/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh`
+  - Scriptless contract using native `git` + `gh` commands (see `skills/workflows/issue/issue-subagent-pr/SKILL.md`)
 - Main-agent PR review + issue sync:
   - `$AGENT_HOME/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh`
 
-## Issue delivery automation (main-agent orchestration wrapper)
+## Issue delivery automation (main-agent orchestration CLI)
 
-- End-to-end orchestration (`start` / `status` / `ready-for-review` / `close-after-review`):
-  - `$AGENT_HOME/skills/automation/issue-delivery-loop/scripts/manage_issue_delivery_loop.sh`
-- Plan-driven sprint orchestration (`start-plan` / `start-sprint` / `ready-sprint` / `accept-sprint` / `ready-plan` / `close-plan`):
-  - `$AGENT_HOME/skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh`
+- Live GitHub-backed orchestration (issue and plan flows):
+  - `plan-issue <subcommand>`
+- Local rehearsal / dry-run orchestration (same subcommands, no GitHub writes):
+  - `plan-issue-local <subcommand> --dry-run`
+- Key subcommands:
+  - `start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`

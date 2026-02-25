@@ -55,7 +55,7 @@
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [1],
-        "stderr_regex": "invalid PR body content"
+        "stderr_regex": "disallowed placeholder found"
       }
     }
   ]

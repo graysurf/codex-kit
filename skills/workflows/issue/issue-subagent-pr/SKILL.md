@@ -5,7 +5,7 @@ description: Subagent workflow for isolated worktree implementation, draft PR cr
 
 # Issue Subagent PR
 
-Subagents implement only in dedicated worktrees, open/update PRs, and mirror key updates back to the owning issue.
+Subagent owns implementation execution in assigned branches/worktrees and keeps PR/issue artifacts synchronized.
 
 ## Contract
 
@@ -13,56 +13,102 @@ Prereqs:
 
 - Run inside the target git repo.
 - `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
-- Worktree branch strategy defined by the main agent.
+- Worktree/branch ownership assigned by main-agent (or the issue Task Decomposition table when using `plan-issue` flows).
 
 Inputs:
 
-- Issue number and subagent task scope.
-- Branch/base/worktree naming inputs.
-- PR title/body metadata and optional review-comment URL for follow-up updates.
+- Issue number, task ID/scope, and assigned owner/branch/worktree facts.
+- Base branch, PR title, and PR body markdown file path.
+- Optional review comment URL + response body markdown for follow-up comments.
+- Optional repository override (`owner/repo`) for `gh` commands when not running in the default remote context.
 
 Outputs:
 
-- Dedicated worktree path for the task.
-- Parameterized subagent task prompt rendered from assigned execution facts (issue/task/owner/branch/worktree/execution mode).
+- Dedicated task worktree checked out to the assigned branch.
 - Draft PR URL for the implementation branch.
-- Automatic writeback of `Task Decomposition.PR` (and related sprint comment table rows) for tasks matched by the opened PR head branch / shared `pr-group`.
-- PR body validation gate that rejects unfilled templates/placeholders before PR open.
-- PR follow-up comments referencing main-agent review comment URLs.
-- Optional mirrored issue comments for traceability.
+- PR/body validation evidence (required sections present; placeholders removed).
+- Review response comments on the PR that reference the main-agent review comment URL.
+- Optional issue sync comments (`gh issue comment`) that mirror task status and PR linkage.
+- `plan-issue` artifact compatibility: canonical issue/PR references (`#<number>`) suitable for Task Decomposition sync.
 
 Exit codes:
 
 - `0`: success
-- non-zero: invalid args, missing repo context, or `git`/`gh` failures
+- non-zero: invalid inputs, failed validation checks, repo context issues, or `git`/`gh` failures
 
 Failure modes:
 
-- Missing required flags (`--branch`, `--issue`, `--title`, `--review-comment-url`).
-- Worktree path collision.
-- PR body source conflicts (`--body` and `--body-file`).
-- Missing/empty PR body for `open-pr`.
-- Placeholder/template PR body content (`TBD`, `TODO`, `<...>`, `#<number>`, stub testing lines).
-- Invalid subagent prompt render inputs (placeholder `Owner/Branch/Worktree`, invalid `Execution Mode`, non-subagent owner).
-- `gh` auth/permissions insufficient to open or comment on PRs.
+- Missing assigned execution facts (issue/task/owner/branch/worktree).
+- Worktree path collision or branch already bound to another worktree.
+- Empty PR body file or unresolved template placeholders (`TBD`, `TODO`, `<...>`, `#<number>`, template stub lines).
+- Missing required PR body sections (`## Summary`, `## Scope`, `## Testing`, `## Issue`).
+- `gh` auth/permission failures for PR/issue reads or writes.
 
-## Entrypoint
+## Command Contract (Scriptless)
 
-- `$AGENT_HOME/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh`
+- Use native `git` for worktree and branch lifecycle.
+- Use native `gh` for draft PR creation and PR/issue comments.
+- Use `rg`-based checks (or equivalent) for PR body section/placeholder validation before PR open and before final review updates.
 
 ## Core usage
 
-1. Create isolated worktree:
-   - `.../manage_issue_subagent_pr.sh create-worktree --branch feat/issue-123-api --base main`
-2. Render a subagent task prompt from assigned task facts (recommended before implementation handoff):
-   - `.../manage_issue_subagent_pr.sh render-task-prompt --issue 123 --task-id T1 --summary "Implement API task" --owner subagent-api --branch issue/123/t1-api --worktree .worktrees/issue/123-t1-api --execution-mode pr-isolated --pr-title "feat(issue): implement API task"`
-3. Open draft PR and sync PR URL to issue:
-   - `cp references/PR_BODY_TEMPLATE.md /tmp/pr-123.md && <edit file>`
-   - `.../manage_issue_subagent_pr.sh open-pr --issue 123 --title "feat: api task" --body-file /tmp/pr-123.md`
-4. Validate PR body before submitting (optional explicit precheck):
-   - `.../manage_issue_subagent_pr.sh validate-pr-body --issue 123 --body-file /tmp/pr-123.md`
-5. Respond to main-agent review comment with explicit link:
-   - `.../manage_issue_subagent_pr.sh respond-review --pr 456 --review-comment-url <url> --body-file references/REVIEW_RESPONSE_TEMPLATE.md --issue 123`
+1. Create isolated worktree/branch with `git worktree`:
+   - ```bash
+     ISSUE=123
+     TASK_ID=T1
+     BASE=main
+     BRANCH="issue/${ISSUE}/${TASK_ID}-api"
+     WORKTREE=".worktrees/issue-${ISSUE}-${TASK_ID}-api"
+
+     git fetch origin --prune
+     git worktree add -b "$BRANCH" "$WORKTREE" "origin/$BASE"
+     cd "$WORKTREE"
+     git branch --show-current
+     git worktree list
+     ```
+2. Prepare and validate PR body (required sections + placeholder checks):
+   - ```bash
+     BODY_FILE="$WORKTREE/.tmp/pr-${ISSUE}-${TASK_ID}.md"
+     mkdir -p "$(dirname "$BODY_FILE")"
+     cp /Users/terry/.config/agent-kit/skills/workflows/issue/issue-subagent-pr/references/PR_BODY_TEMPLATE.md "$BODY_FILE"
+     # Edit BODY_FILE and replace all template placeholders before continuing.
+
+     for section in "## Summary" "## Scope" "## Testing" "## Issue"; do
+       rg -q "^${section}$" "$BODY_FILE" || { echo "Missing section: ${section}" >&2; exit 1; }
+     done
+
+     rg -n 'TBD|TODO|<[^>]+>|#<number>|<implemented scope>|<explicitly excluded scope>|<command> \\(pass\\)|not run \\(reason\\)' "$BODY_FILE" \
+       && { echo "Placeholder content found in PR body" >&2; exit 1; } || true
+     ```
+3. Open draft PR with `gh pr create`:
+   - ```bash
+     gh pr create \
+       --draft \
+       --base "$BASE" \
+       --head "$BRANCH" \
+       --title "feat(issue-${ISSUE}): implement ${TASK_ID} API changes" \
+       --body-file "$BODY_FILE"
+
+     PR_NUMBER="$(gh pr view --json number --jq '.number')"
+     PR_URL="$(gh pr view --json url --jq '.url')"
+     echo "Opened ${PR_URL}"
+     ```
+4. Post review response comment with `gh pr comment`:
+   - ```bash
+     REVIEW_COMMENT_URL="https://github.com/<owner>/<repo>/pull/<pr>#issuecomment-<id>"
+     RESPONSE_FILE="$WORKTREE/.tmp/review-response-${PR_NUMBER}.md"
+     cp /Users/terry/.config/agent-kit/skills/workflows/issue/issue-subagent-pr/references/REVIEW_RESPONSE_TEMPLATE.md "$RESPONSE_FILE"
+     # Edit RESPONSE_FILE: include REVIEW_COMMENT_URL and concrete change/testing notes.
+
+     gh pr comment "$PR_NUMBER" --body-file "$RESPONSE_FILE"
+     ```
+5. Optional issue sync comment with `gh issue comment` (traceability):
+   - ```bash
+     gh issue comment "$ISSUE" \
+       --body "Task ${TASK_ID} in progress by subagent. Branch: \`${BRANCH}\`. Worktree: \`${WORKTREE}\`. PR: #${PR_NUMBER}. Review response: ${REVIEW_COMMENT_URL}"
+     ```
+6. Optional plan-issue artifact sync note:
+   - Keep Task Decomposition row fields (`Owner`, `Branch`, `Worktree`, `Execution Mode`, `PR`) aligned with actual execution facts; use canonical PR references like `#${PR_NUMBER}` so `plan-issue status-plan` / `ready-plan` snapshots remain consistent.
 
 ## References
 
@@ -72,11 +118,8 @@ Failure modes:
 
 ## Notes
 
-- Use `--dry-run` in orchestration/testing contexts.
-- `open-pr` now syncs the issue task table PR references using canonical `#<number>` format and marks matched `planned` rows as `in-progress`.
-- `render-task-prompt` is intended to freeze real execution facts (`Owner/Branch/Worktree/Execution Mode/PR title`) into a reusable subagent handoff prompt and reduce manual dispatch mistakes.
-- `render-task-prompt --issue DRY_RUN_PLAN_ISSUE` is allowed for local orchestration rehearsal flows that do not call GitHub APIs.
-- `open-pr --use-template` is not a substitute for filling the PR body; subagent must submit a fully edited body that passes validation.
+- Subagent may pre-fill `references/SUBAGENT_TASK_PROMPT_TEMPLATE.md` from assigned execution facts to avoid owner/branch/worktree drift during implementation.
+- Treat PR body validation as a required gate, not an optional cleanup step.
 - Keep implementation details and evidence in PR comments; issue comments should summarize status and link back to PR artifacts.
-- Subagents own implementation execution; main-agent does not implement issue task code directly.
-- Even when an issue has a single implementation PR, that PR remains subagent-owned.
+- Subagent owns implementation execution; main-agent remains orchestration/review-only.
+- Even for single-PR issues, implementation PR authorship/ownership stays with subagent.
