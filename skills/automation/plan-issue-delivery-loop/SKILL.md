@@ -105,7 +105,7 @@ Failure modes:
    - `accept-sprint`: validate sprint PRs are merged, sync sprint task statuses to `done`, and record sprint acceptance comment on the same issue in live mode (issue stays open).
    - If another sprint exists, run `start-sprint` for the next sprint on the same issue.
 5. Plan close (one-time):
-   - `ready-plan`: request final plan review. For dry-run/local rehearsal, provide `--body-file`.
+   - `ready-plan`: request final plan review without label mutation (`--no-label-update`). For dry-run/local rehearsal, provide `--body-file`.
    - `close-plan`: run the plan-level close gate, close the single plan issue in live mode, and enforce task worktree cleanup. For dry-run/local rehearsal, `--body-file` is required.
 
 ## PR Grouping Steps (Mandatory)
@@ -161,8 +161,8 @@ Failure modes:
 10. Run `accept-sprint` with the approval comment URL in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
 11. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
 12. After the final sprint is implemented and accepted, run `ready-plan` for final review:
-   - live mode: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
-   - dry-run/local rehearsal: `plan-issue ready-plan --dry-run --body-file <ready-plan-comment.md>`
+   - live mode: `plan-issue ready-plan --issue <number> --no-label-update [--repo <owner/repo>]`
+   - dry-run/local rehearsal: `plan-issue ready-plan --dry-run --body-file <ready-plan-comment.md> --no-label-update`
 13. Run `close-plan` with the final approval comment URL in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
    - live mode: `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
    - dry-run/local rehearsal: `plan-issue close-plan --dry-run --approved-comment-url <comment-url> --body-file <close-plan-comment.md>`
@@ -178,7 +178,7 @@ Failure modes:
    - Status checkpoint (optional): `plan-issue status-plan --issue <number> [--repo <owner/repo>]`
    - Ready sprint: `plan-issue ready-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...] [--repo <owner/repo>]`
    - Accept sprint: `plan-issue accept-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> --approved-comment-url <comment-url> [--pr-group <task-id>=<group> ...] [--repo <owner/repo>]`
-   - Ready plan: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
+   - Ready plan: `plan-issue ready-plan --issue <number> --no-label-update [--repo <owner/repo>]`
    - Close plan: `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
 2. Local rehearsal (`plan-issue-local`)
   - Validate: `plan-tooling validate --file <plan.md>`
@@ -190,7 +190,7 @@ Failure modes:
   - Ready sprint: `plan-issue-local ready-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...]`
   - Accept sprint: `plan-issue-local accept-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> --approved-comment-url <comment-url> [--pr-group <task-id>=<group> ...]`
 3. Plan-level local/offline rehearsal (`plan-issue --dry-run`)
-  - Ready plan: `plan-issue ready-plan --dry-run --body-file <ready-plan-comment.md>`
+  - Ready plan: `plan-issue ready-plan --dry-run --body-file <ready-plan-comment.md> --no-label-update`
   - Close plan: `plan-issue close-plan --dry-run --approved-comment-url <comment-url> --body-file <close-plan-comment.md>`
 
 ## Role boundary (mandatory)
