@@ -68,6 +68,8 @@ See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Dock
 | [actionable-advice](./prompts/actionable-advice.md) | Answer a question with clarifying questions, multiple options, and a single recommendation | `/prompts:actionable-advice <question>` |
 | [actionable-knowledge](./prompts/actionable-knowledge.md) | Answer a learning/knowledge question with multiple explanation paths and a single recommended path | `/prompts:actionable-knowledge <question>` |
 | [parallel-first](./prompts/parallel-first.md) | Enable a parallel-first execution policy for this conversation thread (prefer delegate-parallel subagents when safe) | `/prompts:parallel-first` |
+| [plan-issue-delivery-main-agent-init](./prompts/plan-issue-delivery-main-agent-init.md) | Init prompt for the orchestration-only main agent in plan-issue-delivery-loop | `/prompts:plan-issue-delivery-main-agent-init <optional overrides for repo/plan/issue/sprint/grouping>` |
+| [plan-issue-delivery-subagent-init](./prompts/plan-issue-delivery-subagent-init.md) | Init prompt for implementation-owned subagents in plan-issue-delivery-loop | `/prompts:plan-issue-delivery-subagent-init <optional overrides for task/worktree/branch/pr-mode>` |
 
 ## 🛠️ Skills
 
