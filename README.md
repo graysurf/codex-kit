@@ -128,10 +128,10 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 
 | Area | Skill | Description |
 | --- | --- | --- |
-| CI | [gh-fix-ci](./skills/automation/gh-fix-ci/) | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green |
+| DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
 | Issue | [issue-delivery](./skills/automation/issue-delivery/) | Orchestrate issue execution loops end-to-end: open issue, track status, request review, and close only after approval + merged PR gates |
 | Issue | [plan-issue-delivery](./skills/automation/plan-issue-delivery/) | Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation. |
-| DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
+| Maintenance | [gh-fix-ci](./skills/automation/gh-fix-ci/) | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green |
 | Maintenance | [fix-bug-pr](./skills/automation/fix-bug-pr/) | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced |
 | Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/) | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR |
