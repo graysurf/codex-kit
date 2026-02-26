@@ -23,6 +23,10 @@ Inputs:
 - Plan-close approval comment URL (`PLAN_APPROVED_COMMENT_URL`) for `close-plan`.
 - Approval URL format: `https://github.com/<owner>/<repo>/(issues|pull)/<n>#issuecomment-<id>`.
 - PR linkage inputs for runtime row sync (`--task <task-id>` or `--sprint <n> [--pr-group <group>]`, plus `--pr <#123|123|pull-url>`).
+- Conditional subagent dispatch bundle (required when this issue is plan-sprint originated via `plan-issue start-sprint`):
+  - rendered `TASK_PROMPT_PATH` artifact for the assigned lane/task
+  - `prompts/plan-issue-delivery-subagent-init.md`
+  - plan task section context (exact snippet and/or direct link/path)
 - Local rehearsal policy:
   - This main skill is live-mode default (`plan-issue ...`).
   - If rehearsal is explicitly requested, load `references/LOCAL_REHEARSAL.md`.
@@ -55,6 +59,7 @@ Failure modes:
 - Task rows violate close gates (status not `done`, execution metadata/PR missing, or PR not merged).
 - Issue/PR metadata fetch fails via `gh` in live mode.
 - Task `Owner` is `main-agent`/non-subagent identity in `Task Decomposition`.
+- Plan-sprint originated dispatch launched without required bundle (`TASK_PROMPT_PATH`, `plan-issue-delivery-subagent-init.md`, plan task snippet/link/path).
 
 ## Role Boundary (Mandatory)
 
@@ -73,6 +78,10 @@ Failure modes:
 
 1. Live mode is default in this main skill: `plan-issue <subcommand> ...`.
 2. Resolve and reuse a single `ISSUE_NUMBER` from upstream plan orchestration, then dispatch implementation to subagents via `issue-subagent-pr`.
+   - If the issue originated from `plan-issue start-sprint`, dispatch each subagent with:
+     - rendered `TASK_PROMPT_PATH`
+     - `prompts/plan-issue-delivery-subagent-init.md`
+     - assigned plan task section snippet/link/path
 3. Keep runtime-truth rows synchronized with `link-pr`; add `status-plan` checkpoints when needed.
 4. Handoff review with `ready-plan`, run main-agent review decisions through `issue-pr-review`, and merge/follow-up until close gates are satisfied.
 5. Close with `close-plan` using `PLAN_APPROVED_COMMENT_URL`.
@@ -93,6 +102,10 @@ Failure modes:
 2. Confirm the plan issue already exists, capture `ISSUE_NUMBER` from upstream orchestration output, and keep using that single value for all `--issue` flags.
 3. Confirm task decomposition ownership remains subagent-only.
 4. Main-agent dispatches implementation tasks to subagents (for example via `issue-subagent-pr`), while remaining orchestration/review-only.
+   - For plan-sprint originated issues, dispatch must include the required bundle:
+     - rendered `TASK_PROMPT_PATH`
+     - `prompts/plan-issue-delivery-subagent-init.md`
+     - assigned plan task section snippet/link/path
 5. As subagent PRs progress, run `link-pr` to update issue task `PR` and `Status` fields (instead of manual table edits).
    - Task-scoped link: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - `--task` automatically syncs shared-lane rows (`per-sprint` / `pr-shared`) in one operation.
