@@ -24,6 +24,31 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`
 
+## Plan-issue cleanup gate
+
+Run the cleanup helper before declaring plan completion:
+
+```bash
+scripts/check_plan_issue_worktree_cleanup.sh \
+  "$AGENT_HOME/out/plan-issue-delivery/graysurf-agent-kit/issue-193/worktrees"
+```
+
+Expected behavior:
+
+- Pass (`exit 0`): no leftover task worktree directories under `worktrees/*/*`.
+- Fail (`exit 1`): leftover task directories still exist; stderr lists each path.
+
+Quick local smoke example:
+
+```bash
+test_root="${AGENT_HOME:-$(pwd)}/out/plan-issue-delivery-e2e-cleanup-check"
+rm -rf "$test_root"
+mkdir -p "$test_root/worktrees/pr-isolated/task-a"
+! scripts/check_plan_issue_worktree_cleanup.sh "$test_root/worktrees"
+rm -rf "$test_root/worktrees/pr-isolated/task-a"
+scripts/check_plan_issue_worktree_cleanup.sh "$test_root/worktrees"
+```
+
 ## Authoring spec-driven smoke cases
 
 Create or extend a per-script spec at:
