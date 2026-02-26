@@ -26,7 +26,7 @@ Inputs:
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
 - Mandatory subagent dispatch bundle:
   - rendered `TASK_PROMPT_PATH` from `start-sprint`
-  - `prompts/plan-issue-delivery-subagent-init.md`
+  - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
   - plan task context per assignment (exact plan task section snippet and/or direct plan section link/path)
 - Local rehearsal policy:
   - Default execution path is live mode (`plan-issue`) in this main skill.
@@ -55,7 +55,7 @@ Outputs:
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Main-agent must launch subagents with the full dispatch bundle:
   - rendered `TASK_PROMPT_PATH` artifact
-  - `prompts/plan-issue-delivery-subagent-init.md`
+  - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
   - plan task section context (snippet/link/path)
 - Ad-hoc dispatch prompts that bypass the required bundle are invalid.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
@@ -77,7 +77,7 @@ Failure modes:
 - `link-pr` PR selector invalid (`--pr` must resolve to a concrete PR number).
 - `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
-- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `plan-issue-delivery-subagent-init.md`, plan task section snippet/link/path).
+- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`, plan task section snippet/link/path).
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
 - Attempted transition to a next sprint that does not exist.
@@ -139,7 +139,7 @@ Failure modes:
    - main-agent follows the locked grouping policy (default `group + auto`; switch only on explicit user request) and emits dispatch hints
    - main-agent starts subagents using dispatch bundles that include:
      - rendered `TASK_PROMPT_PATH` prompt artifact from dispatch hints
-     - `prompts/plan-issue-delivery-subagent-init.md`
+     - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
      - assigned plan task section snippet/link/path (from plan file or sprint-start comment section)
    - subagents create worktrees/PRs and implement tasks
 8. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
