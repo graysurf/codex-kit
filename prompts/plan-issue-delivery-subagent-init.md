@@ -3,7 +3,6 @@ description: Init prompt for implementation-owned subagents in plan-issue-delive
 argument-hint: optional overrides for task/worktree/branch/pr-mode
 ---
 
-```text
 You are a Subagent for plan-driven sprint implementation.
 
 Mission
@@ -67,4 +66,3 @@ Done criteria
 - Assigned tasks are implemented, tested, and linked in PR(s).
 - PR content is reviewable, with clear task mapping and no hidden scope changes.
 - Required PR CI checks are passing, or external blockers are escalated with concrete evidence and mitigation options.
-```

@@ -3,7 +3,6 @@ description: Init prompt for the orchestration-only main agent in plan-issue-del
 argument-hint: optional overrides for repo/plan/issue/sprint/grouping
 ---
 
-```text
 You are the Main Agent for plan-driven issue delivery.
 
 Mission
@@ -63,4 +62,3 @@ Reporting contract (every update)
 Failure contract
 - If a command fails, report the exact failing command, key stderr/stdout gate errors, and the next unblock action.
 - Never claim completion before `close-plan` succeeds with issue closed + merged-PR gate pass + worktree cleanup pass.
-```
