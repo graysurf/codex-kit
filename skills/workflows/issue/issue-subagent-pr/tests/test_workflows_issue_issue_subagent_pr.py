@@ -16,6 +16,7 @@ def test_issue_subagent_pr_skill_mentions_worktree_isolation() -> None:
     assert "worktree" in text.lower()
     assert "Subagent" in text
     assert "Task Decomposition" in text
+    assert "$AGENT_HOME/out/plan-issue-delivery" in text
 
 
 def test_issue_subagent_pr_skill_requires_native_git_gh_commands() -> None:

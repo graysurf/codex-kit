@@ -26,6 +26,7 @@ Inputs:
     - target sprint section context from issue comments (prefer `## Sprint <N> Start`)
   - Main-agent dispatch artifacts:
     - rendered task prompt artifact (`TASK_PROMPT_PATH`)
+    - `PLAN_SNAPSHOT_PATH` when dispatch came from `plan-issue-delivery`
     - plan task section context (exact snippet and/or direct link/path)
 - Required implementation context in local rehearsal mode:
   - local rendered task prompt/artifacts and plan task context (no GitHub lookup for placeholder issues such as `999`)
@@ -52,7 +53,9 @@ Failure modes:
 - Live mode: unable to resolve the assigned task row from issue `## Task Decomposition`.
 - Live mode: unable to resolve target sprint task context from issue comments.
 - Live mode: missing `TASK_PROMPT_PATH` or missing plan task section context from main-agent dispatch.
+- `plan-issue-delivery` mode: missing `PLAN_SNAPSHOT_PATH` fallback artifact from dispatch.
 - Context mismatch between issue artifacts and main-agent dispatch artifacts (scope, ownership, branch/worktree, execution mode).
+- `plan-issue-delivery` mode: assigned `WORKTREE` path is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Worktree path collision or branch already bound to another worktree.
 - Empty PR body file or unresolved template placeholders (`TBD`, `TODO`, `<...>`, `#<number>`, template stub lines).
 - Missing required PR body sections (`## Summary`, `## Scope`, `## Testing`, `## Issue`).
@@ -88,18 +91,22 @@ Failure modes:
        ```
    - Collect main-agent artifacts in both modes:
      - `TASK_PROMPT_PATH`
+     - `PLAN_SNAPSHOT_PATH` (required in `plan-issue-delivery` mode)
      - plan task section snippet/link/path
 3. Reconcile context and apply hard start gate:
    - Treat issue artifacts and main-agent artifacts as equal-priority sources in live mode.
    - Confirm assigned task facts align across sources: owner, branch, worktree, execution mode, task scope, and acceptance intent.
+   - In `plan-issue-delivery` mode, enforce `WORKTREE` prefix: `$AGENT_HOME/out/plan-issue-delivery/`.
    - If any required context is missing or conflicting, stop and request clarification from main-agent before implementation.
 4. Create isolated worktree/branch with `git worktree`:
    - ```bash
+     AGENT_HOME="${AGENT_HOME:?AGENT_HOME is required}"
      ISSUE=123
      TASK_ID=T1
      BASE=main
+     REPO_SLUG="owner__repo"
      BRANCH="issue/${ISSUE}/${TASK_ID}-api"
-     WORKTREE=".worktrees/issue-${ISSUE}-${TASK_ID}-api"
+     WORKTREE="$AGENT_HOME/out/plan-issue-delivery/${REPO_SLUG}/issue-${ISSUE}/worktrees/pr-isolated/${TASK_ID}"
 
      git fetch origin --prune
      git worktree add -b "$BRANCH" "$WORKTREE" "origin/$BASE"

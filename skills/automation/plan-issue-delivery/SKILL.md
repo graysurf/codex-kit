@@ -17,6 +17,8 @@ Prereqs:
 Inputs:
 
 - Plan file path (`docs/plans/...-plan.md`).
+- Runtime workspace root (fixed): `$AGENT_HOME/out/plan-issue-delivery`.
+- Repository slug for runtime namespacing (derived from `--repo <owner/repo>` or local git remote).
 - Plan issue number (`--issue <number>`) after `start-plan` creates the single issue.
 - Sprint number for sprint orchestration commands.
 - Sprint approval comment URL (`SPRINT_APPROVED_COMMENT_URL`) for `accept-sprint`.
@@ -27,6 +29,7 @@ Inputs:
 - Mandatory subagent dispatch bundle:
   - rendered `TASK_PROMPT_PATH` from `start-sprint`
   - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+  - issue-scoped `PLAN_SNAPSHOT_PATH` copied from the source plan at sprint start
   - plan task context per assignment (exact plan task section snippet and/or direct plan section link/path)
 - Local rehearsal policy:
   - Default execution path is live mode (`plan-issue`) in this main skill.
@@ -40,6 +43,8 @@ Outputs:
 - Plan-scoped task-spec TSV generated from all plan tasks (all sprints) for one issue.
 - Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints, including `pr_group`.
 - Sprint-scoped rendered subagent prompt files + a prompt manifest (`task_id -> prompt_path -> execution_mode`) generated at `start-sprint`.
+- Runtime artifacts and worktrees are namespaced under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/...`.
+- Issue-scoped plan snapshot (`PLAN_SNAPSHOT_PATH`) is generated for dispatch fallback.
 - `plan-tooling split-prs` v2 emits grouping primitives only (`task_id`, `summary`, `pr_group`); `plan-issue` materializes runtime metadata (`Owner/Branch/Worktree/Notes`).
 - Live mode (`plan-issue`) creates/updates exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
 - `## Task Decomposition` remains runtime-truth for execution lanes; `start-sprint` validates drift against plan-derived lane metadata before emitting artifacts.
@@ -56,6 +61,7 @@ Outputs:
 - Main-agent must launch subagents with the full dispatch bundle:
   - rendered `TASK_PROMPT_PATH` artifact
   - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+  - `PLAN_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - plan task section context (snippet/link/path)
 - Ad-hoc dispatch prompts that bypass the required bundle are invalid.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
@@ -77,10 +83,34 @@ Failure modes:
 - `link-pr` PR selector invalid (`--pr` must resolve to a concrete PR number).
 - `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
-- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`, plan task section snippet/link/path).
+- Runtime workspace root missing/unwritable (`$AGENT_HOME/out/plan-issue-delivery`).
+- Sprint runtime artifacts missing (for example `TASK_PROMPT_PATH` or `PLAN_SNAPSHOT_PATH` not emitted under runtime root).
+- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`, `PLAN_SNAPSHOT_PATH`, plan task section snippet/link/path).
+- Assigned task `Worktree` is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
 - Attempted transition to a next sprint that does not exist.
+
+## Runtime Workspace Policy (Mandatory)
+
+- Use one runtime root for this skill only: `RUNTIME_ROOT="$AGENT_HOME/out/plan-issue-delivery"`.
+- Namespace by repository and issue:
+  - `ISSUE_ROOT="$RUNTIME_ROOT/<repo-slug>/issue-<ISSUE_NUMBER>"`
+  - `SPRINT_ROOT="$ISSUE_ROOT/sprint-<N>"`
+- Required runtime artifacts:
+  - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
+  - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
+  - prompt manifest under `"$SPRINT_ROOT/manifests/"`
+- Worktree path rules (must be absolute paths under `"$ISSUE_ROOT/worktrees"`):
+  - `pr-isolated`: `.../worktrees/pr-isolated/<TASK_ID>`
+  - `pr-shared`: `.../worktrees/pr-shared/<PR_GROUP>`
+  - `per-sprint`: `.../worktrees/per-sprint/sprint-<N>`
+- `start-sprint` must copy the source plan into `PLAN_SNAPSHOT_PATH` before subagent dispatch.
+- Subagent plan reference priority:
+  - assigned plan task snippet/link/path (primary)
+  - `PLAN_SNAPSHOT_PATH` (fallback)
+  - source plan path (last fallback)
+- `close-plan` must enforce worktree cleanup under `"$ISSUE_ROOT/worktrees"`; leftovers fail the close gate.
 
 ## Binaries (only entrypoints)
 
@@ -89,16 +119,18 @@ Failure modes:
 ## References
 
 - Local rehearsal playbook (`plan-issue-local` and `plan-issue --dry-run`): `references/LOCAL_REHEARSAL.md`
+- Runtime layout and path rules: `references/RUNTIME_LAYOUT.md`
 
 ## Workflow
 
 1. Validate the plan (`plan-tooling validate`) and lock grouping policy (`group + auto` by default).
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
-3. Run `start-sprint`, dispatch subagents from generated `TASK_PROMPT_PATH` artifacts, and keep row state current via `link-pr`.
-4. For each sprint: `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
-5. Repeat step 4 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
-6. After final sprint acceptance, run `ready-plan`, then `close-plan` with plan-level approval URL.
-7. If rehearsal is explicitly requested, switch to `references/LOCAL_REHEARSAL.md`.
+3. Initialize issue runtime workspace under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`.
+4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` artifacts exist, dispatch subagents, and keep row state current via `link-pr`.
+5. For each sprint: `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
+6. Repeat step 5 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
+7. After final sprint acceptance, run `ready-plan`, then `close-plan` with plan-level approval URL.
+8. If rehearsal is explicitly requested, switch to `references/LOCAL_REHEARSAL.md`.
 
 ## PR Grouping Steps (Mandatory)
 
@@ -135,25 +167,30 @@ Failure modes:
 6. Capture the issue number immediately after `start-plan` and store it for reuse:
    - Example: `ISSUE_NUMBER=<start-plan output issue number>`
    - Every follow-up command in this flow should use `--issue "$ISSUE_NUMBER"`.
-7. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
+7. Initialize issue runtime workspace and plan snapshot:
+   - Runtime root: `$AGENT_HOME/out/plan-issue-delivery`
+   - Issue root: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER`
+   - Snapshot path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan.snapshot.md`
+8. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
    - main-agent follows the locked grouping policy (default `group + auto`; switch only on explicit user request) and emits dispatch hints
    - main-agent starts subagents using dispatch bundles that include:
      - rendered `TASK_PROMPT_PATH` prompt artifact from dispatch hints
      - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+     - `PLAN_SNAPSHOT_PATH` from issue runtime workspace
      - assigned plan task section snippet/link/path (from plan file or sprint-start comment section)
    - subagents create worktrees/PRs and implement tasks
-8. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
+9. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
    - task scope: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - sprint scope: `plan-issue link-pr --issue <number> --sprint <n> --pr-group <group> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - `--task` auto-syncs shared lanes; `--sprint` without `--pr-group` is valid only when the sprint target resolves to one runtime lane.
-9. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
-10. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
-11. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
-12. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
-13. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
-14. After the final sprint is implemented and accepted, run `ready-plan` for final review:
+10. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
+11. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
+12. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
+13. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
+14. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
+15. After the final sprint is implemented and accepted, run `ready-plan` for final review:
    - `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
-15. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
+16. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
    - `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
 
 ## Command-Oriented Flow

@@ -56,6 +56,30 @@ def test_plan_issue_delivery_skill_mentions_split_prs_v2_runtime_ownership() -> 
     assert "materializes runtime metadata" in text
 
 
+def test_plan_issue_delivery_skill_defines_runtime_workspace_policy() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "$AGENT_HOME/out/plan-issue-delivery" in text
+    assert "Runtime Workspace Policy (Mandatory)" in text
+    assert "PLAN_SNAPSHOT_PATH" in text
+    assert "references/RUNTIME_LAYOUT.md" in text
+
+
+def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    repo_root = skill_root.parents[2]
+
+    subagent_prompt = (repo_root / "prompts" / "plan-issue-delivery-subagent-init.md").read_text(encoding="utf-8")
+    main_agent_prompt = (repo_root / "prompts" / "plan-issue-delivery-main-agent-init.md").read_text(encoding="utf-8")
+
+    assert "PLAN_SNAPSHOT_PATH" in subagent_prompt
+    assert "$AGENT_HOME/out/plan-issue-delivery" in subagent_prompt
+
+    assert "$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md" in main_agent_prompt
+    assert "PLAN_SNAPSHOT_PATH" in main_agent_prompt
+    assert "$AGENT_HOME/out/plan-issue-delivery" in main_agent_prompt
+
+
 def test_plan_issue_delivery_skill_excludes_deleted_wrapper_scripts() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
