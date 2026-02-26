@@ -25,11 +25,15 @@ Execution context (fill before run)
 - Branch: <BRANCH>
 - PR grouping mode: <per-sprint|group>
 - PR group (if grouped): <GROUP_NAME or N/A>
+- Subagent init snapshot path: <SUBAGENT_INIT_SNAPSHOT_PATH>
 - Plan snapshot path: <PLAN_SNAPSHOT_PATH>
+- Dispatch record path: <DISPATCH_RECORD_PATH>
 
 Required inputs from main-agent (must be attached)
 - Rendered task prompt artifact (`TASK_PROMPT_PATH`) from `start-sprint`.
+- Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`).
 - Issue-scoped plan snapshot fallback (`PLAN_SNAPSHOT_PATH`) copied from source plan.
+- Task-scoped dispatch record (`DISPATCH_RECORD_PATH`) with execution facts (worktree/branch/mode/group).
 - Plan task context for assigned IDs:
   - exact task section snippet and/or
   - direct link/path to the source plan task section.
@@ -39,12 +43,13 @@ Required inputs from main-agent (must be attached)
 Delivery requirements
 1) Resolve plan context in this order: assigned task snippet/link/path -> `PLAN_SNAPSHOT_PATH` -> source plan link/path (last fallback).
 2) If plan references conflict, follow issue runtime-truth assignment (`Task Decomposition` row) and escalate ambiguities.
-3) Keep changes within assigned task scope; escalate before widening scope.
-4) Run relevant tests for impacted areas and capture results.
-5) Keep commits and PR description traceable to task IDs.
-6) Surface risks early with concrete mitigation options.
-7) Wait for required PR CI checks to finish before marking work ready for review/merge.
-8) If PR CI fails, diagnose and fix the failures, push updates, and repeat until required checks pass (or escalate external blockers with evidence).
+3) Validate `DISPATCH_RECORD_PATH` matches assigned task IDs, worktree, branch, and execution mode before editing.
+4) Keep changes within assigned task scope; escalate before widening scope.
+5) Run relevant tests for impacted areas and capture results.
+6) Keep commits and PR description traceable to task IDs.
+7) Surface risks early with concrete mitigation options.
+8) Wait for required PR CI checks to finish before marking work ready for review/merge.
+9) If PR CI fails, diagnose and fix the failures, push updates, and repeat until required checks pass (or escalate external blockers with evidence).
 
 Update format (every checkpoint)
 - Task IDs completed/in progress:

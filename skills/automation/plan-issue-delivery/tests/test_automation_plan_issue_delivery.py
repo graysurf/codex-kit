@@ -62,6 +62,8 @@ def test_plan_issue_delivery_skill_defines_runtime_workspace_policy() -> None:
     assert "$AGENT_HOME/out/plan-issue-delivery" in text
     assert "Runtime Workspace Policy (Mandatory)" in text
     assert "PLAN_SNAPSHOT_PATH" in text
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in text
+    assert "DISPATCH_RECORD_PATH" in text
     assert "references/RUNTIME_LAYOUT.md" in text
 
 
@@ -73,10 +75,14 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     main_agent_prompt = (repo_root / "prompts" / "plan-issue-delivery-main-agent-init.md").read_text(encoding="utf-8")
 
     assert "PLAN_SNAPSHOT_PATH" in subagent_prompt
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in subagent_prompt
+    assert "DISPATCH_RECORD_PATH" in subagent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in subagent_prompt
 
-    assert "$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md" in main_agent_prompt
     assert "PLAN_SNAPSHOT_PATH" in main_agent_prompt
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
+    assert "DISPATCH_RECORD_PATH" in main_agent_prompt
+    assert "$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md" in main_agent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in main_agent_prompt
 
 

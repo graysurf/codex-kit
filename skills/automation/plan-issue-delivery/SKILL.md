@@ -28,8 +28,9 @@ Inputs:
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
 - Mandatory subagent dispatch bundle:
   - rendered `TASK_PROMPT_PATH` from `start-sprint`
-  - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+  - sprint-scoped `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
   - issue-scoped `PLAN_SNAPSHOT_PATH` copied from the source plan at sprint start
+  - task-scoped `DISPATCH_RECORD_PATH` (for example `.../manifests/dispatch-<TASK_ID>.json`) with artifact paths + execution facts
   - plan task context per assignment (exact plan task section snippet and/or direct plan section link/path)
 - Local rehearsal policy:
   - Default execution path is live mode (`plan-issue`) in this main skill.
@@ -45,6 +46,8 @@ Outputs:
 - Sprint-scoped rendered subagent prompt files + a prompt manifest (`task_id -> prompt_path -> execution_mode`) generated at `start-sprint`.
 - Runtime artifacts and worktrees are namespaced under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/...`.
 - Issue-scoped plan snapshot (`PLAN_SNAPSHOT_PATH`) is generated for dispatch fallback.
+- Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`) is generated for immutable dispatch.
+- Task-scoped dispatch records (`DISPATCH_RECORD_PATH`) are generated per assignment for traceability.
 - `plan-tooling split-prs` v2 emits grouping primitives only (`task_id`, `summary`, `pr_group`); `plan-issue` materializes runtime metadata (`Owner/Branch/Worktree/Notes`).
 - Live mode (`plan-issue`) creates/updates exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
 - `## Task Decomposition` remains runtime-truth for execution lanes; `start-sprint` validates drift against plan-derived lane metadata before emitting artifacts.
@@ -60,8 +63,9 @@ Outputs:
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Main-agent must launch subagents with the full dispatch bundle:
   - rendered `TASK_PROMPT_PATH` artifact
-  - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+  - `SUBAGENT_INIT_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - `PLAN_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
+  - `DISPATCH_RECORD_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - plan task section context (snippet/link/path)
 - Ad-hoc dispatch prompts that bypass the required bundle are invalid.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
@@ -84,8 +88,8 @@ Failure modes:
 - `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
 - Runtime workspace root missing/unwritable (`$AGENT_HOME/out/plan-issue-delivery`).
-- Sprint runtime artifacts missing (for example `TASK_PROMPT_PATH` or `PLAN_SNAPSHOT_PATH` not emitted under runtime root).
-- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`, `PLAN_SNAPSHOT_PATH`, plan task section snippet/link/path).
+- Sprint runtime artifacts missing (for example `TASK_PROMPT_PATH`, `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, or `DISPATCH_RECORD_PATH` not emitted under runtime root).
+- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, `PLAN_SNAPSHOT_PATH`, `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
 - Assigned task `Worktree` is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
@@ -100,12 +104,16 @@ Failure modes:
 - Required runtime artifacts:
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
+  - `SUBAGENT_INIT_SNAPSHOT_PATH="$SPRINT_ROOT/prompts/plan-issue-delivery-subagent-init.snapshot.md"`
   - prompt manifest under `"$SPRINT_ROOT/manifests/"`
+  - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
 - Worktree path rules (must be absolute paths under `"$ISSUE_ROOT/worktrees"`):
   - `pr-isolated`: `.../worktrees/pr-isolated/<TASK_ID>`
   - `pr-shared`: `.../worktrees/pr-shared/<PR_GROUP>`
   - `per-sprint`: `.../worktrees/per-sprint/sprint-<N>`
 - `start-sprint` must copy the source plan into `PLAN_SNAPSHOT_PATH` before subagent dispatch.
+- `start-sprint` must copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` into `SUBAGENT_INIT_SNAPSHOT_PATH` before subagent dispatch.
+- `start-sprint` must emit one `DISPATCH_RECORD_PATH` per assigned task before subagent dispatch.
 - Subagent plan reference priority:
   - assigned plan task snippet/link/path (primary)
   - `PLAN_SNAPSHOT_PATH` (fallback)
@@ -126,7 +134,7 @@ Failure modes:
 1. Validate the plan (`plan-tooling validate`) and lock grouping policy (`group + auto` by default).
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
 3. Initialize issue runtime workspace under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`.
-4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` artifacts exist, dispatch subagents, and keep row state current via `link-pr`.
+4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts exist, dispatch subagents, and keep row state current via `link-pr`.
 5. For each sprint: `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
 6. Repeat step 5 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
 7. After final sprint acceptance, run `ready-plan`, then `close-plan` with plan-level approval URL.
@@ -171,12 +179,15 @@ Failure modes:
    - Runtime root: `$AGENT_HOME/out/plan-issue-delivery`
    - Issue root: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER`
    - Snapshot path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan.snapshot.md`
+   - Subagent init snapshot path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/prompts/plan-issue-delivery-subagent-init.snapshot.md`
+   - Dispatch record path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/manifests/dispatch-<TASK_ID>.json`
 8. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
    - main-agent follows the locked grouping policy (default `group + auto`; switch only on explicit user request) and emits dispatch hints
    - main-agent starts subagents using dispatch bundles that include:
      - rendered `TASK_PROMPT_PATH` prompt artifact from dispatch hints
-     - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+     - `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
      - `PLAN_SNAPSHOT_PATH` from issue runtime workspace
+     - `DISPATCH_RECORD_PATH` from sprint manifest artifacts
      - assigned plan task section snippet/link/path (from plan file or sprint-start comment section)
    - subagents create worktrees/PRs and implement tasks
 9. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:

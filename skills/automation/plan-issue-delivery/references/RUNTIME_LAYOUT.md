@@ -21,10 +21,17 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
   - `PLAN_SOURCE_PATH="<repo>/docs/plans/...-plan.md"`
 - Snapshot fallback (copied at sprint start):
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
+- Source subagent companion prompt:
+  - `SUBAGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md"`
+- Snapshot of subagent companion prompt (copied at sprint start):
+  - `SUBAGENT_INIT_SNAPSHOT_PATH="$SPRINT_ROOT/prompts/plan-issue-delivery-subagent-init.snapshot.md"`
 - Sprint prompt outputs:
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
   - `PROMPT_MANIFEST_PATH="$SPRINT_ROOT/manifests/prompt-manifest.tsv"`
   - `TASK_SPEC_PATH="$SPRINT_ROOT/specs/sprint-task-spec.tsv"`
+- Task-scoped dispatch record:
+  - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
+  - Expected keys: `task_id`, `task_prompt_path`, `subagent_init_snapshot_path`, `plan_snapshot_path`, `worktree`, `branch`, `execution_mode`, `pr_group`
 
 ## Worktree Layout (Assigned Paths)
 
