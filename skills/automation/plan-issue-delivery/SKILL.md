@@ -19,23 +19,17 @@ Inputs:
 - Plan file path (`docs/plans/...-plan.md`).
 - Plan issue number (`--issue <number>`) after `start-plan` creates the single issue.
 - Sprint number for sprint orchestration commands.
-- Approval comment URL (`https://github.com/<owner>/<repo>/(issues|pull)/<n>#issuecomment-<id>`) for:
-  - sprint acceptance record comments
-  - final plan issue close gate
+- Sprint approval comment URL (`SPRINT_APPROVED_COMMENT_URL`) for `accept-sprint`.
+- Plan-close approval comment URL (`PLAN_APPROVED_COMMENT_URL`) for `close-plan`.
+- Approval URL format for both gates: `https://github.com/<owner>/<repo>/(issues|pull)/<n>#issuecomment-<id>`.
 - Optional repository override (`--repo <owner/repo>`) in live mode.
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
 - Local rehearsal policy:
   - Default execution path is live mode (`plan-issue`) in this main skill.
   - If the user explicitly requests rehearsal, load `references/LOCAL_REHEARSAL.md` and run that playbook.
 - Required PR grouping controls:
-  - Split-dependent commands (`build-task-spec`, `build-plan-task-spec`, `start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`) must use a fixed default profile unless the user explicitly requests an override.
-  - Default policy: use `--pr-grouping group --strategy auto`.
-  - Explicit deterministic override (manual split): use `--pr-grouping group --strategy deterministic`.
-  - Explicit per-sprint override (single shared lane per sprint): use `--pr-grouping per-sprint`.
-  - `--pr-group <task-or-plan-id>=<group>` is:
-    - not used in default `group + auto` mode unless the user explicitly asks to pin groups
-    - required for explicit `group + deterministic` (must cover every task in scope)
-    - unused for explicit `per-sprint`
+  - Authoritative grouping rules live in `## PR Grouping Steps (Mandatory)`.
+  - Keep grouping flags consistent across `start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`.
 
 Outputs:
 
@@ -89,19 +83,13 @@ Failure modes:
 
 ## Workflow
 
-1. Live mode (GitHub mutations): use `plan-issue`.
-2. Plan issue bootstrap (one-time):
-   - `start-plan`: parse the full plan, generate one task decomposition covering all sprints, and open one plan issue in live mode.
-3. Sprint execution loop (repeat on the same plan issue):
-   - `start-sprint`: validate runtime-truth sprint rows against plan-derived lane metadata, generate sprint task TSV, render per-task subagent prompts, post sprint-start comment in live mode, and emit subagent dispatch hints (supports grouped PR dispatch). For sprint `N>1`, this command requires sprint `N-1` merged+done gate to pass first.
-   - As subagent PRs open, use `link-pr` to record PR references and runtime task status (`planned|in-progress|blocked`).
-   - `ready-sprint`: post sprint-ready comment in live mode to request main-agent review before merge.
-   - After review approval, merge sprint PRs.
-   - `accept-sprint`: validate sprint PRs are merged, sync sprint task statuses to `done`, and record sprint acceptance comment on the same issue in live mode (issue stays open).
-   - If another sprint exists, run `start-sprint` for the next sprint on the same issue.
-4. Plan close (one-time):
-   - `ready-plan`: request final plan review.
-   - `close-plan`: run the plan-level close gate, close the single plan issue in live mode, and enforce task worktree cleanup.
+1. Validate the plan (`plan-tooling validate`) and lock grouping policy (`group + auto` by default).
+2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
+3. Run `start-sprint`, dispatch subagents from generated `TASK_PROMPT_PATH` artifacts, and keep row state current via `link-pr`.
+4. For each sprint: `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
+5. Repeat step 4 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
+6. After final sprint acceptance, run `ready-plan`, then `close-plan` with plan-level approval URL.
+7. If rehearsal is explicitly requested, switch to `references/LOCAL_REHEARSAL.md`.
 
 ## PR Grouping Steps (Mandatory)
 
@@ -135,28 +123,33 @@ Failure modes:
    - explicit request for deterministic/manual grouping: use `group + deterministic` with full `--pr-group` coverage
    - explicit request for one-shared-lane-per-sprint behavior: use `per-sprint`
 5. Run `start-plan` to initialize plan orchestration (`1 plan = 1 issue` in live mode).
-6. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
+6. Capture the issue number immediately after `start-plan` and store it for reuse:
+   - Example: `ISSUE_NUMBER=<start-plan output issue number>`
+   - Every follow-up command in this flow should use `--issue "$ISSUE_NUMBER"`.
+7. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
    - main-agent follows the locked grouping policy (default `group + auto`; switch only on explicit user request) and emits dispatch hints
    - main-agent starts subagents using rendered `TASK_PROMPT_PATH` prompt artifacts from dispatch hints
    - subagents create worktrees/PRs and implement tasks
-7. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
+8. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
    - task scope: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - sprint scope: `plan-issue link-pr --issue <number> --sprint <n> --pr-group <group> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - `--task` auto-syncs shared lanes; `--sprint` without `--pr-group` is valid only when the sprint target resolves to one runtime lane.
-8. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
-9. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
-10. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
-11. Run `accept-sprint` with the approval comment URL in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
-12. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
-13. After the final sprint is implemented and accepted, run `ready-plan` for final review:
+9. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
+10. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
+11. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
+12. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
+13. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
+14. After the final sprint is implemented and accepted, run `ready-plan` for final review:
    - `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
-14. Run `close-plan` with the final approval comment URL in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
+15. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
    - `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
 
 ## Command-Oriented Flow
 
 Default command templates in this section use the fixed policy `--pr-grouping group --strategy auto`.
 Only switch to `group + deterministic` or `per-sprint` when the user explicitly requests that behavior.
+Capture the `ISSUE_NUMBER` output from `start-plan` once, then reuse it in all `--issue` flags.
+Keep approval URLs explicit per gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`, `PLAN_APPROVED_COMMENT_URL` for `close-plan`.
 
 1. Live mode (`plan-issue`)
    - Validate: `plan-tooling validate --file <plan.md>`
