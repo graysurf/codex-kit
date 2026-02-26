@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from skills._shared.python.skill_testing import assert_skill_contract
@@ -92,3 +93,34 @@ def test_plan_issue_delivery_skill_excludes_deleted_wrapper_scripts() -> None:
     assert ("plan-issue-delivery" + ".sh") not in text
     assert ("manage_issue_delivery_loop" + ".sh") not in text
     assert ("manage_issue_subagent_pr" + ".sh") not in text
+
+
+def test_plan_issue_delivery_e2e_sprint1_fixture_artifact_labels_and_pr_markers() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    fixture_path = repo_root / "tests" / "fixtures" / "issue" / "plan_issue_delivery_e2e_sprint1.md"
+    text = fixture_path.read_text(encoding="utf-8")
+
+    expected_task_decomposition_header = "| Task ID | Summary | Owner | Branch | Worktree | PR | Status |"
+    assert "## Task Decomposition" in text, (
+        f"Sprint 1 fixture must include '## Task Decomposition': {fixture_path}"
+    )
+    assert expected_task_decomposition_header in text, (
+        "Sprint 1 fixture is missing required artifact labels in the Task Decomposition table header; "
+        f"expected exact header: {expected_task_decomposition_header}"
+    )
+
+    row_pattern = re.compile(
+        r"^\| (?P<task_id>S1T\d+) \| (?P<summary>[^|]+) \| (?P<owner>[^|]+) \| "
+        r"(?P<branch>[^|]+) \| (?P<worktree>[^|]+) \| (?P<pr>[^|]+) \| (?P<status>[^|]+) \|$"
+    )
+    rows = [match.groupdict() for line in text.splitlines() if (match := row_pattern.match(line.strip()))]
+    assert rows, (
+        "Sprint 1 fixture has no S1T* Task Decomposition rows; expected rows with canonical PR markers like '#101'."
+    )
+
+    for row in rows:
+        pr_token = row["pr"].strip()
+        assert re.fullmatch(r"#\d+", pr_token), (
+            f"Sprint 1 fixture PR marker for {row['task_id']} must use canonical '#<number>' format, "
+            f"found '{pr_token}'."
+        )
