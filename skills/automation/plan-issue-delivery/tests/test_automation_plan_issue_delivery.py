@@ -124,3 +124,27 @@ def test_plan_issue_delivery_e2e_sprint1_fixture_artifact_labels_and_pr_markers(
             f"Sprint 1 fixture PR marker for {row['task_id']} must use canonical '#<number>' format, "
             f"found '{pr_token}'."
         )
+
+
+def test_plan_issue_delivery_e2e_sprint2_invariants() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    fixture_path = repo_root / "tests" / "fixtures" / "issue" / "plan_issue_delivery_e2e_sprint2.md"
+    assert fixture_path.exists(), "Sprint 2 fixture is required for normalized PR/done-state regression checks."
+
+    text = fixture_path.read_text(encoding="utf-8")
+    assert "## Task Decomposition" in text, "Sprint 2 fixture must define a Task Decomposition section."
+    assert "#201" in text, "Sprint 2 fixture must keep canonical PR marker #201."
+    assert "#202" in text, "Sprint 2 fixture must keep canonical PR marker #202."
+    assert "pr-shared" in text, "Sprint 2 fixture must explicitly encode pr-shared lane behavior."
+
+    rows = [line for line in text.splitlines() if line.startswith("| S2T")]
+    assert rows, "Sprint 2 fixture must include task rows for Sprint 2 decomposition."
+    for row in rows:
+        assert "| done |" in row, f"Sprint 2 row must retain done-state marker: {row}"
+
+    grouped_rows = [row for row in rows if row.startswith("| S2T2 ") or row.startswith("| S2T3 ")]
+    assert grouped_rows, "Sprint 2 fixture must include grouped lane rows for S2T2/S2T3."
+    for row in grouped_rows:
+        assert "| #201 |" in row, f"Grouped Sprint 2 lane rows must keep canonical shared PR #201: {row}"
+
+    assert "https://github.com/" not in text, "Sprint 2 fixture should not drift to URL-only PR references."
