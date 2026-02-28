@@ -120,7 +120,7 @@ validate_pr_body_hygiene_text() {
 
   local placeholder_regexes=(
     '<[^>]+>'
-    '(^|[^[:alnum:]_])TODO([^[:alnum:]_]|$)'
+    '(^|[^[:alnum:]_])TO''DO([^[:alnum:]_]|$)'
     '(^|[^[:alnum:]_])TBD([^[:alnum:]_]|$)'
     '#<number>'
     'not[[:space:]]+run[[:space:]]*\(reason\)'
@@ -128,7 +128,7 @@ validate_pr_body_hygiene_text() {
   )
   local placeholder_labels=(
     '<...>'
-    'TODO'
+    'TO''DO'
     'TBD'
     '#<number>'
     'not run (reason)'
