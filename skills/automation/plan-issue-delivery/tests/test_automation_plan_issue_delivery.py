@@ -20,9 +20,10 @@ def test_plan_issue_delivery_skill_enforces_main_agent_role_boundary() -> None:
     assert "1 plan = 1 issue" in text
     assert "PR grouping controls" in text
     assert "PR Grouping Steps (Mandatory)" in text
-    assert "group + auto" in text
+    assert "--strategy auto --default-pr-grouping group" in text
     assert "group + deterministic" in text
     assert "## Full Skill Flow" in text
+    assert "--pr-grouping group --strategy auto" not in text
 
 
 def test_plan_issue_delivery_skill_requires_close_for_done() -> None:
@@ -47,6 +48,18 @@ def test_plan_issue_delivery_skill_uses_binary_first_command_contract() -> None:
     assert "accept-sprint" in text
     assert "ready-plan" in text
     assert "close-plan" in text
+    assert "plan-issue ready-plan --issue <number> [--repo <owner/repo>]" in text
+    assert (
+        "plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]"
+        in text
+    )
+
+
+def test_plan_issue_delivery_local_rehearsal_uses_metadata_first_auto_default() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "references" / "LOCAL_REHEARSAL.md").read_text(encoding="utf-8")
+    assert "--strategy auto --default-pr-grouping group" in text
+    assert "--pr-grouping group --strategy auto" not in text
 
 
 def test_plan_issue_delivery_skill_mentions_split_prs_v2_runtime_ownership() -> None:

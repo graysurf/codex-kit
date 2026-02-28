@@ -15,7 +15,7 @@
 - Command:
 
 ```bash
-plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto
+plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --strategy auto --default-pr-grouping group
 ```
 
 - Output:
@@ -29,7 +29,7 @@ plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md -
 - Command:
 
 ```bash
-plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --strategy auto --default-pr-grouping group --approved-comment-url <comment-url>
 ```
 
 - Output:

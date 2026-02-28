@@ -83,7 +83,7 @@ Failure modes:
 - For each sprint, run:
   - `plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>`
   - `plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>`
-  - `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy auto --format json`
+  - `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --strategy auto --default-pr-grouping group --format json`
 - If planning explicit deterministic/manual grouping for a sprint:
   - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
   - Validate with:
@@ -139,8 +139,11 @@ Failure modes:
   - Check for missing required task fields (`Location`, `Description`, `Dependencies`, `Acceptance criteria`, `Validation`).
   - Check for placeholder tokens left behind (`<...>`, `TODO`, `TBD`) in required fields.
   - Check task atomicity (single responsibility) and parallelization opportunities (dependency clarity, minimal file overlap).
-  - Check the plan can be split with `plan-tooling split-prs` in the intended grouping mode (`group + auto` by default;
-    `group + deterministic` with full mapping or `per-sprint` when explicitly requested).
+  - Check the plan can be split with `plan-tooling split-prs` in the intended
+    grouping mode (`--strategy auto --default-pr-grouping group` by default;
+    `--strategy deterministic --pr-grouping group` with full mapping or
+    `--strategy deterministic --pr-grouping per-sprint` when explicitly
+    requested).
   - Check sprint metadata labels are exact (`PR grouping intent`, `Execution Profile`) and consistent with grouping strategy.
   - Check sprint/task sizing is realistic for subagent PR execution (not just conceptually valid).
   - Check the sprint scorecard (`Execution Profile`, `TotalComplexity`, `CriticalPathComplexity`, `MaxBatchWidth`, `OverlapHotspots`) is

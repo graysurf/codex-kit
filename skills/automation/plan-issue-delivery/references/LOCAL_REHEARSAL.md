@@ -28,9 +28,10 @@ Use this playbook only when the user explicitly requests local rehearsal.
 
 1. Local sprint orchestration (`plan-issue-local`)
    - Validate: `plan-tooling validate --file <plan.md>`
-   - Start plan: `plan-issue-local start-plan --plan <plan.md> --pr-grouping group --strategy auto`
+   - Start plan:
+     `plan-issue-local start-plan --plan <plan.md> --strategy auto --default-pr-grouping group`
    - Start sprint:
-     `plan-issue-local start-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto`
+     `plan-issue-local start-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --strategy auto --default-pr-grouping group`
    - Link PR (task scope):
 
      ```bash
@@ -45,11 +46,11 @@ Use this playbook only when the user explicitly requests local rehearsal.
 
    - Status checkpoint (optional): `plan-issue-local status-plan --body-file <issue-body.md> --dry-run`
    - Ready sprint:
-     `plan-issue-local ready-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto`
+     `plan-issue-local ready-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --strategy auto --default-pr-grouping group`
    - Accept sprint:
 
      ```bash
-     plan-issue-local accept-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+     plan-issue-local accept-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --strategy auto --default-pr-grouping group --approved-comment-url <comment-url>
      ```
 
 2. Plan-level local/offline rehearsal (`plan-issue --dry-run`)
@@ -59,9 +60,12 @@ Use this playbook only when the user explicitly requests local rehearsal.
 ## Grouping Policy During Rehearsal
 
 - Keep the same grouping contract used in live flow:
-  - Default: `--pr-grouping group --strategy auto`
-  - Explicit deterministic/manual override: `--pr-grouping group --strategy deterministic` plus full `--pr-group` coverage
-  - Explicit per-sprint override: `--pr-grouping per-sprint` with no `--pr-group`
+  - Default: `--strategy auto --default-pr-grouping group`
+  - Explicit deterministic/manual override:
+    `--strategy deterministic --pr-grouping group` plus full `--pr-group`
+    coverage
+  - Explicit per-sprint override:
+    `--strategy deterministic --pr-grouping per-sprint` with no `--pr-group`
 
 ## Rehearsal-Specific Failure Modes
 

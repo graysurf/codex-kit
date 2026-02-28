@@ -139,7 +139,8 @@ Failure modes:
 
 ## Workflow
 
-1. Validate the plan (`plan-tooling validate`) and lock grouping policy (`group + auto` by default).
+1. Validate the plan (`plan-tooling validate`) and lock grouping policy
+   (metadata-first `--strategy auto --default-pr-grouping group` by default).
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
 3. Initialize issue runtime workspace under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`.
 4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
@@ -152,12 +153,15 @@ Failure modes:
 ## PR Grouping Steps (Mandatory)
 
 1. Resolve grouping intent from user instructions before any split command.
-2. If the user did not explicitly request grouping behavior, lock to default `group + auto` (`--pr-grouping group --strategy auto`).
+2. If the user did not explicitly request grouping behavior, lock to
+   metadata-first auto (`--strategy auto --default-pr-grouping group`).
 3. Use explicit `group + deterministic` only when the user explicitly requests deterministic/manual grouping.
    - You must pass `--pr-group` and cover every task in scope.
 4. Use explicit `per-sprint` only when the user explicitly requests one shared lane per sprint.
+   - Use `--strategy deterministic --pr-grouping per-sprint`.
    - Do not pass `--pr-group`; all tasks in the sprint share one PR group anchor.
-5. Keep the same grouping flags across the same sprint flow (`start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`) to avoid
+5. Keep the same grouping arguments across the same sprint flow
+   (`start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`) to avoid
    row/spec drift.
 
 ## Completion Policy (Mandatory)
@@ -179,9 +183,13 @@ Failure modes:
 3. If the user explicitly asks for local rehearsal, switch to `references/LOCAL_REHEARSAL.md` instead of mixing rehearsal commands into this
    flow.
 4. Lock PR grouping policy from user intent:
-   - no explicit user request: use `group + auto`
-   - explicit request for deterministic/manual grouping: use `group + deterministic` with full `--pr-group` coverage
-   - explicit request for one-shared-lane-per-sprint behavior: use `per-sprint`
+   - no explicit user request: use metadata-first auto
+     (`--strategy auto --default-pr-grouping group`)
+   - explicit request for deterministic/manual grouping: use
+     `--strategy deterministic --pr-grouping group` with full `--pr-group`
+     coverage
+   - explicit request for one-shared-lane-per-sprint behavior: use
+     `--strategy deterministic --pr-grouping per-sprint`
 5. Run `start-plan` to initialize plan orchestration (`1 plan = 1 issue` in live mode).
 6. Capture the issue number immediately after `start-plan` and store it for reuse:
    - Example: `ISSUE_NUMBER=<start-plan output issue number>`
@@ -195,7 +203,9 @@ Failure modes:
    - Dispatch record path:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/manifests/dispatch-<TASK_ID>.json`
 8. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
-   - main-agent follows the locked grouping policy (default `group + auto`; switch only on explicit user request) and emits dispatch hints
+   - main-agent follows the locked grouping policy (default metadata-first auto
+     with `--default-pr-grouping group`; switch only on explicit user request)
+     and emits dispatch hints
    - main-agent starts subagents using dispatch bundles that include:
      - rendered `TASK_PROMPT_PATH` prompt artifact from dispatch hints
      - `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
@@ -225,16 +235,20 @@ Failure modes:
 
 ## Command-Oriented Flow
 
-Default command templates in this section use the fixed policy `--pr-grouping group --strategy auto`. Only switch to `group + deterministic`
-or `per-sprint` when the user explicitly requests that behavior. Capture the `ISSUE_NUMBER` output from `start-plan` once, then reuse it in
-all `--issue` flags. Keep approval URLs explicit per gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`, `PLAN_APPROVED_COMMENT_URL`
-for `close-plan`.
+Default command templates in this section use the fixed policy
+`--strategy auto --default-pr-grouping group`. Only switch to deterministic
+grouping or explicit per-sprint deterministic mode when the user explicitly
+requests that behavior. Capture the `ISSUE_NUMBER` output from `start-plan`
+once, then reuse it in all `--issue` flags. Keep approval URLs explicit per
+gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
+`PLAN_APPROVED_COMMENT_URL` for `close-plan`.
 
 1. Live mode (`plan-issue`)
    - Validate: `plan-tooling validate --file <plan.md>`
-   - Start plan: `plan-issue start-plan --plan <plan.md> --pr-grouping group --strategy auto [--repo <owner/repo>]`
+   - Start plan:
+     `plan-issue start-plan --plan <plan.md> --strategy auto --default-pr-grouping group [--repo <owner/repo>]`
    - Start sprint:
-     `plan-issue start-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto [--repo <owner/repo>]`
+     `plan-issue start-sprint --plan <plan.md> --issue <number> --sprint <n> --strategy auto --default-pr-grouping group [--repo <owner/repo>]`
    - Link PR (task scope):
      `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>] [--repo <owner/repo>]`
    - Link PR (sprint lane scope):
@@ -245,20 +259,21 @@ for `close-plan`.
 
    - Status checkpoint (optional): `plan-issue status-plan --issue <number> [--repo <owner/repo>]`
    - Ready sprint:
-     `plan-issue ready-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto [--repo <owner/repo>]`
+     `plan-issue ready-sprint --plan <plan.md> --issue <number> --sprint <n> --strategy auto --default-pr-grouping group [--repo <owner/repo>]`
    - Accept sprint:
 
      ```bash
-     plan-issue accept-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url> [--repo <owner/repo>]
+     plan-issue accept-sprint --plan <plan.md> --issue <number> --sprint <n> --strategy auto --default-pr-grouping group --approved-comment-url <comment-url> [--repo <owner/repo>]
      ```
 
    - Ready plan: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
    - Close plan: `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
 2. Explicit override patterns (only when user explicitly requests):
 
-- Deterministic/manual split: replace `--strategy auto` with `--strategy deterministic` and pass full `--pr-group <task-id>=<group>`
-  coverage.
-- Per-sprint single lane: replace `--pr-grouping group --strategy auto` with `--pr-grouping per-sprint` and do not pass `--pr-group`.
+- Deterministic/manual split: use `--strategy deterministic --pr-grouping group`
+  and pass full `--pr-group <task-id>=<group>` coverage.
+- Per-sprint single lane: use `--strategy deterministic --pr-grouping per-sprint`
+  and do not pass `--pr-group`.
 
 ## Role boundary (mandatory)
 

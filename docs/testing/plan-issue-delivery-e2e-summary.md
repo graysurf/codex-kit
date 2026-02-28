@@ -16,10 +16,7 @@ Use this template after the final `ready-plan` and `close-plan` flow. Fill each 
 
 ```bash
 plan-issue close-plan \
-  --plan docs/plans/plan-issue-delivery-e2e-test-plan.md \
   --issue ISSUE_NUMBER \
-  --pr-grouping group \
-  --strategy auto \
   --approved-comment-url APPROVED_COMMENT_URL
 ```
 

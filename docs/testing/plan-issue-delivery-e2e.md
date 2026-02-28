@@ -15,7 +15,7 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
 2. Start sprint dispatch flow:
 
    ```bash
-   plan-issue start-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto
+   plan-issue start-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --strategy auto --default-pr-grouping group
    ```
 
 3. Verify dispatch bundle artifacts before implementation handoff:
@@ -61,7 +61,7 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
 - [ ] Review handoff command has been run and recorded:
 
   ```bash
-  plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --pr-grouping group --strategy auto
+  plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --strategy auto --default-pr-grouping group
   ```
 
 - [ ] `accept-sprint` precondition: every linked sprint PR is merged before acceptance.
@@ -69,7 +69,7 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
 - [ ] Acceptance command includes required approval evidence:
 
   ```bash
-  plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+  plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --strategy auto --default-pr-grouping group --approved-comment-url <comment-url>
   ```
 
 ## Sprint 3 Final Plan Review and Close Checklist
@@ -79,14 +79,14 @@ Use this final-gate section only after all sprint-level `accept-sprint` loops ar
 - [ ] Final plan review command has been run and recorded:
 
   ```bash
-  plan-issue ready-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto
+  plan-issue ready-plan --issue <issue-number>
   ```
 
 - [ ] `ready-plan` evidence confirms every required sprint PR is merged and no required task row is pending.
 - [ ] Final closure command is prepared with plan-level approval evidence:
 
   ```bash
-  plan-issue close-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+  plan-issue close-plan --issue <issue-number> --approved-comment-url <comment-url>
   ```
 
 - [ ] `close-plan` is blocked when the merged-PR gate fails for any required lane PR.
