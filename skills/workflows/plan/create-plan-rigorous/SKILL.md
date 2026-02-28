@@ -81,9 +81,14 @@ Failure modes:
   - `Sprint` is an integration/decision gate. Do not schedule cross-sprint execution parallelism.
   - Optimize for parallel execution inside a sprint by improving the task DAG (dependencies, file overlap, PR grouping).
 - For each sprint, run:
-  - `plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>`
-  - `plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>`
-  - `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --strategy auto --default-pr-grouping group --format json`
+
+  ```bash
+  plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>
+  plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>
+  plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint \
+    --sprint <n> --strategy auto --default-pr-grouping group --format json
+  ```
+
 - If planning explicit deterministic/manual grouping for a sprint:
   - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
   - Validate with:
