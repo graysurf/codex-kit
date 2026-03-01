@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.4 - 2026-03-02
+
+### Added
+
+- `issue-pr-review` now ships a reusable review-evidence template to document decision rationale and merge/follow-up outcomes (`#203`).
+
+### Changed
+
+- Issue delivery workflows now standardize task-lane continuity and post-review sync expectations across main-agent/subagent handoffs (`#200`).
+- `plan-issue-delivery` now requires main-agent init snapshot artifacts before dispatching sprint work (`#202`).
+- `issue-pr-review` merge/request-followup/close flows now require evidence-gated decision inputs and validation hooks (`#203`).
+
+### Fixed
+
+- `scripts/project-resolve` now fails fast when required option values are missing, with updated smoke coverage (`#201`).
+
 ## v2.3.2 - 2026-02-27
 
 ### Added
