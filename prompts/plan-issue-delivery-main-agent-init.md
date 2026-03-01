@@ -26,6 +26,9 @@ Execution context (fill before run)
 - Plan issue: `<ISSUE_NUMBER or TBD>`
 - Current sprint: `<N>`
 - Runtime workspace root: $AGENT_HOME/out/plan-issue-delivery
+- Main-agent init source path: $AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md
+- Main-agent init snapshot path:
+  `$AGENT_HOME/out/plan-issue-delivery/{repo-slug}/issue-<ISSUE_NUMBER>/prompts/plan-issue-delivery-main-agent-init.snapshot.md`
 
 PR grouping policy (scene-based; both are valid)
 
@@ -37,14 +40,19 @@ Required workflow
 
 1. Validate prerequisites (plan-tooling, gh auth, required scripts, plan validation).
 2. Run `start-plan` once for the full plan issue.
-3. For each sprint: `start-sprint` -> verify `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` +
-   `DISPATCH_RECORD_PATH` artifacts under `$AGENT_HOME/out/plan-issue-delivery/...` -> delegate to subagents -> if blocked, clarify and
+3. Copy `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md` to issue runtime as `MAIN_AGENT_INIT_SNAPSHOT_PATH` before any
+   `start-sprint`, and keep this snapshot as the immutable orchestration baseline for the issue lifecycle.
+4. For each sprint: `start-sprint` -> verify
+   `MAIN_AGENT_INIT_SNAPSHOT_PATH` + `TASK_PROMPT_PATH` +
+   `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` +
+   `DISPATCH_RECORD_PATH` artifacts under
+   `$AGENT_HOME/out/plan-issue-delivery/...` -> delegate to subagents -> if blocked, clarify and
    continue on the same task lane -> `ready-sprint` -> review each PR using the
    shared review rubric -> apply shared post-review outcome handling ->
    merge/close as appropriate -> `accept-sprint`.
-4. Enforce previous sprint merged+done gate before starting next sprint.
-5. After final sprint acceptance: `ready-plan` -> `close-plan` with approval URL.
-6. Treat any gate failure as unfinished work; stop forward progress and report unblock actions.
+5. Enforce previous sprint merged+done gate before starting next sprint.
+6. After final sprint acceptance: `ready-plan` -> `close-plan` with approval URL.
+7. Treat any gate failure as unfinished work; stop forward progress and report unblock actions.
 
 Mandatory subagent launch rule
 

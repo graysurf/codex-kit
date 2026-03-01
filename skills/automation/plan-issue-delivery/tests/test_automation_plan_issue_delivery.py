@@ -75,6 +75,8 @@ def test_plan_issue_delivery_skill_defines_runtime_workspace_policy() -> None:
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "$AGENT_HOME/out/plan-issue-delivery" in text
     assert "Runtime Workspace Policy (Mandatory)" in text
+    assert "MAIN_AGENT_INIT_SOURCE_PATH" in text
+    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in text
     assert "PLAN_SNAPSHOT_PATH" in text
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" in text
     assert "DISPATCH_RECORD_PATH" in text
@@ -117,8 +119,10 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "$AGENT_HOME/out/plan-issue-delivery" in subagent_prompt
 
     assert "PLAN_SNAPSHOT_PATH" in main_agent_prompt
+    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
     assert "DISPATCH_RECORD_PATH" in main_agent_prompt
+    assert "$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md" in main_agent_prompt
     assert "$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md" in main_agent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in main_agent_prompt
     assert "$AGENT_HOME/skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md" in subagent_prompt
@@ -127,6 +131,15 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "$AGENT_HOME/skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md" in main_agent_prompt
     assert "--next-owner" in main_agent_prompt
     assert "--close-reason" in main_agent_prompt
+
+
+def test_plan_issue_delivery_runtime_layout_tracks_main_agent_snapshot_artifacts() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "references" / "RUNTIME_LAYOUT.md").read_text(encoding="utf-8")
+    assert "MAIN_AGENT_INIT_SOURCE_PATH" in text
+    assert "plan-issue-delivery-main-agent-init.md" in text
+    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in text
+    assert "issue runtime initialization" in text
 
 
 def test_plan_issue_delivery_skill_excludes_deleted_wrapper_scripts() -> None:

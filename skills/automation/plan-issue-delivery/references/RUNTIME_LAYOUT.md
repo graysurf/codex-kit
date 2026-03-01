@@ -17,6 +17,10 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
 
 ## Required Artifacts
 
+- Source main-agent init prompt:
+  - `MAIN_AGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md"`
+- Snapshot of main-agent init prompt (copied during issue runtime initialization, before sprint orchestration):
+  - `MAIN_AGENT_INIT_SNAPSHOT_PATH="$ISSUE_ROOT/prompts/plan-issue-delivery-main-agent-init.snapshot.md"`
 - Source plan path:
   - `PLAN_SOURCE_PATH="<repo>/docs/plans/...-plan.md"`
 - Snapshot fallback (copied at sprint start):

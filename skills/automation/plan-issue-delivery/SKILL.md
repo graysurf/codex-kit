@@ -28,6 +28,10 @@ Inputs:
 - Approval URL format for both gates: `https://github.com/<owner>/<repo>/(issues|pull)/<n>#issuecomment-<id>`.
 - Optional repository override (`--repo <owner/repo>`) in live mode.
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
+- Main-agent init source prompt path (`MAIN_AGENT_INIT_SOURCE_PATH`):
+  `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`.
+- Issue-scoped `MAIN_AGENT_INIT_SNAPSHOT_PATH` copied from
+  `MAIN_AGENT_INIT_SOURCE_PATH` during issue runtime initialization.
 - Mandatory subagent dispatch bundle:
   - rendered `TASK_PROMPT_PATH` from `start-sprint`
   - sprint-scoped `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
@@ -47,6 +51,9 @@ Outputs:
 - Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints, including `pr_group`.
 - Sprint-scoped rendered subagent prompt files + a prompt manifest (`task_id -> prompt_path -> execution_mode`) generated at `start-sprint`.
 - Runtime artifacts and worktrees are namespaced under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/...`.
+- Issue-scoped main-agent init prompt snapshot
+  (`MAIN_AGENT_INIT_SNAPSHOT_PATH`) is generated for deterministic
+  orchestration restarts.
 - Issue-scoped plan snapshot (`PLAN_SNAPSHOT_PATH`) is generated for dispatch fallback.
 - Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`) is generated for immutable dispatch.
 - Task-scoped dispatch records (`DISPATCH_RECORD_PATH`) are generated per assignment for traceability.
@@ -94,7 +101,9 @@ Failure modes:
 - `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
 - Runtime workspace root missing/unwritable (`$AGENT_HOME/out/plan-issue-delivery`).
-- Sprint runtime artifacts missing (for example `TASK_PROMPT_PATH`, `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, or
+- Issue/sprint runtime artifacts missing (for example
+  `MAIN_AGENT_INIT_SNAPSHOT_PATH`, `TASK_PROMPT_PATH`,
+  `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, or
   `DISPATCH_RECORD_PATH` not emitted under runtime root).
 - Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, `PLAN_SNAPSHOT_PATH`,
   `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
@@ -110,6 +119,8 @@ Failure modes:
   - `ISSUE_ROOT="$RUNTIME_ROOT/<repo-slug>/issue-<ISSUE_NUMBER>"`
   - `SPRINT_ROOT="$ISSUE_ROOT/sprint-<N>"`
 - Required runtime artifacts:
+  - `MAIN_AGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md"`
+  - `MAIN_AGENT_INIT_SNAPSHOT_PATH="$ISSUE_ROOT/prompts/plan-issue-delivery-main-agent-init.snapshot.md"`
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
   - `SUBAGENT_INIT_SNAPSHOT_PATH="$SPRINT_ROOT/prompts/plan-issue-delivery-subagent-init.snapshot.md"`
@@ -119,6 +130,9 @@ Failure modes:
   - `pr-isolated`: `.../worktrees/pr-isolated/<TASK_ID>`
   - `pr-shared`: `.../worktrees/pr-shared/<PR_GROUP>`
   - `per-sprint`: `.../worktrees/per-sprint/sprint-<N>`
+- `start-plan` (or immediate post-`start-plan` issue runtime initialization)
+  must copy `MAIN_AGENT_INIT_SOURCE_PATH` into
+  `MAIN_AGENT_INIT_SNAPSHOT_PATH` before any `start-sprint`.
 - `start-sprint` must copy the source plan into `PLAN_SNAPSHOT_PATH` before subagent dispatch.
 - `start-sprint` must copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` into `SUBAGENT_INIT_SNAPSHOT_PATH` before subagent
   dispatch.
@@ -161,8 +175,12 @@ Failure modes:
 1. Validate the plan (`plan-tooling validate`) and lock grouping policy
    (metadata-first `--strategy auto --default-pr-grouping group` by default).
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
-3. Initialize issue runtime workspace under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`.
-4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
+3. Initialize issue runtime workspace under
+   `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`, and copy
+   `MAIN_AGENT_INIT_SOURCE_PATH` into `MAIN_AGENT_INIT_SNAPSHOT_PATH`.
+4. Run `start-sprint`, ensure `MAIN_AGENT_INIT_SNAPSHOT_PATH` +
+   `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` +
+   `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
    exist, dispatch subagents, keep task lanes stable, and keep row state current via `link-pr`.
 5. For each sprint: implement/clarify/follow-up on subagent-owned lanes -> `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
 6. Repeat step 5 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
@@ -216,12 +234,20 @@ Failure modes:
 7. Initialize issue runtime workspace and plan snapshot:
    - Runtime root: `$AGENT_HOME/out/plan-issue-delivery`
    - Issue root: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER`
+   - Main-agent init source path:
+     `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`
+   - Main-agent init snapshot path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/prompts/plan-issue-delivery-main-agent-init.snapshot.md`
+   - Copy main-agent init source prompt into the snapshot path before any
+     `start-sprint` execution.
    - Snapshot path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan.snapshot.md`
    - Subagent init snapshot path:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/prompts/plan-issue-delivery-subagent-init.snapshot.md`
    - Dispatch record path:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/manifests/dispatch-<TASK_ID>.json`
 8. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
+   - main-agent verifies `MAIN_AGENT_INIT_SNAPSHOT_PATH` exists before sprint
+     dispatch
    - main-agent follows the locked grouping policy (default metadata-first auto
      with `--default-pr-grouping group`; switch only on explicit user request)
      and emits dispatch hints
