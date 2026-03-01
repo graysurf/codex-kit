@@ -77,6 +77,7 @@ Outputs:
 - `close-plan` enforces cleanup of all issue-assigned task worktrees before completion.
 - Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed (live mode), and worktree cleanup passes.
 - Error contract: if any gate/command fails, stop forward progress and report the failing command plus key stderr/stdout gate errors.
+- Runtime task lanes stay stable across implementation, clarification, CI, and review follow-up unless main-agent explicitly reassigns them.
 
 Exit codes:
 
@@ -128,6 +129,18 @@ Failure modes:
   - source plan path (last fallback)
 - `close-plan` must enforce worktree cleanup under `"$ISSUE_ROOT/worktrees"`; leftovers fail the close gate.
 
+## Task Lane Continuity (Mandatory)
+
+- Follow the shared task-lane continuity policy:
+  `skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md`
+- Treat each runtime row as one task lane that stays stable until merge/close.
+- If a lane is blocked on missing/conflicting context or an external
+  dependency, keep the lane assignment intact, sync `blocked`, and resume the
+  same lane after clarification/unblock.
+- Replacement subagent dispatch is exceptional; when it happens, preserve
+  runtime-truth facts and existing PR linkage unless the row is intentionally
+  updated first.
+
 ## Binaries (only entrypoints)
 
 - `plan-issue` (live GitHub orchestration)
@@ -136,6 +149,12 @@ Failure modes:
 
 - Local rehearsal playbook (`plan-issue-local` and `plan-issue --dry-run`): `references/LOCAL_REHEARSAL.md`
 - Runtime layout and path rules: `references/RUNTIME_LAYOUT.md`
+- Shared task-lane continuity policy (canonical):
+  `skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md`
+- Shared main-agent review rubric (canonical):
+  `skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`
+- Shared post-review outcome handling (canonical):
+  `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md`
 
 ## Workflow
 
@@ -144,8 +163,8 @@ Failure modes:
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
 3. Initialize issue runtime workspace under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`.
 4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
-   exist, dispatch subagents, and keep row state current via `link-pr`.
-5. For each sprint: `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
+   exist, dispatch subagents, keep task lanes stable, and keep row state current via `link-pr`.
+5. For each sprint: implement/clarify/follow-up on subagent-owned lanes -> `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
 6. Repeat step 5 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
 7. After final sprint acceptance, run `ready-plan`, then `close-plan` with plan-level approval URL.
 8. If rehearsal is explicitly requested, switch to `references/LOCAL_REHEARSAL.md`.
@@ -212,26 +231,35 @@ Failure modes:
      - `PLAN_SNAPSHOT_PATH` from issue runtime workspace
      - `DISPATCH_RECORD_PATH` from sprint manifest artifacts
      - assigned plan task section snippet/link/path (from plan file or sprint-start comment section)
-   - subagents create worktrees/PRs and implement tasks
+   - subagents create or re-enter assigned worktrees/PRs and implement tasks on their assigned lanes
 9. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
    - task scope: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - sprint scope:
      `plan-issue link-pr --issue <number> --sprint <n> --pr-group <group> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - `--task` auto-syncs shared lanes; `--sprint` without `--pr-group` is valid only when the sprint target resolves to one runtime lane.
-10. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
-11. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
-12. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
-13. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done`
+   - Use `in-progress` while a lane is actively implementing, fixing CI, or addressing review follow-up.
+   - Use `blocked` while a lane is waiting on missing/conflicting context or another external unblock.
+10. If a lane is blocked by missing/conflicting context or another external dependency, stop forward progress, clarify/unblock it, and send
+    work back to that same lane by default.
+11. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
+12. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
+13. Main-agent reviews each sprint PR against the shared review rubric
+    (`skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`),
+    then records approval and requests follow-up back to the same
+    subagent-owned lanes or merges the PRs.
+14. After each review decision, apply
+    `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md` to sync
+    runtime-truth rows before any further dispatch or acceptance gate.
+15. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done`
     (issue stays open).
-14. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
-15. After the final sprint is implemented and accepted, run `ready-plan` for final review:
-
-- `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
-
-1. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce merged-PR/task gates, close the single plan issue, and force
-   cleanup of task worktrees:
-
-- `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
+16. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
+17. After the final sprint is implemented and accepted, run `ready-plan` for
+    final review:
+    `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
+18. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce
+    merged-PR/task gates, close the single plan issue, and force cleanup of
+    task worktrees:
+    `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
 
 ## Command-Oriented Flow
 
@@ -281,3 +309,14 @@ gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
 - Main-agent does not implement sprint tasks directly.
 - Sprint implementation must be delegated to subagent-owned PRs.
 - Sprint comments and plan close actions are main-agent orchestration artifacts; implementation remains subagent-owned.
+- Review follow-up returns to the existing subagent-owned lanes by default; reassignment is explicit, not implicit.
+- Main-agent review decisions should follow
+  `skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`
+  before calling `issue-pr-review`.
+- After `request-followup` or `close-pr`, main-agent should apply
+  `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md` before
+  any new dispatch, acceptance gate, or next-sprint transition.
+- For `issue-pr-review` execution, prefer structured outcome flags
+  (`request-followup`: `--row-status`, `--next-owner`; `close-pr`:
+  `--close-reason`, `--next-action`, optional `--replacement-pr`,
+  `--row-status`) to minimize ad-hoc comment formatting decisions.

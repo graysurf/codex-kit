@@ -29,6 +29,12 @@ def test_issue_subagent_pr_skill_requires_native_git_gh_commands() -> None:
     assert "gh pr comment" in text
 
 
+def test_issue_subagent_pr_skill_uses_shared_task_lane_policy() -> None:
+    skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
+    text = skill_md.read_text(encoding="utf-8")
+    assert "_shared/references/TASK_LANE_CONTINUITY.md" in text
+
+
 def test_issue_subagent_pr_skill_excludes_deleted_wrapper_script() -> None:
     skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
     text = skill_md.read_text(encoding="utf-8")

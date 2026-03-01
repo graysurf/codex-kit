@@ -28,6 +28,8 @@ Outputs:
 - Deterministic consistency checks on `Task Decomposition` (single source of truth).
 - Deterministic CLI output suitable for orchestration scripts.
 - Owner policy enforcement for implementation tasks: `Owner` must reference a subagent identity.
+- Canonical task-lane storage in `Task Decomposition`, aligned with the shared
+  issue workflow continuity policy.
 
 Exit codes:
 
@@ -70,16 +72,26 @@ Failure modes:
 
 - Skill issue template (single source of truth): `references/ISSUE_TEMPLATE.md`
 - Task split example spec: `references/TASK_SPLIT_SPEC.tsv`
+- Shared task-lane continuity policy (canonical):
+  `skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md`
+- Shared post-review outcome handling (canonical):
+  `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md`
 
 ## Notes
 
 - Use `--dry-run` whenever composing commands from a higher-level orchestrator.
 - `Task Decomposition` is the only execution-state table in the issue body. `Owner` / `Branch` / `Worktree` / `Execution Mode` / `PR` should
   start as `TBD` and be updated with actual values during execution.
+- Once assigned, those row fields define the canonical task lane; follow the
+  shared policy in
+  `skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md`.
 - `Execution Mode` values: `per-sprint`, `pr-isolated`, `pr-shared` (or `TBD` before assignment). Branch/worktree uniqueness is enforced
   only for `pr-isolated`.
 - `open` / `update` automatically validate template consistency when body contains `## Task Decomposition`; use `--skip-consistency-check`
   only for exceptional cases.
 - `sync` normalizes the task table shape (including `Execution Mode`) and removes any legacy `## Subagent PRs` section.
 - Keep decomposition and status notes in issue comments so execution history remains traceable.
+- Review outcomes should sync `Task Decomposition` state using the shared
+  post-review rules in
+  `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md`.
 - In issue-driven implementation loops, `Owner` is for subagents only; main-agent remains orchestration/review-only.

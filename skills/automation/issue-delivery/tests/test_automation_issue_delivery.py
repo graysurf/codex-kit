@@ -37,6 +37,29 @@ def test_issue_delivery_skill_uses_binary_first_command_contract() -> None:
     assert "close-plan" in text
 
 
+def test_issue_delivery_skill_uses_shared_task_lane_policy() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md" in text
+
+
+def test_issue_delivery_skill_uses_shared_review_rubric() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md" in text
+    assert "apply the shared main-agent review rubric" in text
+
+
+def test_issue_delivery_skill_uses_shared_post_review_outcomes() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md" in text
+    assert "After each review decision" in text
+    assert "--row-status" in text
+    assert "--next-owner" in text
+    assert "--close-reason" in text
+
+
 def test_issue_delivery_skill_excludes_deleted_wrapper_script() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")

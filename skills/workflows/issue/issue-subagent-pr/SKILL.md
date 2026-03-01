@@ -1,12 +1,14 @@
 ---
 name: issue-subagent-pr
 description:
-  Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked back to the owning issue.
+  Subagent workflow for assigned task-lane implementation, blocker clarification handoffs, draft PR creation, and review-response updates
+  linked back to the owning issue.
 ---
 
 # Issue Subagent PR
 
-Subagent owns implementation execution in assigned branches/worktrees and keeps PR/issue artifacts synchronized.
+Subagent owns implementation execution on an assigned task lane (`Owner / Branch / Worktree / Execution Mode / PR`) and keeps PR/issue
+artifacts synchronized.
 
 ## Contract
 
@@ -34,13 +36,17 @@ Inputs:
 - Required implementation context in local rehearsal mode:
   - local rendered task prompt/artifacts and plan task context (no GitHub lookup for placeholder issues such as `999`)
 - Base branch, PR title, and PR body markdown file path.
-- Optional review comment URL + response body markdown for follow-up comments.
+- Optional follow-up context for lane re-entry:
+  - review comment URL + response body markdown for follow-up comments
+  - clarification/unblock notes from main-agent for a previously assigned lane
 
 Outputs:
 
-- Dedicated task worktree checked out to the assigned branch.
-- Draft PR URL for the implementation branch.
+- Dedicated task worktree checked out to the assigned branch, either by re-entering the existing lane or by creating the lane if it does not
+  exist yet.
+- Draft PR URL for the implementation branch, or confirmed reuse of the assigned PR for follow-up work.
 - PR/body validation evidence (required sections present; placeholders removed).
+- Blocker/clarification handoff packet when required context is missing/conflicting or an external blocker stops forward progress.
 - Review response comments on the PR that reference the main-agent review comment URL.
 - Optional issue sync comments (`gh issue comment`) that mirror task status and PR linkage.
 - `plan-issue` artifact compatibility: canonical issue/PR references (`#<number>`) suitable for Task Decomposition sync.
@@ -62,9 +68,23 @@ Failure modes:
 - Context mismatch between issue artifacts and main-agent dispatch artifacts (scope, ownership, branch/worktree, execution mode).
 - `plan-issue-delivery` mode: assigned `WORKTREE` path is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Worktree path collision or branch already bound to another worktree.
+- Follow-up/re-entry drifts away from the assigned task lane by inventing a replacement `Owner`, `Branch`, `Worktree`, or `PR` without
+  explicit reassignment.
 - Empty PR body file or unresolved template placeholders (`TBD`, `TODO`, `<...>`, `#<number>`, template stub lines).
 - Missing required PR body sections (`## Summary`, `## Scope`, `## Testing`, `## Issue`).
 - `gh` auth/permission failures for PR/issue reads or writes.
+
+## Task Lane Continuity (Mandatory)
+
+- Follow the shared task-lane continuity policy:
+  `skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md`
+- Treat assigned `Owner / Branch / Worktree / Execution Mode / PR` as one task
+  lane.
+- Re-enter an existing worktree/branch/PR when the lane already exists; create
+  lane artifacts only when they do not exist yet or when main-agent explicitly
+  reassigns the lane.
+- If clarification or follow-up is needed, hand control back to main-agent
+  with exact lane facts and continue on that same lane once clarified.
 
 ## Command Contract (Scriptless)
 
@@ -114,7 +134,12 @@ Failure modes:
      paths.
    - In `plan-issue-delivery` mode, enforce `WORKTREE` prefix: `$AGENT_HOME/out/plan-issue-delivery/`.
    - If any required context is missing or conflicting, stop and request clarification from main-agent before implementation.
-4. Create isolated worktree/branch with `git worktree`:
+   - When pausing for clarification, return a concise blocker packet:
+     - confirmed task-lane facts
+     - missing/conflicting context
+     - current status (`blocked` vs `in-progress`)
+     - exact next unblock action needed from main-agent
+4. Create or re-enter the assigned worktree/branch:
 
    - ```bash
      AGENT_HOME="${AGENT_HOME:?AGENT_HOME is required}"
@@ -125,9 +150,14 @@ Failure modes:
      BRANCH="issue/${ISSUE}/${TASK_ID}-api"
      WORKTREE="$AGENT_HOME/out/plan-issue-delivery/${REPO_SLUG}/issue-${ISSUE}/worktrees/pr-isolated/${TASK_ID}"
 
-     git fetch origin --prune
-     git worktree add -b "$BRANCH" "$WORKTREE" "origin/$BASE"
-     cd "$WORKTREE"
+     if [ -e "$WORKTREE/.git" ]; then
+       cd "$WORKTREE"
+     else
+       git fetch origin --prune
+       git worktree add -b "$BRANCH" "$WORKTREE" "origin/$BASE"
+       cd "$WORKTREE"
+     fi
+
      git branch --show-current
      git worktree list
      ```
@@ -135,6 +165,8 @@ Failure modes:
 5. Implement task scope and run required task-level validation:
    - Prefer validation commands from task context (`TASK_PROMPT_PATH` / sprint task section / Task Decomposition notes).
    - Keep edits inside assigned task scope; escalate before widening scope.
+   - If required context is discovered missing/conflicting during implementation, stop, report the blocker packet, and wait for main-agent
+     clarification instead of inventing replacement lane facts.
 6. Prepare and validate PR body (required sections + placeholder checks):
 
    - ```bash
@@ -151,22 +183,26 @@ Failure modes:
        && { echo "Placeholder content found in PR body" >&2; exit 1; } || true
      ```
 
-7. Open draft PR with `gh pr create`:
+7. Open draft PR with `gh pr create` (initial run only):
 
    - ```bash
-     gh pr create \
-       --draft \
-       --base "$BASE" \
-       --head "$BRANCH" \
-       --title "feat(issue-${ISSUE}): implement ${TASK_ID} API changes" \
-       --body-file "$BODY_FILE"
+     if [ -z "${PR_NUMBER:-}" ]; then
+       gh pr create \
+         --draft \
+         --base "$BASE" \
+         --head "$BRANCH" \
+         --title "feat(issue-${ISSUE}): implement ${TASK_ID} API changes" \
+         --body-file "$BODY_FILE"
+     fi
 
      PR_NUMBER="$(gh pr view --json number --jq '.number')"
      PR_URL="$(gh pr view --json url --jq '.url')"
      echo "Opened ${PR_URL}"
      ```
 
-8. Post review response comment with `gh pr comment` (when follow-up requested):
+   - If the assigned PR already exists, skip `gh pr create`, keep the same branch/worktree/PR lane, and continue updates on that PR.
+
+8. Post review response comment with `gh pr comment` (when follow-up requested on the assigned PR):
 
    - ```bash
      REVIEW_COMMENT_URL="https://github.com/<owner>/<repo>/pull/<pr>#issuecomment-<id>"
@@ -197,6 +233,8 @@ Failure modes:
 - PR body template: `references/PR_BODY_TEMPLATE.md`
 - Review response template: `references/REVIEW_RESPONSE_TEMPLATE.md`
 - Subagent task prompt template: `references/SUBAGENT_TASK_PROMPT_TEMPLATE.md`
+- Shared task-lane continuity policy (canonical):
+  `skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md`
 
 ## Notes
 
@@ -206,3 +244,4 @@ Failure modes:
 - Keep implementation details and evidence in PR comments; issue comments should summarize status and link back to PR artifacts.
 - Subagent owns implementation execution; main-agent remains orchestration/review-only.
 - Even for single-PR issues, implementation PR authorship/ownership stays with subagent.
+- Clarification/follow-up pauses are expected control-flow, not permission to widen scope or create replacement execution facts.
