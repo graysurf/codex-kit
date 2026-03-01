@@ -8,6 +8,15 @@
         "exit_codes": [0],
         "stdout_regex": "README\\.md\\s*$"
       }
+    },
+    {
+      "name": "missing-repo-value",
+      "args": ["--repo"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [2],
+        "stderr_regex": "project-resolve: missing value for --repo"
+      }
     }
   ]
 }

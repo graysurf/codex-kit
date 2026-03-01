@@ -53,34 +53,42 @@ prefer_paths=()
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
     --repo)
+      [[ $# -ge 2 ]] || die "missing value for --repo"
       repo="${2:-}"
       shift 2
       ;;
     --type)
+      [[ $# -ge 2 ]] || die "missing value for --type"
       kind="${2:-}"
       shift 2
       ;;
     --prefer)
+      [[ $# -ge 2 ]] || die "missing value for --prefer"
       prefer_paths+=("${2:-}")
       shift 2
       ;;
     --search-name)
+      [[ $# -ge 2 ]] || die "missing value for --search-name"
       search_name="${2:-}"
       shift 2
       ;;
     --max-depth)
+      [[ $# -ge 2 ]] || die "missing value for --max-depth"
       max_depth="${2:-}"
       shift 2
       ;;
     --fallback)
+      [[ $# -ge 2 ]] || die "missing value for --fallback"
       fallback="${2:-}"
       shift 2
       ;;
     --format)
+      [[ $# -ge 2 ]] || die "missing value for --format"
       format="${2:-}"
       shift 2
       ;;
     --prefix)
+      [[ $# -ge 2 ]] || die "missing value for --prefix"
       prefix="${2:-}"
       shift 2
       ;;
