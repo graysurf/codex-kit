@@ -19,6 +19,28 @@
       }
     },
     {
+      "name": "request-followup-dry-run-structured-row-sync",
+      "args": [
+        "request-followup",
+        "--pr",
+        "456",
+        "--issue",
+        "999",
+        "--body",
+        "Please update tests and edge-cases.",
+        "--row-status",
+        "blocked",
+        "--next-owner",
+        "subagent-1",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "DRY-RUN-PR-COMMENT-URL"
+      }
+    },
+    {
       "name": "merge-dry-run",
       "args": [
         "merge",
@@ -56,6 +78,29 @@
       "expect": {
         "exit_codes": [1],
         "stderr_regex": "disallowed placeholder found"
+      }
+    },
+    {
+      "name": "close-pr-dry-run-structured-outcome",
+      "args": [
+        "close-pr",
+        "--pr",
+        "456",
+        "--issue",
+        "999",
+        "--close-reason",
+        "Superseded by #457",
+        "--replacement-pr",
+        "#457",
+        "--row-status",
+        "in-progress",
+        "--next-action",
+        "Continue implementation on PR #457",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0]
       }
     }
   ]

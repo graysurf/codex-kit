@@ -34,6 +34,12 @@ def test_issue_lifecycle_skill_mentions_subagent_owner_policy() -> None:
     assert "`Owner` is for subagents only" in text
 
 
+def test_issue_lifecycle_skill_uses_shared_task_lane_policy() -> None:
+    skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
+    text = skill_md.read_text(encoding="utf-8")
+    assert "_shared/references/TASK_LANE_CONTINUITY.md" in text
+
+
 def test_issue_lifecycle_execution_modes_are_explicit_and_non_legacy() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     script_text = (skill_root / "scripts" / "manage_issue_lifecycle.sh").read_text(encoding="utf-8")

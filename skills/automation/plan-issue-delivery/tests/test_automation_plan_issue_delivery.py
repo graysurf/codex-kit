@@ -81,6 +81,29 @@ def test_plan_issue_delivery_skill_defines_runtime_workspace_policy() -> None:
     assert "references/RUNTIME_LAYOUT.md" in text
 
 
+def test_plan_issue_delivery_skill_uses_shared_task_lane_policy() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md" in text
+
+
+def test_plan_issue_delivery_skill_uses_shared_review_rubric() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md" in text
+    assert "reviews each sprint PR against the shared review rubric" in text
+
+
+def test_plan_issue_delivery_skill_uses_shared_post_review_outcomes() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md" in text
+    assert "After each review decision" in text
+    assert "--row-status" in text
+    assert "--next-owner" in text
+    assert "--close-reason" in text
+
+
 def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     repo_root = skill_root.parents[2]
@@ -98,6 +121,12 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "DISPATCH_RECORD_PATH" in main_agent_prompt
     assert "$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md" in main_agent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in main_agent_prompt
+    assert "$AGENT_HOME/skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md" in subagent_prompt
+    assert "$AGENT_HOME/skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md" in main_agent_prompt
+    assert "$AGENT_HOME/skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md" in main_agent_prompt
+    assert "$AGENT_HOME/skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md" in main_agent_prompt
+    assert "--next-owner" in main_agent_prompt
+    assert "--close-reason" in main_agent_prompt
 
 
 def test_plan_issue_delivery_skill_excludes_deleted_wrapper_scripts() -> None:

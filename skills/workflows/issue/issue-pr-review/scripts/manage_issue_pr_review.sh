@@ -48,6 +48,12 @@ request-followup options:
   --body <text>                  PR review comment body
   --body-file <path>             PR review comment body file
   --issue-note <text>            Optional extra note appended to issue sync comment
+  --issue-note-file <path>       Optional extra note file appended to issue sync comment
+  --row-status <in-progress|blocked>
+                                Structured follow-up row status (use instead of --issue-note*)
+  --next-owner <name>            Structured follow-up next owner (use instead of --issue-note*)
+  --lane-action <text>           Structured follow-up lane action (default: continue on existing assigned lane)
+  --requested-by <name>          Structured follow-up requester (default: main-agent)
 
 merge options:
   --pr <number>                  PR number (required)
@@ -60,6 +66,7 @@ merge options:
   --reason <completed|not planned>
                                 Issue close reason when --close-issue is used (default: completed)
   --issue-comment <text>         Optional comment on issue after merge/close
+  --issue-comment-file <path>    Optional issue comment file after merge/close
 
 close-pr options:
   --pr <number>                  PR number (required)
@@ -68,6 +75,12 @@ close-pr options:
   --comment <text>               Comment to leave on PR close
   --issue <number>               Related issue number (optional)
   --issue-comment <text>         Optional issue comment for traceability
+  --issue-comment-file <path>    Optional issue comment file for traceability
+  --close-reason <text>          Structured close reason (use instead of --issue-comment*)
+  --replacement-pr <value>       Structured replacement PR/lane ref (default: pending)
+  --row-status <blocked|in-progress|done>
+                                Structured row status after close (default: blocked)
+  --next-action <text>           Structured explicit next action (required with --close-reason)
 USAGE
 }
 
@@ -86,6 +99,82 @@ load_body() {
   fi
 
   printf '%s' "$body_text"
+}
+
+validate_followup_row_status() {
+  local row_status="${1:-}"
+  case "$row_status" in
+    in-progress|blocked)
+      ;;
+    *)
+      die "--row-status for request-followup must be one of: in-progress, blocked"
+      ;;
+  esac
+}
+
+validate_close_row_status() {
+  local row_status="${1:-}"
+  case "$row_status" in
+    blocked|in-progress|done)
+      ;;
+    *)
+      die "--row-status for close-pr must be one of: blocked, in-progress, done"
+      ;;
+  esac
+}
+
+build_followup_issue_note() {
+  local next_owner="${1:-}"
+  local row_status="${2:-}"
+  local lane_action="${3:-}"
+  local requested_by="${4:-}"
+
+  [[ -n "$next_owner" ]] || die "--next-owner is required when using structured follow-up fields"
+  [[ -n "$row_status" ]] || die "--row-status is required when using structured follow-up fields"
+  validate_followup_row_status "$row_status"
+
+  if [[ -z "$lane_action" ]]; then
+    lane_action="continue on existing assigned lane"
+  fi
+  if [[ -z "$requested_by" ]]; then
+    requested_by="main-agent"
+  fi
+
+  printf '%s\n' \
+    "- Next owner: \`$next_owner\`" \
+    "- Row status: \`$row_status\`" \
+    "- Lane action: $lane_action" \
+    "- Requested by: \`$requested_by\`" \
+    "- Action: update PR and reply with evidence in-thread"
+}
+
+build_close_issue_comment() {
+  local pr_number="${1:-}"
+  local close_reason="${2:-}"
+  local replacement_pr="${3:-}"
+  local row_status="${4:-}"
+  local next_action="${5:-}"
+
+  [[ -n "$pr_number" ]] || die "PR number is required for structured close issue comment"
+  [[ -n "$close_reason" ]] || die "--close-reason is required when using structured close outcome fields"
+  [[ -n "$next_action" ]] || die "--next-action is required when using structured close outcome fields"
+
+  if [[ -z "$replacement_pr" ]]; then
+    replacement_pr="pending"
+  fi
+  if [[ -z "$row_status" ]]; then
+    row_status="blocked"
+  fi
+  validate_close_row_status "$row_status"
+
+  printf '%s\n' \
+    "Main-agent closed PR #\`$pr_number\`: \`$close_reason\`" \
+    "" \
+    "- Lane state: retired" \
+    "- Replacement lane / PR: \`$replacement_pr\`" \
+    "- Row status: \`$row_status\`" \
+    "- Next action: \`$next_action\`" \
+    "- Note: do not resume the closed lane unless main-agent explicitly reassigns it"
 }
 
 validate_pr_body_hygiene_text() {
@@ -230,6 +319,11 @@ case "$subcommand" in
     body=""
     body_file=""
     issue_note=""
+    issue_note_file=""
+    row_status=""
+    next_owner=""
+    lane_action=""
+    requested_by=""
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -251,6 +345,26 @@ case "$subcommand" in
           ;;
         --issue-note)
           issue_note="${2:-}"
+          shift 2
+          ;;
+        --issue-note-file)
+          issue_note_file="${2:-}"
+          shift 2
+          ;;
+        --row-status)
+          row_status="${2:-}"
+          shift 2
+          ;;
+        --next-owner)
+          next_owner="${2:-}"
+          shift 2
+          ;;
+        --lane-action)
+          lane_action="${2:-}"
+          shift 2
+          ;;
+        --requested-by)
+          requested_by="${2:-}"
           shift 2
           ;;
         --repo)
@@ -276,6 +390,18 @@ case "$subcommand" in
 
     review_body="$(load_body "$body" "$body_file")"
     [[ -n "$review_body" ]] || die "review body is required (--body or --body-file)"
+    followup_structured="0"
+    if [[ -n "$row_status" || -n "$next_owner" || -n "$lane_action" || -n "$requested_by" ]]; then
+      followup_structured="1"
+    fi
+    if [[ "$followup_structured" == "1" ]]; then
+      if [[ -n "$issue_note" || -n "$issue_note_file" ]]; then
+        die "use either --issue-note/--issue-note-file or structured follow-up fields, not both"
+      fi
+      issue_note="$(build_followup_issue_note "$next_owner" "$row_status" "$lane_action" "$requested_by")"
+    else
+      issue_note="$(load_body "$issue_note" "$issue_note_file")"
+    fi
 
     require_cmd gh
 
@@ -338,6 +464,7 @@ case "$subcommand" in
     close_issue="0"
     close_reason="completed"
     issue_comment=""
+    issue_comment_file=""
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -377,6 +504,10 @@ case "$subcommand" in
           issue_comment="${2:-}"
           shift 2
           ;;
+        --issue-comment-file)
+          issue_comment_file="${2:-}"
+          shift 2
+          ;;
         --repo)
           repo_arg="${2:-}"
           shift 2
@@ -414,6 +545,7 @@ case "$subcommand" in
     if [[ "$close_reason" != "completed" && "$close_reason" != "not planned" ]]; then
       die "--reason must be one of: completed, not planned"
     fi
+    issue_comment="$(load_body "$issue_comment" "$issue_comment_file")"
 
     require_cmd gh
     ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "merge"
@@ -485,6 +617,11 @@ case "$subcommand" in
     pr_comment=""
     issue_number=""
     issue_comment=""
+    issue_comment_file=""
+    close_reason=""
+    replacement_pr=""
+    row_status=""
+    next_action=""
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -512,6 +649,26 @@ case "$subcommand" in
           issue_comment="${2:-}"
           shift 2
           ;;
+        --issue-comment-file)
+          issue_comment_file="${2:-}"
+          shift 2
+          ;;
+        --close-reason)
+          close_reason="${2:-}"
+          shift 2
+          ;;
+        --replacement-pr)
+          replacement_pr="${2:-}"
+          shift 2
+          ;;
+        --row-status)
+          row_status="${2:-}"
+          shift 2
+          ;;
+        --next-action)
+          next_action="${2:-}"
+          shift 2
+          ;;
         --repo)
           repo_arg="${2:-}"
           shift 2
@@ -536,6 +693,19 @@ case "$subcommand" in
     fi
     if [[ -n "$pr_body_file" && ! -f "$pr_body_file" ]]; then
       die "pr body file not found: $pr_body_file"
+    fi
+    close_structured="0"
+    if [[ -n "$close_reason" || -n "$replacement_pr" || -n "$row_status" || -n "$next_action" ]]; then
+      close_structured="1"
+    fi
+    if [[ "$close_structured" == "1" ]]; then
+      if [[ -n "$issue_comment" || -n "$issue_comment_file" ]]; then
+        die "use either --issue-comment/--issue-comment-file or structured close outcome fields, not both"
+      fi
+      [[ -n "$issue_number" ]] || die "--issue is required when using structured close outcome fields"
+      issue_comment="$(build_close_issue_comment "$pr_number" "$close_reason" "$replacement_pr" "$row_status" "$next_action")"
+    else
+      issue_comment="$(load_body "$issue_comment" "$issue_comment_file")"
     fi
 
     require_cmd gh
