@@ -4,6 +4,9 @@ This document is a cross-project reference for CLI tools commonly available in t
 development, testing, and documentation work. Principle: prefer purpose-built tools that are fast, repo-aware, and emit structured output;
 avoid ad-hoc pipelines that are slow or fragile.
 
+Licensing scope note: this is a usage/reference catalog, not a licensing inventory. Track repo-scoped third-party license obligations in
+`THIRD_PARTY_LICENSES.md`.
+
 ## Recommended defaults
 
 - Repo-wide search: `rg` (optionally pipe candidates into `fzf`)
