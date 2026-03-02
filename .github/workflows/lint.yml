@@ -48,7 +48,7 @@ jobs:
           eval "$("$BREW_BIN" shellenv)"
           echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
           echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
-          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap sympoies/tap
           HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
 
       - name: Setup Node.js
@@ -157,7 +157,7 @@ jobs:
           eval "$("$BREW_BIN" shellenv)"
           echo "$("$BREW_BIN" --prefix)/bin" >> "$GITHUB_PATH"
           echo "$("$BREW_BIN" --prefix)/sbin" >> "$GITHUB_PATH"
-          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+          HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap sympoies/tap
           HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
 
       - name: Ensure zsh (for script shebangs)

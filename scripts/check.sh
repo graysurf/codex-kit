@@ -249,7 +249,7 @@ if [[ "$run_plans" -eq 1 ]]; then
   set +e
   plan_tooling="$(command -v plan-tooling || true)"
   if [[ -z "$plan_tooling" ]]; then
-    echo "error: plan-tooling is required (Homebrew: brew tap graysurf/tap && brew install nils-cli)" >&2
+    echo "error: plan-tooling is required (Homebrew: brew tap sympoies/tap && brew install nils-cli)" >&2
     plans_rc=1
   else
     "$plan_tooling" validate

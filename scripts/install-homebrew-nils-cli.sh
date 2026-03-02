@@ -72,7 +72,7 @@ if [[ -n "${GITHUB_PATH:-}" ]]; then
   } >>"$GITHUB_PATH"
 fi
 
-retry 3 5 env HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
+retry 3 5 env HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap sympoies/tap
 
 if "$BREW_BIN" list nils-cli >/dev/null 2>&1; then
   echo "info: nils-cli already installed"

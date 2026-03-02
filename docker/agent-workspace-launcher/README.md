@@ -13,7 +13,7 @@ Upstream repository: [graysurf/agent-workspace-launcher](https://github.com/gray
 ## Quick try (Homebrew)
 
 ```sh
-brew tap graysurf/tap
+brew tap sympoies/tap
 brew install agent-workspace-launcher
 
 agent-workspace-launcher --help

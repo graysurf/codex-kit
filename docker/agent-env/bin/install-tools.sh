@@ -33,7 +33,7 @@ os="$(uname -s)"
 
 # agent-kit binaries are provided via Homebrew tap (nils-cli).
 if ! command -v plan-tooling >/dev/null 2>&1; then
-  brew tap graysurf/tap
+  brew tap sympoies/tap
   brew install nils-cli
 fi
 brew_required_lists=("$required_list")

@@ -24,7 +24,7 @@ Secrets and session data are intentionally excluded via `.gitignore`.
 Install required tooling via the Homebrew tap:
 
 ```zsh
-brew tap graysurf/tap
+brew tap sympoies/tap
 brew install nils-cli
 ```
 

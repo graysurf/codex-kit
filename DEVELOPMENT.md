@@ -65,7 +65,7 @@ Test artifacts:
   - `git` (required by lint scripts for tracked-file discovery)
   - `node`/`npx` (required by markdown lint script)
   - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
-  - `nils-cli` (Homebrew: `brew tap graysurf/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
+  - `nils-cli` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
 
 ## Shell Script Conventions (Shell / zsh)
 
