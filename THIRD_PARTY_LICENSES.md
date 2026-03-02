@@ -58,6 +58,6 @@ Not included:
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
 - `scripts/chrome-devtools-mcp.sh` SHA256: `cf92382116a78c6d1a3dc5a1ac5d9be8498bdb17187cf26b26dae098718f8cd8`
 - `scripts/lint.sh` SHA256: `9e682a5c6046e3f2848b722793f0b80d8733e669162226bccdda16022eb631a8`
-- `.github/workflows/lint.yml` SHA256: `ade258505393ff085029bfb37e4888690cfbb9c2165a8a0ad088138b4a1023af`
-- `scripts/install-homebrew-nils-cli.sh` SHA256: `b3e4d90c299dace0516ff66a4c08964b039c210e572984a66f568447dcd5dfd2`
-- `Dockerfile` SHA256: `fcb970d75263577e6143edf1ba66e5ece0101fb309fd66631c5e1eebf6430c48`
+- `.github/workflows/lint.yml` SHA256: `c524625d16495e432d664bb3f695d78af4c6c7ab469da5332c714a3ee2db7573`
+- `scripts/install-homebrew-nils-cli.sh` SHA256: `744eb98cb937cc02c7096036f8f0f2aa3cf4f4544e0a9a39e62c9af0b5086213`
+- `Dockerfile` SHA256: `e6a9092fcaf4747e11da0e7150a9761af3fc8cbc6b3009f1949577cdc6bd1686`
