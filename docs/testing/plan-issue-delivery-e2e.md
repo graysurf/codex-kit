@@ -25,7 +25,8 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
    ```
 
 4. Subagents implement assigned tasks and open/update lane PRs linked from runtime-truth rows.
-5. Main-agent runs `ready-sprint`, reviews merge evidence, then proceeds to `accept-sprint` with approved comment URL.
+5. Main-agent runs `ready-sprint` as pre-merge review, reviews open PR evidence (base branch + CI + scope), performs merge decisions, then
+   proceeds to `accept-sprint` with approved comment URL.
 
 ## Runtime Artifact Checklist
 
@@ -41,7 +42,7 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
 - Pre-dispatch gate: required artifacts exist and align with assigned task IDs, worktree, and branch.
 - Scope gate: main-agent remains orchestration-only and does not implement sprint code changes directly.
 - Lane gate: each lane PR is linked with canonical `#<number>` format in `## Task Decomposition`.
-- Sprint gate: `accept-sprint` only runs after required lane PRs are merged and approval evidence is available.
+- Sprint gate: `accept-sprint` only runs after required lane PRs are merged into `PLAN_BRANCH` and approval evidence is available.
 
 ## Sprint 2 Gating Checklist
 
@@ -64,12 +65,18 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
   plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --strategy auto --default-pr-grouping group
   ```
 
-- [ ] `accept-sprint` precondition: every linked sprint PR is merged before acceptance.
+- [ ] `accept-sprint` precondition: every linked sprint PR is merged into `PLAN_BRANCH` before acceptance.
 - [ ] Sprint approval evidence is available as an `approved-comment-url` before acceptance.
 - [ ] Acceptance command includes required approval evidence:
 
   ```bash
   plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --strategy auto --default-pr-grouping group --approved-comment-url <comment-url>
+  ```
+
+- [ ] Local sync executed after sprint acceptance:
+
+  ```bash
+  git switch "$PLAN_BRANCH" && git pull --ff-only
   ```
 
 ## Sprint 3 Final Plan Review and Close Checklist
@@ -82,7 +89,9 @@ Use this final-gate section only after all sprint-level `accept-sprint` loops ar
   plan-issue ready-plan --issue <issue-number>
   ```
 
-- [ ] `ready-plan` evidence confirms every required sprint PR is merged and no required task row is pending.
+- [ ] `ready-plan` evidence confirms every required sprint PR is merged into `PLAN_BRANCH` and no required task row is pending.
+- [ ] Final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) is opened/reviewed and merged before `close-plan`.
+- [ ] Plan issue comment mentions final integration PR (`#<number>`) and its comment URL is recorded before `close-plan`.
 - [ ] Final closure command is prepared with plan-level approval evidence:
 
   ```bash
@@ -90,4 +99,10 @@ Use this final-gate section only after all sprint-level `accept-sprint` loops ar
   ```
 
 - [ ] `close-plan` is blocked when the merged-PR gate fails for any required lane PR.
+- [ ] `close-plan` is blocked when the integration-mention gate fails (no mention comment URL on plan issue).
 - [ ] `close-plan` is blocked when plan-level approval evidence is missing or invalid.
+- [ ] Local sync executed after final close:
+
+  ```bash
+  git switch "$DEFAULT_BRANCH" && git pull --ff-only
+  ```

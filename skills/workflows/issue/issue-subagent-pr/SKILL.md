@@ -36,6 +36,8 @@ Inputs:
 - Required implementation context in local rehearsal mode:
   - local rendered task prompt/artifacts and plan task context (no GitHub lookup for placeholder issues such as `999`)
 - Base branch, PR title, and PR body markdown file path.
+  - In `plan-issue-delivery` mode, base branch must come from main-agent
+    dispatch (`PLAN_BRANCH`); do not assume `main`.
 - Optional follow-up context for lane re-entry:
   - review comment URL + response body markdown for follow-up comments
   - clarification/unblock notes from main-agent for a previously assigned lane
@@ -65,7 +67,9 @@ Failure modes:
 - `plan-issue-delivery` mode: missing `PLAN_SNAPSHOT_PATH` fallback artifact from dispatch.
 - `plan-issue-delivery` mode: missing `SUBAGENT_INIT_SNAPSHOT_PATH` companion prompt snapshot artifact from dispatch.
 - `plan-issue-delivery` mode: missing `DISPATCH_RECORD_PATH` assignment artifact from dispatch.
+- Missing/empty base-branch assignment from dispatch (for example `PLAN_BRANCH` not provided in `plan-issue-delivery` mode).
 - Context mismatch between issue artifacts and main-agent dispatch artifacts (scope, ownership, branch/worktree, execution mode).
+- Context mismatch where linked/opened PR base branch differs from assigned base branch.
 - `plan-issue-delivery` mode: assigned `WORKTREE` path is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Worktree path collision or branch already bound to another worktree.
 - Follow-up/re-entry drifts away from the assigned task lane by inventing a replacement `Owner`, `Branch`, `Worktree`, or `PR` without
@@ -101,6 +105,7 @@ Failure modes:
      ISSUE=175
      SPRINT=2
      TASK_ID="S2T3"
+     BASE="plan/issue-175"  # required from dispatch in plan-issue-delivery mode
      ```
 
    - Live mode: `ISSUE` is a real GitHub issue number.
@@ -132,6 +137,8 @@ Failure modes:
    - Confirm assigned task facts align across sources: owner, branch, worktree, execution mode, task scope, and acceptance intent.
    - In `plan-issue-delivery` mode, confirm `DISPATCH_RECORD_PATH` facts match assigned task row (`Task Decomposition`) and runtime artifact
      paths.
+   - Confirm assigned base branch is present; in `plan-issue-delivery` mode it
+     must match dispatched `PLAN_BRANCH`.
    - In `plan-issue-delivery` mode, enforce `WORKTREE` prefix: `$AGENT_HOME/out/plan-issue-delivery/`.
    - If any required context is missing or conflicting, stop and request clarification from main-agent before implementation.
    - When pausing for clarification, return a concise blocker packet:
@@ -145,7 +152,7 @@ Failure modes:
      AGENT_HOME="${AGENT_HOME:?AGENT_HOME is required}"
      ISSUE=123
      TASK_ID=T1
-     BASE=main
+     BASE="${BASE:?BASE is required from lane assignment}"
      REPO_SLUG="owner__repo"
      BRANCH="issue/${ISSUE}/${TASK_ID}-api"
      WORKTREE="$AGENT_HOME/out/plan-issue-delivery/${REPO_SLUG}/issue-${ISSUE}/worktrees/pr-isolated/${TASK_ID}"
@@ -201,6 +208,8 @@ Failure modes:
      ```
 
    - If the assigned PR already exists, skip `gh pr create`, keep the same branch/worktree/PR lane, and continue updates on that PR.
+   - In `plan-issue-delivery` mode, keep the sprint PR open for main-agent
+     `ready-sprint` review; do not self-merge.
 
 8. Post review response comment with `gh pr comment` (when follow-up requested on the assigned PR):
 

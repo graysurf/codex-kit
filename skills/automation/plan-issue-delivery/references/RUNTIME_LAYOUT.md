@@ -29,6 +29,15 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
   - `PLAN_SOURCE_PATH="<repo>/docs/plans/...-plan.md"`
 - Snapshot fallback (copied at sprint start):
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
+- Plan-branch reference artifact (written after `start-plan` runtime init):
+  - `PLAN_BRANCH_REF_PATH="$ISSUE_ROOT/plan/plan-branch.ref"`
+  - Expected value: one canonical branch name (for example `plan/issue-123`)
+- Final integration PR record artifact:
+  - `PLAN_INTEGRATION_PR_PATH="$ISSUE_ROOT/plan/plan-integration-pr.md"`
+  - Expected fields: integration PR number/URL, head/base branches, merge status
+- Final integration PR mention record artifact:
+  - `PLAN_INTEGRATION_MENTION_PATH="$ISSUE_ROOT/plan/plan-integration-mention.url"`
+  - Expected value: plan issue comment URL that mentions `#<integration-pr-number>`
 - Source subagent companion prompt:
   - `SUBAGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md"`
 - Snapshot of subagent companion prompt (copied at sprint start):
@@ -40,7 +49,7 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
 - Task-scoped dispatch record:
   - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
   - Expected keys: `task_id`, `task_prompt_path`, `subagent_init_snapshot_path`, `plan_snapshot_path`, `worktree`, `branch`,
-    `execution_mode`, `pr_group`
+    `execution_mode`, `pr_group`, `base_branch`
 
 ## Worktree Layout (Assigned Paths)
 
@@ -66,6 +75,23 @@ Subagent plan references should be consumed in this order:
 3. `PLAN_SOURCE_PATH` (last fallback).
 
 If these sources conflict, runtime-truth from the issue `Task Decomposition` row wins.
+
+## Branch Contract
+
+- Resolve `DEFAULT_BRANCH` once for the issue (for example `main`).
+- Create `PLAN_BRANCH` from `DEFAULT_BRANCH` after `start-plan` and persist it to
+  `PLAN_BRANCH_REF_PATH`.
+- Sprint PRs must target `PLAN_BRANCH` (`baseRefName == PLAN_BRANCH`) at
+  `ready-sprint` and `accept-sprint` gates.
+- The only PR targeting `DEFAULT_BRANCH` in this workflow is the final
+  integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`).
+- Before `close-plan`, main-agent must post one plan issue comment that mentions
+  the final integration PR and persist the comment URL at
+  `PLAN_INTEGRATION_MENTION_PATH`.
+- After each successful `accept-sprint`, main-agent syncs local `PLAN_BRANCH`
+  (`git fetch origin --prune` -> `git switch` -> `git pull --ff-only`).
+- After successful `close-plan`, main-agent syncs local `DEFAULT_BRANCH`
+  (`git fetch origin --prune` -> `git switch` -> `git pull --ff-only`).
 
 ## Cleanup
 

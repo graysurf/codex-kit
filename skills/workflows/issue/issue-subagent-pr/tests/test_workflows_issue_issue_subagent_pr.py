@@ -27,6 +27,8 @@ def test_issue_subagent_pr_skill_requires_native_git_gh_commands() -> None:
     assert "git worktree" in text
     assert "gh pr create" in text
     assert "gh pr comment" in text
+    assert "BASE is required from lane assignment" in text
+    assert "do not assume `main`" in text
 
 
 def test_issue_subagent_pr_skill_uses_shared_task_lane_policy() -> None:
