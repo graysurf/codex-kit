@@ -23,6 +23,14 @@ Use this playbook only when the user explicitly requests local rehearsal.
 - `link-pr` supports `--issue` (live) or `--body-file` (offline); local rehearsal should use `--body-file` (and typically `--dry-run`).
 - `ready-plan` requires one of `--issue` or `--body-file`; dry-run/local rehearsal should use `--body-file <path>`.
 - `close-plan` requires `--approved-comment-url`; dry-run/local rehearsal also requires `--body-file <path>`.
+- Keep the same branch contract as live mode:
+  - sprint PRs target `PLAN_BRANCH`
+  - `ready-sprint` is pre-merge review
+  - final integration PR is `PLAN_BRANCH -> DEFAULT_BRANCH` before `close-plan`
+  - record a plan-issue mention-comment URL for the final integration PR before
+    `close-plan`
+  - run local sync commands after sprint acceptance (`PLAN_BRANCH`) and final
+    close (`DEFAULT_BRANCH`)
 
 ## Command Templates
 
@@ -47,15 +55,38 @@ Use this playbook only when the user explicitly requests local rehearsal.
    - Status checkpoint (optional): `plan-issue-local status-plan --body-file <issue-body.md> --dry-run`
    - Ready sprint:
      `plan-issue-local ready-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --strategy auto --default-pr-grouping group`
+   - `ready-sprint` expectation in rehearsal:
+     - linked sprint PR entries are open/reviewable (not merged yet)
+     - linked sprint PR base matches rehearsal `PLAN_BRANCH`
    - Accept sprint:
 
      ```bash
      plan-issue-local accept-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --strategy auto --default-pr-grouping group --approved-comment-url <comment-url>
      ```
 
+   - Local sync after sprint acceptance:
+
+     ```bash
+     git fetch origin --prune
+     git switch "$PLAN_BRANCH" || git switch -c "$PLAN_BRANCH" --track "origin/$PLAN_BRANCH"
+     git pull --ff-only
+     ```
+
 2. Plan-level local/offline rehearsal (`plan-issue --dry-run`)
    - Ready plan: `plan-issue ready-plan --dry-run --body-file <ready-plan-comment.md>`
+   - Final integration PR rehearsal artifact: record planned `PLAN_BRANCH -> DEFAULT_BRANCH` PR details in `<ready-plan-comment.md>` (or
+     companion note file) before `close-plan`.
+   - Integration mention rehearsal artifact: include a placeholder/final
+     `PLAN_INTEGRATION_MENTION_URL` in `<ready-plan-comment.md>` (or companion
+     note file) before `close-plan`.
    - Close plan: `plan-issue close-plan --dry-run --approved-comment-url <comment-url> --body-file <close-plan-comment.md>`
+   - Local sync after final close:
+
+     ```bash
+     git fetch origin --prune
+     git switch "$DEFAULT_BRANCH" || git switch -c "$DEFAULT_BRANCH" --track "origin/$DEFAULT_BRANCH"
+     git pull --ff-only
+     ```
 
 ## Grouping Policy During Rehearsal
 

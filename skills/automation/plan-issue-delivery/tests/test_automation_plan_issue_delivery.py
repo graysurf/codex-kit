@@ -22,6 +22,10 @@ def test_plan_issue_delivery_skill_enforces_main_agent_role_boundary() -> None:
     assert "PR Grouping Steps (Mandatory)" in text
     assert "--strategy auto --default-pr-grouping group" in text
     assert "group + deterministic" in text
+    assert "PLAN_BRANCH" in text
+    assert "integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`)" in text
+    assert "PLAN_INTEGRATION_MENTION_PATH" in text
+    assert "git pull --ff-only" in text
     assert "## Full Skill Flow" in text
     assert "--pr-grouping group --strategy auto" not in text
 
@@ -30,8 +34,11 @@ def test_plan_issue_delivery_skill_requires_close_for_done() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed" in text
-    assert "worktree cleanup passes." in text
+    assert "integration mention gate" in text
+    assert "required local sync commands succeed." in text
+    assert "worktree cleanup" in text
     assert "A successful run must terminate at `close-plan` with:" in text
+    assert "final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) merged" in text
     assert "If any close gate fails, treat the run as unfinished" in text
 
 
@@ -96,6 +103,7 @@ def test_plan_issue_delivery_skill_uses_shared_review_rubric() -> None:
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md" in text
     assert "reviews each sprint PR against the shared review rubric" in text
+    assert "ready-sprint` is a pre-merge review gate" in text
     assert "--enforce-review-evidence" in text
     assert "REVIEW_EVIDENCE_TEMPLATE_PATH" in text
 
@@ -122,6 +130,7 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" in subagent_prompt
     assert "DISPATCH_RECORD_PATH" in subagent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in subagent_prompt
+    assert "PLAN_BRANCH" in subagent_prompt
 
     assert "PLAN_SNAPSHOT_PATH" in main_agent_prompt
     assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
@@ -129,6 +138,12 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "REVIEW_EVIDENCE_PATH" in main_agent_prompt
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
     assert "DISPATCH_RECORD_PATH" in main_agent_prompt
+    assert "PLAN_BRANCH" in main_agent_prompt
+    assert "PLAN_BRANCH_REF_PATH" in main_agent_prompt
+    assert "PLAN_INTEGRATION_PR_PATH" in main_agent_prompt
+    assert "PLAN_INTEGRATION_MENTION_PATH" in main_agent_prompt
+    assert "sync local `PLAN_BRANCH`" in main_agent_prompt
+    assert "git pull --ff-only" in main_agent_prompt
     assert "$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md" in main_agent_prompt
     assert "$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md" in main_agent_prompt
     assert "$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md" in main_agent_prompt
@@ -150,6 +165,11 @@ def test_plan_issue_delivery_runtime_layout_tracks_main_agent_snapshot_artifacts
     assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in text
     assert "REVIEW_EVIDENCE_TEMPLATE_PATH" in text
     assert "REVIEW_EVIDENCE_PATH" in text
+    assert "PLAN_BRANCH_REF_PATH" in text
+    assert "PLAN_INTEGRATION_PR_PATH" in text
+    assert "PLAN_INTEGRATION_MENTION_PATH" in text
+    assert "syncs local `PLAN_BRANCH`" in text
+    assert "syncs local `DEFAULT_BRANCH`" in text
     assert "issue runtime initialization" in text
 
 

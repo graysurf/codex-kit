@@ -22,10 +22,20 @@ Inputs:
 - Runtime workspace root (fixed): `$AGENT_HOME/out/plan-issue-delivery`.
 - Repository slug for runtime namespacing (derived from `--repo <owner/repo>` or local git remote).
 - Plan issue number (`--issue <number>`) after `start-plan` creates the single issue.
+- Repository default branch (`DEFAULT_BRANCH`, for example `main`), resolved once per plan issue.
+- Plan integration branch name (`PLAN_BRANCH`, for example `plan/issue-<number>`), created from `DEFAULT_BRANCH` after `start-plan`.
+- Persisted `PLAN_BRANCH_REF_PATH` artifact under issue runtime for deterministic restarts.
 - Sprint number for sprint orchestration commands.
 - Sprint approval comment URL (`SPRINT_APPROVED_COMMENT_URL`) for `accept-sprint`.
 - Plan-close approval comment URL (`PLAN_APPROVED_COMMENT_URL`) for `close-plan`.
 - Approval URL format for both gates: `https://github.com/<owner>/<repo>/(issues|pull)/<n>#issuecomment-<id>`.
+- Final plan integration PR URL/number (`PLAN_INTEGRATION_PR`) for `PLAN_BRANCH -> DEFAULT_BRANCH`.
+- Plan issue mention comment URL for final integration PR
+  (`PLAN_INTEGRATION_MENTION_URL`), posted on the single plan issue.
+- Local sync policy:
+  - after each `accept-sprint`: sync local `PLAN_BRANCH` to latest remote state
+  - after final integration merge + `close-plan`: sync local `DEFAULT_BRANCH`
+    to latest remote state
 - Optional repository override (`--repo <owner/repo>`) in live mode.
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
 - Main-agent init source prompt path (`MAIN_AGENT_INIT_SOURCE_PATH`):
@@ -76,8 +86,19 @@ Outputs:
 - `link-pr --task <task-id>` auto-syncs all rows in the same runtime lane (`per-sprint`/`pr-shared`) to keep shared-lane PR/state
   consistent.
 - `link-pr --sprint <n>` must resolve to a single runtime lane; use `--pr-group <group>` when sprint `n` has multiple shared lanes.
-- `accept-sprint` additionally enforces sprint PRs are merged and syncs sprint task `Status` to `done` in live mode.
+- `ready-sprint` is a pre-merge review gate: linked sprint PRs should still be open and reviewable.
+- Sprint PR review verifies lane mapping, required checks, and target `baseRefName == PLAN_BRANCH` before merge decisions.
+- `accept-sprint` additionally enforces sprint PRs are merged into `PLAN_BRANCH` and syncs sprint task `Status` to `done` in live mode.
 - `start-sprint` for sprint `N>1` is blocked until sprint `N-1` is merged and all its task rows are `done`.
+- `start-plan` initializes and persists `PLAN_BRANCH` (created from `DEFAULT_BRANCH`) at `PLAN_BRANCH_REF_PATH`.
+- Final close path includes one main-agent integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) and persists traceability at
+  `PLAN_INTEGRATION_PR_PATH`.
+- Main-agent must post one plan-issue comment that mentions the final
+  integration PR (`#<number>`) and persist its URL at
+  `PLAN_INTEGRATION_MENTION_PATH`.
+- Main-agent must run local sync commands after merge gates so local branch
+  state reflects remote (`PLAN_BRANCH` after sprint acceptance,
+  `DEFAULT_BRANCH` after close-plan).
 - PR references in sprint comments and review tables use canonical `#<number>` format.
 - Sprint start comments may still show `TBD` PR placeholders until subagents open PRs and rows are linked.
 - `start-sprint` comments append the full markdown section for the active sprint from the plan file (for example Sprint 1/2/3 sections).
@@ -87,11 +108,13 @@ Outputs:
   - `SUBAGENT_INIT_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - `PLAN_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - `DISPATCH_RECORD_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
+  - assigned `PLAN_BRANCH` base-branch context for sprint PR creation
   - plan task section context (snippet/link/path)
 - Ad-hoc dispatch prompts that bypass the required bundle are invalid.
-- Final issue close only after plan-level acceptance and merged-PR close gate.
-- `close-plan` enforces cleanup of all issue-assigned task worktrees before completion.
-- Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed (live mode), and worktree cleanup passes.
+- Final issue close only after plan-level acceptance, merged-PR close gate, and integration mention gate.
+- `close-plan` enforces integration mention + cleanup of all issue-assigned task worktrees before completion.
+- Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed (live mode), integration mention gate
+  passes, worktree cleanup passes, and required local sync commands succeed.
 - Error contract: if any gate/command fails, stop forward progress and report the failing command plus key stderr/stdout gate errors.
 - Runtime task lanes stay stable across implementation, clarification, CI, and review follow-up unless main-agent explicitly reassigns them.
 
@@ -112,8 +135,13 @@ Failure modes:
 - Runtime workspace root missing/unwritable (`$AGENT_HOME/out/plan-issue-delivery`).
 - Issue/sprint runtime artifacts missing (for example
   `MAIN_AGENT_INIT_SNAPSHOT_PATH`, `REVIEW_EVIDENCE_PATH`, `TASK_PROMPT_PATH`,
-  `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, or
+  `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`,
+  `PLAN_BRANCH_REF_PATH`, `PLAN_INTEGRATION_PR_PATH`,
+  `PLAN_INTEGRATION_MENTION_PATH`, or
   `DISPATCH_RECORD_PATH` not emitted under runtime root).
+- `PLAN_BRANCH` is missing/unresolvable for sprint dispatch or differs from the persisted `PLAN_BRANCH_REF_PATH` value.
+- A sprint PR is linked with `baseRefName != PLAN_BRANCH`.
+- `ready-sprint` checkpoint reached after sprint PRs were already merged without post-merge audit evidence + explicit follow-up decision.
 - Main-agent review decision attempted without validated review evidence (for
   example missing `--enforce-review-evidence`, missing/invalid
   `REVIEW_EVIDENCE_PATH`, or generic non-evidenced decision text).
@@ -121,6 +149,10 @@ Failure modes:
   `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
 - Assigned task `Worktree` is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
+- Final plan close gate fails because the integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) is missing or unmerged.
+- Final plan close gate fails because integration PR mention comment on the plan
+  issue is missing/invalid/untraceable.
+- Local sync command fails after `accept-sprint` or after final `close-plan`.
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
 - Attempted transition to a next sprint that does not exist.
 
@@ -136,6 +168,10 @@ Failure modes:
   - `REVIEW_EVIDENCE_TEMPLATE_PATH="$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md"`
   - `REVIEW_EVIDENCE_PATH="$SPRINT_ROOT/reviews/<TASK_ID>-<decision>.md"`
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
+  - `PLAN_BRANCH_REF_PATH="$ISSUE_ROOT/plan/plan-branch.ref"` (contains canonical `PLAN_BRANCH` name)
+  - `PLAN_INTEGRATION_PR_PATH="$ISSUE_ROOT/plan/plan-integration-pr.md"` (tracks final `PLAN_BRANCH -> DEFAULT_BRANCH` PR)
+  - `PLAN_INTEGRATION_MENTION_PATH="$ISSUE_ROOT/plan/plan-integration-mention.url"` (tracks issue-comment URL that mentions final
+    integration PR)
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
   - `SUBAGENT_INIT_SNAPSHOT_PATH="$SPRINT_ROOT/prompts/plan-issue-delivery-subagent-init.snapshot.md"`
   - prompt manifest under `"$SPRINT_ROOT/manifests/"`
@@ -147,15 +183,32 @@ Failure modes:
 - `start-plan` (or immediate post-`start-plan` issue runtime initialization)
   must copy `MAIN_AGENT_INIT_SOURCE_PATH` into
   `MAIN_AGENT_INIT_SNAPSHOT_PATH` before any `start-sprint`.
+- `start-plan` (or immediate post-`start-plan` issue runtime initialization)
+  must resolve `DEFAULT_BRANCH`, create/push `PLAN_BRANCH` from
+  `DEFAULT_BRANCH`, and persist `PLAN_BRANCH_REF_PATH` before any
+  `start-sprint`.
 - `start-sprint` must copy the source plan into `PLAN_SNAPSHOT_PATH` before subagent dispatch.
 - `start-sprint` must copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` into `SUBAGENT_INIT_SNAPSHOT_PATH` before subagent
   dispatch.
 - `start-sprint` must emit one `DISPATCH_RECORD_PATH` per assigned task before subagent dispatch.
+- `start-sprint` dispatch artifacts must include `PLAN_BRANCH` as required base branch for sprint PR creation.
 - Subagent plan reference priority:
   - assigned plan task snippet/link/path (primary)
   - `PLAN_SNAPSHOT_PATH` (fallback)
   - source plan path (last fallback)
-- `close-plan` must enforce worktree cleanup under `"$ISSUE_ROOT/worktrees"`; leftovers fail the close gate.
+- After every successful `accept-sprint`, main-agent must sync local
+  `PLAN_BRANCH`:
+  - `git fetch origin --prune`
+  - `git switch "$PLAN_BRANCH"` (or create tracking branch from
+    `origin/$PLAN_BRANCH` if missing)
+  - `git pull --ff-only`
+- `close-plan` must enforce final integration PR merged (`PLAN_BRANCH -> DEFAULT_BRANCH`), integration PR mention comment on plan issue, and
+  worktree cleanup under `"$ISSUE_ROOT/worktrees"`; leftovers fail the close gate.
+- After successful `close-plan`, main-agent must sync local `DEFAULT_BRANCH`:
+  - `git fetch origin --prune`
+  - `git switch "$DEFAULT_BRANCH"` (or create tracking branch from
+    `origin/$DEFAULT_BRANCH` if missing)
+  - `git pull --ff-only`
 
 ## Task Lane Continuity (Mandatory)
 
@@ -193,14 +246,25 @@ Failure modes:
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
 3. Initialize issue runtime workspace under
    `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`, and copy
-   `MAIN_AGENT_INIT_SOURCE_PATH` into `MAIN_AGENT_INIT_SNAPSHOT_PATH`.
+   `MAIN_AGENT_INIT_SOURCE_PATH` into `MAIN_AGENT_INIT_SNAPSHOT_PATH`; then
+   resolve `DEFAULT_BRANCH`, create `PLAN_BRANCH`, and persist
+   `PLAN_BRANCH_REF_PATH`.
 4. Run `start-sprint`, ensure `MAIN_AGENT_INIT_SNAPSHOT_PATH` +
    `REVIEW_EVIDENCE_PATH` + `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` +
    `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
-   exist, dispatch subagents, keep task lanes stable, and keep row state current via `link-pr`.
-5. For each sprint: implement/clarify/follow-up on subagent-owned lanes -> `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
+   exist, dispatch subagents with `PLAN_BRANCH` base-branch context, keep task
+   lanes stable, and keep row state current via `link-pr`.
+5. For each sprint: implement/clarify/follow-up on subagent-owned lanes ->
+   `ready-sprint` (pre-merge review gate, PRs should still be open) ->
+   main-agent review decisions + merge into `PLAN_BRANCH` -> `accept-sprint` ->
+   local `PLAN_BRANCH` sync (`git fetch` + `git switch` + `git pull --ff-only`).
 6. Repeat step 5 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
-7. After final sprint acceptance, run `ready-plan`, then `close-plan` with plan-level approval URL.
+7. After final sprint acceptance, run `ready-plan`, then open/merge the final
+   integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`), persist
+   `PLAN_INTEGRATION_PR_PATH`, post a plan-issue mention comment for that PR and
+   persist `PLAN_INTEGRATION_MENTION_PATH`, run `close-plan` with plan-level
+   approval URL, then local `DEFAULT_BRANCH` sync (`git fetch` + `git switch` +
+   `git pull --ff-only`).
 8. If rehearsal is explicitly requested, switch to `references/LOCAL_REHEARSAL.md`.
 
 ## PR Grouping Steps (Mandatory)
@@ -223,10 +287,14 @@ Failure modes:
 - A successful run must terminate at `close-plan` with:
   - issue state `CLOSED`
   - merged-PR close gate satisfied
+  - final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) merged
+  - plan issue mention comment exists for final integration PR
+  - local `PLAN_BRANCH` sync succeeded after each sprint acceptance
+  - local `DEFAULT_BRANCH` sync succeeded after final close
   - worktree cleanup gate passing
 - If any close gate fails, treat the run as unfinished and report:
   - failing command
-  - gate errors (task status, PR merge, approval URL, worktree cleanup)
+  - gate errors (task status, PR merge, integration PR, integration mention, local sync, approval URL, worktree cleanup)
   - next required unblock action
 
 ## Full Skill Flow
@@ -261,6 +329,19 @@ Failure modes:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/prompts/plan-issue-delivery-subagent-init.snapshot.md`
    - Dispatch record path:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/manifests/dispatch-<TASK_ID>.json`
+   - Plan branch ref path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-branch.ref`
+   - Plan integration PR record path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-integration-pr.md`
+   - Plan integration mention record path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-integration-mention.url`
+   - Resolve and persist branch contract:
+     - `DEFAULT_BRANCH="$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')"`
+     - `PLAN_BRANCH="plan/issue-$ISSUE_NUMBER"`
+     - `git fetch origin --prune`
+     - `git checkout -B "$PLAN_BRANCH" "origin/$DEFAULT_BRANCH"`
+     - `git push -u origin "$PLAN_BRANCH"`
+     - `printf '%s\n' "$PLAN_BRANCH" > "$PLAN_BRANCH_REF_PATH"`
 8. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
    - main-agent verifies `MAIN_AGENT_INIT_SNAPSHOT_PATH` exists before sprint
      dispatch
@@ -272,6 +353,7 @@ Failure modes:
      - `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
      - `PLAN_SNAPSHOT_PATH` from issue runtime workspace
      - `DISPATCH_RECORD_PATH` from sprint manifest artifacts
+     - `PLAN_BRANCH` (required base branch for sprint PRs)
      - assigned plan task section snippet/link/path (from plan file or sprint-start comment section)
    - subagents create or re-enter assigned worktrees/PRs and implement tasks on their assigned lanes
 9. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
@@ -284,7 +366,11 @@ Failure modes:
 10. If a lane is blocked by missing/conflicting context or another external dependency, stop forward progress, clarify/unblock it, and send
     work back to that same lane by default.
 11. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
-12. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
+12. When sprint work is ready, run `ready-sprint` as the pre-merge review checkpoint:
+    - expected state: linked sprint PRs are open, CI-ready, and target `PLAN_BRANCH`
+    - if any sprint PR is already merged, switch to post-merge audit mode before acceptance:
+      - generate decision-scoped review evidence from merged diff/CI history
+      - decide follow-up on the same lane (reopen work via replacement PR) vs accept as-is
 13. Main-agent reviews each sprint PR against the shared review rubric
     (`skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`),
     generates `REVIEW_EVIDENCE_PATH` from
@@ -293,19 +379,38 @@ Failure modes:
     `request-followup|merge|close-pr` action is grounded in concrete evidence.
     Then records approval and requests follow-up back to the same
     subagent-owned lanes or merges/closes the PRs.
+    - merge authority stays with main-agent
+    - sprint PR merges must target `PLAN_BRANCH`, not `DEFAULT_BRANCH`
 14. After each review decision, apply
     `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md` to sync
     runtime-truth rows before any further dispatch or acceptance gate.
-15. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done`
-    (issue stays open).
-16. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
-17. After the final sprint is implemented and accepted, run `ready-plan` for
+15. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce
+    merged-PR gate (merged into `PLAN_BRANCH`) and sync sprint task status rows
+    to `done` (issue stays open).
+16. Sync local `PLAN_BRANCH` after each successful `accept-sprint`:
+    - `git fetch origin --prune`
+    - `git switch "$PLAN_BRANCH"` (or create tracking branch from
+      `origin/$PLAN_BRANCH` if missing)
+    - `git pull --ff-only`
+17. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
+18. After the final sprint is implemented and accepted, run `ready-plan` for
     final review:
     `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
-18. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce
-    merged-PR/task gates, close the single plan issue, and force cleanup of
-    task worktrees:
+19. Main-agent opens and merges exactly one integration PR from `PLAN_BRANCH`
+    into `DEFAULT_BRANCH`, then records the PR reference in
+    `PLAN_INTEGRATION_PR_PATH`.
+20. Main-agent posts one plan-issue comment that mentions the merged
+    integration PR (`#<number>`) and records the comment URL in
+    `PLAN_INTEGRATION_MENTION_PATH`.
+21. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce
+    merged-PR/task + integration-PR + integration-mention gates, close the
+    single plan issue, and force cleanup of task worktrees:
     `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
+22. Sync local `DEFAULT_BRANCH` after successful final close:
+    - `git fetch origin --prune`
+    - `git switch "$DEFAULT_BRANCH"` (or create tracking branch from
+      `origin/$DEFAULT_BRANCH` if missing)
+    - `git pull --ff-only`
 
 ## Command-Oriented Flow
 
@@ -315,12 +420,28 @@ grouping or explicit per-sprint deterministic mode when the user explicitly
 requests that behavior. Capture the `ISSUE_NUMBER` output from `start-plan`
 once, then reuse it in all `--issue` flags. Keep approval URLs explicit per
 gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
-`PLAN_APPROVED_COMMENT_URL` for `close-plan`.
+`PLAN_APPROVED_COMMENT_URL` for `close-plan`. Sprint PRs target `PLAN_BRANCH`;
+only the final integration PR targets `DEFAULT_BRANCH`. Before `close-plan`,
+main-agent must post an issue comment that mentions the integration PR and keep
+that comment URL.
 
 1. Live mode (`plan-issue`)
    - Validate: `plan-tooling validate --file <plan.md>`
    - Start plan:
      `plan-issue start-plan --plan <plan.md> --strategy auto --default-pr-grouping group [--repo <owner/repo>]`
+   - Initialize branch contract (after capturing `ISSUE_NUMBER`):
+
+     ```bash
+     DEFAULT_BRANCH="$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')"
+     PLAN_BRANCH="plan/issue-${ISSUE_NUMBER}"
+     PLAN_BRANCH_REF_PATH="$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-${ISSUE_NUMBER}/plan/plan-branch.ref"
+
+     git fetch origin --prune
+     git checkout -B "$PLAN_BRANCH" "origin/$DEFAULT_BRANCH"
+     git push -u origin "$PLAN_BRANCH"
+     printf '%s\n' "$PLAN_BRANCH" > "$PLAN_BRANCH_REF_PATH"
+     ```
+
    - Start sprint:
      `plan-issue start-sprint --plan <plan.md> --issue <number> --sprint <n> --strategy auto --default-pr-grouping group [--repo <owner/repo>]`
    - Link PR (task scope):
@@ -334,14 +455,55 @@ gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
    - Status checkpoint (optional): `plan-issue status-plan --issue <number> [--repo <owner/repo>]`
    - Ready sprint:
      `plan-issue ready-sprint --plan <plan.md> --issue <number> --sprint <n> --strategy auto --default-pr-grouping group [--repo <owner/repo>]`
+   - Pre-merge review check (recommended before merge decisions):
+
+     ```bash
+     gh pr view <pr-number> --json state,baseRefName,headRefName,isDraft,statusCheckRollup
+     ```
+
+     - Expected: `state=OPEN`, `baseRefName=$PLAN_BRANCH`, required checks green.
    - Accept sprint:
 
      ```bash
      plan-issue accept-sprint --plan <plan.md> --issue <number> --sprint <n> --strategy auto --default-pr-grouping group --approved-comment-url <comment-url> [--repo <owner/repo>]
      ```
 
+   - Local sync after sprint acceptance:
+
+     ```bash
+     git fetch origin --prune
+     git switch "$PLAN_BRANCH" || git switch -c "$PLAN_BRANCH" --track "origin/$PLAN_BRANCH"
+     git pull --ff-only
+     ```
+
    - Ready plan: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
+   - Final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`):
+
+     ```bash
+     gh pr create --base "$DEFAULT_BRANCH" --head "$PLAN_BRANCH" --title "plan(issue-${ISSUE_NUMBER}): merge ${PLAN_BRANCH} into ${DEFAULT_BRANCH}" --body "<summary>"
+     ```
+
+   - Mention integration PR on the plan issue and persist comment URL:
+
+     ```bash
+     INTEGRATION_PR_NUMBER="<number>"
+     PLAN_INTEGRATION_MENTION_PATH="$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-${ISSUE_NUMBER}/plan/plan-integration-mention.url"
+     PLAN_INTEGRATION_MENTION_URL="<https://github.com/<owner>/<repo>/issues/${ISSUE_NUMBER}#issuecomment-...>"
+
+     gh issue comment "$ISSUE_NUMBER" \
+       --body "Final integration PR merged: #${INTEGRATION_PR_NUMBER} (\`${PLAN_BRANCH}\` -> \`${DEFAULT_BRANCH}\`)."
+     printf '%s\n' "$PLAN_INTEGRATION_MENTION_URL" > "$PLAN_INTEGRATION_MENTION_PATH"
+     ```
+
    - Close plan: `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
+   - Local sync after final close:
+
+     ```bash
+     git fetch origin --prune
+     git switch "$DEFAULT_BRANCH" || git switch -c "$DEFAULT_BRANCH" --track "origin/$DEFAULT_BRANCH"
+     git pull --ff-only
+     ```
+
 2. Explicit override patterns (only when user explicitly requests):
 
 - Deterministic/manual split: use `--strategy deterministic --pr-grouping group`
@@ -355,6 +517,12 @@ gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
 - Main-agent does not implement sprint tasks directly.
 - Sprint implementation must be delegated to subagent-owned PRs.
 - Sprint comments and plan close actions are main-agent orchestration artifacts; implementation remains subagent-owned.
+- Allowed exception: main-agent may open/manage exactly one non-implementation
+  integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) after all sprints are accepted.
+- Main-agent must post the integration PR mention comment on the plan issue
+  before `close-plan`.
+- Main-agent owns required local sync commands after sprint acceptance and final
+  close (`git fetch` + `git switch` + `git pull --ff-only`).
 - Review follow-up returns to the existing subagent-owned lanes by default; reassignment is explicit, not implicit.
 - Main-agent review decisions should follow
   `skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`
