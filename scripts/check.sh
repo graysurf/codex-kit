@@ -359,7 +359,11 @@ fi
 
 if [[ "$run_tests" -eq 1 ]]; then
   set +e
-  scripts/test.sh "${pytest_args[@]}"
+  if [[ "${#pytest_args[@]}" -gt 0 ]]; then
+    scripts/test.sh "${pytest_args[@]}"
+  else
+    scripts/test.sh
+  fi
   test_rc=$?
   set -e
 

@@ -25,7 +25,8 @@ consistent.
 ## Fallback
 
 - Fallback tier 1: rerun `scripts/install-homebrew-nils-cli.sh` once in the same job (transient network/package index failures).
-- Fallback tier 2: if script behavior needs emergency divergence, copy the current script logic verbatim into a temporary workflow step with a
+- Fallback tier 2: if script behavior needs emergency divergence, copy the
+  current script logic verbatim into a temporary workflow step with a
   tracked follow-up task to remove it after script fix.
 - Fallback tier 3: fail fast with explicit error output when brew cannot be resolved after install attempts; do not proceed with partial tool
   setup.

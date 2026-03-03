@@ -66,7 +66,9 @@
 2. `docs/testing/script-regression.md` (fix high-drift script discovery scope claim for `commands/**`).
 3. `README.md` (resolve root-file naming drift for `AGENTS.md` vs tracked policy file reality).
 4. `DEVELOPMENT.md` (monitor command inventory parity with `scripts/check.sh` on each CI refactor).
-5. `docs/runbooks/agent-docs/context-dispatch-matrix.md` and `docs/runbooks/agent-docs/PROJECT_DEV_WORKFLOW.md` (currently aligned; keep as regression anchor docs).
+5. `docs/runbooks/agent-docs/context-dispatch-matrix.md` and
+   `docs/runbooks/agent-docs/PROJECT_DEV_WORKFLOW.md` (currently aligned;
+   keep as regression anchor docs).
 
 ## Suggested Drift Detection Routine
 

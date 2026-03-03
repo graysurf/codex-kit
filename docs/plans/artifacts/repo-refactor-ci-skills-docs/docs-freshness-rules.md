@@ -46,7 +46,8 @@ Any discovered reference to a missing path is reported as a stale reference.
 The audit script parses only the block below.
 
 <!-- docs-freshness-audit:begin -->
-# Scoped docs
+## Scoped docs
+
 DOC|README.md
 DOC|DEVELOPMENT.md
 DOC|docs/runbooks/agent-docs/context-dispatch-matrix.md
@@ -54,7 +55,8 @@ DOC|docs/runbooks/agent-docs/PROJECT_DEV_WORKFLOW.md
 DOC|docs/testing/script-regression.md
 DOC|docs/testing/script-smoke.md
 
-# Required commands
+## Required commands
+
 REQUIRED_COMMAND|scripts/check.sh --all
 REQUIRED_COMMAND|scripts/check.sh --tests -- -m script_smoke
 REQUIRED_COMMAND|agent-docs resolve --context startup --strict --format checklist
@@ -62,7 +64,8 @@ REQUIRED_COMMAND|agent-docs baseline --check --target all --strict --format text
 REQUIRED_COMMAND|bash scripts/ci/stale-skill-scripts-audit.sh --check
 REQUIRED_COMMAND|$AGENT_HOME/scripts/test.sh -m script_smoke
 
-# Required critical paths
+## Required critical paths
+
 REQUIRED_PATH|scripts/check.sh
 REQUIRED_PATH|scripts/ci/stale-skill-scripts-audit.sh
 REQUIRED_PATH|scripts/ci/third-party-artifacts-audit.sh

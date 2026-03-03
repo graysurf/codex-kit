@@ -63,8 +63,12 @@ if [[ -z "$BREW_BIN" ]]; then
   exit 1
 fi
 
-eval "$("$BREW_BIN" shellenv)"
 BREW_PREFIX="$("$BREW_BIN" --prefix)"
+HOMEBREW_CELLAR="$("$BREW_BIN" --cellar)"
+HOMEBREW_REPOSITORY="$("$BREW_BIN" --repository)"
+export HOMEBREW_PREFIX="$BREW_PREFIX"
+export HOMEBREW_CELLAR
+export HOMEBREW_REPOSITORY
 export PATH="${BREW_PREFIX}/bin:${BREW_PREFIX}/sbin:${PATH}"
 if [[ -n "${GITHUB_PATH:-}" ]]; then
   {
