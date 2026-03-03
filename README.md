@@ -10,10 +10,10 @@ agent-kit tracks AI agent setup to keep workflows consistent across machines. It
 .
 ├── .github/    # CI workflows (GitHub Actions)
 ├── prompts/    # prompt presets
-├── skills/     # skills (tools/, workflows/, automation/, .system/, _shared/, _projects/, openai/)
+├── skills/     # skills (tools/, workflows/, automation/, .system/, _shared/, _projects/)
 ├── scripts/    # loader + helper scripts
 ├── docker/     # Docker images + env tooling
-├── docs/       # docs, templates, progress logs
+├── docs/       # runbooks, plans, and testing docs
 ├── tests/      # pytest regression/smoke tests
 └── AGENTS.md   # global agent rules (response/tooling)
 ```

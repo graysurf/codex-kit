@@ -66,7 +66,7 @@ Run the cleanup helper before declaring plan completion:
 
 ```bash
 scripts/check_plan_issue_worktree_cleanup.sh \
-  "$AGENT_HOME/out/plan-issue-delivery/graysurf-agent-kit/issue-193/worktrees"
+  "$AGENT_HOME/out/plan-issue-delivery/graysurf__agent-kit/issue-193/worktrees"
 ```
 
 Expected behavior:

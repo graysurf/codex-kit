@@ -17,6 +17,9 @@
 - Canonical pre-commit gate: `scripts/check.sh --all`
 - Docs freshness gate (standalone): `scripts/check.sh --docs`
 - CI parity guard: `scripts/check.sh --tests -- -k parity -m script_regression`
+- Skill entrypoint drift guard (when workflow/tool entrypoints change):
+  - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
+  - `scripts/check.sh --entrypoint-ownership`
 
 Use `scripts/check.sh` modes for project-dev verification. Avoid reintroducing ad-hoc legacy script wrappers in docs/workflows.
 
