@@ -13,6 +13,12 @@ helpers, tests, and references needed to keep it reliable.
   - `../docs/runbooks/skills/TOOLING_INDEX_V2.md`
 - Create/validate/remove workflows:
   - `tools/skill-management/README.md`
+- Repo-wide skill inventory baseline:
+  - `../docs/plans/skills-inventory-audit.md`
+- Repo-wide review checklist:
+  - `../docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
+- Script simplification playbook:
+  - `../docs/runbooks/skills/SCRIPT_SIMPLIFICATION_PLAYBOOK.md`
 
 ## Tracked skill categories
 

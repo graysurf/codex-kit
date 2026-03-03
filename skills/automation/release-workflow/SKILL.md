@@ -71,3 +71,10 @@ Use only these public entrypoints:
   ```bash
   $AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version v1.3.2
   ```
+
+## Related docs
+
+- Reference notes for the single-entrypoint simplification shipped in PR #221:
+  - `docs/plans/pr-221-reference-notes.md`
+- Repo-wide script simplification playbook:
+  - `docs/runbooks/skills/SCRIPT_SIMPLIFICATION_PLAYBOOK.md`
