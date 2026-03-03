@@ -58,25 +58,6 @@ agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH"
 
 See [docs/runbooks/agent-docs/new-project-bootstrap.md](./docs/runbooks/agent-docs/new-project-bootstrap.md) for the full sequence.
 
-## ✅ Local and CI Check Entrypoints
-
-Use `scripts/check.sh` as the canonical local check entrypoint:
-
-```bash
-scripts/check.sh --all
-```
-
-Common focused runs:
-
-```bash
-scripts/check.sh --docs
-scripts/check.sh --markdown
-scripts/check.sh --tests -- -m script_smoke
-```
-
-Lint CI (`.github/workflows/lint.yml`) maps its phases to `scripts/check.sh` modes. Keep docs and CI guidance aligned with these modes
-instead of legacy ad-hoc wrappers.
-
 ## 🐳 Docker environment
 
 See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
@@ -161,6 +142,25 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/)                 | Find, triage, and fix bugs; open a PR with a standard template                                                                                                                             |
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/)           | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR                                                                                           |
 | Release     | [release-workflow](./skills/automation/release-workflow/)                   | Execute project release workflows by following a repo release guide (with a bundled fallback)                                                                                              |
+
+## ✅ Local and CI Check Entrypoints
+
+Use `scripts/check.sh` as the canonical local check entrypoint:
+
+```bash
+scripts/check.sh --all
+```
+
+Common focused runs:
+
+```bash
+scripts/check.sh --docs
+scripts/check.sh --markdown
+scripts/check.sh --tests -- -m script_smoke
+```
+
+Lint CI (`.github/workflows/lint.yml`) maps its phases to `scripts/check.sh` modes. Keep docs and CI guidance aligned with these modes
+instead of legacy ad-hoc wrappers.
 
 ## 🪪 License
 
