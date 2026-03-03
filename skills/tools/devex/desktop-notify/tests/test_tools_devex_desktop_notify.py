@@ -19,3 +19,9 @@ def test_tools_devex_desktop_notify_entrypoints_exist() -> None:
             "scripts/project-notify.sh",
         ],
     )
+
+
+def test_tools_devex_desktop_notify_legacy_codex_wrapper_removed() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    legacy_wrapper = "codex-notify" + ".sh"
+    assert not (skill_root / "scripts" / legacy_wrapper).exists()

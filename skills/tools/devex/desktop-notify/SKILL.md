@@ -50,6 +50,11 @@ $AGENT_HOME/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh \
   --level info
 ```
 
+Supported entrypoints for this skill are only:
+
+- `scripts/project-notify.sh`
+- `scripts/desktop-notify.sh`
+
 ## Behavior
 
 - macOS: uses `terminal-notifier` when installed.

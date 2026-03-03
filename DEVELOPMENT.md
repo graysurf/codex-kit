@@ -12,6 +12,9 @@ current shell.
 ## Required Before Commit
 
 - Run: `scripts/check.sh --all`
+- When adding/removing skill entrypoint scripts, also run:
+  - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
+  - `scripts/check.sh --entrypoint-ownership`
 - `scripts/check.sh --all` currently runs:
   - `scripts/lint.sh` (shell + python)
     - shell: shebang-based routing, `shellcheck` (bash) + `bash -n` + `zsh -n`
@@ -34,6 +37,7 @@ current shell.
 - `scripts/check.sh --skills-layout` (skill layout audit only)
 - `scripts/check.sh --plans` (plan format validation only)
 - `scripts/check.sh --env-bools` (boolean env naming/value audit only)
+- `scripts/check.sh --entrypoint-ownership` (skill script ownership parity gate)
 - `scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
 - `scripts/check.sh --semgrep` (Semgrep only)
 - `scripts/check.sh --all` (full check suite)
@@ -43,6 +47,7 @@ Direct entry points:
 - `scripts/lint.sh --shell|--python|--all`
 - `scripts/ci/markdownlint-audit.sh --strict`
 - `scripts/ci/third-party-artifacts-audit.sh --strict`
+- `scripts/ci/stale-skill-scripts-audit.sh --check`
 - `scripts/generate-third-party-artifacts.sh --write`
 - `scripts/generate-third-party-artifacts.sh --check`
 - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
