@@ -46,3 +46,10 @@ Failure modes:
 ## Scripts (only entrypoints)
 
 - `$AGENT_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh`
+
+## Related docs
+
+- Repo-wide review checklist:
+  - `docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
+- Baseline inventory format and current coverage snapshot:
+  - `docs/plans/skills-inventory-audit.md`

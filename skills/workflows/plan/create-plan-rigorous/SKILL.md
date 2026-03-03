@@ -50,6 +50,8 @@ Failure modes:
 
 - Identify existing patterns and the minimal touch points.
 - Identify tricky edge cases, migrations, rollout, and compatibility constraints.
+- For repo-wide skill work, use `docs/plans/skills-inventory-audit.md` as the baseline inventory and
+  `docs/runbooks/skills/SCRIPT_SIMPLIFICATION_PLAYBOOK.md` when planning entrypoint consolidation.
 
 1. Draft the plan (do not implement)
 
@@ -187,3 +189,7 @@ Rigorous requirement:
 - Treat sprints as sequential integration gates (no cross-sprint execution parallelism).
 - Optimize parallelism within each sprint and document the per-sprint scorecard (`Execution Profile`, `TotalComplexity`,
   `CriticalPathComplexity`, `MaxBatchWidth`, `OverlapHotspots`).
+- When the plan changes tracked skill entrypoints or review rules, update the inventory/checklist/playbook docs in the same plan lane:
+  - `docs/plans/skills-inventory-audit.md`
+  - `docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
+  - `docs/runbooks/skills/SCRIPT_SIMPLIFICATION_PLAYBOOK.md`
