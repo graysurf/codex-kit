@@ -14,6 +14,12 @@
 $AGENT_HOME/scripts/test.sh -m script_smoke
 ```
 
+Or via consolidated check wrapper:
+
+```bash
+scripts/check.sh --tests -- -m script_smoke
+```
+
 ## What it does
 
 - Runs selected script entrypoints through deeper smoke cases (beyond `--help`).
@@ -96,3 +102,4 @@ See: `tests/test_script_smoke.py`
 ## Related docs
 
 - Regression suite (broad `--help` guardrail): `docs/testing/script-regression.md`
+- CI parity + docs completion guardrails: `docs/testing/ci-check-parity.md`

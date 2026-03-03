@@ -20,6 +20,12 @@ Or:
 $AGENT_HOME/scripts/test.sh
 ```
 
+Or via consolidated check wrapper:
+
+```bash
+scripts/check.sh --tests -- -m script_regression
+```
+
 1. Run only smoke (deeper coverage for a small subset):
 
 ```bash
@@ -57,6 +63,13 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
 - API test runner workflow uploads suite evidence from `out/api-test-runner/<suite>/`.
 - Each API suite directory includes `results.json`, `junit.xml`, and `summary.md` (plus fixture logs when present).
 - API workflow summary steps append each suite `summary.md` to `GITHUB_STEP_SUMMARY` and point to the suite artifact path.
+
+## Related verification gates
+
+- Docs freshness gate (for command/path drift):
+  - `scripts/check.sh --docs`
+- CI parity guardrail:
+  - `scripts/check.sh --tests -- -k parity -m script_regression`
 
 ## Script smoke tests
 

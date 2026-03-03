@@ -12,6 +12,7 @@ current shell.
 ## Required Before Commit
 
 - Run: `scripts/check.sh --all`
+- Docs freshness gate (also included by `--all`): `scripts/check.sh --docs`
 - When adding/removing skill entrypoint scripts, also run:
   - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
   - `scripts/check.sh --entrypoint-ownership`
@@ -25,6 +26,7 @@ current shell.
   - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
   - `plan-tooling validate` (from `nils-cli`)
   - `zsh -f scripts/audit-env-bools.zsh --check`
+  - `bash scripts/ci/docs-freshness-audit.sh --check`
   - `scripts/semgrep-scan.sh`
   - `scripts/test.sh` (pytest; prefers `.venv/bin/python`)
 
@@ -37,6 +39,7 @@ current shell.
 - `scripts/check.sh --skills-layout` (skill layout audit only)
 - `scripts/check.sh --plans` (plan format validation only)
 - `scripts/check.sh --env-bools` (boolean env naming/value audit only)
+- `scripts/check.sh --docs` (docs command/path freshness audit only)
 - `scripts/check.sh --entrypoint-ownership` (skill script ownership parity gate)
 - `scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
 - `scripts/check.sh --semgrep` (Semgrep only)
@@ -48,6 +51,7 @@ Direct entry points:
 - `scripts/ci/markdownlint-audit.sh --strict`
 - `scripts/ci/third-party-artifacts-audit.sh --strict`
 - `scripts/ci/stale-skill-scripts-audit.sh --check`
+- `scripts/ci/docs-freshness-audit.sh --check`
 - `scripts/generate-third-party-artifacts.sh --write`
 - `scripts/generate-third-party-artifacts.sh --check`
 - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`

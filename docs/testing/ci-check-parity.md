@@ -20,13 +20,18 @@ Lint workflow phases must run these `scripts/check.sh` modes:
 - `--env-bools`
 - `--tests`
 
+Lint workflow also runs the docs freshness gate:
+
+- `--docs`
+
 ## Run parity checks
 
 ```bash
 scripts/check.sh --tests -- -k parity -m script_regression
 ```
 
-This command is also required in lint CI (parity guard step) and is included by `scripts/check.sh --all` because `--all` runs the full pytest suite.
+This command is also required in lint CI (parity guard step) and is included by
+`scripts/check.sh --all` because `--all` runs the full pytest suite.
 
 ## Remediation workflow
 
@@ -38,6 +43,26 @@ This command is also required in lint CI (parity guard step) and is included by 
 scripts/check.sh --lint
 scripts/check.sh --plans
 scripts/check.sh --env-bools
+scripts/check.sh --docs
 scripts/check.sh --tests -- -k parity -m script_regression
 scripts/check.sh --all
+```
+
+## Docs completion checklist (refactor follow-up)
+
+When a refactor changes check entrypoints, CI phases, script paths, or artifact locations:
+
+- Update affected docs in the same PR (`README.md`, `DEVELOPMENT.md`, `docs/runbooks/agent-docs/PROJECT_DEV_WORKFLOW.md`, and relevant
+  `docs/testing/*.md`).
+- Verify docs command/path freshness:
+
+```bash
+scripts/check.sh --docs
+```
+
+- Verify markdown quality and parity behavior:
+
+```bash
+scripts/check.sh --markdown
+scripts/check.sh --tests -- -k parity -m script_regression
 ```

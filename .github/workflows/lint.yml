@@ -58,6 +58,10 @@ jobs:
         run: |
           $AGENT_HOME/scripts/check.sh --env-bools
 
+      - name: Docs freshness audit
+        run: |
+          $AGENT_HOME/scripts/check.sh --docs
+
       - name: Validate skill contract sections
         run: |
           $AGENT_HOME/scripts/check.sh --contracts

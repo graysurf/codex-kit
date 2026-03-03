@@ -55,6 +55,15 @@ Supported entrypoints for this skill are only:
 - `scripts/project-notify.sh`
 - `scripts/desktop-notify.sh`
 
+Keep docs/examples pinned to those two paths so script regression + smoke coverage stays accurate.
+
+Quick local sanity check:
+
+```bash
+test -x "$AGENT_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh"
+test -x "$AGENT_HOME/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh"
+```
+
 ## Behavior
 
 - macOS: uses `terminal-notifier` when installed.
