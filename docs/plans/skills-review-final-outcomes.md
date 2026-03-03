@@ -2,7 +2,8 @@
 
 ## Final Outcomes
 
-- Repository-level docs now describe the canonical check surface (`scripts/check.sh` modes plus entrypoint drift guards) without legacy wrapper guidance.
+- Repository-level docs now describe the canonical check surface (`scripts/check.sh` modes plus
+  entrypoint drift guards) without legacy wrapper guidance.
 - Runtime path examples for plan-issue cleanup now use the current `<owner__repo>` workspace slug convention.
 - The retained skill entrypoint surface is documented and auditable through current `SKILL.md`, smoke specs, and regression checks.
 
