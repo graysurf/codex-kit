@@ -20,7 +20,7 @@ to_lower() {
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  desktop-notify.sh --title <title> --message <message> [--level <info|success|warn|error>]
+  desktop-notify.sh --title <title> --message <message> [--level <info|success|warn|warning|error>]
 
 Behavior:
   - macOS: uses terminal-notifier (if installed)
@@ -36,6 +36,13 @@ Install hints:
   - Linux (Debian/Ubuntu): sudo apt-get install libnotify-bin
   - Linux (Fedora): sudo dnf install libnotify
 EOF
+}
+
+normalize_level() {
+  case "$1" in
+    warning) printf "warn" ;;
+    *) printf "%s" "$1" ;;
+  esac
 }
 
 bool_from_env() {
@@ -86,7 +93,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --level)
-      level="$(to_lower "$(trim "${2:-}")")"
+      level="$(normalize_level "$(to_lower "$(trim "${2:-}")")")"
       [[ -n "$level" ]] || die "Missing value for --level"
       shift 2
       ;;
@@ -104,10 +111,10 @@ done
 [[ -n "$message" ]] || die "Missing --message"
 
 case "$level" in
-  info|success|warn|warning|error)
+  info|success|warn|error)
     ;;
   *)
-    die "Invalid --level: $level (expected info|success|warn|error)"
+    die "Invalid --level: $level (expected info|success|warn|warning|error)"
     ;;
 esac
 
@@ -119,9 +126,7 @@ os="$(uname -s 2>/dev/null || true)"
 
 if [[ "$os" == "Darwin" ]]; then
   if command -v terminal-notifier >/dev/null 2>&1; then
-    if terminal-notifier -title "$title" -message "$message" >/dev/null 2>&1; then
-      exit 0
-    fi
+    terminal-notifier -title "$title" -message "$message" >/dev/null 2>&1 || true
     exit 0
   fi
 
@@ -138,14 +143,12 @@ if [[ "$os" == "Linux" ]]; then
       error)
         urgency="critical"
         ;;
-      warn|warning)
+      warn)
         urgency="normal"
         ;;
     esac
 
-    if notify-send -u "$urgency" "$title" "$message" >/dev/null 2>&1; then
-      exit 0
-    fi
+    notify-send -u "$urgency" "$title" "$message" >/dev/null 2>&1 || true
     exit 0
   fi
 

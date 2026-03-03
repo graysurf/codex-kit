@@ -1,8 +1,13 @@
 {
+  "args": ["--help"],
+  "timeout_sec": 10,
+  "expect": {
+    "exit_codes": [0]
+  },
   "smoke": [
     {
-      "name": "default",
-      "args": [],
+      "name": "skill-dir",
+      "args": ["--skill-dir", "skills/tools/skill-management/skill-governance"],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0]

@@ -47,7 +47,7 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `scripts/playwright_cli.sh`
+- `$AGENT_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh`
 
 ## Usage
 

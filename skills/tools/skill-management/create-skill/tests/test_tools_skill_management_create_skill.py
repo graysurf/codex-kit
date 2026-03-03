@@ -19,6 +19,16 @@ def test_tools_skill_management_create_skill_entrypoints_exist() -> None:
     assert_entrypoints_exist(skill_root, ["scripts/create_skill.sh"])
 
 
+def test_create_skill_contract_references_current_entrypoints() -> None:
+    skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
+    text = skill_md.read_text(encoding="utf-8")
+
+    assert "$AGENT_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh" in text
+    assert "$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh" in text
+    assert "$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh" in text
+    assert "legacy wrapper paths are not supported" in text.lower()
+
+
 def test_create_skill_generates_contract_first_skill_md() -> None:
     root = repo_root()
     create_script = (

@@ -46,6 +46,7 @@ Failure modes:
 ## Scripts (only entrypoints)
 
 - `$AGENT_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh`
+- Legacy wrapper paths are not supported; keep docs and callers pinned to this script.
 
 ## Related docs
 

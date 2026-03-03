@@ -7,7 +7,7 @@
   "smoke": [
     {
       "name": "backend-invoked",
-      "args": ["--title", "codex", "--message", "smoke", "--level", "info"],
+      "args": ["--title", "codex", "--message", "smoke", "--level", "warning"],
       "env": {
         "CODEX_STUB_LOG_DIR": "out/tests/script-smoke/stubs/desktop-notify/backend-invoked"
       },
