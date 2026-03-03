@@ -69,6 +69,11 @@ Failure modes:
   `PLAN_SNAPSHOT_PATH`, `DISPATCH_RECORD_PATH`, plan task snippet/link/path).
 - Review or clarification follow-up is redirected into a replacement branch/worktree/PR without explicit task-lane reassignment.
 
+## Entrypoint
+
+- None. This orchestration skill intentionally uses `plan-issue` command flows
+  and has no repo-local `scripts/` entrypoint.
+
 ## Role Boundary (Mandatory)
 
 - Main-agent is limited to issue orchestration:

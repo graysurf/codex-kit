@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -13,6 +14,51 @@ def write_executable(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, "utf-8")
     path.chmod(0o755)
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_release_and_ci_specs_match_retained_entrypoints() -> None:
+    repo = repo_root()
+
+    expected_specs = [
+        "tests/script_specs/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh.json",
+        "tests/script_specs/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py.json",
+        "tests/script_specs/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh.json",
+        "tests/script_specs/skills/automation/release-workflow/scripts/release-resolve.sh.json",
+    ]
+    spec_roots = [
+        repo / "tests" / "script_specs" / "skills" / "automation" / "gh-fix-ci" / "scripts",
+        repo / "tests" / "script_specs" / "skills" / "automation" / "release-workflow" / "scripts",
+    ]
+    discovered_specs = sorted(
+        str(path.relative_to(repo))
+        for root in spec_roots
+        for path in root.glob("*.json")
+    )
+    assert discovered_specs == expected_specs
+
+    expected_scripts = [
+        "skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh",
+        "skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py",
+        "skills/automation/release-workflow/scripts/release-publish-from-changelog.sh",
+        "skills/automation/release-workflow/scripts/release-resolve.sh",
+    ]
+    for script_path in expected_scripts:
+        assert (repo / script_path).is_file(), script_path
+
+    expected_case_names = {
+        "tests/script_specs/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh.json": {"help-surface"},
+        "tests/script_specs/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py.json": {"help"},
+        "tests/script_specs/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh.json": {
+            "help-surface"
+        },
+        "tests/script_specs/skills/automation/release-workflow/scripts/release-resolve.sh.json": {"json-defaults"},
+    }
+    for spec_path, expected_names in expected_case_names.items():
+        payload = json.loads((repo / spec_path).read_text("utf-8"))
+        smoke_cases = payload.get("smoke", [])
+        names = {case.get("name") for case in smoke_cases if isinstance(case, dict)}
+        assert names == expected_names, spec_path
 
 
 @pytest.mark.script_smoke

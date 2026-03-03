@@ -71,6 +71,12 @@ def test_create_feature_pr_skill_opens_draft_pr_by_default() -> None:
     assert "Open draft PRs by default; only open non-draft when the user explicitly requests it." in text
 
 
+def test_create_feature_pr_skill_declares_canonical_entrypoint() -> None:
+    text = _skill_md_text()
+    assert "## Entrypoint" in text
+    assert "`$AGENT_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh`" in text
+
+
 def test_create_feature_pr_skill_pr_template_flow_is_simple() -> None:
     text = _skill_md_text()
     assert "Use `$AGENT_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr`" in text

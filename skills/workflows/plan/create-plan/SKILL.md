@@ -37,6 +37,10 @@ Failure modes:
 - Request remains underspecified and the user won’t confirm assumptions.
 - Plan requires access/info the user cannot provide (credentials, private APIs, etc.).
 
+## Entrypoint
+
+- None. This is a workflow-only skill with no `scripts/` entrypoint.
+
 ## Workflow
 
 1. Decide whether you must ask questions first

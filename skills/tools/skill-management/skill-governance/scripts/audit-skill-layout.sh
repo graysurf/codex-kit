@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh [--skill-dir <path>] [--help]
+  audit-skill-layout.sh [--skill-dir <path>] [--help]
 
 Validates that each tracked skill directory contains only the allowed top-level
 entries:

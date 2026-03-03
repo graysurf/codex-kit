@@ -46,3 +46,11 @@ Failure modes:
 ## Scripts (only entrypoints)
 
 - `$AGENT_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh`
+- Legacy wrapper paths are not supported; keep docs and callers pinned to this script.
+
+## Related docs
+
+- Repo-wide review checklist:
+  - `docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
+- Baseline inventory format and current coverage snapshot:
+  - `docs/plans/skills-inventory-audit.md`

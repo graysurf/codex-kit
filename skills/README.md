@@ -13,6 +13,12 @@ helpers, tests, and references needed to keep it reliable.
   - `../docs/runbooks/skills/TOOLING_INDEX_V2.md`
 - Create/validate/remove workflows:
   - `tools/skill-management/README.md`
+- Repo-wide skill inventory baseline:
+  - `../docs/plans/skills-inventory-audit.md`
+- Repo-wide review checklist:
+  - `../docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
+- Script simplification playbook:
+  - `../docs/runbooks/skills/SCRIPT_SIMPLIFICATION_PLAYBOOK.md`
 
 ## Tracked skill categories
 
@@ -48,3 +54,13 @@ See `../docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full directory anatom
 - Skill directories use kebab-case (e.g., `create-feature-pr`).
 - `_shared` is reserved for shared, non-skill content only.
 - Avoid uppercase or spaces in directory names.
+
+## Entrypoint Drift Guard (Quick Run)
+
+When adding/removing/renaming workflow or tool entrypoints, run both checks in
+the same change:
+
+```bash
+bash scripts/ci/stale-skill-scripts-audit.sh --check
+scripts/check.sh --entrypoint-ownership
+```

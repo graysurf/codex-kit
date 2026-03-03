@@ -1,6 +1,17 @@
 {
   "smoke": [
     {
+      "name": "help-surface",
+      "args": [
+        "--help"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "manage_issue_lifecycle\\.sh <open\\|update\\|decompose\\|validate\\|sync\\|comment\\|close\\|reopen>"
+      }
+    },
+    {
       "name": "open-dry-run",
       "args": [
         "open",

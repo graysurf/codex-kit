@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -38,6 +39,33 @@ def init_fixture_repo(tmp_path: Path, *, default_branch: str = "main") -> tuple[
     git(["push", "-u", "origin", default_branch], cwd=work_tree)
 
     return (work_tree, origin)
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_issue_workflow_specs_match_retained_entrypoints() -> None:
+    repo = repo_root()
+    expected_specs = [
+        "tests/script_specs/skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh.json",
+        "tests/script_specs/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh.json",
+    ]
+    discovered_specs = sorted(
+        str(path.relative_to(repo))
+        for path in (repo / "tests" / "script_specs" / "skills" / "workflows" / "issue").rglob("manage_issue_*.sh.json")
+    )
+    assert discovered_specs == expected_specs
+
+    expected_scripts = [
+        "skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh",
+        "skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh",
+    ]
+    for script_path in expected_scripts:
+        assert (repo / script_path).is_file(), script_path
+
+    for spec_path in expected_specs:
+        payload = json.loads((repo / spec_path).read_text("utf-8"))
+        smoke_cases = payload.get("smoke", [])
+        names = {case.get("name") for case in smoke_cases if isinstance(case, dict)}
+        assert "help-surface" in names, spec_path
 
 
 @pytest.mark.script_smoke

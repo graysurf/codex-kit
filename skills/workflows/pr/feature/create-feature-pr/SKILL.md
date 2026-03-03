@@ -39,6 +39,10 @@ Failure modes:
 - PR title/body follows a housekeeping commit subject (for example `Add plan file`) instead of the feature outcome.
 - PR body missing required sections.
 
+## Entrypoint
+
+- `$AGENT_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh`
+
 ## Preflight (mandatory)
 
 1. Confirm runtime intent:

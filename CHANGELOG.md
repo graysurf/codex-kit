@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.8 - 2026-03-04
+
+### Added
+
+- Final outcomes artifact at `docs/plans/skills-review-final-outcomes.md` with auditable keep/remove decisions and explicit migration mapping
+  for removed entrypoints.
+
+### Changed
+
+- Repo-level docs were aligned to the finalized skill/check surface, including canonical `scripts/check.sh` gates and entrypoint-drift guards
+  in `PROJECT_DEV_WORKFLOW.md`.
+- `README.md` structure notes now reflect current tracked directories and remove stale progress-log wording.
+- `docs/testing/script-smoke.md` plan-issue cleanup example now uses the current `<owner__repo>` workspace slug convention.
+
 ## v2.3.7 - 2026-03-04
 
 ### Added

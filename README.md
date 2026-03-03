@@ -10,10 +10,10 @@ agent-kit tracks AI agent setup to keep workflows consistent across machines. It
 .
 ├── .github/    # CI workflows (GitHub Actions)
 ├── prompts/    # prompt presets
-├── skills/     # skills (tools/, workflows/, automation/, .system/, _shared/, _projects/, openai/)
+├── skills/     # skills (tools/, workflows/, automation/, .system/, _shared/, _projects/)
 ├── scripts/    # loader + helper scripts
 ├── docker/     # Docker images + env tooling
-├── docs/       # docs, templates, progress logs
+├── docs/       # runbooks, plans, and testing docs
 ├── tests/      # pytest regression/smoke tests
 └── AGENTS.md   # global agent rules (response/tooling)
 ```
@@ -94,7 +94,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Planning     | [docs-plan-cleanup](./skills/workflows/plan/docs-plan-cleanup/)                                     | Prune outdated docs/plans markdown with dry-run-first safeguards and related-doc reconciliation                                           |
 | Planning     | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/)                             | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate                                                 |
 | Issue        | [issue-lifecycle](./skills/workflows/issue/issue-lifecycle/)                                        | Main-agent workflow for opening, maintaining, decomposing, and closing GitHub Issues as the planning source of truth                      |
-| Issue        | [issue-subagent-pr](./skills/workflows/issue/issue-subagent-pr/)                                    | Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked to the owning issue         |
+| Issue        | [issue-subagent-pr](./skills/workflows/issue/issue-subagent-pr/)                                    | Subagent workflow for assigned task-lane implementation (pr-shared/per-sprint/pr-isolated), draft PR creation, and review-response updates linked to the owning issue |
 | Issue        | [issue-pr-review](./skills/workflows/issue/issue-pr-review/)                                        | Main-agent PR review workflow with explicit PR comment links mirrored to the issue timeline                                               |
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/)                               | Create feature branches and open a PR with a standard template                                                                            |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/)                                 | Merge and close PRs after a quick PR hygiene review; delete the feature branch                                                            |
@@ -142,6 +142,12 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/)           | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR                                                                                           |
 | Release     | [release-workflow](./skills/automation/release-workflow/)                   | Execute project release workflows by following a repo release guide (with a bundled fallback)                                                                                              |
 
+Automation migration note:
+deprecated release-workflow helpers from PR #221 were removed; replace old commands with:
+`$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
+and
+`$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>`.
+
 ## ✅ Local and CI Check Entrypoints
 
 Use `scripts/check.sh` as the canonical local check entrypoint:
@@ -156,6 +162,8 @@ Common focused runs:
 scripts/check.sh --docs
 scripts/check.sh --markdown
 scripts/check.sh --tests -- -m script_smoke
+bash scripts/ci/stale-skill-scripts-audit.sh --check
+scripts/check.sh --entrypoint-ownership
 ```
 
 Lint CI (`.github/workflows/lint.yml`) maps its phases to `scripts/check.sh` modes. Keep docs and CI guidance aligned with these modes

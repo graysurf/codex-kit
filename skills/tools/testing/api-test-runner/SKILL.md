@@ -38,6 +38,13 @@ Failure modes:
 - Missing/invalid suite or case files (JSON schema errors, missing request/op files).
 - Auth missing/invalid (401/403) or write-capable case blocked by safety defaults.
 
+## Entrypoints
+
+- External CLI commands only:
+  - `api-test run`
+  - `api-test summary`
+- This skill intentionally has no repo-local `scripts/` entrypoint.
+
 ## Goal
 
 Run a suite of API checks in CI (and locally) via a single manifest file, reusing existing callers:

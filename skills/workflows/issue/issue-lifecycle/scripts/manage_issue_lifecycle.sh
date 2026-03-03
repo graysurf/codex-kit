@@ -42,6 +42,12 @@ usage() {
 Usage:
   manage_issue_lifecycle.sh <open|update|decompose|validate|sync|comment|close|reopen> [options]
 
+Canonical entrypoint:
+  $AGENT_HOME/skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh
+
+Simplification note:
+  Legacy wrappers were removed; use this entrypoint directly.
+
 Subcommands:
   open       Create a new issue owned by the main agent
   update     Update title/body/labels/assignees/projects for an issue

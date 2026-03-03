@@ -60,6 +60,14 @@ def test_issue_delivery_skill_uses_shared_post_review_outcomes() -> None:
     assert "--close-reason" in text
 
 
+def test_issue_delivery_skill_declares_scriptless_entrypoint() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "## Entrypoint" in text
+    assert "no repo-local `scripts/` entrypoint" in text
+    assert "plan-issue" in text
+
+
 def test_issue_delivery_skill_excludes_deleted_wrapper_script() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")

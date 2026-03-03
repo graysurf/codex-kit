@@ -72,6 +72,9 @@ Notes:
 - `scripts/check-pre-commit.sh` always includes skill entrypoint checks to avoid conditional misses.
 - If you run only the canonical minimum gate (`scripts/check.sh --all`), remember that `stale-skill-scripts-audit` and
   `--entrypoint-ownership` are still required whenever skill entrypoint scripts are added/removed.
+- When workflow/tool entrypoint scripts change, update the matching
+  `tests/script_specs/skills/**/scripts/*.json` smoke specs in the same PR to
+  keep spec coverage aligned with retained entrypoints.
 
 ## CI Notes
 

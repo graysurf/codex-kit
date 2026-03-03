@@ -43,3 +43,10 @@ Failure modes:
 - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`
+
+## Related docs
+
+- Repo-wide review checklist:
+  - `docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
+- Baseline inventory snapshot for tracked skills:
+  - `docs/plans/skills-inventory-audit.md`
