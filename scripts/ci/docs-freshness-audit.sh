@@ -65,9 +65,9 @@ if [[ -z "$repo_root" || ! -d "$repo_root" ]]; then
 fi
 cd "$repo_root"
 
-if ! command -v rg >/dev/null 2>&1; then
-  echo "error: rg (ripgrep) is required for docs freshness audit" >&2
-  exit 2
+has_rg=0
+if command -v rg >/dev/null 2>&1; then
+  has_rg=1
 fi
 
 if [[ ! -f "$rules_file" ]]; then
@@ -94,6 +94,26 @@ trim() {
   printf '%s' "$value"
 }
 
+contains_literal_in_file() {
+  local needle="${1:-}"
+  local file_path="${2:-}"
+  if [[ "$has_rg" -eq 1 ]]; then
+    rg -F -q -- "$needle" "$file_path"
+  else
+    grep -F -q -- "$needle" "$file_path"
+  fi
+}
+
+scan_doc_tokens() {
+  local file_path="${1:-}"
+  local token_pattern='\$AGENT_HOME/(scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+)|(scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+)'
+  if [[ "$has_rg" -eq 1 ]]; then
+    rg -H -n -o -e "$token_pattern" "$file_path"
+  else
+    grep -H -n -E -o -- "$token_pattern" "$file_path"
+  fi
+}
+
 rules_raw="$(mktemp)"
 path_hits_raw="$(mktemp)"
 trap 'rm -f "$rules_raw" "$path_hits_raw"' EXIT
@@ -103,6 +123,10 @@ awk '/docs-freshness-audit:begin/{in_block=1;next}/docs-freshness-audit:end/{in_
 if [[ ! -s "$rules_raw" ]]; then
   echo "error: rules block is missing or empty in ${rules_file}" >&2
   exit 2
+fi
+
+if [[ "$has_rg" -ne 1 ]]; then
+  warn "rg not found; using grep fallback for docs freshness scan"
 fi
 
 docs=()
@@ -179,7 +203,7 @@ for command_text in "${required_commands[@]}"; do
     if [[ ! -f "$doc_path" ]]; then
       continue
     fi
-    if rg -F -q -- "$command_text" "$doc_path"; then
+    if contains_literal_in_file "$command_text" "$doc_path"; then
       found=1
       break
     fi
@@ -205,7 +229,7 @@ for required_path in "${required_paths[@]}"; do
     if [[ ! -f "$doc_path" ]]; then
       continue
     fi
-    if rg -F -q -- "$required_path" "$doc_path" || rg -F -q -- "\$AGENT_HOME/${required_path}" "$doc_path"; then
+    if contains_literal_in_file "$required_path" "$doc_path" || contains_literal_in_file "\$AGENT_HOME/${required_path}" "$doc_path"; then
       documented=1
       break
     fi
@@ -221,7 +245,7 @@ done
 is_allowlisted_missing_path() {
   local candidate="${1:-}"
   local allowed_path
-  for allowed_path in "${allow_missing_paths[@]}"; do
+  for allowed_path in "${allow_missing_paths[@]-}"; do
     if [[ "$candidate" == "$allowed_path" ]]; then
       return 0
     fi
@@ -243,10 +267,7 @@ should_skip_discovered_token() {
 for doc_path in "${docs[@]}"; do
   [[ -f "$doc_path" ]] || continue
   set +e
-  rg -H -n -o \
-    -e '\$AGENT_HOME/(scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+)' \
-    -e '(scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+)' \
-    "$doc_path" >>"$path_hits_raw"
+  scan_doc_tokens "$doc_path" >>"$path_hits_raw"
   rg_status=$?
   set -e
 
