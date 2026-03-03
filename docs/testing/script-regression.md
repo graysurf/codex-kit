@@ -34,6 +34,7 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - `commands/**`
 - Executes each script via its shebang interpreter (e.g. `bash`, `zsh -f`).
 - Default invocation is safe-mode `--help` (override per script via JSON spec).
+- Script smoke/regression tests pin `AGENT_HOME` to the active checkout root so worktree runs do not mix coverage with another repo copy.
 - Uses a hermetic-ish environment:
   - `HOME` and `XDG_*` redirected under `out/tests/script-regression/`
   - `PATH` prefixed with stub binaries under `tests/stubs/bin/` (e.g. blocks `gh`, `curl`, `wget`)

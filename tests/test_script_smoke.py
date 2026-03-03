@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import shlex
 import subprocess
@@ -9,7 +10,20 @@ from typing import Any
 
 import pytest
 
+# Keep script coverage artifacts scoped to the active checkout under test.
+os.environ["AGENT_HOME"] = str(Path(__file__).resolve().parents[1])
+
 from .conftest import SCRIPT_SMOKE_RUN_RESULTS, ScriptRunResult, default_smoke_env, load_script_specs, out_dir_smoke, repo_root
+
+CRITICAL_SMOKE_ENTRYPOINTS = {
+    "scripts/check.sh",
+    "skills/tools/devex/desktop-notify/scripts/desktop-notify.sh",
+    "skills/tools/devex/desktop-notify/scripts/project-notify.sh",
+}
+
+REMOVED_SMOKE_ENTRYPOINTS = {
+    "skills/tools/devex/desktop-notify/scripts/codex-notify.sh",
+}
 
 
 def parse_shebang(script_path: Path) -> list[str]:
@@ -189,6 +203,25 @@ def discover_smoke_cases() -> list[tuple[str, str, dict[str, Any]]]:
             discovered.append((script, name.strip(), case))
 
     return sorted(discovered, key=lambda x: (x[0], x[1]))
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_critical_entrypoints_have_explicit_specs():
+    repo = repo_root()
+    specs = load_script_specs(repo / "tests" / "script_specs")
+    smoke_defined = {script for script, spec in specs.items() if spec.get("smoke")}
+
+    missing = sorted(CRITICAL_SMOKE_ENTRYPOINTS - smoke_defined)
+    assert not missing, (
+        "missing explicit smoke specs for critical entrypoints:\n"
+        + "\n".join(f"- {script}" for script in missing)
+    )
+
+    stale = sorted(REMOVED_SMOKE_ENTRYPOINTS & smoke_defined)
+    assert not stale, (
+        "stale smoke specs should be removed after pruning:\n"
+        + "\n".join(f"- {script}" for script in stale)
+    )
 
 
 @pytest.mark.script_smoke
