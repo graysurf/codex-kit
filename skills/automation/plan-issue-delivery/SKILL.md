@@ -221,6 +221,9 @@ Failure modes:
   - `git pull --ff-only`
 - `close-plan` must enforce final integration PR merged (`PLAN_BRANCH -> DEFAULT_BRANCH`), integration PR mention comment on plan issue, and
   worktree cleanup under `"$ISSUE_ROOT/worktrees"`; leftovers fail the close gate.
+- `close-plan` must also enforce final conformance + integration CI artifacts:
+  - `PLAN_CONFORMANCE_REVIEW_PATH` present with pass verdict
+  - `PLAN_INTEGRATION_CI_PATH` present with required checks green (or explicit user-approved override)
 - After successful `close-plan`, main-agent must sync local `DEFAULT_BRANCH`:
   - `git fetch origin --prune`
   - `git switch "$DEFAULT_BRANCH"` (or create tracking branch from
@@ -471,8 +474,9 @@ once, then reuse it in all `--issue` flags. Keep approval URLs explicit per
 gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
 `PLAN_APPROVED_COMMENT_URL` for `close-plan`. Sprint PRs target `PLAN_BRANCH`;
 only the final integration PR targets `DEFAULT_BRANCH`. Before `close-plan`,
-main-agent must post an issue comment that mentions the integration PR and keep
-that comment URL.
+main-agent must complete conformance + required-check gates for the integration
+PR, then post an issue comment that mentions the integration PR and keep that
+comment URL.
 
 1. Live mode (`plan-issue`)
    - Validate: `plan-tooling validate --file <plan.md>`
@@ -511,6 +515,7 @@ that comment URL.
      ```
 
      - Expected: `state=OPEN`, `baseRefName=$PLAN_BRANCH`, required checks green.
+     - Treat `no checks reported` as blocking failure unless user explicitly approves override.
    - Accept sprint:
 
      ```bash
@@ -526,10 +531,33 @@ that comment URL.
      ```
 
    - Ready plan: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
+   - Write final plan conformance review (`PLAN_CONFORMANCE_REVIEW_PATH`):
+
+     ```bash
+     PLAN_CONFORMANCE_REVIEW_PATH="$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-${ISSUE_NUMBER}/plan/plan-conformance-review.md"
+     # Record per-task conformance verdicts and blocking mismatches before integration merge.
+     ```
+
    - Final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`):
 
      ```bash
      gh pr create --base "$DEFAULT_BRANCH" --head "$PLAN_BRANCH" --title "plan(issue-${ISSUE_NUMBER}): merge ${PLAN_BRANCH} into ${DEFAULT_BRANCH}" --body "<summary>"
+     ```
+
+   - Verify integration required checks before merge and write `PLAN_INTEGRATION_CI_PATH`:
+
+     ```bash
+     INTEGRATION_PR_NUMBER="<number>"
+     PLAN_INTEGRATION_CI_PATH="$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-${ISSUE_NUMBER}/plan/plan-integration-ci.md"
+
+     gh pr checks "$INTEGRATION_PR_NUMBER" --required --watch
+     # If output contains "no checks reported", treat as blocking failure unless user explicitly approves override.
+     ```
+
+   - Merge integration PR only after conformance + required-check gates pass:
+
+     ```bash
+     gh pr merge "$INTEGRATION_PR_NUMBER" --merge
      ```
 
    - Mention integration PR on the plan issue and persist comment URL:
@@ -566,8 +594,17 @@ that comment URL.
 - Main-agent does not implement sprint tasks directly.
 - Sprint implementation must be delegated to subagent-owned PRs.
 - Sprint comments and plan close actions are main-agent orchestration artifacts; implementation remains subagent-owned.
-- Allowed exception: main-agent may open/manage exactly one non-implementation
-  integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) after all sprints are accepted.
+- Allowed baseline exception: main-agent may open/manage exactly one
+  non-implementation integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) after all
+  sprints are accepted.
+- Main-agent owns final plan-conformance review and integration required-check
+  gates before merging to `DEFAULT_BRANCH`.
+- Default correction path for plan mismatches is follow-up on the original lane,
+  not main-agent coding.
+- Exceptional correction path (main-agent coding) is allowed only when:
+  - lane follow-up is unavailable or too risky for delivery timing
+  - fix scope is minimal and directly tied to plan conformance
+  - rationale, test evidence, and scope justification are recorded in review evidence
 - Main-agent must post the integration PR mention comment on the plan issue
   before `close-plan`.
 - Main-agent owns required local sync commands after sprint acceptance and final

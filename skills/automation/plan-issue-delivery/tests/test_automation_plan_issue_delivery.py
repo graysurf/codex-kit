@@ -35,7 +35,7 @@ def test_plan_issue_delivery_skill_requires_close_for_done() -> None:
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed" in text
     assert "integration mention gate" in text
-    assert "required local sync commands succeed." in text
+    assert re.search(r"required local sync commands\s+succeed\.", text)
     assert "worktree cleanup" in text
     assert "A successful run must terminate at `close-plan` with:" in text
     assert "final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) merged" in text
