@@ -78,6 +78,22 @@ Use only these public entrypoints:
   $AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version v1.3.2
   ```
 
+## Migration notes (removed entrypoints)
+
+The release-workflow surface was simplified in PR #221.
+The following entrypoints are deprecated and removed; migrate to the retained commands below.
+
+| Removed entrypoint | Replace with |
+| --- | --- |
+| `$AGENT_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh` | `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>` |
+| `$AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh` | `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>` |
+| `$AGENT_HOME/skills/automation/release-workflow/scripts/release-find-guide.sh` | `$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .` |
+| `$AGENT_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh` | `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>` |
+| `$AGENT_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh` | `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>` |
+
+`release-resolve.sh` remains the guide-resolution entrypoint.
+`release-publish-from-changelog.sh` remains the publish entrypoint.
+
 ## Related docs
 
 - Reference notes for the single-entrypoint simplification shipped in PR #221:

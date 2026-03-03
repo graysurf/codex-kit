@@ -248,6 +248,12 @@ Failure modes:
 
 - `plan-issue` (live GitHub orchestration)
 
+## Entrypoint boundary
+
+- This skill intentionally keeps no repo-local wrapper script for `plan-issue`.
+- Keep `plan-issue` as the shared primitive on PATH; do not add duplicate `plan-issue-*` wrappers under `skills/automation/`.
+- Shared reusable logic belongs in shared references or automation libs, not new wrapper entrypoints.
+
 ## References
 
 - Local rehearsal playbook (`plan-issue-local` and `plan-issue --dry-run`): `references/LOCAL_REHEARSAL.md`

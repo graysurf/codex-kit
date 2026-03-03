@@ -142,6 +142,12 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/)           | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR                                                                                           |
 | Release     | [release-workflow](./skills/automation/release-workflow/)                   | Execute project release workflows by following a repo release guide (with a bundled fallback)                                                                                              |
 
+Automation migration note:
+deprecated release-workflow helpers from PR #221 were removed; replace old commands with:
+`$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
+and
+`$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>`.
+
 ## ✅ Local and CI Check Entrypoints
 
 Use `scripts/check.sh` as the canonical local check entrypoint:

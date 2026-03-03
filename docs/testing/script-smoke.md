@@ -41,6 +41,11 @@ scripts/check.sh --entrypoint-ownership
   - `tests/script_specs/skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh.json`
   - `tests/script_specs/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh.json`
 - Removed desktop-notify wrappers (for example `codex-notify.sh`) should not keep stale smoke specs.
+- Deprecated release-workflow helper entrypoints removed in PR #221 (`audit-changelog.zsh`, `release-audit.sh`,
+  `release-find-guide.sh`, `release-notes-from-changelog.sh`, `release-scaffold-entry.sh`) should not keep stale smoke specs.
+  Keep smoke coverage on retained entrypoints only:
+  - `tests/script_specs/skills/automation/release-workflow/scripts/release-resolve.sh.json`
+  - `tests/script_specs/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh.json`
 - Writes evidence (untracked) under:
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`

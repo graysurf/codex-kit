@@ -73,6 +73,12 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
 - Skill entrypoint drift guard (required when entrypoint scripts or smoke specs change):
   - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
   - `scripts/check.sh --entrypoint-ownership`
+- Release-workflow migration guard:
+  - deprecated helpers removed in PR #221 must stay removed (`audit-changelog.zsh`, `release-audit.sh`,
+    `release-find-guide.sh`, `release-notes-from-changelog.sh`, `release-scaffold-entry.sh`)
+  - replace old release helper usage with:
+    - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
+    - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>`
 
 ## Script smoke tests
 
