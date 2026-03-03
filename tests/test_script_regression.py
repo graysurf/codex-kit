@@ -10,7 +10,16 @@ from typing import Any, cast
 
 import pytest
 
+# Keep script coverage artifacts scoped to the active checkout under test.
+os.environ["AGENT_HOME"] = str(Path(__file__).resolve().parents[1])
+
 from .conftest import SCRIPT_RUN_RESULTS, ScriptRunResult, default_env, discover_scripts, load_script_specs, out_dir, repo_root
+
+CRITICAL_REGRESSION_ENTRYPOINTS = {
+    "scripts/check.sh",
+    "skills/tools/devex/desktop-notify/scripts/desktop-notify.sh",
+    "skills/tools/devex/desktop-notify/scripts/project-notify.sh",
+}
 
 
 def parse_shebang(script_path: Path) -> list[str]:
@@ -162,6 +171,16 @@ def run_script(script: str, spec: dict[str, Any], repo: Path) -> ScriptRunResult
             status="fail",
             note=f"timeout after {timeout_sec}s",
         )
+
+
+@pytest.mark.script_regression
+def test_script_regression_covers_critical_entrypoints():
+    discovered = set(discover_scripts())
+    missing = sorted(CRITICAL_REGRESSION_ENTRYPOINTS - discovered)
+    assert not missing, (
+        "missing critical script entrypoints from regression discovery:\n"
+        + "\n".join(f"- {script}" for script in missing)
+    )
 
 
 @pytest.mark.script_regression

@@ -1,8 +1,21 @@
 {
+  "args": ["--help"],
+  "timeout_sec": 10,
+  "expect": {
+    "exit_codes": [0]
+  },
   "smoke": [
     {
       "name": "contracts",
       "args": ["--contracts"],
+      "timeout_sec": 30,
+      "expect": {
+        "exit_codes": [0]
+      }
+    },
+    {
+      "name": "skills-layout",
+      "args": ["--skills-layout"],
       "timeout_sec": 30,
       "expect": {
         "exit_codes": [0]

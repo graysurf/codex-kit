@@ -20,6 +20,11 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
 - Smoke cases are either:
   - Spec-driven (preferred): `tests/script_specs/<script_relpath>.json` includes a `smoke` list (or `{ "cases": [...] }`).
   - Fixture-driven: pytest builds temporary repos/files (used for scripts that mutate git state, etc.).
+- Critical smoke specs retained after desktop-notify pruning:
+  - `tests/script_specs/scripts/check.sh.json`
+  - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh.json`
+  - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/project-notify.sh.json`
+- Removed desktop-notify wrappers (for example `codex-notify.sh`) should not keep stale smoke specs.
 - Writes evidence (untracked) under:
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`

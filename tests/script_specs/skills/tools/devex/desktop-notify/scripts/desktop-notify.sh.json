@@ -1,4 +1,9 @@
 {
+  "args": ["--help"],
+  "timeout_sec": 5,
+  "expect": {
+    "exit_codes": [0]
+  },
   "smoke": [
     {
       "name": "backend-invoked",
@@ -14,4 +19,3 @@
     }
   ]
 }
-
