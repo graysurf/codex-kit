@@ -20,6 +20,12 @@ Or:
 $AGENT_HOME/scripts/test.sh
 ```
 
+Or via consolidated check wrapper:
+
+```bash
+scripts/check.sh --tests -- -m script_regression
+```
+
 1. Run only smoke (deeper coverage for a small subset):
 
 ```bash
@@ -34,6 +40,7 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - `commands/**`
 - Executes each script via its shebang interpreter (e.g. `bash`, `zsh -f`).
 - Default invocation is safe-mode `--help` (override per script via JSON spec).
+- Script smoke/regression tests pin `AGENT_HOME` to the active checkout root so worktree runs do not mix coverage with another repo copy.
 - Uses a hermetic-ish environment:
   - `HOME` and `XDG_*` redirected under `out/tests/script-regression/`
   - `PATH` prefixed with stub binaries under `tests/stubs/bin/` (e.g. blocks `gh`, `curl`, `wget`)
@@ -43,6 +50,26 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - `out/tests/script-regression/logs/**`
   - `out/tests/script-coverage/summary.md`
   - `out/tests/script-coverage/summary.json`
+
+## CI artifact conventions
+
+- Pytest workflow uploads script evidence from `out/tests/**`:
+  - `out/tests/script-regression/summary.json`
+  - `out/tests/script-regression/logs/**`
+  - `out/tests/script-smoke/summary.json`
+  - `out/tests/script-smoke/logs/**`
+  - `out/tests/script-coverage/summary.json`
+  - `out/tests/script-coverage/summary.md`
+- API test runner workflow uploads suite evidence from `out/api-test-runner/<suite>/`.
+- Each API suite directory includes `results.json`, `junit.xml`, and `summary.md` (plus fixture logs when present).
+- API workflow summary steps append each suite `summary.md` to `GITHUB_STEP_SUMMARY` and point to the suite artifact path.
+
+## Related verification gates
+
+- Docs freshness gate (for command/path drift):
+  - `scripts/check.sh --docs`
+- CI parity guardrail:
+  - `scripts/check.sh --tests -- -k parity -m script_regression`
 
 ## Script smoke tests
 

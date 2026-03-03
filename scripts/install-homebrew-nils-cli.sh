@@ -42,7 +42,7 @@ retry() {
 }
 
 install_homebrew() {
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  NONINTERACTIVE=1 CI=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 }
 
 resolve_brew_bin() {
@@ -63,6 +63,7 @@ if [[ -z "$BREW_BIN" ]]; then
   exit 1
 fi
 
+eval "$("$BREW_BIN" shellenv)"
 BREW_PREFIX="$("$BREW_BIN" --prefix)"
 export PATH="${BREW_PREFIX}/bin:${BREW_PREFIX}/sbin:${PATH}"
 if [[ -n "${GITHUB_PATH:-}" ]]; then

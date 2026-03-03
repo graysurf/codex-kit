@@ -58,6 +58,25 @@ agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH"
 
 See [docs/runbooks/agent-docs/new-project-bootstrap.md](./docs/runbooks/agent-docs/new-project-bootstrap.md) for the full sequence.
 
+## ✅ Local and CI Check Entrypoints
+
+Use `scripts/check.sh` as the canonical local check entrypoint:
+
+```bash
+scripts/check.sh --all
+```
+
+Common focused runs:
+
+```bash
+scripts/check.sh --docs
+scripts/check.sh --markdown
+scripts/check.sh --tests -- -m script_smoke
+```
+
+Lint CI (`.github/workflows/lint.yml`) maps its phases to `scripts/check.sh` modes. Keep docs and CI guidance aligned with these modes
+instead of legacy ad-hoc wrappers.
+
 ## 🐳 Docker environment
 
 See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.

@@ -20,6 +20,8 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     env:
       AGENT_HOME: ${{ github.workspace }}
+      SUITE_NAME: smoke-local-rest-graphql
+      SUITE_DIR: out/api-test-runner/smoke-local-rest-graphql
 
     steps:
       - name: Checkout
@@ -47,8 +49,8 @@ jobs:
           set -euo pipefail
 
           port=43127
-          mkdir -p out/api-test-runner
-          python3 -u setup/fixtures/httpbin/server.py --port "$port" >out/api-test-runner/httpbin-fixture.log 2>&1 &
+          mkdir -p "$SUITE_DIR"
+          python3 -u setup/fixtures/httpbin/server.py --port "$port" >"$SUITE_DIR/httpbin-fixture.log" 2>&1 &
           pid=$!
           trap 'kill "$pid" >/dev/null 2>&1 || true' EXIT
 
@@ -62,35 +64,45 @@ jobs:
 
           api-test run \
             --suite smoke-demo \
-            --out out/api-test-runner/results.json \
-            --junit out/api-test-runner/junit.xml
+            --out "$SUITE_DIR/results.json" \
+            --junit "$SUITE_DIR/junit.xml"
 
       - name: Summarize results
         if: always()
         run: |
+          set -euo pipefail
+
+          results_file="$SUITE_DIR/results.json"
+          summary_file="$SUITE_DIR/summary.md"
+          mkdir -p "$SUITE_DIR"
+
           if ! command -v api-test >/dev/null 2>&1; then
-            echo "warn: api-test not found; skipping summary." >&2
-            exit 0
-          fi
-          if [[ ! -f out/api-test-runner/results.json ]]; then
-            echo "warn: results.json missing; skipping summary." >&2
-            exit 0
+            printf '%s\n' '_Summary skipped: api-test not found._' >"$summary_file"
+          elif [[ ! -f "$results_file" ]]; then
+            printf '%s\n' "_Summary skipped: missing ${results_file}._" >"$summary_file"
+          elif ! api-test summary --in "$results_file" --out "$summary_file" --slow 5; then
+            printf '%s\n' "_Summary generation failed for ${results_file}._" >"$summary_file"
           fi
 
-          api-test summary \
-            --in out/api-test-runner/results.json \
-            --out out/api-test-runner/summary.md \
-            --slow 5
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            {
+              echo "## API test summary: ${SUITE_NAME} (${RUNNER_OS})"
+              echo ""
+              cat "$summary_file"
+              echo ""
+              echo "Artifacts: \`${SUITE_DIR}/\`"
+              echo ""
+            } >>"$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner-${{ matrix.os }}
+          name: api-test-runner-${{ env.SUITE_NAME }}-${{ matrix.os }}
+          if-no-files-found: warn
           path: |
-            out/api-test-runner/results.json
-            out/api-test-runner/junit.xml
-            out/api-test-runner/summary.md
+            ${{ env.SUITE_DIR }}/
 
   cleanup-fixture-rest-graphql:
     name: Cleanup fixture suite (REST + GraphQL writes + cleanup)
@@ -101,6 +113,8 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     env:
       AGENT_HOME: ${{ github.workspace }}
+      SUITE_NAME: cleanup-fixture-rest-graphql
+      SUITE_DIR: out/api-test-runner/cleanup-fixture-rest-graphql
 
     steps:
       - name: Checkout
@@ -120,14 +134,14 @@ jobs:
         env:
           AGENT_HOME: ${{ github.workspace }}
           API_TEST_ALLOW_WRITES_ENABLED: "true"
-          API_TEST_OUTPUT_DIR: out/api-test-runner/cleanup
+          API_TEST_OUTPUT_DIR: ${{ env.SUITE_DIR }}
         run: |
           set -euo pipefail
 
           port=43127
-          mkdir -p out/api-test-runner/cleanup
+          mkdir -p "$SUITE_DIR"
 
-          python3 -u tests/fixtures/api-test-runner/cleanup/server.py --port "$port" >out/api-test-runner/cleanup/server.log 2>&1 &
+          python3 -u tests/fixtures/api-test-runner/cleanup/server.py --port "$port" >"$SUITE_DIR/server.log" 2>&1 &
           pid=$!
           trap 'kill "$pid" >/dev/null 2>&1 || true' EXIT
 
@@ -141,33 +155,45 @@ jobs:
 
           api-test run \
             --suite-file tests/fixtures/api-test-runner/cleanup/cleanup.suite.json \
-            --out out/api-test-runner/cleanup/results.json \
-            --junit out/api-test-runner/cleanup/junit.xml
+            --out "$SUITE_DIR/results.json" \
+            --junit "$SUITE_DIR/junit.xml"
 
       - name: Summarize results
         if: always()
         run: |
+          set -euo pipefail
+
+          results_file="$SUITE_DIR/results.json"
+          summary_file="$SUITE_DIR/summary.md"
+          mkdir -p "$SUITE_DIR"
+
           if ! command -v api-test >/dev/null 2>&1; then
-            echo "warn: api-test not found; skipping summary." >&2
-            exit 0
-          fi
-          if [[ ! -f out/api-test-runner/cleanup/results.json ]]; then
-            echo "warn: cleanup results.json missing; skipping summary." >&2
-            exit 0
+            printf '%s\n' '_Summary skipped: api-test not found._' >"$summary_file"
+          elif [[ ! -f "$results_file" ]]; then
+            printf '%s\n' "_Summary skipped: missing ${results_file}._" >"$summary_file"
+          elif ! api-test summary --in "$results_file" --out "$summary_file" --slow 5; then
+            printf '%s\n' "_Summary generation failed for ${results_file}._" >"$summary_file"
           fi
 
-          api-test summary \
-            --in out/api-test-runner/cleanup/results.json \
-            --out out/api-test-runner/cleanup/summary.md \
-            --slow 5
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            {
+              echo "## API test summary: ${SUITE_NAME} (${RUNNER_OS})"
+              echo ""
+              cat "$summary_file"
+              echo ""
+              echo "Artifacts: \`${SUITE_DIR}/\`"
+              echo ""
+            } >>"$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner-cleanup-fixture-${{ matrix.os }}
+          name: api-test-runner-${{ env.SUITE_NAME }}-${{ matrix.os }}
+          if-no-files-found: warn
           path: |
-            out/api-test-runner/cleanup/
+            ${{ env.SUITE_DIR }}/
 
   public-auth-rest-graphql-demo:
     name: Public auth demo (DummyJSON REST + Escuelajs GraphQL expected fail)
@@ -178,6 +204,8 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     env:
       AGENT_HOME: ${{ github.workspace }}
+      SUITE_NAME: public-auth-rest-graphql-demo
+      SUITE_DIR: out/api-test-runner/public-auth-rest-graphql-demo
 
     steps:
       - name: Checkout
@@ -203,37 +231,50 @@ jobs:
         env:
           AGENT_HOME: ${{ github.workspace }}
         run: |
+          set -euo pipefail
+
+          mkdir -p "$SUITE_DIR"
           api-test run \
             --suite public-auth-demo \
-            --out out/api-test-runner/public-auth-demo.results.json \
-            --junit out/api-test-runner/public-auth-demo.junit.xml
+            --out "$SUITE_DIR/results.json" \
+            --junit "$SUITE_DIR/junit.xml"
 
       - name: Summarize results
         if: always()
         run: |
+          set -euo pipefail
+
+          results_file="$SUITE_DIR/results.json"
+          summary_file="$SUITE_DIR/summary.md"
+          mkdir -p "$SUITE_DIR"
+
           if ! command -v api-test >/dev/null 2>&1; then
-            echo "warn: api-test not found; skipping summary." >&2
-            exit 0
-          fi
-          if [[ ! -f out/api-test-runner/public-auth-demo.results.json ]]; then
-            echo "warn: public-auth-demo results.json missing; skipping summary." >&2
-            exit 0
+            printf '%s\n' '_Summary skipped: api-test not found._' >"$summary_file"
+          elif [[ ! -f "$results_file" ]]; then
+            printf '%s\n' "_Summary skipped: missing ${results_file}._" >"$summary_file"
+          elif ! api-test summary --in "$results_file" --out "$summary_file" --slow 5; then
+            printf '%s\n' "_Summary generation failed for ${results_file}._" >"$summary_file"
           fi
 
-          api-test summary \
-            --in out/api-test-runner/public-auth-demo.results.json \
-            --out out/api-test-runner/public-auth-demo.summary.md \
-            --slow 5
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            {
+              echo "## API test summary: ${SUITE_NAME} (${RUNNER_OS})"
+              echo ""
+              cat "$summary_file"
+              echo ""
+              echo "Artifacts: \`${SUITE_DIR}/\`"
+              echo ""
+            } >>"$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner-public-auth-demo-${{ matrix.os }}
+          name: api-test-runner-${{ env.SUITE_NAME }}-${{ matrix.os }}
+          if-no-files-found: warn
           path: |
-            out/api-test-runner/public-auth-demo.results.json
-            out/api-test-runner/public-auth-demo.junit.xml
-            out/api-test-runner/public-auth-demo.summary.md
+            ${{ env.SUITE_DIR }}/
 
   auth-secrets-rest-graphql:
     # Requires a repo secret named API_TEST_AUTH_JSON (single JSON string).
@@ -247,6 +288,8 @@ jobs:
     env:
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
       AGENT_HOME: ${{ github.workspace }}
+      SUITE_NAME: auth-secrets-rest-graphql
+      SUITE_DIR: out/api-test-runner/auth-secrets-rest-graphql
 
     steps:
       - name: Skip (missing API_TEST_AUTH_JSON)
@@ -254,13 +297,15 @@ jobs:
         run: |
           if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
             {
-              echo "## API test summary: auth-secrets-demo"
+              echo "## API test summary: ${SUITE_NAME} (${RUNNER_OS})"
               echo ""
-              echo "_Skipped: missing repo secret `API_TEST_AUTH_JSON`._"
+              echo "_Skipped: missing repo secret \`API_TEST_AUTH_JSON\`._"
+              echo ""
+              echo "Artifacts: \`${SUITE_DIR}/\` (not generated)"
               echo ""
             } >>"$GITHUB_STEP_SUMMARY"
           fi
-          echo "Skipping auth-secrets-demo: missing repo secret API_TEST_AUTH_JSON."
+          echo "Skipping ${SUITE_NAME}: missing repo secret API_TEST_AUTH_JSON."
 
       - name: Checkout
         if: ${{ env.API_TEST_AUTH_JSON != '' }}
@@ -289,34 +334,47 @@ jobs:
         env:
           AGENT_HOME: ${{ github.workspace }}
         run: |
+          set -euo pipefail
+
+          mkdir -p "$SUITE_DIR"
           api-test run \
             --suite auth-secrets-demo \
-            --out out/api-test-runner/auth-secrets-demo.results.json \
-            --junit out/api-test-runner/auth-secrets-demo.junit.xml
+            --out "$SUITE_DIR/results.json" \
+            --junit "$SUITE_DIR/junit.xml"
 
       - name: Summarize results
         if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         run: |
+          set -euo pipefail
+
+          results_file="$SUITE_DIR/results.json"
+          summary_file="$SUITE_DIR/summary.md"
+          mkdir -p "$SUITE_DIR"
+
           if ! command -v api-test >/dev/null 2>&1; then
-            echo "warn: api-test not found; skipping summary." >&2
-            exit 0
-          fi
-          if [[ ! -f out/api-test-runner/auth-secrets-demo.results.json ]]; then
-            echo "warn: auth-secrets-demo results.json missing; skipping summary." >&2
-            exit 0
+            printf '%s\n' '_Summary skipped: api-test not found._' >"$summary_file"
+          elif [[ ! -f "$results_file" ]]; then
+            printf '%s\n' "_Summary skipped: missing ${results_file}._" >"$summary_file"
+          elif ! api-test summary --in "$results_file" --out "$summary_file" --slow 5; then
+            printf '%s\n' "_Summary generation failed for ${results_file}._" >"$summary_file"
           fi
 
-          api-test summary \
-            --in out/api-test-runner/auth-secrets-demo.results.json \
-            --out out/api-test-runner/auth-secrets-demo.summary.md \
-            --slow 5
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            {
+              echo "## API test summary: ${SUITE_NAME} (${RUNNER_OS})"
+              echo ""
+              cat "$summary_file"
+              echo ""
+              echo "Artifacts: \`${SUITE_DIR}/\`"
+              echo ""
+            } >>"$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload artifacts
         if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner-auth-secrets-demo-${{ matrix.os }}
+          name: api-test-runner-${{ env.SUITE_NAME }}-${{ matrix.os }}
+          if-no-files-found: warn
           path: |
-            out/api-test-runner/auth-secrets-demo.results.json
-            out/api-test-runner/auth-secrets-demo.junit.xml
-            out/api-test-runner/auth-secrets-demo.summary.md
+            ${{ env.SUITE_DIR }}/

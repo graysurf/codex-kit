@@ -14,15 +14,36 @@
 $AGENT_HOME/scripts/test.sh -m script_smoke
 ```
 
+Or via consolidated check wrapper:
+
+```bash
+scripts/check.sh --tests -- -m script_smoke
+```
+
 ## What it does
 
 - Runs selected script entrypoints through deeper smoke cases (beyond `--help`).
 - Smoke cases are either:
   - Spec-driven (preferred): `tests/script_specs/<script_relpath>.json` includes a `smoke` list (or `{ "cases": [...] }`).
   - Fixture-driven: pytest builds temporary repos/files (used for scripts that mutate git state, etc.).
+- Critical smoke specs retained after desktop-notify pruning:
+  - `tests/script_specs/scripts/check.sh.json`
+  - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh.json`
+  - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/project-notify.sh.json`
+- Removed desktop-notify wrappers (for example `codex-notify.sh`) should not keep stale smoke specs.
 - Writes evidence (untracked) under:
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`
+
+## CI artifact conventions
+
+- Pytest workflow artifacts stay under `out/tests/**`.
+- API workflow artifacts stay under `out/api-test-runner/<suite>/`.
+- For each API suite, CI writes:
+  - `out/api-test-runner/<suite>/results.json`
+  - `out/api-test-runner/<suite>/junit.xml`
+  - `out/api-test-runner/<suite>/summary.md`
+- API workflow summary steps append each `summary.md` to `GITHUB_STEP_SUMMARY`, and the summary includes the artifact directory for fast triage.
 
 ## Plan-issue cleanup gate
 
@@ -81,3 +102,4 @@ See: `tests/test_script_smoke.py`
 ## Related docs
 
 - Regression suite (broad `--help` guardrail): `docs/testing/script-regression.md`
+- CI parity + docs completion guardrails: `docs/testing/ci-check-parity.md`

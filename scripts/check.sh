@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/check.sh [--lint] [--markdown] [--third-party] [--contracts] [--skills-layout] [--plans] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
+  scripts/check.sh [--lint] [--lint-shell] [--lint-python] [--markdown] [--third-party] [--contracts] [--skills-layout] [--plans] [--env-bools] [--docs] [--entrypoint-ownership] [--tests] [--semgrep] [--all] [--] [pytest args...]
 
 Runs repo-local checks (shell/python lint, markdown lint, skill contracts, env-bools, optional Semgrep, pytest).
 
@@ -14,21 +14,29 @@ Setup:
 Examples:
   scripts/check.sh --all
   scripts/check.sh --lint
+  scripts/check.sh --lint-shell
+  scripts/check.sh --lint-python
   scripts/check.sh --markdown
   scripts/check.sh --third-party
   scripts/check.sh --env-bools
+  scripts/check.sh --docs
+  scripts/check.sh --entrypoint-ownership
   scripts/check.sh --tests -- -m script_smoke
   scripts/check.sh --semgrep
 USAGE
 }
 
 run_lint=0
+run_lint_shell=0
+run_lint_python=0
 run_markdown=0
 run_third_party=0
 run_contracts=0
 run_skill_layout=0
 run_plans=0
 run_env_bools=0
+run_docs=0
+run_entrypoint_ownership=0
 run_tests=0
 run_semgrep=0
 seen_pytest_args=0
@@ -97,6 +105,14 @@ while [[ $# -gt 0 ]]; do
       run_lint=1
       shift
       ;;
+    --lint-shell)
+      run_lint_shell=1
+      shift
+      ;;
+    --lint-python)
+      run_lint_python=1
+      shift
+      ;;
     --markdown)
       run_markdown=1
       shift
@@ -111,6 +127,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --env-bools)
       run_env_bools=1
+      shift
+      ;;
+    --docs)
+      run_docs=1
+      shift
+      ;;
+    --entrypoint-ownership)
+      run_entrypoint_ownership=1
       shift
       ;;
     --skills-layout)
@@ -137,6 +161,7 @@ while [[ $# -gt 0 ]]; do
       run_skill_layout=1
       run_plans=1
       run_env_bools=1
+      run_docs=1
       run_tests=1
       run_semgrep=1
       shift
@@ -165,7 +190,7 @@ if [[ "$seen_pytest_args" -eq 1 && "$run_tests" -eq 0 ]]; then
   exit 2
 fi
 
-if [[ "$run_lint" -eq 0 && "$run_markdown" -eq 0 && "$run_third_party" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
+if [[ "$run_lint" -eq 0 && "$run_lint_shell" -eq 0 && "$run_lint_python" -eq 0 && "$run_markdown" -eq 0 && "$run_third_party" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_docs" -eq 0 && "$run_entrypoint_ownership" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
   usage
   exit 0
 fi
@@ -182,12 +207,23 @@ contract_rc=0
 skill_layout_rc=0
 plans_rc=0
 env_bools_rc=0
+docs_rc=0
 semgrep_rc=0
+entrypoint_ownership_rc=0
 test_rc=0
 
-if [[ "$run_lint" -eq 1 ]]; then
+if [[ "$run_lint" -eq 1 || "$run_lint_shell" -eq 1 || "$run_lint_python" -eq 1 ]]; then
+  lint_args=()
+  if [[ "$run_lint" -eq 1 || ( "$run_lint_shell" -eq 1 && "$run_lint_python" -eq 1 ) ]]; then
+    lint_args=(--all)
+  elif [[ "$run_lint_shell" -eq 1 ]]; then
+    lint_args=(--shell)
+  elif [[ "$run_lint_python" -eq 1 ]]; then
+    lint_args=(--python)
+  fi
+
   set +e
-  scripts/lint.sh
+  scripts/lint.sh "${lint_args[@]}"
   lint_rc=$?
   set -e
 
@@ -274,6 +310,24 @@ if [[ "$run_env_bools" -eq 1 ]]; then
   fi
 fi
 
+if [[ "$run_docs" -eq 1 ]]; then
+  echo "lint: docs freshness audit" >&2
+  set +e
+  if [[ ! -f scripts/ci/docs-freshness-audit.sh ]]; then
+    echo "error: docs freshness helper is missing (expected scripts/ci/docs-freshness-audit.sh)" >&2
+    docs_rc=1
+  else
+    bash scripts/ci/docs-freshness-audit.sh --check
+    docs_rc=$?
+  fi
+  set -e
+
+  if [[ "$docs_rc" -ne 0 ]]; then
+    echo "error: docs freshness audit failed (exit=$docs_rc)" >&2
+    echo "hint: run 'bash scripts/ci/docs-freshness-audit.sh --check' and fix stale docs command/path references or rules coverage" >&2
+  fi
+fi
+
 if [[ "$run_semgrep" -eq 1 ]]; then
   echo "lint: semgrep scan" >&2
   set +e
@@ -291,6 +345,18 @@ if [[ "$run_semgrep" -eq 1 ]]; then
   fi
 fi
 
+if [[ "$run_entrypoint_ownership" -eq 1 ]]; then
+  echo "tests: skill script entrypoint ownership" >&2
+  set +e
+  scripts/test.sh -k entrypoint_ownership
+  entrypoint_ownership_rc=$?
+  set -e
+
+  if [[ "$entrypoint_ownership_rc" -ne 0 ]]; then
+    echo "error: entrypoint ownership tests failed (exit=$entrypoint_ownership_rc)" >&2
+  fi
+fi
+
 if [[ "$run_tests" -eq 1 ]]; then
   set +e
   scripts/test.sh "${pytest_args[@]}"
@@ -302,6 +368,6 @@ if [[ "$run_tests" -eq 1 ]]; then
   fi
 fi
 
-if [[ "$lint_rc" -ne 0 || "$markdown_rc" -ne 0 || "$third_party_rc" -ne 0 || "$contract_rc" -ne 0 || "$skill_layout_rc" -ne 0 || "$plans_rc" -ne 0 || "$env_bools_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
+if [[ "$lint_rc" -ne 0 || "$markdown_rc" -ne 0 || "$third_party_rc" -ne 0 || "$contract_rc" -ne 0 || "$skill_layout_rc" -ne 0 || "$plans_rc" -ne 0 || "$env_bools_rc" -ne 0 || "$docs_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$entrypoint_ownership_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
   exit 1
 fi

@@ -12,12 +12,20 @@
 3. `agent-docs resolve --context task-tools --format checklist` (optional, when external technical lookup is needed)
 4. `agent-docs baseline --check --target all --strict --format text` (only when strict resolve fails)
 
+## Project validation commands
+
+- Canonical pre-commit gate: `scripts/check.sh --all`
+- Docs freshness gate (standalone): `scripts/check.sh --docs`
+- CI parity guard: `scripts/check.sh --tests -- -k parity -m script_regression`
+
+Use `scripts/check.sh` modes for project-dev verification. Avoid reintroducing ad-hoc legacy script wrappers in docs/workflows.
+
 ## Deterministic flow
 
 1. Resolve `startup` in strict mode before any implementation preflight.
 2. Resolve `project-dev` in strict mode before file edits or test runs.
 3. Load project-specific docs (`DEVELOPMENT.md`, repo docs) before implementation.
-4. Run project-required validation commands before reporting completion.
+4. Run project-required validation commands before reporting completion (default: `scripts/check.sh --all`).
 5. Use `task-tools` lookup only as a supplement, not a replacement for project-local requirements.
 
 ## Failure handling
@@ -38,5 +46,5 @@
 
 - [ ] `agent-docs resolve --context startup --strict --format checklist` exits 0 before edits.
 - [ ] `agent-docs resolve --context project-dev --strict --format checklist` exits 0 before edits.
-- [ ] Required project checks are executed and results reported.
+- [ ] Required project checks are executed and results reported (`scripts/check.sh --all` minimum).
 - [ ] Failures include explicit command/error details.

@@ -161,6 +161,20 @@ Failure modes:
 
 - Ensure the plan has clear success criteria, validation commands, risk mitigation, and explicit execution grouping intent per sprint.
 
+1. Docs completion checklist (when plans drive repo refactors)
+
+- In the same execution cycle as implementation PRs, ensure docs that claim check/workflow behavior are updated:
+  - `README.md`
+  - `DEVELOPMENT.md`
+  - `docs/runbooks/agent-docs/PROJECT_DEV_WORKFLOW.md`
+  - Relevant `docs/testing/*.md` pages
+- Require these validation commands before declaring the plan lane complete:
+
+  ```bash
+  scripts/check.sh --docs
+  scripts/check.sh --markdown
+  ```
+
 ## Plan Template
 
 Shared template (single source of truth):
