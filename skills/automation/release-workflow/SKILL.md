@@ -60,6 +60,12 @@ The default fallback guide lives at:
 
 - `$AGENT_HOME/skills/automation/release-workflow/references/DEFAULT_RELEASE_GUIDE.md`
 
+## Entrypoints (fallback helper scripts)
+
+- `$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
+- `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <vX.Y.Z>`
+- Legacy wrapper paths are not supported; keep docs and callers pinned to these scripts.
+
 ## Helper scripts (fallback)
 
 Use only these public entrypoints:

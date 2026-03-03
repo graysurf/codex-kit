@@ -1,7 +1,7 @@
 {
   "smoke": [
     {
-      "name": "help",
+      "name": "help-surface",
       "args": ["--help"],
       "timeout_sec": 5,
       "expect": {

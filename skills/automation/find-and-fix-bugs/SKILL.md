@@ -34,6 +34,11 @@ Failure modes:
 - High-risk changes (auth/billing/migrations) should halt or be skipped per guardrails.
 - Missing tooling (`rg`/`git`/`gh`) or insufficient repo permissions.
 
+## Entrypoint
+
+- `$AGENT_HOME/skills/automation/find-and-fix-bugs/scripts/render_issues_pr.sh`
+- Legacy wrapper paths are not supported; keep docs and callers pinned to this script.
+
 ## Setup
 
 - Record the starting branch/ref (for return after PR creation):

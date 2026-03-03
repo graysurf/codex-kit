@@ -10,6 +10,10 @@ info() {
   echo "info: $1" >&2
 }
 
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || die "$1 is required"
+}
+
 usage() {
   cat >&2 <<'EOF'
 Usage:
@@ -26,6 +30,7 @@ Notes:
   - Default changelog: CHANGELOG.md
   - Default title: <version>
   - Default --if-exists: edit
+  - This script is the supported publish entrypoint for release-workflow.
 EOF
 }
 
@@ -86,13 +91,8 @@ fi
 
 cd "$repo" || die "unable to cd: $repo"
 
-if ! command -v gh >/dev/null 2>&1; then
-  die "gh is required"
-fi
-
-if ! command -v awk >/dev/null 2>&1; then
-  die "awk is required"
-fi
+require_cmd gh
+require_cmd awk
 if [[ ! -f "$changelog" ]]; then
   die "changelog not found: $changelog"
 fi
