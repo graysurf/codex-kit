@@ -70,27 +70,31 @@ jobs:
 
       - name: Shell lint + syntax (bash + zsh)
         run: |
-          $AGENT_HOME/scripts/lint.sh --shell
+          $AGENT_HOME/scripts/check.sh --lint-shell
 
       - name: Markdown lint
         run: |
-          $AGENT_HOME/scripts/ci/markdownlint-audit.sh --strict
+          $AGENT_HOME/scripts/check.sh --markdown
 
       - name: Third-party artifacts audit
         run: |
-          $AGENT_HOME/scripts/ci/third-party-artifacts-audit.sh --strict
+          $AGENT_HOME/scripts/check.sh --third-party
 
       - name: Env bool audit
         run: |
-          zsh -f $AGENT_HOME/scripts/audit-env-bools.zsh --check
+          $AGENT_HOME/scripts/check.sh --env-bools
 
       - name: Validate skill contract sections
         run: |
-          $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh
+          $AGENT_HOME/scripts/check.sh --contracts
 
       - name: Validate skill directory layout
         run: |
-          $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh
+          $AGENT_HOME/scripts/check.sh --skills-layout
+
+      - name: Validate plans
+        run: |
+          $AGENT_HOME/scripts/check.sh --plans
 
       - name: Smoke test (negative fixture)
         run: |
@@ -184,11 +188,15 @@ jobs:
 
       - name: Python lint + typecheck (ruff + mypy + pyright)
         run: |
-          $AGENT_HOME/scripts/lint.sh --python
+          $AGENT_HOME/scripts/check.sh --lint-python
+
+      - name: CI check parity guardrail
+        run: |
+          $AGENT_HOME/scripts/check.sh --tests -- -k parity -m script_regression
 
       - name: Pytest
         run: |
-          $AGENT_HOME/scripts/test.sh
+          $AGENT_HOME/scripts/check.sh --tests
 
       - name: Script coverage summary
         if: always()

@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/check.sh [--lint] [--markdown] [--third-party] [--contracts] [--skills-layout] [--plans] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
+  scripts/check.sh [--lint] [--lint-shell] [--lint-python] [--markdown] [--third-party] [--contracts] [--skills-layout] [--plans] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
 
 Runs repo-local checks (shell/python lint, markdown lint, skill contracts, env-bools, optional Semgrep, pytest).
 
@@ -14,6 +14,8 @@ Setup:
 Examples:
   scripts/check.sh --all
   scripts/check.sh --lint
+  scripts/check.sh --lint-shell
+  scripts/check.sh --lint-python
   scripts/check.sh --markdown
   scripts/check.sh --third-party
   scripts/check.sh --env-bools
@@ -23,6 +25,8 @@ USAGE
 }
 
 run_lint=0
+run_lint_shell=0
+run_lint_python=0
 run_markdown=0
 run_third_party=0
 run_contracts=0
@@ -97,6 +101,14 @@ while [[ $# -gt 0 ]]; do
       run_lint=1
       shift
       ;;
+    --lint-shell)
+      run_lint_shell=1
+      shift
+      ;;
+    --lint-python)
+      run_lint_python=1
+      shift
+      ;;
     --markdown)
       run_markdown=1
       shift
@@ -165,7 +177,7 @@ if [[ "$seen_pytest_args" -eq 1 && "$run_tests" -eq 0 ]]; then
   exit 2
 fi
 
-if [[ "$run_lint" -eq 0 && "$run_markdown" -eq 0 && "$run_third_party" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
+if [[ "$run_lint" -eq 0 && "$run_lint_shell" -eq 0 && "$run_lint_python" -eq 0 && "$run_markdown" -eq 0 && "$run_third_party" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
   usage
   exit 0
 fi
@@ -185,9 +197,18 @@ env_bools_rc=0
 semgrep_rc=0
 test_rc=0
 
-if [[ "$run_lint" -eq 1 ]]; then
+if [[ "$run_lint" -eq 1 || "$run_lint_shell" -eq 1 || "$run_lint_python" -eq 1 ]]; then
+  lint_args=()
+  if [[ "$run_lint" -eq 1 || ( "$run_lint_shell" -eq 1 && "$run_lint_python" -eq 1 ) ]]; then
+    lint_args=(--all)
+  elif [[ "$run_lint_shell" -eq 1 ]]; then
+    lint_args=(--shell)
+  elif [[ "$run_lint_python" -eq 1 ]]; then
+    lint_args=(--python)
+  fi
+
   set +e
-  scripts/lint.sh
+  scripts/lint.sh "${lint_args[@]}"
   lint_rc=$?
   set -e
 
