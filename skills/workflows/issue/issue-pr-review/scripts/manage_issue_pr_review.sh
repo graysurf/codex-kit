@@ -36,9 +36,6 @@ Usage:
 Canonical entrypoint:
   $AGENT_HOME/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh
 
-Simplification note:
-  Legacy wrappers were removed; use this entrypoint directly.
-
 Subcommands:
   request-followup  Main agent comments on PR and mirrors explicit comment URL to issue
   merge             Merge PR and optionally close issue
