@@ -142,18 +142,19 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/)           | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR                                                                                           |
 | Release     | [release-workflow](./skills/automation/release-workflow/)                   | Execute project release workflows by following a repo release guide (with a bundled fallback)                                                                                              |
 
-## ✅ Local and CI Check Entrypoints
+## 🧪 Local and CI Check Entrypoints
 
 Use `scripts/check.sh` as the canonical local check entrypoint:
 
 ```bash
-scripts/check.sh --all
+scripts/check.sh --pre-commit
 ```
+
+Use `scripts/check.sh --all` as the canonical minimum gate.
 
 Common focused runs:
 
 ```bash
-scripts/check.sh --pre-commit
 scripts/check.sh --docs
 scripts/check.sh --markdown
 scripts/check.sh --tests -- -m script_smoke
@@ -161,8 +162,13 @@ bash scripts/ci/stale-skill-scripts-audit.sh --check
 scripts/check.sh --entrypoint-ownership
 ```
 
-Lint CI (`.github/workflows/lint.yml`) maps its phases to `scripts/check.sh` modes. Keep docs and CI guidance aligned with these modes
-instead of legacy ad-hoc wrappers.
+Lint CI (`.github/workflows/lint.yml`) maps its phases to
+`scripts/check.sh` modes.
+Generated phase blocks are managed by
+`scripts/ci/generate-lint-workflow-phases.py`
+(`--check` for CI, `--write` when updating mappings).
+Keep docs and CI guidance aligned with these modes instead of legacy
+ad-hoc wrappers.
 
 ## 🪪 License
 
