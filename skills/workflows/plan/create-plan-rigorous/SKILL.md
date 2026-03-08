@@ -7,8 +7,8 @@ description:
 
 # Create Plan (Rigorous)
 
-Same as `create-plan`, but more rigorous: add per-task complexity notes, explicitly track dependencies, and get a subagent review before
-finalizing.
+Build on the `create-plan` baseline, but require explicit execution modeling:
+per-task complexity, per-sprint scorecards, tighter sizing guardrails, and subagent review before finalizing.
 
 ## Contract
 
@@ -59,57 +59,35 @@ Failure modes:
 
 1. Draft the plan (do not implement)
 
-- Same structure as `create-plan`, plus:
+- Follow the shared baseline in `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
+- Rigorous deltas:
   - Fill a per-task **Complexity** score (1–10).
-  - Explicitly list dependencies and parallelizable tasks.
+  - Make dependencies explicit for every task and call out parallelizable work when it helps execution planning.
   - Treat each sprint as an integration gate; do not plan cross-sprint execution parallelism.
   - Focus parallelization design inside each sprint (task/PR dependency graph), not across sprints.
-  - Add sprint metadata lines with exact case-sensitive labels:
+  - Record sprint metadata for every sprint with these exact labels:
     - `**PR grouping intent**: per-sprint|group`
     - `**Execution Profile**: serial|parallel-xN`
-  - Keep grouping/profile metadata coherent:
-    - If `PR grouping intent` is `per-sprint`, do not declare parallel width `>1`.
-    - If planning multi-lane parallel PR execution, set `PR grouping intent` to `group`.
   - Add a “Rollback plan” that is operationally plausible.
 
 1. Save the plan
 
-- Path: `docs/plans/<slug>-plan.md` (kebab-case, end with `-plan.md`).
+- Use the shared save rules from `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
 
 1. Lint the plan (format + executability)
 
-- Run: `plan-tooling validate --file docs/plans/<slug>-plan.md`
+- Use the shared lint flow from `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
 - Fix until it passes (no placeholders in required fields; explicit validation commands; dependency IDs exist).
+
+1. Run the shared executability + grouping pass (mandatory)
+
+- Use the shared executability + grouping workflow in `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
 
 1. Run a sizing + parallelization pass (mandatory)
 
 - Parallelization policy for this skill:
   - `Sprint` is an integration/decision gate. Do not schedule cross-sprint execution parallelism.
   - Optimize for parallel execution inside a sprint by improving the task DAG (dependencies, file overlap, PR grouping).
-- For each sprint, run:
-
-  ```bash
-  plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>
-  plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>
-  plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint \
-    --sprint <n> --strategy auto --default-pr-grouping group --format json
-  ```
-
-- If planning explicit deterministic/manual grouping for a sprint:
-  - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
-  - Validate with:
-
-    ```bash
-    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json
-    ```
-
-- If planning explicit single-lane-per-sprint behavior:
-  - Validate with:
-
-    ```bash
-    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json
-    ```
-
 - Metadata guardrails:
   - Metadata field names are strict; do not use variants such as `PR Grouping Intent`.
   - `plan-tooling validate` now blocks metadata mismatch by default (`per-sprint` cannot pair with parallel width `>1`).
@@ -183,9 +161,13 @@ Failure modes:
 
 ## Plan Template
 
-Shared template (single source of truth):
+Shared markdown scaffold:
 
 - `skills/workflows/plan/_shared/assets/plan-template.md`
+
+Canonical shared authoring and validation rules:
+
+- `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`
 
 Rigorous requirement:
 
