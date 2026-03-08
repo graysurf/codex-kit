@@ -57,76 +57,36 @@ Failure modes:
 
 1. Write the plan (do not implement)
 
-- Use sprints/phases that each produce a demoable/testable increment.
-- Treat sprints as sequential integration gates; do not imply cross-sprint execution parallelism.
-- Break work into atomic, independently testable tasks with explicit dependencies when execution order matters.
-- Prefer within-sprint parallel lanes only when file overlap and validation scope stay manageable.
-- Include file paths whenever you can be specific.
-- Include a validation step per sprint (commands, checks, expected outcomes).
+- Follow the shared baseline in `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
 - Fill `Complexity` when it materially affects batching/splitting or when a task looks oversized.
+- You may omit sprint scorecards unless the user explicitly wants deeper sizing analysis or execution modeling.
 
 1. Save the plan file
 
-- Path: `docs/plans/<slug>-plan.md`
-- Slug rules: lowercase kebab-case, 3–6 words, end with `-plan.md`.
+- Use the shared save rules from `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
 
 1. Lint the plan (format + executability)
 
-- Run: `plan-tooling validate --file docs/plans/<slug>-plan.md`
-- If it fails: tighten tasks (missing fields, placeholders, unclear validations) until it passes.
+- Use the shared lint flow from `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
 
 1. Run an executability + grouping pass (mandatory)
 
-- Default grouping policy for this skill:
-  - If the user did not explicitly request grouping behavior, validate with metadata-first auto
-    (`--strategy auto --default-pr-grouping group`).
-- For each sprint, run:
-
-  ```bash
-  plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>
-  plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>
-  plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint \
-    --sprint <n> --strategy auto --default-pr-grouping group --format json
-  ```
-
-- If the user explicitly requests deterministic/manual grouping:
-  - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
-  - Validate with:
-
-    ```bash
-    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json
-    ```
-
-- If the user explicitly requests one shared lane per sprint:
-  - Validate with:
-
-    ```bash
-    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json
-    ```
-
-- When you add sprint metadata for grouping/parallelism, use exact case-sensitive labels:
-  - `**PR grouping intent**: per-sprint|group`
-  - `**Execution Profile**: serial|parallel-xN`
-- Keep metadata coherent:
-  - If `PR grouping intent` is `per-sprint`, do not declare parallel width `>1`.
-  - If planning multi-lane parallel execution, set `PR grouping intent` to `group`.
-- After each adjustment, rerun `plan-tooling validate` and the relevant `split-prs` command until the plan is stable and executable.
+- Use the shared executability + grouping workflow in `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
+- Add sprint metadata only when the plan needs explicit grouping/parallelism metadata or the user asks for that level of execution detail.
 
 1. Review “gotchas”
 
-- After saving, add/adjust a “Risks & gotchas” section: ambiguity, dependency bottlenecks, same-batch overlap hotspots, migrations, rollout,
-  backwards compatibility, and rollback.
+- Use the shared `Risks & gotchas` guidance from `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
 
 ## Plan Template
 
-Shared template (single source of truth):
+Shared markdown scaffold:
 
 - `skills/workflows/plan/_shared/assets/plan-template.md`
 
-When a plan needs explicit grouping/parallelism metadata, extend each sprint with these exact labels:
+Canonical shared authoring and validation rules:
 
-- `**PR grouping intent**: per-sprint|group`
-- `**Execution Profile**: serial|parallel-xN`
+- `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`
 
 Optional scaffold helper (creates a placeholder plan; fill it before linting):
 
