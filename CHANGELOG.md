@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.9 - 2026-03-08
+
+### Added
+
+- Shared `create-plan`/`create-plan-rigorous` plan-authoring baseline reference at
+  `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md` and shared pytest helpers under
+  `skills/workflows/plan/_shared/python/` (#232).
+
+### Changed
+
+- `create-plan` now points to a single shared baseline for plan authoring, executability, and grouping rules while keeping only base-skill
+  deltas locally (#231, #232).
+- `create-plan-rigorous` now builds on the same shared baseline and keeps only rigorous-specific sizing, scorecard, and review guidance
+  locally (#231, #232).
+- The shared plan template now includes optional execution metadata and rigorous scorecard placeholders so the scaffold matches the actual
+  workflow contract more closely (#232).
+
 ## v2.3.8 - 2026-03-04
 
 ### Added
