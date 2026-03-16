@@ -16,6 +16,9 @@ def test_plan_issue_delivery_skill_enforces_main_agent_role_boundary() -> None:
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "Main-agent is orchestration/review-only." in text
     assert "Main-agent does not implement sprint tasks directly." in text
+    assert "workflow_role=implementation" in text
+    assert "workflow_role=review" in text
+    assert "workflow_role=monitor" in text
     assert "subagent-owned PRs" in text
     assert "1 plan = 1 issue" in text
     assert "PR grouping controls" in text
@@ -90,7 +93,10 @@ def test_plan_issue_delivery_skill_defines_runtime_workspace_policy() -> None:
     assert "PLAN_SNAPSHOT_PATH" in text
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" in text
     assert "DISPATCH_RECORD_PATH" in text
+    assert "workflow_role" in text
+    assert "runtime_role_fallback_reason" in text
     assert "references/RUNTIME_LAYOUT.md" in text
+    assert "references/AGENT_ROLE_MAPPING.md" in text
 
 
 def test_plan_issue_delivery_skill_uses_shared_task_lane_policy() -> None:
@@ -126,12 +132,15 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
 
     subagent_prompt = (repo_root / "prompts" / "plan-issue-delivery-subagent-init.md").read_text(encoding="utf-8")
     main_agent_prompt = (repo_root / "prompts" / "plan-issue-delivery-main-agent-init.md").read_text(encoding="utf-8")
+    role_mapping = (skill_root / "references" / "AGENT_ROLE_MAPPING.md").read_text(encoding="utf-8")
 
     assert "PLAN_SNAPSHOT_PATH" in subagent_prompt
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" in subagent_prompt
     assert "DISPATCH_RECORD_PATH" in subagent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in subagent_prompt
     assert "PLAN_BRANCH" in subagent_prompt
+    assert "workflow_role" in subagent_prompt
+    assert "runtime_role" in subagent_prompt
 
     assert "PLAN_SNAPSHOT_PATH" in main_agent_prompt
     assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
@@ -140,6 +149,9 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
     assert "DISPATCH_RECORD_PATH" in main_agent_prompt
     assert "PLAN_BRANCH" in main_agent_prompt
+    assert "workflow_role" in main_agent_prompt
+    assert "runtime_role" in main_agent_prompt
+    assert "runtime_role_fallback_reason" in main_agent_prompt
     assert "PLAN_BRANCH_REF_PATH" in main_agent_prompt
     assert "PLAN_INTEGRATION_PR_PATH" in main_agent_prompt
     assert "PLAN_INTEGRATION_MENTION_PATH" in main_agent_prompt
@@ -159,6 +171,46 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "--next-owner" in main_agent_prompt
     assert "--close-reason" in main_agent_prompt
     assert "--enforce-review-evidence" in main_agent_prompt
+    assert "implementation -> plan_issue_worker" in role_mapping
+    assert "review -> plan_issue_reviewer" in role_mapping
+    assert "monitor -> plan_issue_monitor" in role_mapping
+
+
+def test_plan_issue_delivery_runtime_adapter_docs_and_templates_exist() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    codex_doc = (skill_root / "references" / "CODEX_ADAPTER.md").read_text(encoding="utf-8")
+    claude_doc = (skill_root / "references" / "CLAUDE_CODE_ADAPTER.md").read_text(encoding="utf-8")
+    opencode_doc = (skill_root / "references" / "OPENCODE_ADAPTER.md").read_text(encoding="utf-8")
+    role_mapping = (skill_root / "references" / "AGENT_ROLE_MAPPING.md").read_text(encoding="utf-8")
+
+    assert "~/.codex/config.toml" in codex_doc
+    assert "plan_issue_worker" in codex_doc
+    assert "No runtime adapter is the repo default" in codex_doc
+
+    assert ".claude/agents/" in claude_doc
+    assert "plan-issue-orchestrator" in claude_doc
+    assert "plan-issue-implementation" in claude_doc
+
+    assert "opencode.json" in opencode_doc
+    assert ".opencode/agents/" in opencode_doc
+    assert "permission.task" in opencode_doc
+
+    assert "Codex" in role_mapping
+    assert "Claude Code" in role_mapping
+    assert "OpenCode" in role_mapping
+    assert "No runtime adapter is the repo default." in role_mapping
+
+    codex_config = skill_root / "assets" / "runtime-adapters" / "codex" / "home" / ".codex" / "config.toml"
+    codex_worker = skill_root / "assets" / "runtime-adapters" / "codex" / "home" / ".codex" / "agents" / "plan-issue-worker.toml"
+    claude_template = skill_root / "assets" / "runtime-adapters" / "claude-code" / "project" / ".claude" / "agents" / "plan-issue-orchestrator.md"
+    opencode_config = skill_root / "assets" / "runtime-adapters" / "opencode" / "project" / "opencode.json"
+    opencode_prompt = skill_root / "assets" / "runtime-adapters" / "opencode" / "project" / ".opencode" / "prompts" / "plan-issue-orchestrator.txt"
+
+    assert codex_config.exists()
+    assert codex_worker.exists()
+    assert claude_template.exists()
+    assert opencode_config.exists()
+    assert opencode_prompt.exists()
 
 
 def test_plan_issue_delivery_runtime_layout_tracks_main_agent_snapshot_artifacts() -> None:
@@ -172,6 +224,8 @@ def test_plan_issue_delivery_runtime_layout_tracks_main_agent_snapshot_artifacts
     assert "PLAN_BRANCH_REF_PATH" in text
     assert "PLAN_INTEGRATION_PR_PATH" in text
     assert "PLAN_INTEGRATION_MENTION_PATH" in text
+    assert "workflow_role" in text
+    assert "runtime_role_fallback_reason" in text
     assert "syncs local `PLAN_BRANCH`" in text
     assert "syncs local `DEFAULT_BRANCH`" in text
     assert "issue runtime initialization" in text

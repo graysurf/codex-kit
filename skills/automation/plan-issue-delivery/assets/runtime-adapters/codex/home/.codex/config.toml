@@ -1,0 +1,15 @@
+[agents]
+max_threads = 6
+max_depth = 1
+
+[agents.plan_issue_worker]
+description = "Implementation lane owner for plan-issue-delivery sprint work."
+config_file = "agents/plan-issue-worker.toml"
+
+[agents.plan_issue_reviewer]
+description = "Read-only audit helper for PR review evidence and plan-conformance checks."
+config_file = "agents/plan-issue-reviewer.toml"
+
+[agents.plan_issue_monitor]
+description = "Read-only watcher for CI, PR checks, and long-running status polling."
+config_file = "agents/plan-issue-monitor.toml"

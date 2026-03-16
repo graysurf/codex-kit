@@ -32,6 +32,7 @@ Inputs:
     - `PLAN_SNAPSHOT_PATH` when dispatch came from `plan-issue-delivery`
     - `SUBAGENT_INIT_SNAPSHOT_PATH` when dispatch came from `plan-issue-delivery`
     - `DISPATCH_RECORD_PATH` when dispatch came from `plan-issue-delivery`
+      (including `workflow_role` and optional runtime adapter metadata)
     - plan task section context (exact snippet and/or direct link/path)
 - Required implementation context in local rehearsal mode:
   - local rendered task prompt/artifacts and plan task context (no GitHub lookup for placeholder issues such as `999`)
@@ -67,6 +68,11 @@ Failure modes:
 - `plan-issue-delivery` mode: missing `PLAN_SNAPSHOT_PATH` fallback artifact from dispatch.
 - `plan-issue-delivery` mode: missing `SUBAGENT_INIT_SNAPSHOT_PATH` companion prompt snapshot artifact from dispatch.
 - `plan-issue-delivery` mode: missing `DISPATCH_RECORD_PATH` assignment artifact from dispatch.
+- `plan-issue-delivery` mode: `DISPATCH_RECORD_PATH` missing canonical
+  `workflow_role`.
+- `plan-issue-delivery` mode: `DISPATCH_RECORD_PATH` declares a non-implementation
+  `workflow_role` for implementation execution.
+- Named-role runtime fallback used but `runtime_role_fallback_reason` missing.
 - Missing/empty base-branch assignment from dispatch (for example `PLAN_BRANCH` not provided in `plan-issue-delivery` mode).
 - Context mismatch between issue artifacts and main-agent dispatch artifacts (scope, ownership, branch/worktree, execution mode).
 - Context mismatch where linked/opened PR base branch differs from assigned base branch.
@@ -130,6 +136,8 @@ Failure modes:
      - `PLAN_SNAPSHOT_PATH` (required in `plan-issue-delivery` mode)
      - `SUBAGENT_INIT_SNAPSHOT_PATH` (required in `plan-issue-delivery` mode)
      - `DISPATCH_RECORD_PATH` (required in `plan-issue-delivery` mode)
+     - `workflow_role` from `DISPATCH_RECORD_PATH`
+     - optional `runtime_name` / `runtime_role` from `DISPATCH_RECORD_PATH`
      - plan task section snippet/link/path
 
 3. Reconcile context and apply hard start gate:
@@ -137,6 +145,11 @@ Failure modes:
    - Confirm assigned task facts align across sources: owner, branch, worktree, execution mode, task scope, and acceptance intent.
    - In `plan-issue-delivery` mode, confirm `DISPATCH_RECORD_PATH` facts match assigned task row (`Task Decomposition`) and runtime artifact
      paths.
+   - In `plan-issue-delivery` mode, confirm `workflow_role` is
+     `implementation` before starting implementation.
+   - If runtime adapter metadata is present, confirm it is internally
+     consistent; when `runtime_role=generic`, require a recorded fallback
+     rationale.
    - Confirm assigned base branch is present; in `plan-issue-delivery` mode it
      must match dispatched `PLAN_BRANCH`.
    - In `plan-issue-delivery` mode, enforce `WORKTREE` prefix: `$AGENT_HOME/out/plan-issue-delivery/`.

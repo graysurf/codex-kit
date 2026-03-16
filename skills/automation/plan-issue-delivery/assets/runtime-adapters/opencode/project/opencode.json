@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "plan-issue-orchestrator": {
+      "description": "Main-thread adapter for plan-issue-delivery orchestration and review-only control flow.",
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/plan-issue-orchestrator.txt}",
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true
+      },
+      "permission": {
+        "task": {
+          "*": "deny",
+          "plan-issue-implementation": "allow",
+          "plan-issue-review": "allow",
+          "plan-issue-monitor": "allow"
+        }
+      }
+    }
+  }
+}

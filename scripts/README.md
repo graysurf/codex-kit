@@ -46,6 +46,7 @@ scripts/
 │   │   └── shell.sh
 │   └── zsh-common.zsh
 ├── lint.sh
+├── plan-issue-adapter
 ├── project-resolve
 ├── semgrep-scan.sh
 └── test.sh
@@ -103,6 +104,9 @@ scripts/
 
 - `scripts/check_plan_issue_worktree_cleanup.sh`
   - Checks leftover `plan-issue-delivery` worktree directories.
+- `scripts/plan-issue-adapter`
+  - Explicit installer/sync/status entrypoint for optional `plan-issue-delivery`
+    runtime adapters (`codex|claude|opencode`).
 - `scripts/chrome-devtools-mcp.sh`
   - Launcher for chrome-devtools MCP server with repo env handling.
 - `scripts/project-resolve`

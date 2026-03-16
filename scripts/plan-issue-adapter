@@ -1,0 +1,582 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+
+SCRIPT_NAME = "plan-issue-adapter"
+RUNTIMES = ("codex", "claude", "opencode")
+
+
+@dataclass(frozen=True)
+class ItemReport:
+    target: Path
+    kind: str
+    status: str
+    detail: str
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog=SCRIPT_NAME,
+        description=(
+            "Install, sync, or inspect optional runtime adapters for "
+            "plan-issue-delivery."
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            f"  {SCRIPT_NAME} status --runtime codex\n"
+            f"  {SCRIPT_NAME} install --runtime claude --project-path /path/to/project\n"
+            f"  {SCRIPT_NAME} sync --runtime opencode --project-path /path/to/project --apply\n"
+        ),
+    )
+    parser.add_argument(
+        "action",
+        choices=("install", "sync", "status"),
+        help="Operation to perform.",
+    )
+    parser.add_argument(
+        "--runtime",
+        required=True,
+        choices=RUNTIMES,
+        help="Runtime adapter to manage.",
+    )
+    parser.add_argument(
+        "--project-path",
+        help="Project root for Claude Code / OpenCode adapters (default: $PROJECT_PATH or current directory).",
+    )
+    parser.add_argument(
+        "--home-path",
+        help="Home root for the Codex adapter (default: $HOME).",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview actions only (default).",
+    )
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Write changes to disk.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Allow install to overwrite drifted managed entries.",
+    )
+    return parser
+
+
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def runtime_template_root(runtime: str) -> Path:
+    root = (
+        repo_root()
+        / "skills"
+        / "automation"
+        / "plan-issue-delivery"
+        / "assets"
+        / "runtime-adapters"
+    )
+    mapping = {
+        "codex": root / "codex" / "home" / ".codex",
+        "claude": root / "claude-code" / "project" / ".claude",
+        "opencode": root / "opencode" / "project",
+    }
+    return mapping[runtime]
+
+
+def die(message: str, exit_code: int = 1) -> None:
+    print(f"error: {message}", file=sys.stderr)
+    raise SystemExit(exit_code)
+
+
+def resolve_project_path(raw: str | None) -> Path:
+    source = raw or str(Path.cwd())
+    path = Path(source).expanduser().resolve()
+    if not path.is_dir():
+        die(f"--project-path must point to an existing directory: {path}", exit_code=2)
+    return path
+
+
+def resolve_home_path(raw: str | None) -> Path:
+    source = raw or str(Path.home())
+    return Path(source).expanduser().resolve()
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def normalize_text(text: str) -> str:
+    return text.rstrip() + "\n"
+
+
+def write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def sync_text_file(
+    *,
+    template_path: Path,
+    target_path: Path,
+    action: str,
+    apply: bool,
+    force: bool,
+    kind: str,
+    detail: str,
+) -> ItemReport:
+    template_text = normalize_text(read_text(template_path))
+    if not target_path.exists():
+        if action == "status":
+            return ItemReport(target_path, kind, "missing", detail)
+        if apply:
+            write_text(target_path, template_text)
+        return ItemReport(target_path, kind, "create", detail)
+
+    existing_text = normalize_text(read_text(target_path))
+    if existing_text == template_text:
+        status = "synced" if action == "status" else "unchanged"
+        return ItemReport(target_path, kind, status, detail)
+
+    if action == "status":
+        return ItemReport(target_path, kind, "drifted", detail)
+
+    if action == "install" and not force:
+        return ItemReport(
+            target_path,
+            kind,
+            "skip",
+            f"{detail}; existing content differs, use sync or --force",
+        )
+
+    if apply:
+        write_text(target_path, template_text)
+    return ItemReport(target_path, kind, "update", detail)
+
+
+def section_block(text: str, header: str) -> str | None:
+    pattern = re.compile(
+        rf"(?ms)^[ \t]*{re.escape(header)}[ \t]*\n.*?(?=^[ \t]*\[|\Z)"
+    )
+    match = pattern.search(text)
+    if not match:
+        return None
+    return normalize_text(match.group(0))
+
+
+def upsert_section(text: str, header: str, block: str) -> str:
+    pattern = re.compile(
+        rf"(?ms)^[ \t]*{re.escape(header)}[ \t]*\n.*?(?=^[ \t]*\[|\Z)"
+    )
+    block = normalize_text(block)
+    match = pattern.search(text)
+    if match:
+        updated = text[: match.start()] + block + text[match.end() :]
+        return normalize_text(updated)
+
+    stripped = text.rstrip()
+    if not stripped:
+        return block
+    return stripped + "\n\n" + block
+
+
+def load_codex_template() -> tuple[str, dict[str, str]]:
+    config_path = runtime_template_root("codex") / "config.toml"
+    template_text = normalize_text(read_text(config_path))
+    section_headers = (
+        "[agents.plan_issue_worker]",
+        "[agents.plan_issue_reviewer]",
+        "[agents.plan_issue_monitor]",
+    )
+    sections: dict[str, str] = {}
+    for header in section_headers:
+        block = section_block(template_text, header)
+        if block is None:
+            die(f"missing managed section in Codex template: {header}")
+        sections[header] = block
+    return template_text, sections
+
+
+def manage_codex_config(
+    *,
+    action: str,
+    apply: bool,
+    force: bool,
+    home_path: Path,
+) -> list[ItemReport]:
+    template_text, managed_sections = load_codex_template()
+    target_path = home_path / ".codex" / "config.toml"
+
+    if not target_path.exists():
+        if action == "status":
+            return [
+                ItemReport(
+                    target_path,
+                    "toml-file",
+                    "missing",
+                    "Codex config file with plan_issue agent role sections",
+                )
+            ]
+        if apply:
+            write_text(target_path, template_text)
+        return [
+            ItemReport(
+                target_path,
+                "toml-file",
+                "create",
+                "Codex config file with plan_issue agent role sections",
+            )
+        ]
+
+    original = read_text(target_path)
+    updated = original
+    reports: list[ItemReport] = []
+
+    # Merge only the managed plan_issue sections so unrelated user config stays intact.
+    for header, block in managed_sections.items():
+        existing_block = section_block(updated, header)
+        label = header.strip("[]")
+
+        if existing_block is None:
+            if action == "status":
+                reports.append(ItemReport(target_path, "toml-section", "missing", label))
+                continue
+            updated = upsert_section(updated, header, block)
+            reports.append(ItemReport(target_path, "toml-section", "create", label))
+            continue
+
+        if normalize_text(existing_block) == normalize_text(block):
+            status = "synced" if action == "status" else "unchanged"
+            reports.append(ItemReport(target_path, "toml-section", status, label))
+            continue
+
+        if action == "status":
+            reports.append(ItemReport(target_path, "toml-section", "drifted", label))
+            continue
+
+        if action == "install" and not force:
+            reports.append(
+                ItemReport(
+                    target_path,
+                    "toml-section",
+                    "skip",
+                    f"{label}; existing section differs, use sync or --force",
+                )
+            )
+            continue
+
+        updated = upsert_section(updated, header, block)
+        reports.append(ItemReport(target_path, "toml-section", "update", label))
+
+    if apply and action in {"install", "sync"} and normalize_text(updated) != normalize_text(original):
+        write_text(target_path, normalize_text(updated))
+    return reports
+
+
+def manage_codex_runtime(
+    *,
+    action: str,
+    apply: bool,
+    force: bool,
+    home_path: Path,
+) -> tuple[Path, list[ItemReport]]:
+    template_root = runtime_template_root("codex")
+    target_root = home_path / ".codex"
+    reports = manage_codex_config(
+        action=action,
+        apply=apply,
+        force=force,
+        home_path=home_path,
+    )
+
+    for name in (
+        "plan-issue-worker.toml",
+        "plan-issue-reviewer.toml",
+        "plan-issue-monitor.toml",
+    ):
+        reports.append(
+            sync_text_file(
+                template_path=template_root / "agents" / name,
+                target_path=target_root / "agents" / name,
+                action=action,
+                apply=apply,
+                force=force,
+                kind="toml-file",
+                detail=name,
+            )
+        )
+    return target_root, reports
+
+
+def manage_claude_runtime(
+    *,
+    action: str,
+    apply: bool,
+    force: bool,
+    project_path: Path,
+) -> tuple[Path, list[ItemReport]]:
+    template_root = runtime_template_root("claude")
+    target_root = project_path / ".claude"
+    reports: list[ItemReport] = []
+
+    for name in (
+        "plan-issue-orchestrator.md",
+        "plan-issue-implementation.md",
+        "plan-issue-review.md",
+        "plan-issue-monitor.md",
+    ):
+        reports.append(
+            sync_text_file(
+                template_path=template_root / "agents" / name,
+                target_path=target_root / "agents" / name,
+                action=action,
+                apply=apply,
+                force=force,
+                kind="markdown-file",
+                detail=name,
+            )
+        )
+    return target_root, reports
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    try:
+        data = json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        die(f"invalid JSON in {path}: {exc}")
+    if not isinstance(data, dict):
+        die(f"expected a JSON object in {path}")
+    return data
+
+
+def manage_opencode_json(
+    *,
+    action: str,
+    apply: bool,
+    force: bool,
+    project_path: Path,
+) -> ItemReport:
+    template_path = runtime_template_root("opencode") / "opencode.json"
+    target_path = project_path / "opencode.json"
+    template_data = load_json(template_path)
+    desired_agent = template_data.get("agent", {}).get("plan-issue-orchestrator")
+    if not isinstance(desired_agent, dict):
+        die(f"missing agent.plan-issue-orchestrator in {template_path}")
+
+    if not target_path.exists():
+        if action == "status":
+            return ItemReport(
+                target_path,
+                "json-file",
+                "missing",
+                "opencode.json with plan-issue-orchestrator agent entry",
+            )
+        if apply:
+            write_text(target_path, json.dumps(template_data, indent=2) + "\n")
+        return ItemReport(
+            target_path,
+            "json-file",
+            "create",
+            "opencode.json with plan-issue-orchestrator agent entry",
+        )
+
+    existing = load_json(target_path)
+    agent_block = existing.get("agent")
+    if agent_block is None:
+        agent_block = {}
+        existing["agent"] = agent_block
+    if not isinstance(agent_block, dict):
+        die(f"expected 'agent' to be a JSON object in {target_path}")
+
+    current = agent_block.get("plan-issue-orchestrator")
+    if current == desired_agent:
+        status = "synced" if action == "status" else "unchanged"
+        return ItemReport(
+            target_path,
+            "json-entry",
+            status,
+            "agent.plan-issue-orchestrator",
+        )
+
+    if action == "status":
+        status = "missing" if current is None else "drifted"
+        return ItemReport(
+            target_path,
+            "json-entry",
+            status,
+            "agent.plan-issue-orchestrator",
+        )
+
+    if action == "install" and current is not None and not force:
+        return ItemReport(
+            target_path,
+            "json-entry",
+            "skip",
+            "agent.plan-issue-orchestrator; existing entry differs, use sync or --force",
+        )
+
+    agent_block["plan-issue-orchestrator"] = desired_agent
+    if apply:
+        write_text(target_path, json.dumps(existing, indent=2) + "\n")
+    status = "create" if current is None else "update"
+    return ItemReport(
+        target_path,
+        "json-entry",
+        status,
+        "agent.plan-issue-orchestrator",
+    )
+
+
+def manage_opencode_runtime(
+    *,
+    action: str,
+    apply: bool,
+    force: bool,
+    project_path: Path,
+) -> tuple[Path, list[ItemReport]]:
+    template_root = runtime_template_root("opencode")
+    target_root = project_path
+    reports = [
+        manage_opencode_json(
+            action=action,
+            apply=apply,
+            force=force,
+            project_path=project_path,
+        )
+    ]
+
+    reports.append(
+        sync_text_file(
+            template_path=template_root / ".opencode" / "prompts" / "plan-issue-orchestrator.txt",
+            target_path=project_path / ".opencode" / "prompts" / "plan-issue-orchestrator.txt",
+            action=action,
+            apply=apply,
+            force=force,
+            kind="text-file",
+            detail=".opencode/prompts/plan-issue-orchestrator.txt",
+        )
+    )
+
+    for name in (
+        "plan-issue-implementation.md",
+        "plan-issue-review.md",
+        "plan-issue-monitor.md",
+    ):
+        reports.append(
+            sync_text_file(
+                template_path=template_root / ".opencode" / "agents" / name,
+                target_path=project_path / ".opencode" / "agents" / name,
+                action=action,
+                apply=apply,
+                force=force,
+                kind="markdown-file",
+                detail=f".opencode/agents/{name}",
+            )
+        )
+    return target_root, reports
+
+
+def summarize(reports: list[ItemReport]) -> str:
+    counts: dict[str, int] = {}
+    for report in reports:
+        counts[report.status] = counts.get(report.status, 0) + 1
+    ordered = (
+        "create",
+        "update",
+        "unchanged",
+        "skip",
+        "missing",
+        "drifted",
+        "synced",
+    )
+    parts = [f"{key}={counts[key]}" for key in ordered if counts.get(key)]
+    return " ".join(parts) if parts else "none=0"
+
+
+def print_report(
+    *,
+    action: str,
+    runtime: str,
+    mode: str,
+    target_root: Path,
+    reports: list[ItemReport],
+) -> None:
+    print(f"action: {action}")
+    print(f"runtime: {runtime}")
+    print(f"mode: {mode}")
+    print(f"target_root: {target_root}")
+    print(f"summary: {summarize(reports)}")
+    for report in reports:
+        print(
+            f"- {report.status} [{report.kind}] {report.target}: {report.detail}"
+        )
+
+
+def validate_args(args: argparse.Namespace) -> None:
+    if args.apply and args.dry_run:
+        die("choose only one of --dry-run or --apply", exit_code=2)
+    if args.action == "status" and args.apply:
+        die("--apply is not valid with status", exit_code=2)
+
+    if args.runtime == "codex" and args.project_path:
+        die("--project-path is not used with --runtime codex", exit_code=2)
+    if args.runtime in {"claude", "opencode"} and args.home_path:
+        die("--home-path is only valid with --runtime codex", exit_code=2)
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    validate_args(args)
+
+    apply = bool(args.apply)
+    mode = "apply" if apply else "dry-run"
+
+    if args.runtime == "codex":
+        home_path = resolve_home_path(args.home_path)
+        target_root, reports = manage_codex_runtime(
+            action=args.action,
+            apply=apply,
+            force=bool(args.force),
+            home_path=home_path,
+        )
+    else:
+        project_path = resolve_project_path(args.project_path)
+        if args.runtime == "claude":
+            target_root, reports = manage_claude_runtime(
+                action=args.action,
+                apply=apply,
+                force=bool(args.force),
+                project_path=project_path,
+            )
+        else:
+            target_root, reports = manage_opencode_runtime(
+                action=args.action,
+                apply=apply,
+                force=bool(args.force),
+                project_path=project_path,
+            )
+
+    print_report(
+        action=args.action,
+        runtime=args.runtime,
+        mode=mode,
+        target_root=target_root,
+        reports=reports,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

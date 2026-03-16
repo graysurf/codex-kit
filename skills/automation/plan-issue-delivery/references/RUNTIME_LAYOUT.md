@@ -49,7 +49,8 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
 - Task-scoped dispatch record:
   - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
   - Expected keys: `task_id`, `task_prompt_path`, `subagent_init_snapshot_path`, `plan_snapshot_path`, `worktree`, `branch`,
-    `execution_mode`, `pr_group`, `base_branch`
+    `execution_mode`, `pr_group`, `base_branch`, `workflow_role`, optional `runtime_name`, optional `runtime_role`,
+    optional `runtime_role_fallback_reason`
 
 ## Worktree Layout (Assigned Paths)
 

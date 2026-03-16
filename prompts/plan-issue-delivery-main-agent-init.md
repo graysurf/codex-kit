@@ -40,6 +40,15 @@ Execution context (fill before run)
   `$AGENT_HOME/out/plan-issue-delivery/{repo-slug}/issue-<ISSUE_NUMBER>/plan/plan-integration-pr.md`
 - Plan integration mention URL path:
   `$AGENT_HOME/out/plan-issue-delivery/{repo-slug}/issue-<ISSUE_NUMBER>/plan/plan-integration-mention.url`
+- Role mapping reference:
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/AGENT_ROLE_MAPPING.md`
+- Canonical workflow roles:
+  - `implementation`
+  - `review`
+  - `monitor`
+- Runtime adapter metadata:
+  - record `runtime_name` / `runtime_role` only when the active runtime
+    supports named child-agent roles
 
 PR grouping policy (scene-based; both are valid)
 
@@ -59,8 +68,12 @@ Required workflow
    `MAIN_AGENT_INIT_SNAPSHOT_PATH` + `TASK_PROMPT_PATH` +
    `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` +
    `DISPATCH_RECORD_PATH` + decision-scoped `REVIEW_EVIDENCE_PATH` artifacts under
-   `$AGENT_HOME/out/plan-issue-delivery/...` -> delegate to subagents with
-   required `PLAN_BRANCH` base-branch context -> if blocked, clarify and
+   `$AGENT_HOME/out/plan-issue-delivery/...` -> select the correct
+   `workflow_role` for each spawned task and persist it in sprint
+   manifests/dispatch records -> when the active runtime supports named
+   child-agent roles, also persist `runtime_name` / `runtime_role` ->
+   delegate to subagents with required `PLAN_BRANCH` base-branch context ->
+   if blocked, clarify and
    continue on the same task lane -> `ready-sprint` (pre-merge checkpoint) ->
    review each PR using the shared review rubric -> generate
    `REVIEW_EVIDENCE_PATH` from `REVIEW_EVIDENCE_TEMPLATE_PATH` -> execute
@@ -89,6 +102,15 @@ Required workflow
 Mandatory subagent launch rule
 
 - For each task, use the rendered `TASK_PROMPT_PATH` from dispatch hints as the primary init prompt when spawning subagents.
+- Use `workflow_role=implementation` for implementation-owned sprint lanes.
+- Use `workflow_role=review` only for read-only audit/evidence helpers.
+- Use `workflow_role=monitor` only for long-running CI/status watch helpers.
+- Always record the chosen `workflow_role` in `DISPATCH_RECORD_PATH`.
+- If the active runtime supports named child-agent roles, also record
+  `runtime_name` / `runtime_role`.
+- If a named-role runtime falls back to a generic child agent, record
+  `runtime_role=generic` plus `runtime_role_fallback_reason` before spawning
+  the child agent.
 - Always copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` to sprint runtime and attach `SUBAGENT_INIT_SNAPSHOT_PATH`.
 - Always attach `PLAN_SNAPSHOT_PATH` from issue runtime workspace as fallback plan context.
 - Always attach `DISPATCH_RECORD_PATH` from sprint manifests for execution-fact traceability.
@@ -128,6 +150,9 @@ Mandatory subagent launch rule
   - `SUBAGENT_INIT_SNAPSHOT_PATH`
   - `PLAN_SNAPSHOT_PATH`
   - `DISPATCH_RECORD_PATH`
+  - `workflow_role`
+  - optional `runtime_name` / `runtime_role` (or `runtime_role_fallback_reason`
+    when a named-role runtime falls back to generic)
   - `PLAN_BRANCH`
   - plan task section snippet/link/path (`<plan-file>#<sprint/task section>` or equivalent)
 - Do not start subagents with ad-hoc prompts that bypass the required dispatch bundle.
@@ -137,6 +162,7 @@ Reporting contract (every update)
 - Phase:
 - Commands run:
 - Gate status:
+- Workflow roles / runtime adapters:
 - Subagent assignments / PR references:
 - Blockers / risks:
 - Next required action:

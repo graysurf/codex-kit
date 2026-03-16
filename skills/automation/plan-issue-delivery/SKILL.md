@@ -60,8 +60,26 @@ Inputs:
   - rendered `TASK_PROMPT_PATH` from `start-sprint`
   - sprint-scoped `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
   - issue-scoped `PLAN_SNAPSHOT_PATH` copied from the source plan at sprint start
-  - task-scoped `DISPATCH_RECORD_PATH` (for example `.../manifests/dispatch-<TASK_ID>.json`) with artifact paths + execution facts
+  - task-scoped `DISPATCH_RECORD_PATH` (for example `.../manifests/dispatch-<TASK_ID>.json`) with artifact paths + execution facts +
+    selected workflow-role metadata and optional runtime adapter metadata
   - plan task context per assignment (exact plan task section snippet and/or direct plan section link/path)
+- Canonical workflow roles:
+  - `implementation`: sprint lanes that edit code, run tests, and own sprint PRs
+  - `review`: read-only PR review evidence, plan-conformance audits, and diff checks
+  - `monitor`: long-running CI/status polling and watch tasks
+- Runtime role adapters:
+  - canonical workflow roles are repo truth; runtime-specific named roles are optional adapters
+  - reference mapping lives in `references/AGENT_ROLE_MAPPING.md`
+  - runtime examples such as Codex `[agents.<role>]`, Claude Code
+    `.claude/agents/`, and OpenCode `opencode.json` belong to adapters, not
+    repo contract
+  - optional explicit installer/sync entrypoint:
+    `$AGENT_HOME/scripts/plan-issue-adapter <install|sync|status> --runtime <codex|claude|opencode> [--apply]`
+- Dispatch role traceability:
+  - prompt manifest rows must record `workflow_role`
+  - `DISPATCH_RECORD_PATH` must record `workflow_role`
+  - when a runtime uses named child-agent roles, also record `runtime_name` and `runtime_role`
+  - if a named-role runtime falls back to a generic child agent, record `runtime_role=generic` plus `runtime_role_fallback_reason`
 - Local rehearsal policy:
   - Default execution path is live mode (`plan-issue`) in this main skill.
   - If the user explicitly requests rehearsal, load `references/LOCAL_REHEARSAL.md` and run that playbook.
@@ -73,7 +91,8 @@ Outputs:
 
 - Plan-scoped task-spec TSV generated from all plan tasks (all sprints) for one issue.
 - Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints, including `pr_group`.
-- Sprint-scoped rendered subagent prompt files + a prompt manifest (`task_id -> prompt_path -> execution_mode`) generated at `start-sprint`.
+- Sprint-scoped rendered subagent prompt files + a prompt manifest
+  (`task_id -> prompt_path -> execution_mode -> workflow_role [-> runtime_role]`) generated at `start-sprint`.
 - Runtime artifacts and worktrees are namespaced under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/...`.
 - Issue-scoped main-agent init prompt snapshot
   (`MAIN_AGENT_INIT_SNAPSHOT_PATH`) is generated for deterministic
@@ -85,7 +104,8 @@ Outputs:
   comment URLs traceable in issue-side sync actions.
 - Issue-scoped plan snapshot (`PLAN_SNAPSHOT_PATH`) is generated for dispatch fallback.
 - Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`) is generated for immutable dispatch.
-- Task-scoped dispatch records (`DISPATCH_RECORD_PATH`) are generated per assignment for traceability.
+- Task-scoped dispatch records (`DISPATCH_RECORD_PATH`) are generated per assignment for traceability, including canonical
+  `workflow_role` and optional runtime adapter fields (`runtime_name`, `runtime_role`, `runtime_role_fallback_reason`).
 - `plan-tooling split-prs` v2 emits grouping primitives only (`task_id`, `summary`, `pr_group`); `plan-issue` materializes runtime metadata
   (`Owner/Branch/Worktree/Notes`).
 - Live mode (`plan-issue`) creates/updates exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
@@ -120,6 +140,8 @@ Outputs:
   - `SUBAGENT_INIT_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - `PLAN_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - `DISPATCH_RECORD_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
+  - selected `workflow_role`
+  - optional `runtime_name` + `runtime_role` (or `runtime_role_fallback_reason` when a named-role runtime falls back to generic)
   - assigned `PLAN_BRANCH` base-branch context for sprint PR creation
   - plan task section context (snippet/link/path)
 - Ad-hoc dispatch prompts that bypass the required bundle are invalid.
@@ -160,6 +182,9 @@ Failure modes:
   `REVIEW_EVIDENCE_PATH`, or generic non-evidenced decision text).
 - Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, `PLAN_SNAPSHOT_PATH`,
   `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
+- Subagent dispatch launched without canonical `workflow_role` recorded in manifest/dispatch record.
+- Active runtime uses named child-agent roles but dispatch omitted `runtime_name` / `runtime_role` metadata.
+- Named-role runtime fell back to generic dispatch without `runtime_role_fallback_reason`.
 - Assigned task `Worktree` is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
 - Final plan close gate fails because the integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) is missing or unmerged.
@@ -244,6 +269,27 @@ Failure modes:
   runtime-truth facts and existing PR linkage unless the row is intentionally
   updated first.
 
+## Workflow Roles (Canonical)
+
+- Canonical workflow roles are repo-owned and runtime-agnostic:
+  - `implementation`: implementation-owned sprint lanes that edit code,
+    update tests, and own sprint PRs.
+  - `review`: read-only PR review evidence, merged-diff audit, and
+    plan-conformance analysis support for main-agent.
+  - `monitor`: `gh pr checks --watch`, CI/status polling, and other
+    long-running wait tasks that do not own merge decisions.
+- Main-agent remains the decision authority even when `review` / `monitor`
+  child agents are used.
+- Persist `workflow_role` in sprint prompt manifests and each
+  `DISPATCH_RECORD_PATH`.
+- If the active runtime supports named child-agent roles, map `workflow_role`
+  through a runtime adapter and additionally persist `runtime_name` and
+  `runtime_role`.
+- If a named-role runtime falls back to a generic child agent, record
+  `runtime_role=generic` plus `runtime_role_fallback_reason`; do not silently
+  downgrade.
+- See `references/AGENT_ROLE_MAPPING.md` for runtime adapter examples.
+
 ## Binaries (only entrypoints)
 
 - `plan-issue` (live GitHub orchestration)
@@ -258,6 +304,11 @@ Failure modes:
 
 - Local rehearsal playbook (`plan-issue-local` and `plan-issue --dry-run`): `references/LOCAL_REHEARSAL.md`
 - Runtime layout and path rules: `references/RUNTIME_LAYOUT.md`
+- Workflow-role to runtime-adapter mapping: `references/AGENT_ROLE_MAPPING.md`
+- Runtime adapter installer/sync entrypoint: `$AGENT_HOME/scripts/plan-issue-adapter`
+- Codex adapter guide + templates: `references/CODEX_ADAPTER.md`
+- Claude Code adapter guide + templates: `references/CLAUDE_CODE_ADAPTER.md`
+- OpenCode adapter guide + templates: `references/OPENCODE_ADAPTER.md`
 - Review evidence template for main-agent decisions:
   `skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
 - Shared task-lane continuity policy (canonical):
@@ -277,11 +328,15 @@ Failure modes:
    `MAIN_AGENT_INIT_SOURCE_PATH` into `MAIN_AGENT_INIT_SNAPSHOT_PATH`; then
    resolve `DEFAULT_BRANCH`, create `PLAN_BRANCH`, and persist
    `PLAN_BRANCH_REF_PATH`.
-4. Run `start-sprint`, ensure `MAIN_AGENT_INIT_SNAPSHOT_PATH` +
+4. Run `start-sprint`, resolve `workflow_role` for each spawned task and, when
+   relevant, runtime adapter mapping,
+   ensure `MAIN_AGENT_INIT_SNAPSHOT_PATH` +
    `REVIEW_EVIDENCE_PATH` + `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` +
    `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
-   exist, dispatch subagents with `PLAN_BRANCH` base-branch context, keep task
-   lanes stable, and keep row state current via `link-pr`.
+   exist, record `workflow_role` (and optional runtime adapter metadata) in
+   prompt manifests/dispatch records, dispatch subagents with `PLAN_BRANCH`
+   base-branch context, keep task lanes stable, and keep row state current via
+   `link-pr`.
 5. For each sprint: implement/clarify/follow-up on subagent-owned lanes ->
    `ready-sprint` (pre-merge review gate, PRs should still be open) ->
    main-agent review decisions + merge into `PLAN_BRANCH` -> `accept-sprint` ->
@@ -395,11 +450,22 @@ Failure modes:
    - main-agent follows the locked grouping policy (default metadata-first auto
      with `--default-pr-grouping group`; switch only on explicit user request)
      and emits dispatch hints
+   - main-agent assigns canonical workflow roles before spawning:
+     - `implementation` for implementation-owned sprint lanes
+     - `review` for read-only audit/evidence helpers, when used
+     - `monitor` for CI/status watch helpers, when used
+   - if the active runtime supports named child-agent roles:
+     - map the canonical `workflow_role` through the active runtime adapter
+     - record `runtime_name` + `runtime_role`
+     - if the named-role adapter is unavailable, record `runtime_role=generic`
+       plus `runtime_role_fallback_reason`
    - main-agent starts subagents using dispatch bundles that include:
      - rendered `TASK_PROMPT_PATH` prompt artifact from dispatch hints
      - `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
      - `PLAN_SNAPSHOT_PATH` from issue runtime workspace
      - `DISPATCH_RECORD_PATH` from sprint manifest artifacts
+     - selected `workflow_role`
+     - optional `runtime_name` + `runtime_role`
      - `PLAN_BRANCH` (required base branch for sprint PRs)
      - assigned plan task section snippet/link/path (from plan file or sprint-start comment section)
    - subagents create or re-enter assigned worktrees/PRs and implement tasks on their assigned lanes
@@ -607,6 +673,11 @@ comment URL.
 - Main-agent is orchestration/review-only.
 - Main-agent does not implement sprint tasks directly.
 - Sprint implementation must be delegated to subagent-owned PRs.
+- Main-agent should always assign `workflow_role=implementation` to sprint
+  implementation lanes.
+- Main-agent may assign `workflow_role=review` and `workflow_role=monitor`
+  only for read-only evidence gathering, audits, and status watches; these
+  roles do not replace main-agent decision authority.
 - Sprint comments and plan close actions are main-agent orchestration artifacts; implementation remains subagent-owned.
 - Allowed baseline exception: main-agent may open/manage exactly one
   non-implementation integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) after all

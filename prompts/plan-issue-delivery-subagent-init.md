@@ -41,6 +41,8 @@ Execution context (fill before run)
 - Subagent init snapshot path: `<SUBAGENT_INIT_SNAPSHOT_PATH>`
 - Plan snapshot path: `<PLAN_SNAPSHOT_PATH>`
 - Dispatch record path: `<DISPATCH_RECORD_PATH>`
+- Workflow role: `<implementation>`
+- Runtime role: `<runtime-specific role or N/A>`
 
 Required inputs from main-agent (must be attached)
 
@@ -48,6 +50,12 @@ Required inputs from main-agent (must be attached)
 - Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`).
 - Issue-scoped plan snapshot fallback (`PLAN_SNAPSHOT_PATH`) copied from source plan.
 - Task-scoped dispatch record (`DISPATCH_RECORD_PATH`) with execution facts (worktree/branch/mode/group).
+- `DISPATCH_RECORD_PATH` role facts:
+  - `workflow_role` should be `implementation` for implementation lanes
+  - if runtime adapter metadata is present, `runtime_role` should match the
+    assigned runtime role for this lane
+  - if a named-role runtime fell back to generic, `runtime_role_fallback_reason`
+    must explain why the preferred runtime role was unavailable
 - Required base branch context (`PLAN_BRANCH`) for PR targeting.
 - Plan task context for assigned IDs:
   - exact task section snippet and/or
@@ -63,21 +71,25 @@ Delivery requirements
    created yet.
 3. Resolve plan context in this order: assigned task snippet/link/path -> `PLAN_SNAPSHOT_PATH` -> source plan link/path (last fallback).
 4. If plan references conflict, follow issue runtime-truth assignment (`Task Decomposition` row) and escalate ambiguities.
-5. Validate `DISPATCH_RECORD_PATH` matches assigned task IDs, worktree, branch, execution mode, and `PLAN_BRANCH` before editing.
-6. Keep changes within assigned task scope; escalate before widening scope.
-7. If required context is missing/conflicting or another blocker stops progress, return a blocker packet with exact lane facts, the missing
+5. Validate `DISPATCH_RECORD_PATH` matches assigned task IDs, worktree, branch,
+   execution mode, `PLAN_BRANCH`, and `workflow_role` before editing.
+6. If `DISPATCH_RECORD_PATH` declares a non-implementation `workflow_role`,
+   stop and request corrected dispatch before editing.
+7. Keep changes within assigned task scope; escalate before widening scope.
+8. If required context is missing/conflicting or another blocker stops progress, return a blocker packet with exact lane facts, the missing
    input, current status, and the next unblock action needed from main-agent.
-8. Run relevant tests for impacted areas and capture results.
-9. Keep commits and PR description traceable to task IDs.
-10. Surface risks early with concrete mitigation options.
-11. Keep sprint PRs open for `ready-sprint` pre-merge review; do not self-merge.
-12. Wait for required PR CI checks to finish before marking work ready for review/merge.
-13. If PR CI fails, diagnose and fix the failures, push updates, and repeat until required checks pass (or escalate external blockers with
+9. Run relevant tests for impacted areas and capture results.
+10. Keep commits and PR description traceable to task IDs.
+11. Surface risks early with concrete mitigation options.
+12. Keep sprint PRs open for `ready-sprint` pre-merge review; do not self-merge.
+13. Wait for required PR CI checks to finish before marking work ready for review/merge.
+14. If PR CI fails, diagnose and fix the failures, push updates, and repeat until required checks pass (or escalate external blockers with
     evidence).
 
 Update format (every checkpoint)
 
 - Task IDs completed/in progress:
+- Workflow role / runtime role:
 - Task lane facts (`Owner / Branch / Worktree / PR`):
 - Files/components changed:
 - Tests run + key results:
@@ -91,4 +103,6 @@ Done criteria
 - PR content is reviewable, with clear task mapping and no hidden scope changes.
 - Required PR CI checks are passing, or external blockers are escalated with concrete evidence and mitigation options.
 - Sprint PR targets assigned `PLAN_BRANCH` and stays unmerged until main-agent review decision.
+- If the active runtime fell back to a generic child agent, the fallback
+  rationale remains recorded in `DISPATCH_RECORD_PATH`.
 - If blocked, do not claim done; return the blocker packet and wait for main-agent clarification/unblock.
