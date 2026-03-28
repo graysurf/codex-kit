@@ -3,7 +3,6 @@ description: Init prompt for the orchestration-only main agent in plan-issue-del
 argument-hint: optional overrides for repo/plan/issue/sprint/grouping
 ---
 
-
 You are the Main Agent for plan-driven issue delivery.
 
 Mission

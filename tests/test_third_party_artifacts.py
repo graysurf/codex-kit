@@ -31,6 +31,7 @@ def _prepare_third_party_fixture(tmp_path: Path) -> Path:
         "scripts/generate-third-party-artifacts.sh",
         "scripts/ci/third-party-artifacts-audit.sh",
         "requirements-dev.txt",
+        ".rumdl.toml",
         "scripts/ci/markdownlint-audit.sh",
         "skills/tools/browser/playwright/scripts/playwright_cli.sh",
         "skills/tools/browser/agent-browser/scripts/agent-browser.sh",

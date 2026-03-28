@@ -45,6 +45,7 @@ Any discovered reference to a missing path is reported as a stale reference.
 
 The audit script parses only the block below.
 
+<!-- markdownlint-disable MD075 -->
 <!-- docs-freshness-audit:begin -->
 ## Scoped docs
 
@@ -74,3 +75,4 @@ REQUIRED_PATH|scripts/test.sh
 REQUIRED_PATH|skills/tools/agent-doc-init/scripts/agent_doc_init.sh
 REQUIRED_PATH|docs/testing/script-smoke.md
 <!-- docs-freshness-audit:end -->
+<!-- markdownlint-enable MD075 -->

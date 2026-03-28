@@ -34,13 +34,14 @@ Not included:
 | `@playwright/cli` | npm via npx --package | `@playwright/cli@latest` | floating (@latest) | `Apache-2.0` | [microsoft/playwright-cli](https://github.com/microsoft/playwright-cli) |
 | `agent-browser` | npm via npx --package | `agent-browser@latest` | floating (@latest) | `Apache-2.0` | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) |
 | `chrome-devtools-mcp` | npm via npx | `chrome-devtools-mcp@latest` | floating (@latest) | `Unknown (check npm package metadata)` | [ChromeDevTools/chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) |
-| `markdownlint-cli2` | npm via npx | `markdownlint-cli2@0.21.0` | pinned (0.21.0) | `MIT` | [DavidAnson/markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2) |
+| `rumdl` | npm via npx | `rumdl@0.1.62` | pinned (0.1.62) | `MIT` | [rvben/rumdl](https://github.com/rvben/rumdl) |
 | `shellcheck` | Homebrew / apt | `brew install shellcheck / apt-get install -y shellcheck` | floating (package-manager resolved) | `GPL-3.0-or-later` | [koalaman/shellcheck](https://github.com/koalaman/shellcheck) |
 | `nils-cli` | Homebrew formula | `brew install nils-cli` | floating (formula latest) | `MIT OR Apache-2.0` | [graysurf/nils-cli](https://github.com/graysurf/nils-cli) |
 
 ## Declaration Sources
 
 - `requirements-dev.txt`
+- `.rumdl.toml`
 - `scripts/ci/markdownlint-audit.sh`
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh`
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh`
@@ -53,7 +54,8 @@ Not included:
 ## Deterministic Input Fingerprints
 
 - `requirements-dev.txt` SHA256: `3ec1558abe1f337577861f60fd6824af6ad1b68436187819dedcd184b3548f2e`
-- `scripts/ci/markdownlint-audit.sh` SHA256: `ce0e42cbbe8e274c135a4d7a859ce1d239d5b7e78c1891d837f3f327b5486b16`
+- `.rumdl.toml` SHA256: `31667aa68116c0811cc8afcfa726ab5b6da25deb47cf737e54c51a7910a9cf5d`
+- `scripts/ci/markdownlint-audit.sh` SHA256: `2f7a9fbabc675f3f7db2ce5930dd1d144f614d01b094d468e05619ae063189a1`
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh` SHA256: `36a188349ae575e2ffd7fe47cad0f8b86317032f4f7bd75a1598b5d16eddf4e0`
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
 - `scripts/chrome-devtools-mcp.sh` SHA256: `cf92382116a78c6d1a3dc5a1ac5d9be8498bdb17187cf26b26dae098718f8cd8`
