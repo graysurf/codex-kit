@@ -129,6 +129,7 @@ def upstream_label(url: str) -> str:
 
 
 requirements_path = repo_root / "requirements-dev.txt"
+rumdl_config = repo_root / ".rumdl.toml"
 markdown_script = repo_root / "scripts" / "ci" / "markdownlint-audit.sh"
 playwright_script = repo_root / "skills" / "tools" / "browser" / "playwright" / "scripts" / "playwright_cli.sh"
 agent_browser_script = repo_root / "skills" / "tools" / "browser" / "agent-browser" / "scripts" / "agent-browser.sh"
@@ -140,6 +141,7 @@ dockerfile = repo_root / "Dockerfile"
 
 required_inputs = [
     requirements_path,
+    rumdl_config,
     markdown_script,
     playwright_script,
     agent_browser_script,
@@ -205,11 +207,11 @@ npm_meta = {
         "license": "Unknown (check npm package metadata)",
         "upstream": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
     },
-    "markdownlint-cli2": {
-        "component": "markdownlint-cli2",
+    "rumdl": {
+        "component": "rumdl",
         "ecosystem": "npm via npx",
         "license": "MIT",
-        "upstream": "https://github.com/DavidAnson/markdownlint-cli2",
+        "upstream": "https://github.com/rvben/rumdl",
     },
 }
 
@@ -252,17 +254,17 @@ chrome_devtools_spec = extract_once(
     r"cmd=\(npx -y (chrome-devtools-mcp@[^\s\)]+)\)",
     "chrome-devtools-mcp spec",
 )
-markdownlint_spec = extract_once(
+rumdl_spec = extract_once(
     markdown_script,
-    r"npx --yes (markdownlint-cli2@[0-9A-Za-z._-]+)",
-    "markdownlint-cli2 spec",
+    r"npx --yes (rumdl@[0-9A-Za-z._-]+)\s+check",
+    "rumdl spec",
 )
 
 npm_specs = [
     ("@playwright/cli", playwright_spec, "skills/tools/browser/playwright/scripts/playwright_cli.sh"),
     ("agent-browser", agent_browser_spec, "skills/tools/browser/agent-browser/scripts/agent-browser.sh"),
     ("chrome-devtools-mcp", chrome_devtools_spec, "scripts/chrome-devtools-mcp.sh"),
-    ("markdownlint-cli2", markdownlint_spec, "scripts/ci/markdownlint-audit.sh"),
+    ("rumdl", rumdl_spec, "scripts/ci/markdownlint-audit.sh"),
 ]
 
 for package_name, package_spec, source in npm_specs:
@@ -305,6 +307,7 @@ rows.append(
 
 source_paths = [
     "requirements-dev.txt",
+    ".rumdl.toml",
     "scripts/ci/markdownlint-audit.sh",
     "skills/tools/browser/playwright/scripts/playwright_cli.sh",
     "skills/tools/browser/agent-browser/scripts/agent-browser.sh",

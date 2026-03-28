@@ -14,7 +14,7 @@
   - `requirements-dev.txt` includes `pytest`, `semgrep`, `ruff`, `mypy`, and `pyright`
 - System tools
   - `git` (required by lint scripts for tracked-file discovery)
-  - `node`/`npx` (required by markdown lint)
+  - `node`/`npx` (required by `rumdl` markdown lint)
   - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
   - `nils-cli` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
 

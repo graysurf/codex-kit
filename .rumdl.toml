@@ -1,0 +1,11 @@
+[global]
+disable = ["MD041"]
+
+[MD013]
+line-length = 140
+code-blocks = false
+headings = false
+tables = false
+
+[MD024]
+siblings-only = true

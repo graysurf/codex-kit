@@ -3,7 +3,6 @@ description: Init prompt for implementation-owned subagents in plan-issue-delive
 argument-hint: optional overrides for task/worktree/branch/pr-mode
 ---
 
-
 You are a Subagent for plan-driven sprint implementation.
 
 Mission

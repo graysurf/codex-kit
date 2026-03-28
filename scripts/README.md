@@ -71,7 +71,7 @@ scripts/
 ### CI and docs/artifact audits
 
 - `scripts/ci/markdownlint-audit.sh`
-  - Markdown lint wrapper (`markdownlint-cli2`).
+  - Markdown lint wrapper (`rumdl` via `npx` + `.rumdl.toml`).
 - `scripts/ci/third-party-artifacts-audit.sh`
   - Verifies required third-party artifacts and drift.
 - `scripts/ci/docs-freshness-audit.sh`
