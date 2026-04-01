@@ -26,4 +26,5 @@ def test_automation_release_workflow_declares_retained_entrypoints() -> None:
     assert "## Entrypoints (fallback helper scripts)" in text
     assert "$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh" in text
     assert "$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh" in text
+    assert "--push-current-branch" in text
     assert "legacy wrapper paths are not supported" in text.lower()

@@ -17,10 +17,12 @@ require_cmd() {
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  release-publish-from-changelog.sh --version <vX.Y.Z> [--repo <path>] [--changelog <path>] [--notes-output <path>] [--title <text>] [--if-exists <edit|fail>] [--no-verify-body]
+  release-publish-from-changelog.sh --version <vX.Y.Z> [--repo <path>] [--changelog <path>] [--notes-output <path>] [--title <text>] [--if-exists <edit|fail>] [--push-current-branch] [--no-verify-body]
 
 Behavior:
   - Extracts release notes from CHANGELOG.md for --version.
+  - Requires a clean git work tree on a checked-out branch with a configured upstream.
+  - Fails when HEAD is not synced to upstream unless --push-current-branch is set.
   - Creates the release when missing.
   - Edits the release when it already exists (default behavior).
   - Verifies the published release body is non-empty unless --no-verify-body is set.
@@ -41,6 +43,65 @@ notes_output=""
 title=""
 if_exists="edit"
 verify_body=1
+push_current_branch=0
+
+ensure_git_repo() {
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "repo is not a git work tree: $repo"
+}
+
+ensure_clean_worktree() {
+  local status_output=''
+  status_output="$(git status --porcelain 2>/dev/null || true)"
+  if [[ -n "$status_output" ]]; then
+    die "working tree must be clean before publishing (commit or stash changes first)"
+  fi
+}
+
+require_publishable_head() {
+  local current_branch=''
+  local head_sha=''
+  local upstream_ref=''
+  local counts=''
+  local ahead_count='0'
+  local behind_count='0'
+  local upstream_remote=''
+  local upstream_branch=''
+
+  current_branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+  [[ -n "$current_branch" ]] || die "detached HEAD: checkout a branch before publishing"
+
+  head_sha="$(git rev-parse HEAD 2>/dev/null || true)"
+  [[ "$head_sha" =~ ^[0-9a-f]{40}$ ]] || die "unable to resolve HEAD commit"
+
+  upstream_ref="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+  [[ -n "$upstream_ref" ]] || die "current branch has no upstream: $current_branch (push with --set-upstream before publishing)"
+  [[ "$upstream_ref" == */* ]] || die "unsupported upstream ref format: $upstream_ref"
+
+  counts="$(git rev-list --left-right --count "HEAD...$upstream_ref" 2>/dev/null || true)"
+  [[ -n "$counts" ]] || die "unable to compare HEAD with upstream $upstream_ref"
+  read -r ahead_count behind_count <<<"$counts"
+  [[ "$ahead_count" =~ ^[0-9]+$ ]] || die "unable to parse ahead count for $upstream_ref"
+  [[ "$behind_count" =~ ^[0-9]+$ ]] || die "unable to parse behind count for $upstream_ref"
+
+  if [[ "$behind_count" -gt 0 && "$ahead_count" -gt 0 ]]; then
+    die "current branch diverged from $upstream_ref (ahead=$ahead_count behind=$behind_count); reconcile before publishing"
+  fi
+  if [[ "$behind_count" -gt 0 ]]; then
+    die "current branch is behind $upstream_ref by $behind_count commit(s); pull/rebase before publishing"
+  fi
+  if [[ "$ahead_count" -gt 0 ]]; then
+    if [[ "$push_current_branch" -ne 1 ]]; then
+      die "current branch is ahead of $upstream_ref by $ahead_count commit(s); push first or rerun with --push-current-branch"
+    fi
+
+    upstream_remote="${upstream_ref%%/*}"
+    upstream_branch="${upstream_ref#*/}"
+    info "pushing $current_branch to $upstream_ref before publishing"
+    git push "$upstream_remote" "HEAD:${upstream_branch}" >/dev/null
+  fi
+
+  printf "%s\n" "$head_sha"
+}
 
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
@@ -68,6 +129,10 @@ while [[ $# -gt 0 ]]; do
       if_exists="${2:-}"
       shift 2
       ;;
+    --push-current-branch)
+      push_current_branch=1
+      shift
+      ;;
     --no-verify-body)
       verify_body=0
       shift
@@ -92,10 +157,15 @@ fi
 cd "$repo" || die "unable to cd: $repo"
 
 require_cmd gh
+require_cmd git
 require_cmd awk
+ensure_git_repo
+ensure_clean_worktree
 if [[ ! -f "$changelog" ]]; then
   die "changelog not found: $changelog"
 fi
+
+head_sha="$(require_publishable_head)"
 
 if [[ -z "$notes_output" ]]; then
   agent_home="${AGENT_HOME:-}"
@@ -134,8 +204,9 @@ fi
 mv -f -- "$tmp_notes" "$notes_output"
 trap - EXIT
 notes_file="$notes_output"
+backticked_ref_pattern=$'`#[0-9]+`'
 
-if grep -Eq '`#[0-9]+`' "$notes_file"; then
+if grep -Eq "$backticked_ref_pattern" "$notes_file"; then
   die "backticked issue/PR reference detected in release notes (use plain #123)"
 fi
 if grep -Eq '\.\.\.' "$notes_file"; then
@@ -159,7 +230,7 @@ if [[ "$release_exists" -eq 1 ]]; then
   gh release edit "$version" --title "$title" --notes-file "$notes_file" >/dev/null
 else
   info "creating release $version"
-  gh release create "$version" -F "$notes_file" --title "$title" >/dev/null
+  gh release create "$version" -F "$notes_file" --title "$title" --target "$head_sha" >/dev/null
 fi
 
 if (( verify_body )); then

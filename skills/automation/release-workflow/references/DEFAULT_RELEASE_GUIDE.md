@@ -7,6 +7,7 @@ Use this guide only when the target repository does not provide its own release 
 - Run in the target repo root.
 - Working tree is clean: `git status -sb`
 - On the target branch (default: `main`)
+- Current branch tracks an upstream and is publishable (`git status -sb` should not show ahead/behind drift after the release commit is pushed)
 - GitHub CLI is authenticated (when publishing GitHub Releases): `gh auth status`
 
 ## Steps
@@ -29,8 +30,8 @@ Use this guide only when the target repository does not provide its own release 
    - Commit message should match the repo’s conventions (if any).
 
 5. Publish the GitHub release from the changelog entry
-   - Use the single entrypoint script (extract notes + audit + create/edit + non-empty body verification):
-     - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version vX.Y.Z`
+   - Use the single entrypoint script (extract notes + audit + current-branch push when needed + create/edit + non-empty body verification):
+     - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version vX.Y.Z --push-current-branch`
 
 6. Verify the release
    - `gh release view vX.Y.Z`

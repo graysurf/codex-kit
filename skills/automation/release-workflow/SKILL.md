@@ -72,10 +72,10 @@ Use only these public entrypoints:
 
 - Resolve the guide + template deterministically:
   - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
-- Publish GitHub release from changelog via single entrypoint (extract + audit + create/edit + verify body):
+- Publish GitHub release from changelog via single entrypoint (extract + audit + upstream-sync check/push + create/edit + verify body):
 
   ```bash
-  $AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version v1.3.2
+  $AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version v1.3.2 --push-current-branch
   ```
 
 ## Migration notes (removed entrypoints)
