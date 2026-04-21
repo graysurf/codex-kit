@@ -59,6 +59,5 @@
   In this repository, use `DEVELOPMENT.md` as the canonical source for
   required checks.
 - Before reporting completion, run the relevant checks or state clearly why they could not be run.
-- Use `semantic-commit` for review-first, user-staged commits.
-- Use `semantic-commit-autostage` only for automation flows that own the full change set.
-- Do not run `git commit` directly.
+- Commits in this repository must use `semantic-commit` or
+  `semantic-commit-autostage`; do not run `git commit` directly.
