@@ -128,6 +128,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Testing          | [api-test-runner](./skills/tools/testing/api-test-runner/)                                 | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results  |
 | Testing          | [graphql-api-testing](./skills/tools/testing/graphql-api-testing/)                         | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports                |
 | Testing          | [rest-api-testing](./skills/tools/testing/rest-api-testing/)                               | Test REST APIs with repeatable, file-based requests and generate API test reports                               |
+| Google Workspace | [google-sheets-cell-edit](./skills/tools/google-workspace/google-sheets-cell-edit/) | Edit Google Sheets cells in a browser with reliable cell targeting, multiline content, partial rich-text hyperlinks, validation, and post-run skill-improvement suggestions. |
 
 ### Automation
 
