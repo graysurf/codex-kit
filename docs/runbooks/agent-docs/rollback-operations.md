@@ -29,9 +29,9 @@
 
 ## Project rollback (`nils-cli`)
 
-1. If project-level extension is unstable, remove or revert `/Users/terry/Project/graysurf/nils-cli/AGENT_DOCS.toml`.
+1. If project-level extension is unstable, remove or revert `$HOME/Project/graysurf/nils-cli/AGENT_DOCS.toml`.
 2. Validate project strict baseline:
-   - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli baseline --check --target project --strict --format text`
+   - `agent-docs --project-path $HOME/Project/graysurf/nils-cli baseline --check --target project --strict --format text`
 3. Keep `nils-cli/AGENTS.md` unchanged unless a dedicated policy PR is approved.
 
 ## Post-rollback evidence requirements

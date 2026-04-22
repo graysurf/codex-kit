@@ -2,7 +2,7 @@
 
 ## Decision scope
 
-- Target project: `/Users/terry/Project/graysurf/nils-cli`
+- Target project: `$HOME/Project/graysurf/nils-cli`
 - Decision objective:
   - whether to adopt project-level `AGENT_DOCS.toml`;
   - whether `nils-cli/AGENTS.md` requires immediate dispatcher-style modification.
@@ -29,17 +29,17 @@ Rationale:
 Primary evidence files:
 
 - Gap analysis:
-  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-gap-analysis.md`
+  - `$HOME/.config/agent-kit/out/agent-docs-rollout/nils-cli-gap-analysis.md`
 - Baseline snapshot:
-  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-current-baseline.txt`
+  - `$HOME/.config/agent-kit/out/agent-docs-rollout/nils-cli-current-baseline.txt`
 - Pilot change log:
-  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-changes.md`
+  - `$HOME/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-changes.md`
 - Pilot strict resolve:
-  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-project-dev.strict.txt`
+  - `$HOME/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-project-dev.strict.txt`
 - Pilot strict baseline:
-  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-baseline-project.strict.txt`
+  - `$HOME/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-baseline-project.strict.txt`
 - Pilot change isolation:
-  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-status.txt`
+  - `$HOME/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-status.txt`
 
 Observed facts from evidence:
 
@@ -73,5 +73,5 @@ If pilot behavior is not accepted:
 
 1. Remove project-level `AGENT_DOCS.toml` from pilot branch.
 2. Re-run:
-   - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli baseline --check --target project --strict --format text`
+   - `agent-docs --project-path $HOME/Project/graysurf/nils-cli baseline --check --target project --strict --format text`
 3. Keep existing `nils-cli/AGENTS.md` and `DEVELOPMENT.md` as sole project policy.
