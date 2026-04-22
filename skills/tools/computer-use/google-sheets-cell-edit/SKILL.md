@@ -83,4 +83,5 @@ This entrypoint is help-only. The skill is instruction-first and does not own a 
    - If neighboring text is accidentally mixed into the target cell, restore the target cell first and only then retry link edits.
 7. Close with reusable improvements.
    - Follow the global Computer Use improvement rule in `AGENTS.md` for whether to emit `Skill Improvement Suggestions`.
-   - When suggestions are specific to Google Sheets cell editing, keep them concrete: name the fragile step, the safer replacement, and the expected benefit.
+   - When suggestions are specific to Google Sheets cell editing, keep them concrete:
+     name the fragile step, the safer replacement, and the expected benefit.
