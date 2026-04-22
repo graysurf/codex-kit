@@ -13,7 +13,8 @@
 - Required runtime env may live in env-related files under `$ZDOTDIR/`, but it must be reachable through that `.zshenv` bootstrap chain.
 - Do not rely on `.zprofile` or `.zshrc` for machine-critical env needed by automation.
 - On this machine, `ZDOTDIR` is expected to resolve to `$HOME/.config/zsh`.
-- Do not assume every file under `$ZDOTDIR/` is loaded automatically; only the startup files for the current shell mode and anything they source are in scope.
+- Do not assume every file under `$ZDOTDIR/` is loaded automatically; only the startup files for the
+  current shell mode and anything they source are in scope.
 
 ## Startup model
 
