@@ -1,4 +1,4 @@
-# Docs Freshness Rules (Task 4.1)
+# Docs Freshness Rules
 
 ## Purpose
 
@@ -39,7 +39,7 @@ Any discovered reference to a missing path is reported as a stale reference.
 - Keep the default scope strict: only allow missing paths when examples intentionally reference non-repo locations.
 - Prefer fixing docs over suppressing findings.
 - When suppression is unavoidable, add a targeted `ALLOW_MISSING_PATH|...` entry with an explanatory note in the PR.
-- Revisit allowlist entries during each docs refresh sprint and remove stale suppressions quickly.
+- Revisit allowlist entries during docs maintenance and remove stale suppressions quickly.
 
 ## Machine-Readable Rules
 

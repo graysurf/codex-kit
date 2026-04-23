@@ -96,7 +96,5 @@ The following entrypoints are deprecated and removed; migrate to the retained co
 
 ## Related docs
 
-- Reference notes for the single-entrypoint simplification shipped in PR #221:
-  - `docs/plans/pr-221-reference-notes.md`
 - Repo-wide script simplification playbook:
   - `docs/runbooks/skills/SCRIPT_SIMPLIFICATION_PLAYBOOK.md`

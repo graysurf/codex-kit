@@ -52,5 +52,5 @@ Failure modes:
 
 - Repo-wide review checklist:
   - `docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
-- Baseline inventory format and current coverage snapshot:
-  - `docs/plans/skills-inventory-audit.md`
+- Skill directory anatomy and path rules:
+  - `docs/runbooks/skills/SKILLS_ANATOMY_V2.md`
