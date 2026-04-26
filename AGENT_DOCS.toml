@@ -28,7 +28,7 @@ scope = "home"
 path = "RESEARCH_WORKFLOW.md"
 required = true
 when = "always"
-notes = "Canonical technical lookup decision rules: classify the target, then choose Context7, agent-browser/Playwright, gh, or local checkout accordingly"
+notes = "Canonical technical lookup decision rules: classify the target, then choose the lightest authoritative source or tool"
 
 [[document]]
 context = "project-dev"

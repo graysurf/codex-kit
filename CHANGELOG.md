@@ -2,10 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [Unreleased]
+
+### Added
+
+- **release**: new curator-only release entrypoint at
+  `.agents/scripts/release.sh`. Runs preflight + `scripts/check.sh --all`,
+  promotes `## [Unreleased]` into the versioned heading, updates the footer
+  compare-link block, commits via `semantic-commit`, pushes main, and
+  delegates the GitHub release publish to
+  `skills/automation/release-workflow/scripts/release-publish-from-changelog.sh`.
 
 ### Changed
 
+- **release-workflow**: align `CHANGELOG.md` to Keep a Changelog format —
+  bracketed headings (`## [X.Y.Z] - YYYY-MM-DD` and `## [Unreleased]`),
+  per-version footer compare-links, and removal of empty `- None.` placeholder
+  bullets across the historical record (37 versions).
+- **release-workflow**: `release-publish-from-changelog.sh` now accepts both
+  legacy `## vX.Y.Z` and new bracketed `## [X.Y.Z]` headings, and stops at
+  footer link references so trailing compare-links never leak into release
+  notes. `RELEASE_TEMPLATE.md` and `DEFAULT_RELEASE_GUIDE.md` updated to match.
+- **DEVELOPMENT.md**: document the CHANGELOG curator contract — authors keep
+  `## [Unreleased]` populated as work lands, release tooling only promotes,
+  and `.agents/scripts/release.sh` is the canonical release entrypoint.
 - **Breaking — requires `nils-cli` ≥ 0.8.0.** `agent-docs` and `plan-issue` no
   longer auto-read `AGENT_HOME`. agent-docs runbooks (`AGENTS.md`,
   `DEVELOPMENT.md`, `RESEARCH_WORKFLOW.md`, `README.md`,
@@ -24,7 +44,7 @@ All notable changes to this project will be documented in this file.
 - `docs/testing/docs-freshness-rules.md`: updated `REQUIRED_COMMAND` entries
   for the renamed `agent-docs` invocations.
 
-## v2.4.1 - 2026-04-23
+## [2.4.1] - 2026-04-23
 
 ### Added
 
@@ -44,7 +64,7 @@ All notable changes to this project will be documented in this file.
 - Skill entrypoint ownership checks now scope parity validation to tracked files.
 - Markdown lint wrapping was corrected for the Google Sheets cell-edit skill guidance and zsh shell environment contract.
 
-## v2.4.0 - 2026-04-01
+## [2.4.0] - 2026-04-01
 
 ### Added
 
@@ -62,7 +82,7 @@ All notable changes to this project will be documented in this file.
 
 - `plan-issue-delivery` now tracks the Codex adapter config template as part of the runtime adapter rollout (#233).
 
-## v2.3.9 - 2026-03-08
+## [2.3.9] - 2026-03-08
 
 ### Added
 
@@ -79,7 +99,7 @@ All notable changes to this project will be documented in this file.
 - The shared plan template now includes optional execution metadata and rigorous scorecard placeholders so the scaffold matches the actual
   workflow contract more closely (#232).
 
-## v2.3.8 - 2026-03-04
+## [2.3.8] - 2026-03-04
 
 ### Added
 
@@ -95,7 +115,7 @@ All notable changes to this project will be documented in this file.
 - Obsolete `docs/plans` artifacts were removed, and legacy simplification notes were dropped from issue workflow script help text.
 - `scripts/README.md` was refreshed to match the current script inventory and remove outdated sections.
 
-## v2.3.7 - 2026-03-04
+## [2.3.7] - 2026-03-04
 
 ### Added
 
@@ -113,7 +133,7 @@ All notable changes to this project will be documented in this file.
 
 - CI stability issues across docs/ownership/lint/pytest lanes were resolved to unblock runner-safe execution (#217, #218).
 
-## v2.3.6 - 2026-03-02
+## [2.3.6] - 2026-03-02
 
 ### Added
 
@@ -129,7 +149,7 @@ All notable changes to this project will be documented in this file.
 - Developer docs (`DEVELOPMENT.md`, `scripts/README.md`) now document the third-party artifact generation/audit workflow and command
   entrypoints (#205).
 
-## v2.3.5 - 2026-03-02
+## [2.3.5] - 2026-03-02
 
 ### Changed
 
@@ -139,7 +159,7 @@ All notable changes to this project will be documented in this file.
 
 - `release-workflow` now enforces plain issue/PR references in release guidance and audits (#204).
 
-## v2.3.4 - 2026-03-02
+## [2.3.4] - 2026-03-02
 
 ### Added
 
@@ -155,7 +175,7 @@ All notable changes to this project will be documented in this file.
 
 - `scripts/project-resolve` now fails fast when required option values are missing, with updated smoke coverage (#201).
 
-## v2.3.2 - 2026-02-27
+## [2.3.2] - 2026-02-27
 
 ### Added
 
@@ -174,7 +194,7 @@ All notable changes to this project will be documented in this file.
 - `issue-subagent-pr` now asserts dispatch snapshot environment variable names.
 - README automation-skill listings now remove duplicate entries and restore missing plan-issue prompt preset references.
 
-## v2.3.0 - 2026-02-25
+## [2.3.0] - 2026-02-25
 
 ### Added
 
@@ -195,7 +215,7 @@ All notable changes to this project will be documented in this file.
 - `plan-issue-delivery` now returns clearer usage errors.
 - Issue workflow smoke scripts now support Bash 3.2 compatibility.
 
-## v2.2.9 - 2026-02-24
+## [2.2.9] - 2026-02-24
 
 ### Added
 
@@ -213,7 +233,7 @@ All notable changes to this project will be documented in this file.
 - `image-processing` skill docs/tests now align with the SVG-first CLI flow.
 - Docker auth/home-path defaults are aligned for runtime tooling.
 
-## v2.2.8 - 2026-02-19
+## [2.2.8] - 2026-02-19
 
 ### Changed
 
@@ -224,7 +244,7 @@ All notable changes to this project will be documented in this file.
 - `docker/agent-env/bin/entrypoint.sh` now falls back `CODEX_HOME` to `$HOME/.codex` and defaults `CODEX_AUTH_FILE` to
   `$CODEX_HOME/auth.json`.
 
-## v2.2.7 - 2026-02-18
+## [2.2.7] - 2026-02-18
 
 ### Added
 
@@ -249,7 +269,7 @@ All notable changes to this project will be documented in this file.
 - `workspace-launcher`: normalize workspace container naming.
 - Media tests: align screen-record test environment-variable handling.
 
-## v2.2.6 - 2026-02-13
+## [2.2.6] - 2026-02-13
 
 ### Added
 
@@ -268,7 +288,7 @@ All notable changes to this project will be documented in this file.
 - CI/scripts: harden Homebrew install workflow and add install-homebrew help mode.
 - Semgrep profile: allow scanning the `commands/` directory.
 
-## v2.2.5 - 2026-02-09
+## [2.2.5] - 2026-02-09
 
 ### Changed
 
@@ -281,7 +301,7 @@ All notable changes to this project will be documented in this file.
 
 - Add doc-guard tests for `screen-record` and `macos-agent-ops` skills so key CLI usage examples do not drift.
 
-## v2.2.4 - 2026-02-09
+## [2.2.4] - 2026-02-09
 
 ### Added
 
@@ -305,14 +325,14 @@ All notable changes to this project will be documented in this file.
 - `deliver-feature-pr` skill metadata quoting was corrected.
 - `deliver-feature-pr` script now uses shell-style single-quoted empty `local` initializers.
 
-## v2.2.3 - 2026-02-07
+## [2.2.3] - 2026-02-07
 
 ### Fixed
 
 - `release-workflow`: harden strict audit allow-dirty array handling under `set -u`.
 - `release-workflow`: handle empty allow-dirty input safely in strict mode.
 
-## v2.2.2 - 2026-02-07
+## [2.2.2] - 2026-02-07
 
 ### Added
 
@@ -332,7 +352,7 @@ All notable changes to this project will be documented in this file.
 - `release-workflow`: allow strict release audit with changelog-only dirty state via `--allow-dirty-path`.
 - `script-smoke`: align feature PR smoke cases with optional progress-section handling.
 
-## v2.2.1 - 2026-02-06
+## [2.2.1] - 2026-02-06
 
 ### Added
 
@@ -352,7 +372,7 @@ All notable changes to this project will be documented in this file.
 - Screenshot flow: avoid unnecessary macOS permission prompt when running list/discovery modes.
 - PR workflows/tests: normalize empty-string quote handling and progress-section cleanup behavior.
 
-## v2.2.0 - 2026-01-28
+## [2.2.0] - 2026-01-28
 
 ### Added
 
@@ -371,7 +391,7 @@ All notable changes to this project will be documented in this file.
 
 - Plan tooling: detect TODO/TBD placeholders in required plan fields.
 
-## v2.1.1 - 2026-01-26
+## [2.1.1] - 2026-01-26
 
 ### Added
 
@@ -388,7 +408,7 @@ All notable changes to this project will be documented in this file.
 
 - `git-scope`: exit 0 when no matches are found.
 
-## v2.1.0 - 2026-01-25
+## [2.1.0] - 2026-01-25
 
 ### Added
 
@@ -404,7 +424,7 @@ All notable changes to this project will be documented in this file.
 
 - SQL scripts: pass shell style checks.
 
-## v2.0.3 - 2026-01-25
+## [2.0.3] - 2026-01-25
 
 ### Added
 
@@ -420,37 +440,21 @@ All notable changes to this project will be documented in this file.
 
 - Tests: update plan-tooling smoke script paths after plan tooling refactor.
 
-## v2.0.2 - 2026-01-25
-
-### Added
-
-- None.
+## [2.0.2] - 2026-01-25
 
 ### Changed
 
 - Docs: backfill `v2.0.1` changelog entry.
 - Docs: clarify credential instructions for `agent-env`.
 
-### Fixed
-
-- None.
-
-## v2.0.1 - 2026-01-25
-
-### Added
-
-- None.
+## [2.0.1] - 2026-01-25
 
 ### Changed
 
 - Docs: clarify workflow docs.
 - Docs: document `image-processing` skill.
 
-### Fixed
-
-- None.
-
-## v2.0.0 - 2026-01-25
+## [2.0.0] - 2026-01-25
 
 ### Added
 
@@ -470,7 +474,7 @@ All notable changes to this project will be documented in this file.
 - `image-processing`: add missing shebang for `image_processing.py`.
 - Tests: ignore `.worktrees` to prevent noisy collection.
 
-## v1.5.0 - 2026-01-24
+## [1.5.0] - 2026-01-24
 
 ### Added
 
@@ -487,22 +491,18 @@ All notable changes to this project will be documented in this file.
 - `bundle-wrapper`: improve parsing of array-style arguments.
 - Tests: fix git commit ban regex enforcement.
 
-## v1.4.0 - 2026-01-23
+## [1.4.0] - 2026-01-23
 
 ### Added
 
 - Planning workflows: `create-plan`, `create-plan-rigorous`, and `execute-plan-parallel` skills (plus `docs/plans/` convention).
-
-### Changed
-
-- None.
 
 ### Fixed
 
 - `git-scope`: use literal prefix matching for tracked filters.
 - `graphql-api-testing`: prevent xh/HTTPie from reading stdin in non-interactive runs.
 
-## v1.3.3 - 2026-01-22
+## [1.3.3] - 2026-01-22
 
 ### Added
 
@@ -519,7 +519,7 @@ All notable changes to this project will be documented in this file.
 
 - `api-report`: resolve `--out`/`--response` paths relative to the derived project root.
 
-## v1.3.2 - 2026-01-22
+## [1.3.2] - 2026-01-22
 
 ### Added
 
@@ -545,7 +545,7 @@ All notable changes to this project will be documented in this file.
 - Progress templates: repair the progress template symlink.
 - Docs and tooling: fix duplicated `codex_home` references and clarify desktop notification word limit guidance.
 
-## v1.3.1 - 2026-01-18
+## [1.3.1] - 2026-01-18
 
 ### Added
 
@@ -564,7 +564,7 @@ All notable changes to this project will be documented in this file.
 
 - Shell style fixer: preserve initializer handling in `$AGENT_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
 
-## v1.3.0 - 2026-01-17
+## [1.3.0] - 2026-01-17
 
 ### Added
 
@@ -574,11 +574,7 @@ All notable changes to this project will be documented in this file.
 
 - Docs: update template placement guidance.
 
-### Fixed
-
-- None.
-
-## v1.2.0 - 2026-01-16
+## [1.2.0] - 2026-01-16
 
 ### Added
 
@@ -602,7 +598,7 @@ All notable changes to this project will be documented in this file.
 - Semgrep: sanitize test fixtures for stable scans.
 - `api-test-runner`: fix quoting for `ACCESS_TOKEN` in the docs snippet.
 
-## v1.1.0 - 2026-01-15
+## [1.1.0] - 2026-01-15
 
 ### Added
 
@@ -627,7 +623,7 @@ All notable changes to this project will be documented in this file.
 - `graphql-api-testing`: quote `AGENT_HOME` during script path rewrites.
 - Shell scripts: address minor shellcheck warnings.
 
-## v1.0.2 - 2026-01-14
+## [1.0.2] - 2026-01-14
 
 ### Added
 
@@ -644,7 +640,7 @@ All notable changes to this project will be documented in this file.
 
 - `git-scope` smoke spec now tracks the archived plan file path.
 
-## v1.0.1 - 2026-01-13
+## [1.0.1] - 2026-01-13
 
 ### Added
 
@@ -660,17 +656,48 @@ All notable changes to this project will be documented in this file.
 
 - PR merge script now avoids unsupported `gh pr merge --yes` flag.
 
-## v1.0.0 - 2026-01-13
+## [1.0.0] - 2026-01-13
 
 ### Added
 
 - Initial release of agent-kit (prompts, skills, scripts, and docs).
 - Release workflow fallback template and helper scripts for changelog-driven GitHub releases.
 
-### Changed
-
-- None (initial release).
-
-### Fixed
-
-- None (initial release).
+[unreleased]: https://github.com/graysurf/agent-kit/compare/v2.4.1...HEAD
+[2.4.1]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.1
+[2.4.0]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.0
+[2.3.9]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.9
+[2.3.8]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.8
+[2.3.7]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.7
+[2.3.6]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.6
+[2.3.5]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.5
+[2.3.4]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.4
+[2.3.2]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.2
+[2.3.0]: https://github.com/graysurf/agent-kit/releases/tag/v2.3.0
+[2.2.9]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.9
+[2.2.8]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.8
+[2.2.7]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.7
+[2.2.6]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.6
+[2.2.5]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.5
+[2.2.4]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.4
+[2.2.3]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.3
+[2.2.2]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.2
+[2.2.1]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.1
+[2.2.0]: https://github.com/graysurf/agent-kit/releases/tag/v2.2.0
+[2.1.1]: https://github.com/graysurf/agent-kit/releases/tag/v2.1.1
+[2.1.0]: https://github.com/graysurf/agent-kit/releases/tag/v2.1.0
+[2.0.3]: https://github.com/graysurf/agent-kit/releases/tag/v2.0.3
+[2.0.2]: https://github.com/graysurf/agent-kit/releases/tag/v2.0.2
+[2.0.1]: https://github.com/graysurf/agent-kit/releases/tag/v2.0.1
+[2.0.0]: https://github.com/graysurf/agent-kit/releases/tag/v2.0.0
+[1.5.0]: https://github.com/graysurf/agent-kit/releases/tag/v1.5.0
+[1.4.0]: https://github.com/graysurf/agent-kit/releases/tag/v1.4.0
+[1.3.3]: https://github.com/graysurf/agent-kit/releases/tag/v1.3.3
+[1.3.2]: https://github.com/graysurf/agent-kit/releases/tag/v1.3.2
+[1.3.1]: https://github.com/graysurf/agent-kit/releases/tag/v1.3.1
+[1.3.0]: https://github.com/graysurf/agent-kit/releases/tag/v1.3.0
+[1.2.0]: https://github.com/graysurf/agent-kit/releases/tag/v1.2.0
+[1.1.0]: https://github.com/graysurf/agent-kit/releases/tag/v1.1.0
+[1.0.2]: https://github.com/graysurf/agent-kit/releases/tag/v1.0.2
+[1.0.1]: https://github.com/graysurf/agent-kit/releases/tag/v1.0.1
+[1.0.0]: https://github.com/graysurf/agent-kit/releases/tag/v1.0.0

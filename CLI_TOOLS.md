@@ -14,7 +14,7 @@ Licensing scope note: this is a usage/reference catalog, not a licensing invento
 - Read files: `bat`; preview Markdown: `glow`
 - Review diffs: `delta` (with `git`)
 - API exploration: `xh`/`httpie` + `jq`; use `curl` for minimal-dependency calls
-- Browser research: `agent-browser` for exploratory probing; `playwright` for deterministic verification
+- Browser CLI wrappers: `agent-browser` for exploratory probing; `playwright` for deterministic verification
 - Structured config/data: `yq`/`jq` (avoid regex parsing for YAML/JSON)
 
 ---
@@ -25,7 +25,7 @@ Licensing scope note: this is a usage/reference catalog, not a licensing invento
 - Docs: reading files + Markdown/diffs (`bat`, `glow`, `delta`)
 - VCS: version control + PR workflows (`git`, `gh`, `gitui`)
 - API: HTTP/API + structured data (`xh`/`httpie`, `jq`, `yq`)
-- Browser: rendered-page interaction and browser-visible evidence (`agent-browser`, `playwright`)
+- Browser CLI: rendered-page interaction and browser-visible evidence (`agent-browser`, `playwright`)
 - Test: test iteration + feedback loops (`watchexec`, `ruff`)
 - Toolchain: runtimes + CLI installation (`node`, `pnpm`, `pipx`, `direnv`)
 - macOS Automation: UI/input-source automation (`hs`, `im-select`)
@@ -87,11 +87,11 @@ Licensing scope note: this is a usage/reference catalog, not a licensing invento
 
 ---
 
-## Browser automation and rendered-web validation
+## Browser CLI wrappers and rendered-web validation
 
 | Tool | Purpose | Use when | Avoid because this exists |
 | ---- | ------- | -------- | ------------------------- |
-| `agent-browser` (via `skills/tools/browser/agent-browser/scripts/agent-browser.sh`) | Fast browser automation CLI for exploratory research | Navigating live pages quickly, inspecting `snapshot -i`, and iterating on `@ref` interactions | Starting with heavier scripted browser flows for one-off discovery |
+| `agent-browser` (via `skills/tools/browser/agent-browser/scripts/agent-browser.sh`) | Fast browser automation CLI for exploratory research | Native browser/search tools are insufficient and the task benefits from `snapshot -i` plus `@ref` interactions | Starting with CLI browser automation for simple public web lookup |
 | `playwright` (via `skills/tools/browser/playwright/scripts/playwright_cli.sh`) | Deterministic browser automation for verification | Replaying browser steps with traceable artifacts and reproducible validation checks | Treating exploratory browser findings as final without deterministic replay |
 
 ---

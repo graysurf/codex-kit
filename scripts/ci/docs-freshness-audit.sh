@@ -106,7 +106,9 @@ contains_literal_in_file() {
 
 scan_doc_tokens() {
   local file_path="${1:-}"
-  local token_pattern='\$AGENT_HOME/(scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+)|(scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+)'
+  # Order alternatives longest-prefix-first so `.agents/scripts/...` is captured
+  # as a single token rather than fragmenting into a bare `scripts/...` match.
+  local token_pattern='\$AGENT_HOME/(scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+)|(\.agents/scripts/[A-Za-z0-9._/-]+|skills/[A-Za-z0-9._/-]+/scripts/[A-Za-z0-9._/-]+|scripts/[A-Za-z0-9._/-]+)'
   if [[ "$has_rg" -eq 1 ]]; then
     rg -H -n -o -e "$token_pattern" "$file_path"
   else

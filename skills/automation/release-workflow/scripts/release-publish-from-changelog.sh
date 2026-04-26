@@ -187,10 +187,15 @@ cleanup_tmp() {
 trap cleanup_tmp EXIT
 
 info "extracting release notes for $version"
-awk -v v="$version" '
-  $0 ~ "^## " v " " { f=1; heading=NR }
+# Accept both legacy `## vX.Y.Z ` and keep-a-changelog `## [X.Y.Z] ` headings.
+# Stop at the next `## ` heading or at a footer link reference (e.g. `[1.2.3]:
+# https://...`) so trailing keep-a-changelog compare-links never leak into the
+# extracted release notes.
+bare_version="${version#v}"
+awk -v v="$version" -v bv="$bare_version" '
+  $0 ~ ("^## " v " ") || $0 ~ ("^## \\[" bv "\\] ") { f=1; heading=NR }
   f {
-    if (NR > heading && $0 ~ "^## ") { exit }
+    if (NR > heading && ($0 ~ /^## / || $0 ~ /^\[[^]]+\]: /)) { exit }
     print
   }
 ' "$changelog" >"$tmp_notes"
@@ -198,7 +203,7 @@ awk -v v="$version" '
 if [[ ! -s "$tmp_notes" ]]; then
   die "version section not found in $changelog: $version"
 fi
-if ! grep -Fq "## ${version} " "$tmp_notes"; then
+if ! grep -Eq "^## (${version} |\[${bare_version}\] )" "$tmp_notes"; then
   die "extracted notes heading mismatch for $version"
 fi
 mv -f -- "$tmp_notes" "$notes_output"
