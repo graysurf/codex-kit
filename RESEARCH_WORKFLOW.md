@@ -20,7 +20,9 @@
 3. Classify the research target before choosing tools:
    - Current workspace behavior or implementation-facing evidence -> local inspection and command execution.
    - Official product/API docs with a dedicated skill, connector, or MCP docs tool -> that dedicated entrypoint.
-   - Official library/framework docs with useful `Context7` coverage -> `Context7`; otherwise use official web docs.
+   - Official library/framework docs where the target library/version can be
+     resolved and `Context7` coverage is strong enough -> `Context7` as a fast
+     docs lookup; otherwise use official web docs.
    - Time-sensitive facts, public web pages, announcements, policies, prices, releases, or citations -> authoritative web sources.
    - GitHub metadata, PRs/issues/releases, default branch, README/docs, or a small number of repository files -> `gh`.
    - Rendered-page behavior, UI state, or browser-visible evidence -> native/browser tools first; CLI wrappers only when their
@@ -43,7 +45,10 @@
 - Prefer local inspection for current-workspace implementation questions when the evidence is already on disk.
 - Prefer dedicated skills, MCP docs tools, or app connectors when they exist for the target product or service.
 - Prefer official web sources for unstable or time-sensitive claims, and cite concrete source references.
-- Prefer `Context7` when the main question is "what does the official library/framework documentation say?" and coverage is current enough.
+- Prefer `Context7` only for bounded library/framework documentation lookups
+  when the target library/version is clear and coverage is current enough; fall
+  back to official web docs when source-of-record citations, release timing,
+  policies, pricing, or security details matter.
 - Prefer `gh` when GitHub-hosted facts are enough and a full checkout would add cost without improving confidence.
 - Prefer native/browser tooling for rendered pages before browser CLI wrappers.
 - Prefer `agent-browser` when the browser step specifically benefits from fast CLI `snapshot -i` and `@ref` interaction.

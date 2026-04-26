@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **research-workflow**: narrow Context7 guidance to bounded
+  library/framework documentation lookups, with official web docs preferred for
+  source-of-record citations, release timing, policies, pricing, and security
+  details.
 - **release-workflow**: align `CHANGELOG.md` to Keep a Changelog format —
   bracketed headings (`## [X.Y.Z] - YYYY-MM-DD` and `## [Unreleased]`),
   per-version footer compare-links, and removal of empty `- None.` placeholder
