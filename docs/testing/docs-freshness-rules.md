@@ -60,8 +60,8 @@ DOC|docs/testing/script-smoke.md
 
 REQUIRED_COMMAND|scripts/check.sh --all
 REQUIRED_COMMAND|scripts/check.sh --tests -- -m script_smoke
-REQUIRED_COMMAND|agent-docs resolve --context startup --strict --format checklist
-REQUIRED_COMMAND|agent-docs baseline --check --target all --strict --format text
+REQUIRED_COMMAND|agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist
+REQUIRED_COMMAND|agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text
 REQUIRED_COMMAND|bash scripts/ci/stale-skill-scripts-audit.sh --check
 REQUIRED_COMMAND|$AGENT_HOME/scripts/test.sh -m script_smoke
 

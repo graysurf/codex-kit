@@ -7,10 +7,10 @@
 
 ## Entry commands
 
-1. `agent-docs resolve --context startup --strict --format checklist`
-2. `agent-docs resolve --context project-dev --strict --format checklist`
-3. `agent-docs resolve --context task-tools --format checklist` (optional, when external technical lookup is needed)
-4. `agent-docs baseline --check --target all --strict --format text` (only when strict resolve fails)
+1. `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
+2. `agent-docs --docs-home "$AGENT_HOME" resolve --context project-dev --strict --format checklist`
+3. `agent-docs --docs-home "$AGENT_HOME" resolve --context task-tools --format checklist` (optional, when external technical lookup is needed)
+4. `agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text` (only when strict resolve fails)
 
 ## Project validation commands
 
@@ -48,7 +48,7 @@ Use `scripts/check.sh` modes for project-dev verification. Avoid reintroducing a
 
 ## Validation checklist
 
-- [ ] `agent-docs resolve --context startup --strict --format checklist` exits 0 before edits.
-- [ ] `agent-docs resolve --context project-dev --strict --format checklist` exits 0 before edits.
+- [ ] `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist` exits 0 before edits.
+- [ ] `agent-docs --docs-home "$AGENT_HOME" resolve --context project-dev --strict --format checklist` exits 0 before edits.
 - [ ] Required project checks are executed and results reported (`scripts/check.sh --all` minimum).
 - [ ] Failures include explicit command/error details.

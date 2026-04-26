@@ -8,9 +8,9 @@
 
 ## Entry commands
 
-1. `agent-docs resolve --context startup --strict --format checklist`
-2. `agent-docs resolve --context task-tools --strict --format checklist`
-3. `agent-docs baseline --check --target all --strict --format text` (only when strict resolve fails)
+1. `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
+2. `agent-docs --docs-home "$AGENT_HOME" resolve --context task-tools --strict --format checklist`
+3. `agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text` (only when strict resolve fails)
 
 ## Decision framework
 
@@ -73,8 +73,8 @@
 
 ## Validation checklist
 
-- [ ] `agent-docs resolve --context startup --strict --format checklist` exits 0 before research work.
-- [ ] `agent-docs resolve --context task-tools --strict --format checklist` exits 0 before research work.
+- [ ] `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist` exits 0 before research work.
+- [ ] `agent-docs --docs-home "$AGENT_HOME" resolve --context task-tools --strict --format checklist` exits 0 before research work.
 - [ ] The research target is classified before source selection.
 - [ ] The chosen source matches the target category, or any deviation is explained.
 - [ ] When Web source is selected, the choice between `agent-browser` and `playwright` is justified.

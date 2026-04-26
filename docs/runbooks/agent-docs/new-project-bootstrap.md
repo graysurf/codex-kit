@@ -30,16 +30,16 @@ $AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
 1. Verify strict baseline coverage:
 
 ```bash
-agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
+agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
 ```
 
 1. Continue with normal preflight resolves:
 
 ```bash
-agent-docs resolve --context startup --strict --format checklist
-agent-docs resolve --context project-dev --strict --format checklist
-agent-docs resolve --context task-tools --strict --format checklist
-agent-docs resolve --context skill-dev --strict --format checklist
+agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist
+agent-docs --docs-home "$AGENT_HOME" resolve --context project-dev --strict --format checklist
+agent-docs --docs-home "$AGENT_HOME" resolve --context task-tools --strict --format checklist
+agent-docs --docs-home "$AGENT_HOME" resolve --context skill-dev --strict --format checklist
 ```
 
 ## Optional project extension registration

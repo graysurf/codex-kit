@@ -27,13 +27,16 @@
 ## `agent-docs` policy
 
 - In this repository, `agent-docs` is mandatory before implementation work.
+- Always pin home-scope resolution to this toolchain root by passing
+  `--docs-home "$AGENT_HOME"` (nils-cli ≥ 0.8.0 no longer reads `AGENT_HOME`;
+  the equivalent env var is `AGENT_DOCS_HOME`).
 - Minimum preflight:
-  - Session start or new task: `agent-docs resolve --context startup --strict --format checklist`
-  - Before write actions: `agent-docs resolve --context project-dev --strict --format checklist`
-  - Technical research or external verification: `agent-docs resolve --context task-tools --strict --format checklist`
-  - Skill lifecycle work: `agent-docs resolve --context skill-dev --strict --format checklist`
+  - Session start or new task: `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
+  - Before write actions: `agent-docs --docs-home "$AGENT_HOME" resolve --context project-dev --strict --format checklist`
+  - Technical research or external verification: `agent-docs --docs-home "$AGENT_HOME" resolve --context task-tools --strict --format checklist`
+  - Skill lifecycle work: `agent-docs --docs-home "$AGENT_HOME" resolve --context skill-dev --strict --format checklist`
 - If a required strict resolve fails, stop write actions, run
-  `agent-docs baseline --check --target all --strict --format text`, and report
+  `agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text`, and report
   the missing docs or degraded mode explicitly.
 - Canonical dispatch contract: `$AGENT_HOME/docs/runbooks/agent-docs/context-dispatch-matrix.md`
 

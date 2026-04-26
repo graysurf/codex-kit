@@ -200,6 +200,12 @@ Failure modes:
 
 ## Runtime Workspace Policy (Mandatory)
 
+- nils-cli ≥ 0.8.0 is required (`plan-issue --version` must report `>= 0.8.0`).
+- Every `plan-issue` invocation must pin the runtime root to this toolchain by
+  passing `--state-dir "$AGENT_HOME"` (or exporting `PLAN_ISSUE_HOME="$AGENT_HOME"`
+  for the dispatch shell). Without this pin, `plan-issue` 0.8.0 writes to
+  `${XDG_STATE_HOME:-$HOME/.local/state}/plan-issue/...` and breaks the
+  `$AGENT_HOME/out/plan-issue-delivery/...` path contract below.
 - Use one runtime root for this skill only: `RUNTIME_ROOT="$AGENT_HOME/out/plan-issue-delivery"`.
 - Namespace by repository and issue:
   - `ISSUE_ROOT="$RUNTIME_ROOT/<repo-slug>/issue-<ISSUE_NUMBER>"`

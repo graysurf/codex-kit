@@ -104,14 +104,15 @@ Test artifacts:
 
 ## Agent-Docs Preflight (Write Actions)
 
-Before implementation work that edits files, resolve required docs:
+Before implementation work that edits files, resolve required docs (nils-cli ≥ 0.8.0
+no longer reads `AGENT_HOME`; pass `--docs-home "$AGENT_HOME"` explicitly):
 
-- `agent-docs resolve --context startup --strict --format checklist`
-- `agent-docs resolve --context project-dev --strict --format checklist`
+- `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
+- `agent-docs --docs-home "$AGENT_HOME" resolve --context project-dev --strict --format checklist`
 
 If strict resolve fails, run:
 
-- `agent-docs baseline --check --target all --strict --format text`
+- `agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text`
 
 ## Shell Script Conventions (Shell / zsh)
 

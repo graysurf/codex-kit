@@ -27,6 +27,11 @@ Execution context (fill before run)
 - Current sprint: `<N>`
 - Default branch: `<DEFAULT_BRANCH>` (for example `main`)
 - Plan branch: `<PLAN_BRANCH>` (for example `plan/issue-<ISSUE_NUMBER>`)
+- nils-cli ≥ 0.8.0 required. Pin every `plan-issue` invocation to this
+  toolchain by passing `--state-dir "$AGENT_HOME"` (or exporting
+  `PLAN_ISSUE_HOME="$AGENT_HOME"` in the dispatch shell). Without the pin,
+  `plan-issue` writes to `${XDG_STATE_HOME:-$HOME/.local/state}/plan-issue/...`
+  and breaks the runtime workspace contract below.
 - Runtime workspace root: $AGENT_HOME/out/plan-issue-delivery
 - Main-agent init source path: $AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md
 - Main-agent init snapshot path:

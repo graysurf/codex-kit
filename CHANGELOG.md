@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Changed
+
+- **Breaking — requires `nils-cli` ≥ 0.8.0.** `agent-docs` and `plan-issue` no
+  longer auto-read `AGENT_HOME`. agent-docs runbooks (`AGENTS.md`,
+  `DEVELOPMENT.md`, `RESEARCH_WORKFLOW.md`, `README.md`,
+  `docs/runbooks/agent-docs/*`) now invoke
+  `agent-docs --docs-home "$AGENT_HOME" ...`; the `plan-issue-delivery` skill
+  and the main/subagent init prompts require `plan-issue --state-dir "$AGENT_HOME"`
+  (or `PLAN_ISSUE_HOME="$AGENT_HOME"`) to keep runtime artefacts under
+  `$AGENT_HOME/out/plan-issue-delivery/...`.
+- `skills/tools/agent-doc-init/scripts/agent_doc_init.sh`: renamed
+  `--agent-home` to `--docs-home` and now propagates `--docs-home` to
+  `agent-docs`. Resolution precedence is `--docs-home` ->
+  `AGENT_DOCS_HOME` -> `AGENT_HOME` -> `$HOME/.agents`.
+- `scripts/install-homebrew-nils-cli.sh` now enforces a `nils-cli >= 0.8.0`
+  floor by checking both `agent-docs --version` and `plan-issue --version`
+  after install (and on the already-installed early-exit path).
+- `docs/testing/docs-freshness-rules.md`: updated `REQUIRED_COMMAND` entries
+  for the renamed `agent-docs` invocations.
+
 ## v2.4.1 - 2026-04-23
 
 ### Added

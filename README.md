@@ -39,7 +39,11 @@ Set `AGENT_HOME` in `$HOME/.zshenv`:
 export AGENT_HOME="$HOME/.agents"
 ```
 
-`AGENT_HOME` is the home for this agent-kit toolchain.
+`AGENT_HOME` is the home for this agent-kit toolchain. Note: `nils-cli` ≥ 0.8.0
+binaries (`agent-docs`, `plan-issue`) no longer auto-read `AGENT_HOME`. Pass the
+home explicitly via `agent-docs --docs-home "$AGENT_HOME"` and
+`plan-issue --state-dir "$AGENT_HOME"`, or export `AGENT_DOCS_HOME` /
+`PLAN_ISSUE_HOME` alongside `AGENT_HOME`.
 
 Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools can treat that repo as the active project context:
 
@@ -52,7 +56,7 @@ For new repositories with missing policy baseline docs, run the canonical bootst
 ```zsh
 $AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
 $AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
-agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
+agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
 ```
 
 See [docs/runbooks/agent-docs/new-project-bootstrap.md](./docs/runbooks/agent-docs/new-project-bootstrap.md) for the full sequence.

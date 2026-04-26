@@ -5,6 +5,12 @@
 - Defines safety guarantees for `agent-doc-init`.
 - Applies to both home-level and project-level baseline initialization.
 
+## Invocation convention
+
+- Every `agent-docs` invocation referenced below must include
+  `--docs-home "$AGENT_HOME"` (nils-cli ≥ 0.8.0 dropped the implicit
+  `AGENT_HOME` env read; the equivalent env var is `AGENT_DOCS_HOME`).
+
 ## Safety contract
 
 1. Default mode is non-destructive dry-run.
@@ -42,4 +48,4 @@
 2. If required docs are missing, run apply mode without `--force`.
 3. Use `--force` only when intentional overwrite is required.
 4. Validate with strict baseline check after apply:
-   - `agent-docs baseline --check --target all --strict --format text`
+   - `agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text`

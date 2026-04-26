@@ -31,6 +31,10 @@ Execution context (fill before run)
 - Repo: `<OWNER/REPO>`
 - Sprint: `<N>`
 - Assigned task IDs: `<TASK_IDS>`
+- nils-cli ≥ 0.8.0 required. If you invoke `plan-issue` directly (for example
+  `link-pr`), pin `--state-dir "$AGENT_HOME"` (or run with
+  `PLAN_ISSUE_HOME="$AGENT_HOME"` exported). Otherwise dispatch artefacts will
+  not align with `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Runtime workspace root: $AGENT_HOME/out/plan-issue-delivery
 - Worktree path: `<PATH>` (must be an absolute path under `$AGENT_HOME/out/plan-issue-delivery/.../worktrees/...`)
 - Branch: `<BRANCH>`

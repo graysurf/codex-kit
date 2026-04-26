@@ -18,6 +18,11 @@ Use this playbook only when the user explicitly requests local rehearsal.
 
 - `plan-issue-local` runs without GitHub API usage for local sprint orchestration rehearsal.
 - `plan-issue --dry-run` provides live-binary rehearsal behavior without mutating GitHub.
+- nils-cli ≥ 0.8.0: every `plan-issue` / `plan-issue-local` invocation in this
+  document must be prefixed with `--state-dir "$AGENT_HOME"` (or run with
+  `PLAN_ISSUE_HOME="$AGENT_HOME"` exported). Templates below omit the flag for
+  readability — treat it as required so rehearsal artefacts land under
+  `$AGENT_HOME/out/plan-issue-delivery/...` instead of the new XDG default.
 - Sprint commands still require `--issue <number>`; use a local placeholder when no live issue exists (for example `999`).
 - Sprint commands default to no comment posting during dry-run/local rehearsal.
 - `link-pr` supports `--issue` (live) or `--body-file` (offline); local rehearsal should use `--body-file` (and typically `--dry-run`).

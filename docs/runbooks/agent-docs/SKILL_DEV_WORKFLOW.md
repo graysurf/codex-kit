@@ -7,10 +7,10 @@
 
 ## Entry commands
 
-1. `agent-docs resolve --context startup --strict --format checklist`
-2. `agent-docs resolve --context skill-dev --strict --format checklist`
-3. `agent-docs resolve --context task-tools --format checklist` (optional, when external tool/document lookup is needed)
-4. `agent-docs baseline --check --target all --strict --format text` (only when strict resolve fails)
+1. `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
+2. `agent-docs --docs-home "$AGENT_HOME" resolve --context skill-dev --strict --format checklist`
+3. `agent-docs --docs-home "$AGENT_HOME" resolve --context task-tools --format checklist` (optional, when external tool/document lookup is needed)
+4. `agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text` (only when strict resolve fails)
 
 ## Deterministic flow
 
@@ -36,7 +36,7 @@
 
 ## Validation checklist
 
-- [ ] `agent-docs resolve --context startup --strict --format checklist` exits 0 before skill edits.
-- [ ] `agent-docs resolve --context skill-dev --strict --format checklist` exits 0 before skill edits.
+- [ ] `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist` exits 0 before skill edits.
+- [ ] `agent-docs --docs-home "$AGENT_HOME" resolve --context skill-dev --strict --format checklist` exits 0 before skill edits.
 - [ ] Skill contract validation and required checks are executed.
 - [ ] Validation failures are surfaced with command-level details.

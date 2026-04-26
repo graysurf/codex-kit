@@ -6,6 +6,13 @@
 - Built-in contexts covered here: `startup`, `task-tools`, `project-dev`, `skill-dev`.
 - `AGENTS.md` and `AGENTS.override.md` must reference this file instead of duplicating dispatch rules.
 
+## Invocation convention
+
+- Every `agent-docs` command in this document must be invoked with
+  `--docs-home "$AGENT_HOME"` (nils-cli ≥ 0.8.0 dropped the implicit
+  `AGENT_HOME` env read; the equivalent env var is `AGENT_DOCS_HOME`).
+  Tables below omit the flag for readability — treat it as required.
+
 ## Built-in contexts and trigger points
 
 | Context       | Trigger points                                                              | Runtime intent signals                                                         | Gate level                                                     |

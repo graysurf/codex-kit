@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+MIN_NILS_CLI_VERSION="0.8.0"
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  cat <<'EOF'
+  cat <<EOF
 Usage: install-homebrew-nils-cli.sh
 
 Install Homebrew if needed, then install nils-cli via Homebrew with retries.
 Intended for CI bootstrap steps.
+
+Enforces nils-cli >= ${MIN_NILS_CLI_VERSION} for both agent-docs and plan-issue;
+exits non-zero if the installed binaries are older.
 EOF
   exit 0
 fi
@@ -16,6 +21,36 @@ if [[ "$#" -gt 0 ]]; then
   echo "hint: use --help" >&2
   exit 2
 fi
+
+version_at_least() {
+  local have="$1"
+  local want="$2"
+  [[ "$(printf '%s\n%s\n' "$want" "$have" | sort -V | head -n 1)" == "$want" ]]
+}
+
+extract_semver() {
+  printf '%s' "$1" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1
+}
+
+assert_nils_cli_floor() {
+  local bin="$1"
+  if ! command -v "$bin" >/dev/null 2>&1; then
+    echo "error: $bin not found on PATH after install" >&2
+    return 1
+  fi
+  local raw version
+  raw="$("$bin" --version 2>/dev/null || true)"
+  version="$(extract_semver "$raw")"
+  if [[ -z "$version" ]]; then
+    echo "error: unable to parse $bin version from: $raw" >&2
+    return 1
+  fi
+  if ! version_at_least "$version" "$MIN_NILS_CLI_VERSION"; then
+    echo "error: $bin $version is below required floor $MIN_NILS_CLI_VERSION; run 'brew upgrade nils-cli'" >&2
+    return 1
+  fi
+  echo "info: $bin $version satisfies floor $MIN_NILS_CLI_VERSION"
+}
 
 retry() {
   local attempts="$1"
@@ -79,9 +114,11 @@ fi
 
 retry 3 5 env HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap sympoies/tap
 
-if "$BREW_BIN" list nils-cli >/dev/null 2>&1; then
-  echo "info: nils-cli already installed"
-  exit 0
+if ! "$BREW_BIN" list nils-cli >/dev/null 2>&1; then
+  retry 3 5 env HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
+else
+  echo "info: nils-cli already installed; verifying version floor"
 fi
 
-retry 3 5 env HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
+assert_nils_cli_floor agent-docs
+assert_nils_cli_floor plan-issue
