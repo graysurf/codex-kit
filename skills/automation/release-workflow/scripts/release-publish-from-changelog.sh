@@ -187,13 +187,23 @@ cleanup_tmp() {
 trap cleanup_tmp EXIT
 
 info "extracting release notes for $version"
-# Accept both legacy `## vX.Y.Z ` and keep-a-changelog `## [X.Y.Z] ` headings.
-# Stop at the next `## ` heading or at a footer link reference (e.g. `[1.2.3]:
-# https://...`) so trailing keep-a-changelog compare-links never leak into the
-# extracted release notes.
+# Accept both legacy `## vX.Y.Z - YYYY-MM-DD` and keep-a-changelog
+# `## [X.Y.Z] - YYYY-MM-DD` headings. GitHub release bodies intentionally
+# omit the version prefix from the first line, so the extracted notes start
+# with the release date only. Stop at the next `## ` heading or at a footer link
+# reference (e.g. `[1.2.3]: https://...`) so trailing keep-a-changelog
+# compare-links never leak into the extracted release notes.
 bare_version="${version#v}"
 awk -v v="$version" -v bv="$bare_version" '
-  $0 ~ ("^## " v " ") || $0 ~ ("^## \\[" bv "\\] ") { f=1; heading=NR }
+  $0 ~ ("^## " v " - ") || $0 ~ ("^## \\[" bv "\\] - ") {
+    f=1
+    heading=NR
+    line=$0
+    sub(("^## " v " - "), "", line)
+    sub(("^## \\[" bv "\\] - "), "", line)
+    print line
+    next
+  }
   f {
     if (NR > heading && ($0 ~ /^## / || $0 ~ /^\[[^]]+\]: /)) { exit }
     print
@@ -203,8 +213,9 @@ awk -v v="$version" -v bv="$bare_version" '
 if [[ ! -s "$tmp_notes" ]]; then
   die "version section not found in $changelog: $version"
 fi
-if ! grep -Eq "^## (${version} |\[${bare_version}\] )" "$tmp_notes"; then
-  die "extracted notes heading mismatch for $version"
+first_notes_line="$(sed -n '1p' "$tmp_notes")"
+if ! [[ "$first_notes_line" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  die "extracted notes must start with release date only for $version"
 fi
 mv -f -- "$tmp_notes" "$notes_output"
 trap - EXIT

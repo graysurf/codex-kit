@@ -1,5 +1,6 @@
 
-<!-- Copy this block into CHANGELOG.md and GitHub release notes. -->
+<!-- Copy this block into CHANGELOG.md. GitHub release bodies are extracted -->
+<!-- from the matching version section with the first line reduced to YYYY-MM-DD. -->
 <!-- Format follows Keep a Changelog (https://keepachangelog.com/). -->
 <!-- Curator-only model: keep ## [Unreleased] populated as work lands; -->
 <!-- release tooling promotes it to ## [X.Y.Z] - YYYY-MM-DD on cut. -->

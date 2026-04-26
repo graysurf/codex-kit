@@ -40,6 +40,9 @@ Use this guide only when the target repository does not provide its own release 
 5. Publish the GitHub release from the changelog entry
    - Use the single entrypoint script (extract notes + audit + current-branch push when needed + create/edit + non-empty body verification):
      - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version vX.Y.Z --push-current-branch`
+   - GitHub release bodies start with the release date only (`YYYY-MM-DD`). The
+     publish script strips the changelog version prefix from
+     `## [X.Y.Z] - YYYY-MM-DD`.
 
 6. Verify the release
    - `gh release view vX.Y.Z`

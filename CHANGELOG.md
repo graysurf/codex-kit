@@ -23,6 +23,10 @@ All notable changes to this project will be documented in this file.
   legacy `## vX.Y.Z` and new bracketed `## [X.Y.Z]` headings, and stops at
   footer link references so trailing compare-links never leak into release
   notes. `RELEASE_TEMPLATE.md` and `DEFAULT_RELEASE_GUIDE.md` updated to match.
+- **release-workflow**: GitHub release bodies now start with the release date
+  only; the publish script strips the changelog version prefix from
+  `## [X.Y.Z] - YYYY-MM-DD` while leaving `CHANGELOG.md` itself in Keep a
+  Changelog format.
 - **DEVELOPMENT.md**: document the CHANGELOG curator contract — authors keep
   `## [Unreleased]` populated as work lands, release tooling only promotes,
   and `.agents/scripts/release.sh` is the canonical release entrypoint.

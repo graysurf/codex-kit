@@ -202,7 +202,7 @@ def test_script_smoke_release_publish_from_changelog(tmp_path: Path):
                 "",
                 "All notable changes to this project will be documented in this file.",
                 "",
-                "## v1.2.3 - 2026-01-01",
+                "## [1.2.3] - 2026-01-01",
                 "",
                 "### Added",
                 "",
@@ -267,7 +267,8 @@ def test_script_smoke_release_publish_from_changelog(tmp_path: Path):
     out_path = work_dir / "release-notes.md"
     assert out_path.exists(), f"missing release notes output: {out_path}"
     out_text = out_path.read_text("utf-8")
-    assert f"## {version} - " in out_text
+    assert out_text.startswith("2026-01-01\n\n### Added")
+    assert f"## {version} - " not in out_text
 
     head_sha = git(["rev-parse", "HEAD"], cwd=work_dir).stdout.strip()
     target_file = work_dir / ".gh-state" / f"release-{version}.target"
