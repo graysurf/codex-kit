@@ -82,6 +82,27 @@ Notes:
 - Lint/test checks are split in `.github/workflows/lint.yml` using `scripts/check.sh` modes.
 - Additional API demo suites run in `.github/workflows/api-test-runner.yml` and are CI coverage, not required for standard local commits.
 
+## CHANGELOG Curator Contract
+
+- Format follows [Keep a Changelog](https://keepachangelog.com/) and the project
+  respects [Semantic Versioning](https://semver.org/).
+- Curator-only model: author each user-visible change into `## [Unreleased]`
+  **as work lands** in its PR, not at release time. Release tooling only
+  promotes the curated body; it never auto-drafts from `git log`.
+- Heading shape: `## [X.Y.Z] - YYYY-MM-DD` (Keep a Changelog brackets, no `v`
+  prefix). Keep `## [Unreleased]` at the top of the file.
+- Footer compare-links live at the bottom of `CHANGELOG.md`. On each release
+  cut, bump `[unreleased]` to `compare/vX.Y.Z...HEAD` and add a new
+  `[X.Y.Z]: …/releases/tag/vX.Y.Z` entry.
+- Section order inside a version: `Added`, `Changed`, `Fixed`, `Removed`,
+  `Security`, `Deprecated`. Drop a section entirely when empty — never write
+  `- None.`.
+- Entry style: prose bullets with a **bold scope/topic** prefix, e.g.
+  `- **release-workflow**: publish script accepts bracketed headings.`
+  Keep `(#NNN)` PR references (no backticks); do not include commit hashes.
+- Authors must keep `[Unreleased]` non-empty before a release cut; the publish
+  script fails fast if it is empty.
+
 ## Direct Entrypoints
 
 - `scripts/check.sh --pre-commit`
