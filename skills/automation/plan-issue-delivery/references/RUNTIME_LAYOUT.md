@@ -17,10 +17,6 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
 
 ## Required Artifacts
 
-- Source main-agent init prompt:
-  - `MAIN_AGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md"`
-- Snapshot of main-agent init prompt (copied during issue runtime initialization, before sprint orchestration):
-  - `MAIN_AGENT_INIT_SNAPSHOT_PATH="$ISSUE_ROOT/prompts/plan-issue-delivery-main-agent-init.snapshot.md"`
 - Review evidence template path:
   - `REVIEW_EVIDENCE_TEMPLATE_PATH="$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md"`
 - Decision-scoped review evidence artifact path:
@@ -38,19 +34,23 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
 - Final integration PR mention record artifact:
   - `PLAN_INTEGRATION_MENTION_PATH="$ISSUE_ROOT/plan/plan-integration-mention.url"`
   - Expected value: plan issue comment URL that mentions `#<integration-pr-number>`
-- Source subagent companion prompt:
-  - `SUBAGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md"`
-- Snapshot of subagent companion prompt (copied at sprint start):
-  - `SUBAGENT_INIT_SNAPSHOT_PATH="$SPRINT_ROOT/prompts/plan-issue-delivery-subagent-init.snapshot.md"`
 - Sprint prompt outputs:
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
   - `PROMPT_MANIFEST_PATH="$SPRINT_ROOT/manifests/prompt-manifest.tsv"`
   - `TASK_SPEC_PATH="$SPRINT_ROOT/specs/sprint-task-spec.tsv"`
 - Task-scoped dispatch record:
   - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
-  - Expected keys: `task_id`, `task_prompt_path`, `subagent_init_snapshot_path`, `plan_snapshot_path`, `worktree`, `branch`,
+  - Expected keys: `task_id`, `task_prompt_path`, `plan_snapshot_path`, `worktree`, `branch`,
     `execution_mode`, `pr_group`, `base_branch`, `workflow_role`, optional `runtime_name`, optional `runtime_role`,
     optional `runtime_role_fallback_reason`
+
+## Static Prompt Sources
+
+`plan-issue` 0.8.0 does not emit main/subagent init snapshot files. These
+prompts remain static agent-kit sources used by humans or runtime adapters:
+
+- `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`
+- `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
 
 ## Worktree Layout (Assigned Paths)
 

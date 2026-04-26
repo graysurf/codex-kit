@@ -27,7 +27,6 @@ Inputs:
 - PR linkage inputs for runtime row sync (`--task <task-id>` or `--sprint <n> [--pr-group <group>]`, plus `--pr <#123|123|pull-url>`).
 - Conditional subagent dispatch bundle (required when this issue is plan-sprint originated via `plan-issue start-sprint`):
   - rendered `TASK_PROMPT_PATH` artifact for the assigned lane/task
-  - sprint-scoped `SUBAGENT_INIT_SNAPSHOT_PATH`
   - issue-scoped `PLAN_SNAPSHOT_PATH`
   - task-scoped `DISPATCH_RECORD_PATH`
   - plan task section context (exact snippet and/or direct link/path)
@@ -65,8 +64,8 @@ Failure modes:
 - Task rows violate close gates (status not `done`, execution metadata/PR missing, or PR not merged).
 - Issue/PR metadata fetch fails via `gh` in live mode.
 - Task `Owner` is `main-agent`/non-subagent identity in `Task Decomposition`.
-- Plan-sprint originated dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`,
-  `PLAN_SNAPSHOT_PATH`, `DISPATCH_RECORD_PATH`, plan task snippet/link/path).
+- Plan-sprint originated dispatch launched without required bundle (`TASK_PROMPT_PATH`, `PLAN_SNAPSHOT_PATH`, `DISPATCH_RECORD_PATH`, plan
+  task snippet/link/path).
 - Review or clarification follow-up is redirected into a replacement branch/worktree/PR without explicit task-lane reassignment.
 
 ## Entrypoint
@@ -110,7 +109,6 @@ Failure modes:
    `issue-subagent-pr`.
    - If the issue originated from `plan-issue start-sprint`, dispatch each subagent with:
      - rendered `TASK_PROMPT_PATH`
-     - `SUBAGENT_INIT_SNAPSHOT_PATH`
      - `PLAN_SNAPSHOT_PATH`
      - `DISPATCH_RECORD_PATH`
      - assigned plan task section snippet/link/path
@@ -140,7 +138,6 @@ Failure modes:
 4. Main-agent dispatches implementation tasks to subagents (for example via `issue-subagent-pr`), while remaining orchestration/review-only.
    - For plan-sprint originated issues, dispatch must include the required bundle:
      - rendered `TASK_PROMPT_PATH`
-     - `SUBAGENT_INIT_SNAPSHOT_PATH`
      - `PLAN_SNAPSHOT_PATH`
      - `DISPATCH_RECORD_PATH`
      - assigned plan task section snippet/link/path

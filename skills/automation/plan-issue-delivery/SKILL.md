@@ -14,7 +14,11 @@ Prereqs:
 - Run inside (or have access to) the target git repository.
 - `plan-tooling` available on `PATH` for plan parsing/linting.
 - `plan-issue` available on `PATH` for live GitHub orchestration mode.
+- nils-cli / `plan-issue` version is `>= 0.8.0` for `--state-dir` support.
 - `gh` available on `PATH`, and `gh auth status` succeeds only when using live mode (`plan-issue`).
+- In live mode, the target repository can apply the `issue` and `plan` labels
+  during `start-plan` (create them up front if the repo does not already carry
+  them).
 
 Inputs:
 
@@ -48,17 +52,16 @@ Inputs:
     to latest remote state
 - Optional repository override (`--repo <owner/repo>`) in live mode.
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
-- Main-agent init source prompt path (`MAIN_AGENT_INIT_SOURCE_PATH`):
+- Static main-agent prompt source:
   `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`.
-- Issue-scoped `MAIN_AGENT_INIT_SNAPSHOT_PATH` copied from
-  `MAIN_AGENT_INIT_SOURCE_PATH` during issue runtime initialization.
+- Static subagent companion prompt source:
+  `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`.
 - Review evidence template path (`REVIEW_EVIDENCE_TEMPLATE_PATH`):
   `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`.
 - Decision-scoped review evidence artifact path (`REVIEW_EVIDENCE_PATH`) per
   review decision.
 - Mandatory subagent dispatch bundle:
   - rendered `TASK_PROMPT_PATH` from `start-sprint`
-  - sprint-scoped `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
   - issue-scoped `PLAN_SNAPSHOT_PATH` copied from the source plan at sprint start
   - task-scoped `DISPATCH_RECORD_PATH` (for example `.../manifests/dispatch-<TASK_ID>.json`) with artifact paths + execution facts +
     selected workflow-role metadata and optional runtime adapter metadata
@@ -94,16 +97,12 @@ Outputs:
 - Sprint-scoped rendered subagent prompt files + a prompt manifest
   (`task_id -> prompt_path -> execution_mode -> workflow_role [-> runtime_role]`) generated at `start-sprint`.
 - Runtime artifacts and worktrees are namespaced under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/...`.
-- Issue-scoped main-agent init prompt snapshot
-  (`MAIN_AGENT_INIT_SNAPSHOT_PATH`) is generated for deterministic
-  orchestration restarts.
 - Decision-scoped review evidence artifacts
   (`REVIEW_EVIDENCE_PATH`) are generated under sprint runtime for each
   `request-followup|merge|close-pr` decision.
 - Main-agent posts decision-scoped review-evidence PR comments and keeps those
   comment URLs traceable in issue-side sync actions.
 - Issue-scoped plan snapshot (`PLAN_SNAPSHOT_PATH`) is generated for dispatch fallback.
-- Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`) is generated for immutable dispatch.
 - Task-scoped dispatch records (`DISPATCH_RECORD_PATH`) are generated per assignment for traceability, including canonical
   `workflow_role` and optional runtime adapter fields (`runtime_name`, `runtime_role`, `runtime_role_fallback_reason`).
 - `plan-tooling split-prs` v2 emits grouping primitives only (`task_id`, `summary`, `pr_group`); `plan-issue` materializes runtime metadata
@@ -137,7 +136,6 @@ Outputs:
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Main-agent must launch subagents with the full dispatch bundle:
   - rendered `TASK_PROMPT_PATH` artifact
-  - `SUBAGENT_INIT_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - `PLAN_SNAPSHOT_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - `DISPATCH_RECORD_PATH` artifact from `$AGENT_HOME/out/plan-issue-delivery/...`
   - selected `workflow_role`
@@ -164,24 +162,26 @@ Failure modes:
 - Plan file missing, sprint missing, or selected sprint has zero tasks.
 - Required commands missing (`plan-tooling`, `plan-issue`; `gh` only required for live GitHub mode).
 - Typed argument validation fails (unknown subcommand, invalid flag, malformed `--pr-group`, invalid `--pr-grouping`).
+- `plan-issue --version` reports `< 0.8.0`, so `--state-dir "$AGENT_HOME"` cannot be used reliably.
 - `link-pr` PR selector invalid (`--pr` must resolve to a concrete PR number).
 - `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
+- Live mode `start-plan` cannot apply required GitHub labels (`issue`, `plan`).
 - Runtime workspace root missing/unwritable (`$AGENT_HOME/out/plan-issue-delivery`).
 - Issue/sprint runtime artifacts missing (for example
-  `MAIN_AGENT_INIT_SNAPSHOT_PATH`, `REVIEW_EVIDENCE_PATH`, `TASK_PROMPT_PATH`,
-  `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`,
+  `REVIEW_EVIDENCE_PATH`, `TASK_PROMPT_PATH`, `PLAN_SNAPSHOT_PATH`,
   `PLAN_BRANCH_REF_PATH`, `PLAN_INTEGRATION_PR_PATH`,
-  `PLAN_INTEGRATION_MENTION_PATH`, or
-  `DISPATCH_RECORD_PATH` not emitted under runtime root).
+  `PLAN_INTEGRATION_MENTION_PATH`, or `DISPATCH_RECORD_PATH` not emitted under
+  runtime root).
 - `PLAN_BRANCH` is missing/unresolvable for sprint dispatch or differs from the persisted `PLAN_BRANCH_REF_PATH` value.
 - A sprint PR is linked with `baseRefName != PLAN_BRANCH`.
 - `ready-sprint` checkpoint reached after sprint PRs were already merged without post-merge audit evidence + explicit follow-up decision.
 - Main-agent review decision attempted without validated review evidence (for
   example missing `--enforce-review-evidence`, missing/invalid
   `REVIEW_EVIDENCE_PATH`, or generic non-evidenced decision text).
-- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, `PLAN_SNAPSHOT_PATH`,
-  `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
+- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`,
+  `PLAN_SNAPSHOT_PATH`, `DISPATCH_RECORD_PATH`, plan task section
+  snippet/link/path).
 - Subagent dispatch launched without canonical `workflow_role` recorded in manifest/dispatch record.
 - Active runtime uses named child-agent roles but dispatch omitted `runtime_name` / `runtime_role` metadata.
 - Named-role runtime fell back to generic dispatch without `runtime_role_fallback_reason`.
@@ -211,8 +211,6 @@ Failure modes:
   - `ISSUE_ROOT="$RUNTIME_ROOT/<repo-slug>/issue-<ISSUE_NUMBER>"`
   - `SPRINT_ROOT="$ISSUE_ROOT/sprint-<N>"`
 - Required runtime artifacts:
-  - `MAIN_AGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md"`
-  - `MAIN_AGENT_INIT_SNAPSHOT_PATH="$ISSUE_ROOT/prompts/plan-issue-delivery-main-agent-init.snapshot.md"`
   - `REVIEW_EVIDENCE_TEMPLATE_PATH="$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md"`
   - `REVIEW_EVIDENCE_PATH="$SPRINT_ROOT/reviews/<TASK_ID>-<decision>.md"`
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
@@ -223,23 +221,21 @@ Failure modes:
   - `PLAN_INTEGRATION_MENTION_PATH="$ISSUE_ROOT/plan/plan-integration-mention.url"` (tracks issue-comment URL that mentions final
     integration PR)
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
-  - `SUBAGENT_INIT_SNAPSHOT_PATH="$SPRINT_ROOT/prompts/plan-issue-delivery-subagent-init.snapshot.md"`
   - prompt manifest under `"$SPRINT_ROOT/manifests/"`
   - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
+- Static prompt sources used by humans/runtimes, not emitted by `plan-issue`
+  0.8.0 as runtime snapshots:
+  - `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`
+  - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
 - Worktree path rules (must be absolute paths under `"$ISSUE_ROOT/worktrees"`):
   - `pr-isolated`: `.../worktrees/pr-isolated/<TASK_ID>`
   - `pr-shared`: `.../worktrees/pr-shared/<PR_GROUP>`
   - `per-sprint`: `.../worktrees/per-sprint/sprint-<N>`
 - `start-plan` (or immediate post-`start-plan` issue runtime initialization)
-  must copy `MAIN_AGENT_INIT_SOURCE_PATH` into
-  `MAIN_AGENT_INIT_SNAPSHOT_PATH` before any `start-sprint`.
-- `start-plan` (or immediate post-`start-plan` issue runtime initialization)
   must resolve `DEFAULT_BRANCH`, create/push `PLAN_BRANCH` from
   `DEFAULT_BRANCH`, and persist `PLAN_BRANCH_REF_PATH` before any
   `start-sprint`.
 - `start-sprint` must copy the source plan into `PLAN_SNAPSHOT_PATH` before subagent dispatch.
-- `start-sprint` must copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` into `SUBAGENT_INIT_SNAPSHOT_PATH` before subagent
-  dispatch.
 - `start-sprint` must emit one `DISPATCH_RECORD_PATH` per assigned task before subagent dispatch.
 - `start-sprint` dispatch artifacts must include `PLAN_BRANCH` as required base branch for sprint PR creation.
 - Subagent plan reference priority:
@@ -334,16 +330,14 @@ Failure modes:
    (metadata-first `--strategy auto --default-pr-grouping group` by default).
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
 3. Initialize issue runtime workspace under
-   `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`, and copy
-   `MAIN_AGENT_INIT_SOURCE_PATH` into `MAIN_AGENT_INIT_SNAPSHOT_PATH`; then
+   `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`, then
    resolve `DEFAULT_BRANCH`, create `PLAN_BRANCH`, and persist
    `PLAN_BRANCH_REF_PATH`.
 4. Run `start-sprint`, resolve `workflow_role` for each spawned task and, when
    relevant, runtime adapter mapping,
-   ensure `MAIN_AGENT_INIT_SNAPSHOT_PATH` +
-   `REVIEW_EVIDENCE_PATH` + `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` +
-   `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
-   exist, record `workflow_role` (and optional runtime adapter metadata) in
+   ensure `REVIEW_EVIDENCE_PATH` + `TASK_PROMPT_PATH` +
+   `PLAN_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts exist, record
+   `workflow_role` (and optional runtime adapter metadata) in
    prompt manifests/dispatch records, dispatch subagents with `PLAN_BRANCH`
    base-branch context, keep task lanes stable, and keep row state current via
    `link-pr`.
@@ -426,15 +420,7 @@ Failure modes:
 7. Initialize issue runtime workspace and plan snapshot:
    - Runtime root: `$AGENT_HOME/out/plan-issue-delivery`
    - Issue root: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER`
-   - Main-agent init source path:
-     `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`
-   - Main-agent init snapshot path:
-     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/prompts/plan-issue-delivery-main-agent-init.snapshot.md`
-   - Copy main-agent init source prompt into the snapshot path before any
-     `start-sprint` execution.
    - Snapshot path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan.snapshot.md`
-   - Subagent init snapshot path:
-     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/prompts/plan-issue-delivery-subagent-init.snapshot.md`
    - Dispatch record path:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/manifests/dispatch-<TASK_ID>.json`
    - Plan branch ref path:
@@ -455,8 +441,6 @@ Failure modes:
      - `git push -u origin "$PLAN_BRANCH"`
      - `printf '%s\n' "$PLAN_BRANCH" > "$PLAN_BRANCH_REF_PATH"`
 8. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
-   - main-agent verifies `MAIN_AGENT_INIT_SNAPSHOT_PATH` exists before sprint
-     dispatch
    - main-agent follows the locked grouping policy (default metadata-first auto
      with `--default-pr-grouping group`; switch only on explicit user request)
      and emits dispatch hints
@@ -471,7 +455,6 @@ Failure modes:
        plus `runtime_role_fallback_reason`
    - main-agent starts subagents using dispatch bundles that include:
      - rendered `TASK_PROMPT_PATH` prompt artifact from dispatch hints
-     - `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
      - `PLAN_SNAPSHOT_PATH` from issue runtime workspace
      - `DISPATCH_RECORD_PATH` from sprint manifest artifacts
      - selected `workflow_role`
@@ -677,6 +660,50 @@ comment URL.
   and pass full `--pr-group <task-id>=<group>` coverage.
 - Per-sprint single lane: use `--strategy deterministic --pr-grouping per-sprint`
   and do not pass `--pr-group`.
+
+## Live Mode Preflight
+
+Run these checks before mutating live GitHub state:
+
+```bash
+command -v plan-issue >/dev/null
+command -v plan-tooling >/dev/null
+command -v gh >/dev/null
+gh auth status >/dev/null
+plan-issue --version
+```
+
+If the target repository does not already have the labels used by
+`start-plan`, create or update them before opening the plan issue:
+
+```bash
+gh label create issue --repo "$REPO" --color 0E8A16 --description "Plan-issue plan tracking" --force
+gh label create plan --repo "$REPO" --color 5319E7 --description "Plan tracking" --force
+```
+
+For private repositories on a personal GitHub Free account, branch protection
+APIs may reject required-check configuration. Treat that as a preflight warning,
+not an automatic bypass: either enable branch protection support, make the
+repository public for the run, or document that final integration CI is
+informational instead of required before continuing.
+
+## Mid-Flight Plan Changes
+
+The live issue `## Task Decomposition` table is runtime truth after
+`start-plan`. If the source plan's grouping intent changes and a later
+`start-sprint` reports `task-sync-drift-detected`, stop forward progress.
+
+Remediation:
+
+1. Close the in-flight plan issue and explain the drift reason in the close
+   comment.
+2. Edit the plan markdown to the desired grouping intent and re-run
+   `plan-tooling validate`.
+3. Re-run `start-plan` with `--state-dir "$AGENT_HOME"` to create a fresh plan
+   issue from the corrected plan.
+
+Do not bypass the drift gate with force flags; that would make the plan file and
+live issue disagree about task ownership.
 
 ## Role boundary (mandatory)
 

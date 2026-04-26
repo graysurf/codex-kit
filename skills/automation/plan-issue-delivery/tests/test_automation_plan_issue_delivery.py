@@ -86,17 +86,30 @@ def test_plan_issue_delivery_skill_defines_runtime_workspace_policy() -> None:
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "$AGENT_HOME/out/plan-issue-delivery" in text
     assert "Runtime Workspace Policy (Mandatory)" in text
-    assert "MAIN_AGENT_INIT_SOURCE_PATH" in text
-    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in text
+    assert "Static main-agent prompt source" in text
+    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" not in text
     assert "REVIEW_EVIDENCE_TEMPLATE_PATH" in text
     assert "REVIEW_EVIDENCE_PATH" in text
     assert "PLAN_SNAPSHOT_PATH" in text
-    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in text
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" not in text
     assert "DISPATCH_RECORD_PATH" in text
     assert "workflow_role" in text
     assert "runtime_role_fallback_reason" in text
     assert "references/RUNTIME_LAYOUT.md" in text
     assert "references/AGENT_ROLE_MAPPING.md" in text
+
+
+def test_plan_issue_delivery_skill_includes_live_preflight_and_drift_remediation() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "## Live Mode Preflight" in text
+    assert "plan-issue --version" in text
+    assert "gh label create issue" in text
+    assert "gh label create plan" in text
+    assert "personal GitHub Free account" in text
+    assert "## Mid-Flight Plan Changes" in text
+    assert "task-sync-drift-detected" in text
+    assert "Do not bypass the drift gate" in text
 
 
 def test_plan_issue_delivery_skill_uses_shared_task_lane_policy() -> None:
@@ -135,7 +148,7 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     role_mapping = (skill_root / "references" / "AGENT_ROLE_MAPPING.md").read_text(encoding="utf-8")
 
     assert "PLAN_SNAPSHOT_PATH" in subagent_prompt
-    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in subagent_prompt
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" not in subagent_prompt
     assert "DISPATCH_RECORD_PATH" in subagent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in subagent_prompt
     assert "PLAN_BRANCH" in subagent_prompt
@@ -143,10 +156,10 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "runtime_role" in subagent_prompt
 
     assert "PLAN_SNAPSHOT_PATH" in main_agent_prompt
-    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
+    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" not in main_agent_prompt
     assert "REVIEW_EVIDENCE_TEMPLATE_PATH" in main_agent_prompt
     assert "REVIEW_EVIDENCE_PATH" in main_agent_prompt
-    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in main_agent_prompt
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" not in main_agent_prompt
     assert "DISPATCH_RECORD_PATH" in main_agent_prompt
     assert "PLAN_BRANCH" in main_agent_prompt
     assert "workflow_role" in main_agent_prompt
@@ -203,22 +216,26 @@ def test_plan_issue_delivery_runtime_adapter_docs_and_templates_exist() -> None:
     codex_config = skill_root / "assets" / "runtime-adapters" / "codex" / "home" / ".codex" / "config.toml"
     codex_worker = skill_root / "assets" / "runtime-adapters" / "codex" / "home" / ".codex" / "agents" / "plan-issue-worker.toml"
     claude_template = skill_root / "assets" / "runtime-adapters" / "claude-code" / "project" / ".claude" / "agents" / "plan-issue-orchestrator.md"
+    claude_impl = skill_root / "assets" / "runtime-adapters" / "claude-code" / "project" / ".claude" / "agents" / "plan-issue-implementation.md"
     opencode_config = skill_root / "assets" / "runtime-adapters" / "opencode" / "project" / "opencode.json"
     opencode_prompt = skill_root / "assets" / "runtime-adapters" / "opencode" / "project" / ".opencode" / "prompts" / "plan-issue-orchestrator.txt"
 
     assert codex_config.exists()
     assert codex_worker.exists()
     assert claude_template.exists()
+    assert "Required Dispatch Bundle" in claude_template.read_text(encoding="utf-8")
+    assert "create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh" in claude_impl.read_text(encoding="utf-8")
     assert opencode_config.exists()
     assert opencode_prompt.exists()
 
 
-def test_plan_issue_delivery_runtime_layout_tracks_main_agent_snapshot_artifacts() -> None:
+def test_plan_issue_delivery_runtime_layout_tracks_plan_issue_0_8_artifacts() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "references" / "RUNTIME_LAYOUT.md").read_text(encoding="utf-8")
-    assert "MAIN_AGENT_INIT_SOURCE_PATH" in text
     assert "plan-issue-delivery-main-agent-init.md" in text
-    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" in text
+    assert "does not emit main/subagent init snapshot files" in text
+    assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" not in text
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" not in text
     assert "REVIEW_EVIDENCE_TEMPLATE_PATH" in text
     assert "REVIEW_EVIDENCE_PATH" in text
     assert "PLAN_BRANCH_REF_PATH" in text
@@ -228,7 +245,6 @@ def test_plan_issue_delivery_runtime_layout_tracks_main_agent_snapshot_artifacts
     assert "runtime_role_fallback_reason" in text
     assert "syncs local `PLAN_BRANCH`" in text
     assert "syncs local `DEFAULT_BRANCH`" in text
-    assert "issue runtime initialization" in text
 
 
 def test_plan_issue_delivery_skill_excludes_deleted_wrapper_scripts() -> None:

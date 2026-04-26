@@ -108,6 +108,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | PR / Bug     | [create-bug-pr](./skills/workflows/pr/bug/create-bug-pr/)                                           | Create a new bugfix branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates |
 | PR / Bug     | [close-bug-pr](./skills/workflows/pr/bug/close-bug-pr/)                                             | Merge and close a bug PR with gh after a quick PR hygiene review (title, required sections, testing notes) aligned with create-bug-pr     |
 | PR / Bug     | [deliver-bug-pr](./skills/workflows/pr/bug/deliver-bug-pr/)                                         | Define the default end-to-end bug PR delivery method: create PR, wait/fix CI until green, then close PR                                   |
+| PR / Plan Issue | [create-plan-issue-sprint-pr](./skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/) | Open a draft GitHub sprint PR for a plan-issue implementation lane using the canonical sprint PR body schema and assigned dispatch record |
 
 ### Tools
 

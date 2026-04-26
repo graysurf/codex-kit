@@ -10,6 +10,7 @@ This document shows how to map the canonical `plan-issue-delivery`
   - dispatch bundle and runtime artifacts
   - `plan-issue-delivery-main-agent-init.md`
   - `plan-issue-delivery-subagent-init.md`
+  - `create-plan-issue-sprint-pr` helper for sprint PR body/render/create flow
 - Claude-specific agent files are an adapter layer only.
 
 ## Claude Code Features Used
@@ -54,11 +55,16 @@ Optional installer/sync entrypoint:
 
 ## Usage Notes
 
-1. Keep dynamic issue/sprint/task facts in the dispatch bundle and prompt
-   snapshots, not in the Claude subagent files.
-2. Use the orchestrator template only as a static capability router for the
-   main thread. It should not become a second source of workflow truth.
+1. Keep dynamic issue/sprint/task facts in `TASK_PROMPT_PATH`,
+   `PLAN_SNAPSHOT_PATH`, and `DISPATCH_RECORD_PATH`, not in the Claude
+   subagent files.
+2. `plan-issue` 0.8.0 does not emit init prompt snapshots. Treat the
+   main/subagent prompt files under `$AGENT_HOME/prompts/` as static source
+   material for runtime adapters.
 3. The implementation subagent should stay write-capable; review and monitor
    templates stay read-only by tool restrictions.
-4. If Claude-specific subagent files are unavailable, continue using the
+4. Implementation lanes should use
+   `$AGENT_HOME/skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh`
+   to open sprint PRs with the canonical body schema.
+5. If Claude-specific subagent files are unavailable, continue using the
    canonical `workflow_role` contract without named runtime agents.

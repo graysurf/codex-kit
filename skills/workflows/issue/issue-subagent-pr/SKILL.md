@@ -30,7 +30,6 @@ Inputs:
   - Main-agent dispatch artifacts:
     - rendered task prompt artifact (`TASK_PROMPT_PATH`)
     - `PLAN_SNAPSHOT_PATH` when dispatch came from `plan-issue-delivery`
-    - `SUBAGENT_INIT_SNAPSHOT_PATH` when dispatch came from `plan-issue-delivery`
     - `DISPATCH_RECORD_PATH` when dispatch came from `plan-issue-delivery`
       (including `workflow_role` and optional runtime adapter metadata)
     - plan task section context (exact snippet and/or direct link/path)
@@ -66,7 +65,6 @@ Failure modes:
 - Live mode: unable to resolve target sprint task context from issue comments.
 - Live mode: missing `TASK_PROMPT_PATH` or missing plan task section context from main-agent dispatch.
 - `plan-issue-delivery` mode: missing `PLAN_SNAPSHOT_PATH` fallback artifact from dispatch.
-- `plan-issue-delivery` mode: missing `SUBAGENT_INIT_SNAPSHOT_PATH` companion prompt snapshot artifact from dispatch.
 - `plan-issue-delivery` mode: missing `DISPATCH_RECORD_PATH` assignment artifact from dispatch.
 - `plan-issue-delivery` mode: `DISPATCH_RECORD_PATH` missing canonical
   `workflow_role`.
@@ -134,7 +132,6 @@ Failure modes:
    - Collect main-agent artifacts in both modes:
      - `TASK_PROMPT_PATH`
      - `PLAN_SNAPSHOT_PATH` (required in `plan-issue-delivery` mode)
-     - `SUBAGENT_INIT_SNAPSHOT_PATH` (required in `plan-issue-delivery` mode)
      - `DISPATCH_RECORD_PATH` (required in `plan-issue-delivery` mode)
      - `workflow_role` from `DISPATCH_RECORD_PATH`
      - optional `runtime_name` / `runtime_role` from `DISPATCH_RECORD_PATH`
@@ -203,7 +200,22 @@ Failure modes:
        && { echo "Placeholder content found in PR body" >&2; exit 1; } || true
      ```
 
-7. Open draft PR with `gh pr create` (initial run only):
+7. Open draft PR (initial run only):
+
+   - In `plan-issue-delivery` mode, prefer the sprint PR helper so the body
+     matches the canonical schema and the PR targets the dispatched
+     `PLAN_BRANCH`:
+
+     ```bash
+     $AGENT_HOME/skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh \
+       --dispatch-record "$DISPATCH_RECORD_PATH" \
+       --issue "$ISSUE" \
+       --summary "<real summary bullet>" \
+       --scope "<file/module>: <change> (${TASK_ID})" \
+       --testing "<real command> (pass)"
+     ```
+
+   - For non-plan-issue flows, use `gh pr create` directly:
 
    - ```bash
      if [ -z "${PR_NUMBER:-}" ]; then

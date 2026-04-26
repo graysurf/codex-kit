@@ -34,8 +34,7 @@ Execution context (fill before run)
   and breaks the runtime workspace contract below.
 - Runtime workspace root: $AGENT_HOME/out/plan-issue-delivery
 - Main-agent init source path: $AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md
-- Main-agent init snapshot path:
-  `$AGENT_HOME/out/plan-issue-delivery/{repo-slug}/issue-<ISSUE_NUMBER>/prompts/plan-issue-delivery-main-agent-init.snapshot.md`
+- Subagent companion prompt source path: $AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md
 - Review evidence template path:
   `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
 - Sprint PR body template path (canonical schema for plan-issue sprint PRs):
@@ -68,13 +67,10 @@ Required workflow
 
 1. Validate prerequisites (plan-tooling, gh auth, required scripts, plan validation).
 2. Run `start-plan` once for the full plan issue.
-3. Copy `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md` to issue runtime as `MAIN_AGENT_INIT_SNAPSHOT_PATH` before any
-   `start-sprint`, and keep this snapshot as the immutable orchestration baseline for the issue lifecycle.
-4. Resolve `DEFAULT_BRANCH`, create `PLAN_BRANCH` from `DEFAULT_BRANCH`, push it, and persist `PLAN_BRANCH` at
+3. Resolve `DEFAULT_BRANCH`, create `PLAN_BRANCH` from `DEFAULT_BRANCH`, push it, and persist `PLAN_BRANCH` at
    `PLAN_BRANCH_REF_PATH` before any sprint dispatch.
-5. For each sprint: `start-sprint` -> verify
-   `MAIN_AGENT_INIT_SNAPSHOT_PATH` + `TASK_PROMPT_PATH` +
-   `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` +
+4. For each sprint: `start-sprint` -> verify
+   `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` +
    `DISPATCH_RECORD_PATH` + decision-scoped `REVIEW_EVIDENCE_PATH` artifacts under
    `$AGENT_HOME/out/plan-issue-delivery/...` -> select the correct
    `workflow_role` for each spawned task and persist it in sprint
@@ -88,14 +84,14 @@ Required workflow
    `issue-pr-review` with `--enforce-review-evidence` -> apply shared
    post-review outcome handling -> merge/close as appropriate -> `accept-sprint`
    -> sync local `PLAN_BRANCH` (`git fetch` + `git switch` + `git pull --ff-only`).
-6. `ready-sprint` review expectation:
+5. `ready-sprint` review expectation:
    - linked sprint PRs should be open (not merged yet)
    - linked sprint PRs must target `PLAN_BRANCH` (`baseRefName == PLAN_BRANCH`)
    - required PR checks should be green before merge decisions
    - if a sprint PR was merged early, run post-merge audit evidence first and
      decide follow-up on the same lane before acceptance.
-7. Enforce previous sprint merged+done gate before starting next sprint.
-8. After final sprint acceptance: `ready-plan` -> open/merge final integration
+6. Enforce previous sprint merged+done gate before starting next sprint.
+7. After final sprint acceptance: `ready-plan` -> open/merge final integration
    PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) -> record integration PR reference at
    `PLAN_INTEGRATION_PR_PATH` -> post one plan-issue comment that mentions that
    integration PR and record the comment URL at
@@ -110,7 +106,7 @@ Required workflow
      for the exact production order of the five close-plan artifacts
      (plan-conformance-review.md, plan-integration-pr.md,
      plan-integration-ci.md, mention comment, plan-integration-mention.url).
-9. Treat any gate failure as unfinished work; stop forward progress and report unblock actions.
+8. Treat any gate failure as unfinished work; stop forward progress and report unblock actions.
 
 Mandatory subagent launch rule
 
@@ -124,7 +120,8 @@ Mandatory subagent launch rule
 - If a named-role runtime falls back to a generic child agent, record
   `runtime_role=generic` plus `runtime_role_fallback_reason` before spawning
   the child agent.
-- Always copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` to sprint runtime and attach `SUBAGENT_INIT_SNAPSHOT_PATH`.
+- Attach `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` as static companion context when the active runtime needs the shared
+  subagent protocol in addition to `TASK_PROMPT_PATH`.
 - Always attach `PLAN_SNAPSHOT_PATH` from issue runtime workspace as fallback plan context.
 - Always attach `DISPATCH_RECORD_PATH` from sprint manifests for execution-fact traceability.
 - Always attach required `PLAN_BRANCH` base-branch context and require sprint PRs to target that base.
@@ -160,7 +157,6 @@ Mandatory subagent launch rule
   row is intentionally changed.
 - Minimum dispatch bundle for each subagent:
   - `TASK_PROMPT_PATH`
-  - `SUBAGENT_INIT_SNAPSHOT_PATH`
   - `PLAN_SNAPSHOT_PATH`
   - `DISPATCH_RECORD_PATH`
   - `workflow_role`

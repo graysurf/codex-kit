@@ -17,7 +17,7 @@ def test_issue_subagent_pr_skill_mentions_worktree_isolation() -> None:
     assert "Subagent" in text
     assert "Task Decomposition" in text
     assert "$AGENT_HOME/out/plan-issue-delivery" in text
-    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in text
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" not in text
     assert "DISPATCH_RECORD_PATH" in text
     assert "workflow_role" in text
     assert "implementation" in text
@@ -29,6 +29,7 @@ def test_issue_subagent_pr_skill_requires_native_git_gh_commands() -> None:
     assert "git worktree" in text
     assert "gh pr create" in text
     assert "gh pr comment" in text
+    assert "create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh" in text
     assert "BASE is required from lane assignment" in text
     assert "do not assume `main`" in text
 

@@ -41,7 +41,6 @@ Execution context (fill before run)
 - Base branch: `<PLAN_BRANCH>` (required PR target branch for sprint lanes)
 - PR grouping mode: `<per-sprint|group>`
 - PR group (if grouped): `<GROUP_NAME or N/A>`
-- Subagent init snapshot path: `<SUBAGENT_INIT_SNAPSHOT_PATH>`
 - Plan snapshot path: `<PLAN_SNAPSHOT_PATH>`
 - Dispatch record path: `<DISPATCH_RECORD_PATH>`
 - Workflow role: `<implementation>`
@@ -50,7 +49,6 @@ Execution context (fill before run)
 Required inputs from main-agent (must be attached)
 
 - Rendered task prompt artifact (`TASK_PROMPT_PATH`) from `start-sprint`.
-- Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`).
 - Issue-scoped plan snapshot fallback (`PLAN_SNAPSHOT_PATH`) copied from source plan.
 - Task-scoped dispatch record (`DISPATCH_RECORD_PATH`) with execution facts (worktree/branch/mode/group).
 - `DISPATCH_RECORD_PATH` role facts:

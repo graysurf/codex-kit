@@ -1,0 +1,23 @@
+{
+  "args": ["--help"],
+  "timeout_sec": 10,
+  "expect": {
+    "exit_codes": [0],
+    "stdout_regex": "Usage:"
+  },
+  "smoke": [
+    {
+      "name": "body-only-from-dispatch-record",
+      "command": [
+        "bash",
+        "-lc",
+        "set -euo pipefail; root='out/tests/script-smoke/create-plan-issue-sprint-pr'; rm -rf \"$root\"; mkdir -p \"$root\"; dispatch=\"$root/dispatch-S2T3.json\"; printf '%s\\n' '{\"task_id\":\"S2T3\",\"task_ids\":[\"S2T3\",\"S2T4\"],\"branch\":\"issue-12-s2-storage\",\"base_branch\":\"plan/issue-12\",\"worktree_abs_path\":\"/abs/worktree\"}' > \"$dispatch\"; skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh --dispatch-record \"$dispatch\" --issue 12 --summary 'Sprint 2 completes the storage lane.' --scope 'src/storage/: implements S2T3 and S2T4.' --testing 'scripts/check.sh --tests -- -k storage (pass)' --body-only"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "Sprint 2 task IDs: S2T3, S2T4\\."
+      }
+    }
+  ]
+}

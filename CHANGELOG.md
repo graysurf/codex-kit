@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **plan-issue**: add `create-plan-issue-sprint-pr`, a tracked PR workflow
+  skill that renders the canonical sprint PR body from a dispatch record and
+  can open draft sprint PRs against `PLAN_BRANCH`.
 - **release**: new curator-only release entrypoint at
   `.agents/scripts/release.sh`. Runs preflight + `scripts/check.sh --all`,
   promotes `## [Unreleased]` into the versioned heading, updates the footer
@@ -15,6 +18,16 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **plan-issue**: align the canonical delivery/runtime contracts with
+  `plan-issue` 0.8.0 by removing main/subagent init snapshot artifacts from
+  required runtime state and treating prompt files as static adapter sources.
+- **plan-issue**: expand Claude Code adapter templates from thin routers into
+  agent-kit-owned role prompts with explicit dispatch bundles, lane boundaries,
+  review/CI gates, and sprint PR helper usage.
+- **research-workflow**: narrow Context7 guidance to bounded
+  library/framework documentation lookups, with official web docs preferred for
+  source-of-record citations, release timing, policies, pricing, and security
+  details.
 - **release-workflow**: align `CHANGELOG.md` to Keep a Changelog format —
   bracketed headings (`## [X.Y.Z] - YYYY-MM-DD` and `## [Unreleased]`),
   per-version footer compare-links, and removal of empty `- None.` placeholder
