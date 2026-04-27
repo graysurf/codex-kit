@@ -23,6 +23,14 @@ when = "always"
 notes = "Canonical shell environment contract for automation and agent sessions: use the .zshenv bootstrap chain rooted at ~/.zshenv and $ZDOTDIR/.zshenv, not .zprofile or .zshrc"
 
 [[document]]
+context = "startup"
+scope = "home"
+path = "docs/runbooks/agent-docs/MEMORY_USAGE.md"
+required = true
+when = "always"
+notes = "Memory usage rules. Read this doc when personal environment, recurring preference, account/workspace convention, or reusable-reference context may affect the task; avoid secrets, temporary state, and project state."
+
+[[document]]
 context = "task-tools"
 scope = "home"
 path = "RESEARCH_WORKFLOW.md"
