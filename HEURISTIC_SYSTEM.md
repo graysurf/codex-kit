@@ -60,6 +60,7 @@ Promote workflow lessons by durability:
 | Signal | Preferred durable form |
 | --- | --- |
 | One-off execution result | Runtime evidence or final response summary. |
+| Important unresolved workflow gap | Curated error inbox entry. |
 | Repeated skill failure | `Failure modes` entry or reference doc update. |
 | Reproducible bug | Focused test, script smoke fixture, or regression case. |
 | Cross-skill behavior | Shared runbook, primitive, or guardrail. |
@@ -68,6 +69,17 @@ Promote workflow lessons by durability:
 
 Do not promote secrets, raw credentials, unredacted logs, or temporary task
 state into durable docs or memory.
+
+## Error Inbox
+
+Use curated error inbox entries when an important workflow gap is observed but
+not fixed in the same turn. Keep raw runtime records in their evidence location;
+commit only a short tracker entry with the signal, evidence pointer, impact,
+workaround, promotion criteria, and next action.
+
+Store unresolved gap entries under `docs/runbooks/heuristic-system/error-inbox/`.
+Move or compress an entry into `operation-records/` after the gap is fixed and
+validated, or close it in place when the project accepts the risk.
 
 ## Operation Records
 
@@ -91,7 +103,9 @@ local exceptions, retries, or failure notes, compress them:
 3. Replace repeated prose with a test, guardrail, or script when practical.
 4. Remove or archive obsolete coordination notes only after the durable lesson is
    represented elsewhere.
-5. Keep the public skill surface smaller and clearer after compression.
+5. Close or promote resolved `error-inbox/` entries so the inbox does not become
+   a stale backlog.
+6. Keep the public skill surface smaller and clearer after compression.
 
 ## Boundaries
 

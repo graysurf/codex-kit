@@ -89,6 +89,10 @@ Failure modes:
   `review-to-improvement-doc` or reference an equivalent existing issue/doc.
   When creating it for this plan, save it as
   `docs/plans/<slug>/<slug>-review-source.md`.
+- For unresolved HEURISTIC_SYSTEM workflow gaps that must survive cleanup before
+  a fix exists, create or reference
+  `docs/runbooks/heuristic-system/error-inbox/<slug>.md` and link it as the
+  primary source or a `Read First` record.
 - Existing issues, tickets, specs, or project docs can be the primary source
   when they already separate facts, scope, decisions, acceptance criteria, and
   open questions well enough for execution.

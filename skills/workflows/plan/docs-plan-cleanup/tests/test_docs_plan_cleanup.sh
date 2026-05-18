@@ -25,7 +25,7 @@ setup_repo() {
   (
     cd "$repo"
     git init >/dev/null
-    mkdir -p docs/plans docs/reports docs/specs docs/runbooks
+    mkdir -p docs/plans docs/reports docs/specs docs/runbooks/heuristic-system/error-inbox
 
     cat > docs/plans/a-plan.md <<'EOF_INNER'
 # A plan
@@ -54,6 +54,11 @@ EOF_INNER
     cat > docs/runbooks/report-consumer.md <<'EOF_INNER'
 Uses docs/reports/retained.md during validation.
 EOF_INNER
+    cat > docs/runbooks/heuristic-system/error-inbox/a-gap.md <<'EOF_INNER'
+# A gap
+
+Observed from docs/plans/a-plan.md.
+EOF_INNER
   )
 }
 
@@ -79,6 +84,7 @@ echo "$dry_run_output" | grep -Fq "[plan_related_md_to_rehome]"
 echo "$dry_run_output" | grep -Fq -- "- docs/specs/a-policy.md"
 echo "$dry_run_output" | grep -Fq "[plan_related_md_manual_review]"
 echo "$dry_run_output" | grep -Fq -- "- docs/reports/mixed.md"
+echo "$dry_run_output" | grep -Fq -- "- docs/runbooks/heuristic-system/error-inbox/a-gap.md"
 echo "$dry_run_output" | grep -Fq "[non_docs_md_referencing_removed_plan]"
 echo "$dry_run_output" | grep -Fq -- "- README.md"
 echo "$dry_run_output" | grep -Fq "project_path_source: --project-path"
@@ -92,6 +98,7 @@ bash "$entrypoint" --project-path "$repo_one" --keep-plan b-plan --execute >/dev
 [[ -f "${repo_one}/docs/reports/retained.md" ]]
 [[ -f "${repo_one}/docs/reports/mixed.md" ]]
 [[ -f "${repo_one}/docs/specs/a-policy.md" ]]
+[[ -f "${repo_one}/docs/runbooks/heuristic-system/error-inbox/a-gap.md" ]]
 [[ -f "${repo_one}/docs/runbooks/report-consumer.md" ]]
 
 repo_two="${tmp_root}/repo-two"
@@ -100,6 +107,7 @@ setup_repo "$repo_two"
 bash "$entrypoint" --project-path "$repo_two" --keep-plan b-plan --execute --delete-important >/dev/null
 [[ ! -f "${repo_two}/docs/specs/a-policy.md" ]]
 [[ -f "${repo_two}/docs/reports/retained.md" ]]
+[[ -f "${repo_two}/docs/runbooks/heuristic-system/error-inbox/a-gap.md" ]]
 
 repo_three="${tmp_root}/repo-three"
 setup_repo "$repo_three"

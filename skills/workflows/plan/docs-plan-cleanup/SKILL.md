@@ -76,13 +76,18 @@ Failure modes:
      docs by default because they are execution coordination artifacts.
    - `plan_related_md_kept_referenced_elsewhere` are protected from auto-delete.
    - `plan_related_md_to_rehome` should be consolidated before deletion.
+   - HEURISTIC_SYSTEM `error-inbox/` and `operation-records/` entries are
+     retained records. They are manual-review items, not auto-delete candidates,
+     even when they reference a removed plan.
 4. Apply cleanup after review:
 
    ```bash
    bash $AGENT_HOME/skills/workflows/plan/docs-plan-cleanup/scripts/docs-plan-cleanup.sh --project-path /path/to/project --keep-plan active-plan --execute --delete-empty-dirs
    ```
 
-5. Use `--delete-important` only when you are sure `docs/specs/**` and `docs/runbooks/**` candidates are obsolete.
+5. Use `--delete-important` only when you are sure `docs/specs/**` and
+   `docs/runbooks/**` candidates are obsolete. This still must not delete
+   HEURISTIC_SYSTEM `error-inbox/` or `operation-records/` entries.
 
 ## Output and clarification rules
 

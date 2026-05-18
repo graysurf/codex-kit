@@ -22,7 +22,8 @@ plan that consumes them. Promote or rewrite them into domain docs/runbooks only
 when they have value after execution.
 
 Prefer deleting obsolete coordination docs after completion and reference checks. Keep or rehome retained evidence, audit material, and
-diagnostic artifacts when project policy or future validation needs require them.
+diagnostic artifacts when project policy or future validation needs require them. For HEURISTIC_SYSTEM gaps that remain unfixed after
+execution, write or preserve a curated `docs/runbooks/heuristic-system/error-inbox/` entry before deleting the temporary plan source.
 
 ## Workflow Roles
 
@@ -44,4 +45,5 @@ Delete stale coordination docs once they are complete, unreferenced, and no long
 drifting from maintained code and tests.
 
 Do not delete retained evidence, diagnostic artifacts, raw run outputs, or compliance/audit material unless project retention rules and the
-user's cleanup request explicitly allow it.
+user's cleanup request explicitly allow it. Treat HEURISTIC_SYSTEM `error-inbox/` and `operation-records/` entries as maintained records,
+not stale coordination docs.
