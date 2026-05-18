@@ -108,6 +108,8 @@ def _run_script(
     state_path.write_text("0", encoding="utf-8")
 
     env = os.environ.copy()
+    for key in ("AGENT_HOME", "AGENT_DOCS_HOME", "PROJECT_PATH"):
+        env.pop(key, None)
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
     env["AGENT_DOCS_STUB_LOG"] = str(log_path)
     env["AGENT_DOCS_STUB_STATE"] = str(state_path)
