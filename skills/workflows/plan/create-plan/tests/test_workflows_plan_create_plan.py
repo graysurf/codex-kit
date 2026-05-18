@@ -83,4 +83,4 @@ def test_shared_plan_template_includes_optional_base_execution_metadata() -> Non
 
     assert "**PR grouping intent**: `<optional: per-sprint|group>`" in shared
     assert "**Execution Profile**: `<optional: serial|parallel-xN>`" in shared
-    assert "<optional for create-plan; required for create-plan-rigorous>" in shared
+    assert "<optional for create-plan; required for create-dispatch-plan>" in shared

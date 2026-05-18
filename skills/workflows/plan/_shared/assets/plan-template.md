@@ -29,10 +29,10 @@
 
 **PR grouping intent**: `<optional: per-sprint|group>`
 **Execution Profile**: `<optional: serial|parallel-xN>`
-**TotalComplexity**: `<rigorous or sizing-heavy plans>`
-**CriticalPathComplexity**: `<rigorous or sizing-heavy plans>`
-**MaxBatchWidth**: `<rigorous or sizing-heavy plans>`
-**OverlapHotspots**: `<rigorous or sizing-heavy plans>`
+**TotalComplexity**: `<dispatch or sizing-heavy plans>`
+**CriticalPathComplexity**: `<dispatch or sizing-heavy plans>`
+**MaxBatchWidth**: `<dispatch or sizing-heavy plans>`
+**OverlapHotspots**: `<dispatch or sizing-heavy plans>`
 
 ### Task 1.1: `<Name>`
 
@@ -42,7 +42,7 @@
 - **Dependencies**:
   - `<task IDs or "none">`
 - **Complexity**:
-  - `<optional for create-plan; required for create-plan-rigorous>`
+  - `<optional for create-plan; required for create-dispatch-plan>`
 - **Acceptance criteria**:
   - ...
 - **Validation**:

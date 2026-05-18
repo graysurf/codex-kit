@@ -1,21 +1,23 @@
 ---
-name: create-plan-rigorous
+name: create-dispatch-plan
 description:
-  Create an extra-thorough implementation plan (sprints + atomic tasks) and get a subagent review. Use when the user wants a more rigorous
-  plan than usual. Do not use as the primary artifact when the user only needs a durable review finding or improvement backlog; route that
-  to review-to-improvement-doc first.
+  Create a dispatch-ready execution-modeling plan under docs/plans/<slug>/ with per-task complexity, required sprint metadata/scorecards,
+  PR grouping, split-prs validation, and subagent review. Use when the plan must be ready for sprint dispatch, PR lanes, or subagent
+  execution. Do not use as the primary artifact when the user only needs a durable review finding or improvement backlog; route that to
+  review-to-improvement-doc first.
 ---
 
-# Create Plan (Rigorous)
+# Create Dispatch Plan
 
-Build on the `create-plan` baseline, but require explicit execution modeling:
-per-task complexity, per-sprint scorecards, tighter sizing guardrails, and subagent review before finalizing.
+Build on the `create-plan` baseline, but turn the plan into a dispatch-ready execution model for sprint/PR lane handoff. It requires
+per-task complexity, per-sprint scorecards, PR grouping, `split-prs` validation, tighter sizing guardrails, and subagent review.
 
 ## Contract
 
 Prereqs:
 
-- User explicitly requests a more rigorous plan than normal.
+- User explicitly requests dispatch-ready planning, sprint/PR execution
+  modeling, or sizing/review beyond a standard plan.
 - You can spawn a review subagent.
 - `plan-tooling` available on `PATH` from `nils-cli >= 0.8.7` for scaffold/lint/parse/split flows (`scaffold`, `validate`,
   `to-json`, `batches`, `split-prs`; install via `brew install nils-cli`).
@@ -32,8 +34,8 @@ Outputs:
 - A `Read First` section that links the primary source artifact or records an
   explicit plan-only waiver.
 - A short response linking the plan path and summarizing key decisions/risks.
-- If the request is not actually a rigorous implementation plan, a short recommendation to create or reference a durable improvement doc
-  instead of forcing `docs/plans/`.
+- If the request is not actually a dispatch-ready implementation plan, a short recommendation to create or reference a durable improvement
+  doc instead of forcing `docs/plans/`.
 
 Exit codes:
 
@@ -55,25 +57,25 @@ Failure modes:
 
 1. Clarify (if needed)
 
-- If underspecified enough to block a useful rigorous plan, ask 1-5 "need to know" questions first.
+- If underspecified enough to block a useful dispatch plan, ask 1-5 "need to know" questions first.
 - Use the blocking-question format from `$AGENT_HOME/skills/workflows/conversation/requirements-gap-scan/SKILL.md`.
 
-1. Confirm that rigorous planning is the right artifact
+1. Confirm that dispatch planning is the right artifact
 
-- Use this skill only when the user needs high-rigor execution modeling: explicit sprints, atomic tasks, complexity scores, sprint
-  scorecards, PR grouping, and subagent review.
+- Use this skill only when the user needs dispatch-ready execution modeling: explicit sprints, atomic tasks, complexity scores, sprint
+  scorecards, PR grouping, `split-prs` validation, and subagent review.
 - Do not force `docs/plans/` when the request is mainly to preserve review findings, risks, lessons learned, improvement backlog, or
   "what to fix later" guidance. Use `review-to-improvement-doc` first for the durable project record.
 - Do not force `docs/plans/` when the request is mainly to preserve converged
   requirements, design, feasibility, product, or customer-facing discussion.
   Use `discussion-to-implementation-doc` first for the implementation-readiness
   source artifact.
-- If the user needs both a durable review/improvement record and a rigorous plan, keep them distinct: preserve the stable findings with
-  `review-to-improvement-doc`, then create the rigorous plan and link that document as read-first context.
+- If the user needs both a durable review/improvement record and a dispatch plan, keep them distinct: preserve the stable findings with
+  `review-to-improvement-doc`, then create the dispatch plan and link that document as read-first context.
 
 1. Establish the plan source artifact
 
-- Rigorous plans must have exactly one primary source artifact unless the user
+- Dispatch plans must have exactly one primary source artifact unless the user
   explicitly asks for a plan-only waiver.
 - For converged requirements, design, feasibility, product, architecture, or
   customer-facing discussion, first use `discussion-to-implementation-doc` or
@@ -101,7 +103,7 @@ Failure modes:
 1. Draft the plan (do not implement)
 
 - Follow the shared baseline in `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`.
-- Rigorous deltas:
+- Dispatch deltas:
   - Fill a per-task **Complexity** score (1–10).
   - Make dependencies explicit for every task and call out parallelizable work when it helps execution planning.
   - Treat each sprint as an integration gate; do not plan cross-sprint execution parallelism.
@@ -212,7 +214,7 @@ Canonical shared authoring and validation rules:
 
 - `skills/workflows/plan/_shared/references/PLAN_AUTHORING_BASELINE.md`
 
-Rigorous requirement:
+Dispatch requirement:
 
 - Fill `Complexity` for every task (int 1–10).
 - Treat sprints as sequential integration gates (no cross-sprint execution parallelism).

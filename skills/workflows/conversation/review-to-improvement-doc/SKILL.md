@@ -27,7 +27,7 @@ Outputs:
 - A repo-local improvement source document. When it exists to feed plan execution, save it under
   `docs/plans/<slug>/<slug>-review-source.md` by default.
 - If the document is long-lived knowledge rather than execution coordination, save it in the relevant domain docs/runbook area instead.
-- A source artifact that `create-plan` or `create-plan-rigorous` can link under
+- A source artifact that `create-plan` or `create-dispatch-plan` can link under
   `Read First` when execution sequencing is needed.
 - An `Execution` section with executable backlog, validation gates, and execution-state link when the review record should drive later
   implementation.
@@ -41,7 +41,7 @@ Exit codes:
 
 Failure modes:
 
-- The user actually needs an implementation plan; use `create-plan` or `create-plan-rigorous` instead.
+- The user actually needs an implementation plan; use `create-plan` or `create-dispatch-plan` instead.
 - The user needs a durable requirements, design, feasibility, or customer-facing discussion handoff for later implementation; use
   `discussion-to-implementation-doc` instead.
 - The user only needs a copy-ready next-session prompt; use `handoff-session-prompt` instead.
@@ -56,7 +56,7 @@ Failure modes:
    - Do not use this skill for converged requirements, design, feasibility, or product discussion handoffs whose primary reader is the next
      implementer. Use `discussion-to-implementation-doc` for that artifact.
    - Do not turn it into a phased implementation plan. If the user also wants execution sequencing, write the durable improvement doc first,
-     then use `create-plan` or `create-plan-rigorous` and link the doc as read-first context.
+     then use `create-plan` or `create-dispatch-plan` and link the doc as read-first context.
    - Treat this document as the primary source artifact for later plan
      generation when the source material is review findings, risks, lessons
      learned, validation guardrails, or a fix-later backlog.
@@ -128,7 +128,7 @@ Failure modes:
   an execution-state path or enough context to create one.
 - `create-plan`: use after this skill when the user wants phases, sprints, atomic tasks, PR grouping, or validation sequencing; link this
   document under the plan's `Read First` section as the primary source.
-- `create-plan-rigorous`: use after this skill when the user wants sizing, sprint scorecards, subagent review, or high-rigor execution
-  modeling; link this document under the plan's `Read First` section as the primary source.
+- `create-dispatch-plan`: use after this skill when the user wants sizing, sprint scorecards, PR grouping, subagent review, or
+  dispatch-ready execution modeling; link this document under the plan's `Read First` section as the primary source.
 - `handoff-session-prompt`: use after this skill when the user wants a copy-ready prompt for a fresh session; put this durable doc under
   `Read First`.

@@ -49,7 +49,7 @@ Accepted source documents include:
 
 - `discussion-to-implementation-doc` implementation handoffs.
 - `review-to-improvement-doc` improvement records with executable backlog.
-- `create-plan` or `create-plan-rigorous` plans.
+- `create-plan` or `create-dispatch-plan` plans.
 - Hand-written project docs that carry the same execution contract.
 
 Required source content:
@@ -151,7 +151,7 @@ Do not treat `review-evidence.json` as the primary source document. Link it as e
 
 - `discussion-to-implementation-doc`: creates implementation handoffs that can become execution-ready sources.
 - `review-to-improvement-doc`: creates improvement records; use this skill after the record has executable backlog and validation gates.
-- `create-plan` / `create-plan-rigorous`: create execution-ready plans; use this skill to resume implementation from those plans.
+- `create-plan` / `create-dispatch-plan`: create execution-ready plans; use this skill to resume implementation from those plans.
 - `execute-plan-parallel`: use only when the user explicitly wants plan execution through parallel subagents.
 - `durable-artifact-cleanup`: use after execution is complete and the source/progress docs are no longer needed as maintained records.
 - `handoff-session-prompt`: use when a fresh session prompt is needed; point it at the source document and execution state instead of

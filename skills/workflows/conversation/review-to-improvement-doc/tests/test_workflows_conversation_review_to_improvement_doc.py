@@ -59,4 +59,4 @@ def test_review_to_improvement_doc_can_be_plan_source() -> None:
     assert "Promote or rewrite into domain docs/runbooks" in text
     assert "cleanup after execution or promotion candidate" in text
     assert "plan's `Read First` section as the primary source" in text
-    assert "`create-plan-rigorous`" in text
+    assert "`create-dispatch-plan`" in text

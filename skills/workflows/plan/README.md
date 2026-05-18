@@ -11,7 +11,7 @@ Use durable artifacts when discussion, review, planning, execution, or handoff m
 1. `requirements-gap-scan` when missing requirements would change scope, safety, or done criteria.
 2. `discussion-to-implementation-doc` for converged requirements/design discussion that should become implementation-ready context.
 3. `review-to-improvement-doc` for review findings, risks, lessons learned, or fix-later backlog.
-4. `create-plan` or `create-plan-rigorous` when a primary source artifact needs phases, tasks, ownership lanes, or validation sequencing.
+4. `create-plan` or `create-dispatch-plan` when a primary source artifact needs phases, tasks, ownership lanes, or validation sequencing.
 5. `execute-from-implementation-doc` when an implementation handoff, improvement record, or plan should drive long-running execution with an
    execution-state ledger.
 6. `handoff-session-prompt` only when a fresh session prompt is needed; point it at the maintained source doc and execution state.
@@ -27,8 +27,8 @@ execution, write or preserve a curated `heuristic-system/error-inbox/` entry bef
 
 ## Workflow Roles
 
-- `create-plan`: create a phased implementation plan under `docs/plans/<slug>/`.
-- `create-plan-rigorous`: create a higher-rigor plan with stronger sizing and execution metadata.
+- `create-plan`: create a standard execution-ready implementation plan under `docs/plans/<slug>/`.
+- `create-dispatch-plan`: create a dispatch-ready execution model with sprint metadata, sizing scorecards, PR grouping, and subagent review.
 - Plan skills require one primary source artifact under `Read First` unless the
   user explicitly asks for a plan-only waiver.
 - `discussion-to-implementation-doc` and `review-to-improvement-doc`: create

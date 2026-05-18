@@ -29,7 +29,7 @@ Outputs:
 - A repo-local implementation-readiness source document. When it exists to feed plan execution, save it under
   `docs/plans/<slug>/<slug>-discussion-source.md` by default.
 - If the document is long-lived knowledge rather than execution coordination, save it in the relevant domain docs/runbook area instead.
-- A source artifact that `create-plan` or `create-plan-rigorous` can link under
+- A source artifact that `create-plan` or `create-dispatch-plan` can link under
   `Read First` when execution sequencing is needed.
 - An `Execution` section with an execution-state link or creation recommendation when the document is intended to drive long-running
   implementation work.
@@ -46,7 +46,7 @@ Exit codes:
 Failure modes:
 
 - The user actually needs phased tasks, sprint grouping, PR splitting, or detailed execution sequencing; use `create-plan` or
-  `create-plan-rigorous` instead.
+  `create-dispatch-plan` instead.
 - The user only needs a copy-ready prompt for a fresh session; use `handoff-session-prompt` instead.
 - The user wants to preserve review findings, risk register entries, lessons learned, or fix-later backlog; use
   `review-to-improvement-doc` instead.
@@ -131,8 +131,8 @@ Failure modes:
 - `review-to-improvement-doc`: use when the durable artifact is a review finding, improvement backlog, risk register, or fix-later record.
 - `create-plan`: use after this skill when implementation needs phases, tasks, ownership lanes, PR grouping, or validation sequencing; link
   this document under the plan's `Read First` section as the primary source.
-- `create-plan-rigorous`: use after this skill when implementation also needs sizing, scorecards, and review; link this document under the
-  plan's `Read First` section as the primary source.
+- `create-dispatch-plan`: use after this skill when implementation also needs sizing, scorecards, PR grouping, and review; link this
+  document under the plan's `Read First` section as the primary source.
 - `execute-from-implementation-doc`: use after this skill when the handoff should become the execution source of truth across sessions.
 - `handoff-session-prompt`: use after this skill when the user wants a copy-ready prompt for a fresh session; put this document under
   `Read First`.

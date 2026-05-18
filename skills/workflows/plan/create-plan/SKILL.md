@@ -1,10 +1,9 @@
 ---
 name: create-plan
 description:
-  Create a comprehensive, phased implementation plan and save it under a dedicated docs/plans/<slug>/ folder. Use when the user asks for an
-  implementation plan (make a plan, outline the steps, break down tasks, etc.). Do not use as the primary artifact when the user only needs
-  a durable review finding, improvement backlog, or handoff record; route that to review-to-improvement-doc, discussion-to-implementation-doc, or
-  handoff-session-prompt as appropriate.
+  Create a standard execution-ready implementation plan under docs/plans/<slug>/ with phases/sprints, atomic tasks, dependencies,
+  validation, and Read First source context. Use when the user asks to plan implementation or split work. For required complexity scoring,
+  sprint scorecards, PR grouping, or subagent-reviewed execution modeling, use create-dispatch-plan.
 ---
 
 # Create Plan

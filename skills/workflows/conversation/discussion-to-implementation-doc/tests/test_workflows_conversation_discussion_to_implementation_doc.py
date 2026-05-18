@@ -52,7 +52,7 @@ def test_discussion_to_implementation_doc_can_be_plan_source() -> None:
     assert "Promote or rewrite into domain docs/runbooks" in text
     assert "cleanup after execution or promotion candidate" in text
     assert "plan's `Read First` section as the primary source" in text
-    assert "`create-plan-rigorous`" in text
+    assert "`create-dispatch-plan`" in text
 
 
 def test_discussion_to_implementation_doc_documents_skill_usage_recording_pilot() -> None:

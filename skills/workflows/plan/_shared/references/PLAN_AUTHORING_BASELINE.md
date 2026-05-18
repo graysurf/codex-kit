@@ -1,6 +1,6 @@
 # Plan Authoring Baseline
 
-Shared baseline guidance for `create-plan` and `create-plan-rigorous`.
+Shared baseline guidance for `create-plan` and `create-dispatch-plan`.
 
 Use this doc for the common plan-writing and executability rules. The shared
 markdown template is a scaffold, not the full source of truth for workflow
@@ -51,11 +51,11 @@ policy.
 - The shared template includes a `Complexity` field:
   - `create-plan`: fill it when complexity materially affects
     batching/splitting or when a task looks oversized.
-  - `create-plan-rigorous`: fill it for every task.
+  - `create-dispatch-plan`: fill it for every task.
 - The shared template also includes sprint execution placeholders:
   - Grouping metadata (`PR grouping intent`, `Execution Profile`) for plans
     that need explicit execution modeling.
-  - Rigorous scorecard fields (`TotalComplexity`, `CriticalPathComplexity`,
+  - Dispatch scorecard fields (`TotalComplexity`, `CriticalPathComplexity`,
     `MaxBatchWidth`, `OverlapHotspots`) for sizing-heavy plans.
 
 ## Save and lint
