@@ -55,6 +55,9 @@ only when they are intentionally retained as migration history.
   - `skill-usage verify --out <dir> --format json`
   - `skill-usage show --out <dir> --format json`
 - Artifact contract: `skill-usage.record.json` with record schema `skill-usage.record.v1`.
+- Serial-write rule: do not run multiple `skill-usage` write commands against
+  the same `--out` directory concurrently; serialize writes and verify after the
+  final update.
 - Durable unresolved workflow gaps: keep raw `skill-usage.record.json` in its
   evidence location, then commit a curated tracker under
   `heuristic-system/error-inbox/` when the gap must not be lost. Use
@@ -76,10 +79,11 @@ only when they are intentionally retained as migration history.
     `$AGENT_HOME/skills/workflows/heuristic-system/heuristic-error-inbox/scripts/heuristic-error-inbox.sh`
   - Commands: `list`, `verify <entry.md>`,
     `new --from-skill-usage <record-dir> --slug <slug>`, and
-    `set-status <entry.md> --status <status>`.
+    `set-status <entry.md> --status <status>`, and
+    `archive <entry.md> --dry-run|--link <path-or-url>`.
 - Boundary: skills own judgment about whether a gap deserves retention, while
   this script owns deterministic list, verify, draft creation, duplicate
-  detection, and status-line updates.
+  detection, status-line updates, and archive moves for completed records.
 
 ## Skill management
 
@@ -215,6 +219,8 @@ only when they are intentionally retained as migration history.
   - `model-cross-check init|record-observation|verify|show`
   - `review-evidence init|record-finding|record-validation|verify|show`
   - `skill-usage init|link-record|record-failure|record-validation|record-outcome|verify|show`
+  - Serialize write commands against one `--out` directory; primitive-level
+    locking belongs in nils-cli if workflow policy is not enough.
 - Artifact contracts:
   - `browser-session.json` with record schema `browser-session.record.v1`.
   - `canary-check.json` with record schema `canary-check.record.v1`.

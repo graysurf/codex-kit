@@ -11,6 +11,7 @@ from typing import Any
 
 
 VALID_STATUSES = {"open", "triaged", "planned", "promoted", "wontfix"}
+ARCHIVE_READY_STATUSES = {"promoted", "wontfix"}
 VALID_SEVERITIES = {"low", "medium", "high"}
 REQUIRED_SECTIONS = (
     "Status",
@@ -153,7 +154,7 @@ def parse_entry(path: Path) -> dict[str, Any]:
     }
 
 
-def entry_json(parsed: dict[str, Any]) -> dict[str, Any]:
+def entry_json(parsed: dict[str, Any], *, archived: bool = False) -> dict[str, Any]:
     fields = parsed["fields"]
     return {
         "path": str(parsed["path"]),
@@ -163,6 +164,7 @@ def entry_json(parsed: dict[str, Any]) -> dict[str, Any]:
         "area": fields.get("area", ""),
         "severity": fields.get("severity", ""),
         "raw_records": parsed["raw_records"],
+        "archived": archived,
     }
 
 
@@ -172,6 +174,17 @@ def iter_entries(inbox_dir: Path) -> list[Path]:
     return sorted(
         path
         for path in inbox_dir.glob("*.md")
+        if path.is_file() and path.name != "README.md"
+    )
+
+
+def iter_archived_entries(inbox_dir: Path) -> list[Path]:
+    archive_dir = inbox_dir / "archive"
+    if not archive_dir.exists():
+        return []
+    return sorted(
+        path
+        for path in archive_dir.rglob("*.md")
         if path.is_file() and path.name != "README.md"
     )
 
@@ -246,6 +259,172 @@ def verify_entry(path: Path, inbox_dir: Path | None = None) -> dict[str, Any]:
         "violations": [item.to_json() for item in violations],
         "warnings": [],
     }
+
+
+def normalize_archive_date(value: str) -> str:
+    if not value:
+        return dt.date.today().isoformat()
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", value):
+        raise CommandError(f"invalid archive date: {value}", exit_code=2)
+    return value
+
+
+def next_action_is_closed(value: str) -> bool:
+    return bool(re.match(r"(?is)^none\b[.:]?", value.strip()))
+
+
+def evidence_bullets(evidence_section: str) -> list[str]:
+    bullets: list[str] = []
+    current: list[str] = []
+    for line in evidence_section.splitlines():
+        if line.strip().casefold().startswith("relevant evidence summary"):
+            break
+        if line.startswith("- "):
+            if current:
+                bullets.append(" ".join(item.strip() for item in current).strip())
+            current = [line[2:]]
+            continue
+        if current and line.startswith("  "):
+            current.append(line)
+    if current:
+        bullets.append(" ".join(item.strip() for item in current).strip())
+    return bullets
+
+
+def durable_evidence_links(evidence_section: str, explicit_link: str = "") -> list[str]:
+    links: list[str] = []
+    seen: set[str] = set()
+
+    def add_link(value: str) -> None:
+        if value and value not in seen:
+            seen.add(value)
+            links.append(value)
+
+    if explicit_link:
+        add_link(explicit_link)
+    for bullet in evidence_bullets(evidence_section):
+        label, _, body = bullet.partition(":")
+        normalized_label = normalize_text(label)
+        if normalized_label in {"raw record", "summary"}:
+            continue
+        candidate = body.strip() or bullet
+        if "skill-usage.record.json" in candidate:
+            continue
+        for url in re.findall(r"https?://[^\s`)]+", candidate):
+            add_link(url)
+        for token in re.findall(r"`([^`]+)`", candidate):
+            if "skill-usage.record.json" in token or re.search(r"\s", token):
+                continue
+            if "/" in token and not token.startswith("http"):
+                add_link(token)
+    return links
+
+
+def archive_destination(entry: Path, archive_root: Path, archive_date: str) -> Path:
+    return archive_root / archive_date[:4] / entry.name
+
+
+def render_archive_section(*, archive_date: str, reason: str, link: str) -> str:
+    lines = [
+        "## Archive",
+        "",
+        f"- Archived: {archive_date}",
+        f"- Reason: {reason}",
+    ]
+    if link:
+        lines.append(f"- Durable link: `{link}`")
+    return "\n".join(lines) + "\n"
+
+
+def upsert_archive_section(text: str, *, archive_date: str, reason: str, link: str) -> str:
+    section = render_archive_section(archive_date=archive_date, reason=reason, link=link)
+    pattern = r"(?ms)^## Archive\n\n.*?(?=^## |\Z)"
+    if re.search(pattern, text):
+        return re.sub(pattern, section.rstrip() + "\n\n", text, count=1).rstrip() + "\n"
+    return text.rstrip() + "\n\n" + section
+
+
+def archive_entry(args: argparse.Namespace) -> dict[str, Any]:
+    path = args.entry
+    inbox_dir = args.inbox_dir
+    archive_date = normalize_archive_date(args.date)
+    archive_root = args.archive_root or (inbox_dir / "archive")
+    destination = archive_destination(path, archive_root, archive_date)
+    reason = args.reason or "Completed entry archived out of the active error inbox."
+
+    verification = verify_entry(path, inbox_dir)
+    parsed = parse_entry(path)
+    sections = parsed["sections"]
+    fields = parsed["fields"]
+    violations = [Violation(item["kind"], item["message"]) for item in verification["violations"]]
+
+    status = fields.get("status", "")
+    if status not in ARCHIVE_READY_STATUSES:
+        violations.append(
+            Violation(
+                "archive_status",
+                "archive requires a closed status: promoted or wontfix",
+            )
+        )
+
+    next_action = sections.get("Next Action", "").strip()
+    if not next_action_is_closed(next_action):
+        violations.append(
+            Violation(
+                "archive_next_action",
+                "archive requires Next Action to start with None.",
+            )
+        )
+
+    durable_links = durable_evidence_links(sections.get("Evidence", ""), args.link)
+    if not durable_links:
+        violations.append(
+            Violation(
+                "archive_missing_durable_link",
+                "archive requires a durable outcome link outside the raw record",
+            )
+        )
+
+    if destination.exists():
+        violations.append(
+            Violation(
+                "archive_target_exists",
+                f"archive target already exists: {destination}",
+            )
+        )
+
+    payload: dict[str, Any] = {
+        "ok": not violations,
+        "archive_ready": not violations,
+        "dry_run": bool(args.dry_run),
+        "path": str(destination),
+        "source": str(path),
+        "destination": str(destination),
+        "status": status,
+        "durable_links": durable_links,
+        "violations": [item.to_json() for item in violations],
+        "warnings": [],
+    }
+    if violations:
+        return payload
+    if args.dry_run:
+        return payload
+
+    text = read_text(path)
+    write_text(
+        destination,
+        upsert_archive_section(
+            text,
+            archive_date=archive_date,
+            reason=reason,
+            link=args.link,
+        ),
+    )
+    try:
+        path.unlink()
+    except OSError as exc:
+        raise CommandError(f"failed to remove archived source {path}: {exc}") from exc
+    return payload
 
 
 def print_payload(payload: dict[str, Any], output_format: str, *, failure_to_stderr: bool = True) -> None:
@@ -407,10 +586,18 @@ def command_list(args: argparse.Namespace) -> int:
     entries = []
     for path in iter_entries(args.inbox_dir):
         parsed = parse_entry(path)
-        item = entry_json(parsed)
+        item = entry_json(parsed, archived=False)
         if statuses and item["status"] not in statuses:
             continue
         entries.append(item)
+    if args.include_archived:
+        for path in iter_archived_entries(args.inbox_dir):
+            parsed = parse_entry(path)
+            item = entry_json(parsed, archived=True)
+            if statuses and item["status"] not in statuses:
+                continue
+            entries.append(item)
+    entries.sort(key=lambda item: item["path"])
     print_payload({"ok": True, "entries": entries}, args.format)
     return 0
 
@@ -433,6 +620,12 @@ def command_set_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_archive(args: argparse.Namespace) -> int:
+    payload = archive_entry(args)
+    print_payload(payload, args.format)
+    return 0 if payload.get("ok") else 1
+
+
 def add_format(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--format", choices=("text", "json"), default="text", help="Output format: text or json.")
 
@@ -440,7 +633,7 @@ def add_format(parser: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="heuristic-error-inbox.sh",
-        usage="heuristic-error-inbox.sh <list|verify|new|set-status> [options]",
+        usage="heuristic-error-inbox.sh <list|verify|new|set-status|archive> [options]",
         description="Manage curated HEURISTIC_SYSTEM error-inbox entries.",
         epilog="Common output option: --format text|json",
     )
@@ -449,6 +642,7 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser = subparsers.add_parser("list", help="List inbox entries.")
     list_parser.add_argument("--inbox-dir", type=Path, default=default_inbox_dir())
     list_parser.add_argument("--status", default="", help="Comma-separated lifecycle status filter.")
+    list_parser.add_argument("--include-archived", action="store_true", help="Include archived entries.")
     add_format(list_parser)
     list_parser.set_defaults(func=command_list)
 
@@ -477,6 +671,17 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser.add_argument("--next-action", default="")
     add_format(status_parser)
     status_parser.set_defaults(func=command_set_status)
+
+    archive_parser = subparsers.add_parser("archive", help="Move a completed entry out of the active inbox.")
+    archive_parser.add_argument("entry", type=Path)
+    archive_parser.add_argument("--inbox-dir", type=Path, default=default_inbox_dir())
+    archive_parser.add_argument("--archive-root", type=Path, default=None)
+    archive_parser.add_argument("--date", default="")
+    archive_parser.add_argument("--link", default="")
+    archive_parser.add_argument("--reason", default="")
+    archive_parser.add_argument("--dry-run", action="store_true")
+    add_format(archive_parser)
+    archive_parser.set_defaults(func=command_archive)
 
     return parser
 

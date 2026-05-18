@@ -4,10 +4,9 @@
 
 - Date: 2026-05-18
 - Source type: discussion-to-implementation-doc
-- Status: ready for implementation planning
-- Intended next step: use this source to plan heuristic-system inbox completion,
-  retention, operation-record, compression, and `skill-usage` write-locking
-  follow-up.
+- Status: implementation complete locally
+- Intended next step: use the execution state for validation evidence and any
+  delivery follow-up.
 - Recommended execution state:
   `docs/plans/heuristic-system-retention-follow-up/heuristic-system-retention-follow-up-execution-state.md`
 
@@ -19,7 +18,7 @@ fixed and validated; this document preserves the independent system-level gaps
 for later implementation without keeping the GitLab inbox entry open.
 
 The completion of
-`heuristic-system/error-inbox/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md`
+`heuristic-system/error-inbox/archive/2026/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md`
 also exposed a practical skill-design question: agents need a clear way to turn
 a promoted inbox entry into a self-contained completion record without leaving
 future-system follow-up text inside the completed entry.
@@ -208,7 +207,7 @@ commands in the future plan.
   `docs/plans/heuristic-system-retention-follow-up/heuristic-system-retention-follow-up-plan.md`
 - Recommended execution-state path:
   `docs/plans/heuristic-system-retention-follow-up/heuristic-system-retention-follow-up-execution-state.md`
-- Current execution status: not started.
+- Current execution status: complete locally.
 
 ## Retention Intent
 
@@ -233,7 +232,7 @@ plan cleanup flow.
 
 ## Read-First References
 
-- `heuristic-system/error-inbox/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md`
+- `heuristic-system/error-inbox/archive/2026/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md`
 - `heuristic-system/error-inbox/README.md`
 - `heuristic-system/README.md`
 - `HEURISTIC_SYSTEM.md`

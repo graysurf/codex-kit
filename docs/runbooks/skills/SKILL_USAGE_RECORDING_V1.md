@@ -44,6 +44,11 @@ agent-out project --topic skill-usage --mkdir
 Store the top-level invocation envelope as `skill-usage.record.json`. Link typed
 child evidence by path instead of copying it into the envelope.
 
+Do not run multiple `skill-usage` write commands against the same `--out`
+directory concurrently. Serialize `init`, `link-record`, `record-failure`,
+`record-validation`, and `record-outcome` calls for one record directory, then
+run `skill-usage verify --out <record-dir> --format json` after the final write.
+
 Do not commit raw runtime records by default. Commit only curated records when
 they are intentionally part of a review, incident, audit, or documentation
 fixture, or when they have been compressed into durable docs, tests, or skill
@@ -204,7 +209,12 @@ transition/reference fallback only.
 the `nils-agent-workflow-primitives` crate and is available in nils-cli 0.8.5 or
 newer. Keep deterministic writing, redaction, schema validation, and JSON
 envelope behavior in nils-cli. Keep workflow judgment, record requirements,
-promotion, and compression policy in agent-kit skills and runbooks.
+promotion, compression policy, and serial-write discipline in agent-kit skills
+and runbooks.
+
+If agents still need concurrent writes to the same record directory, create a
+paired nils-cli plan for primitive-level locking or atomic update guarantees.
+Do not implement a second writer in agent-kit.
 
 Command surface:
 

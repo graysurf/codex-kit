@@ -77,23 +77,37 @@ not fixed in the same turn. Keep raw runtime records in their evidence location;
 commit only a short tracker entry with the signal, evidence pointer, impact,
 workaround, promotion criteria, and next action.
 
-Store unresolved gap entries under `heuristic-system/error-inbox/`.
-Move or compress an entry into `operation-records/` after the gap is fixed and
-validated, or close it in place when the project accepts the risk.
+Store active unresolved gap entries as top-level files under
+`heuristic-system/error-inbox/`. After a gap is fixed, validated, and no longer
+has a next action, keep its status as `promoted` or `wontfix` and archive the
+entry under `heuristic-system/error-inbox/archive/YYYY/` so the active inbox does
+not become a stale backlog.
+
+Archiving an inbox entry does not delete curated evidence or raw evidence
+pointers. It only moves a self-contained completion record out of the active
+queue after durable outcome links exist and unrelated future work has been moved
+to a separate issue, plan, or source document.
+
 Use the `heuristic-error-inbox` workflow skill when an agent needs to create,
-verify, deduplicate, triage, or update these entries.
+verify, deduplicate, triage, update, or archive these entries.
 
 ## Operation Records
 
 Use curated operation records when a retained workflow failure is important
-enough to prove that the heuristic loop actually operated. Keep raw runtime
-records in their evidence location; commit only the compressed record that names
-the signal, evidence, diagnosis, promotion decision, durable fix, validation, and
-retention outcome.
+enough to prove that the heuristic loop actually operated across a broader
+workflow surface. Keep raw runtime records in their evidence location; commit
+only the compressed record that names the signal, evidence, diagnosis, promotion
+decision, durable fix, validation, and retention outcome.
 
 Store operation records under `heuristic-system/operation-records/`
 when they should remain visible after temporary plan or execution documents are
 cleaned up.
+
+Operation records are not required for every promoted inbox entry. A focused
+test, script fix, runbook update, or skill policy update is enough when it fully
+captures a local lesson. Prefer an operation record when the signal is repeated,
+cross-skill, audit-worthy, or useful as proof that retained evidence was
+compressed into durable system behavior.
 
 ## Compression Rule
 
@@ -105,9 +119,14 @@ local exceptions, retries, or failure notes, compress them:
 3. Replace repeated prose with a test, guardrail, or script when practical.
 4. Remove or archive obsolete coordination notes only after the durable lesson is
    represented elsewhere.
-5. Close or promote resolved `error-inbox/` entries so the inbox does not become
-   a stale backlog.
+5. Archive resolved `error-inbox/` entries after they are `promoted` or
+   `wontfix`, have durable outcome links, and have no remaining next action.
 6. Keep the public skill surface smaller and clearer after compression.
+
+Add a dedicated `heuristic-compression-review` skill only after several related
+archived inbox or operation records prove a repeatable command surface. Until
+then, use the checklist above and keep compression work inside the narrow
+workflow skill or implementation plan that owns the records.
 
 ## Boundaries
 

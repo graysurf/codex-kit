@@ -132,3 +132,9 @@ true:
 
 None. The GitLab MR workflow gap is resolved by PR #254 and live MR !104
 validation. Durable outcome links are recorded in Evidence.
+
+## Archive
+
+- Archived: 2026-05-18
+- Reason: Resolved by PR #254 and archived out of the active error inbox.
+- Durable link: `https://github.com/graysurf/agent-kit/pull/254`

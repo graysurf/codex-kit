@@ -51,6 +51,10 @@ This was promoted as a HEURISTIC_SYSTEM operation case because it was:
 - valuable as proof that retained evidence can become tests, scripts, skill
   policy, and an operation record.
 
+Not every promoted inbox entry needs an operation record. This one qualifies
+because the retained signal affected a broad delivery workflow, produced shared
+script behavior, and is useful as audit evidence for the HEURISTIC_SYSTEM loop.
+
 ## Durable Fix
 
 - Added focused regression tests for required checks passing while optional

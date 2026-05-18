@@ -6,7 +6,7 @@
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "heuristic-error-inbox\\.sh <list\\|verify\\|new\\|set-status>"
+        "stdout_regex": "heuristic-error-inbox\\.sh <list\\|verify\\|new\\|set-status\\|archive>"
       }
     },
     {
@@ -22,7 +22,7 @@
       "name": "verify-existing-entry",
       "args": [
         "verify",
-        "heuristic-system/error-inbox/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md",
+        "heuristic-system/error-inbox/archive/2026/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md",
         "--format",
         "json"
       ],
@@ -30,6 +30,20 @@
       "expect": {
         "exit_codes": [0],
         "stdout_regex": "\"ok\": true"
+      }
+    },
+    {
+      "name": "list-include-archived",
+      "args": [
+        "list",
+        "--include-archived",
+        "--format",
+        "json"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "deliver-gitlab-mr-skipped-pipeline-and-cleanup\\.md"
       }
     }
   ]

@@ -5,8 +5,8 @@ description: Manage curated HEURISTIC_SYSTEM error-inbox lifecycle entries with 
 
 # Heuristic Error Inbox
 
-Use this skill when an unresolved HEURISTIC_SYSTEM workflow gap should be
-created, verified, triaged, routed, or moved through its retained inbox lifecycle.
+Use this skill when a HEURISTIC_SYSTEM workflow gap should be created, verified,
+triaged, routed, closed, or archived through its retained inbox lifecycle.
 
 ## Contract
 
@@ -21,7 +21,7 @@ Prereqs:
 
 Inputs:
 
-- User request to create, verify, triage, route, or update a curated
+- User request to create, verify, triage, route, update, or archive a curated
   HEURISTIC_SYSTEM error inbox entry.
 - Optional existing inbox entry path under `heuristic-system/error-inbox/`.
 - Optional verified skill usage record directory for
@@ -31,15 +31,18 @@ Inputs:
 - Optional severity: `low`, `medium`, or `high`.
 - Optional implementation plan, issue, PR/MR, operation record, or runbook link
   to preserve as lifecycle evidence.
+- Optional archive reason, archive date, archive root, dry-run mode, or durable
+  outcome link for completed entries.
 
 Outputs:
 
 - A concise recommendation about whether the gap warrants a retained inbox
-  entry, duplicate update, plan routing, promotion, or accepted-risk closure.
+  entry, duplicate update, plan routing, promotion, accepted-risk closure, or
+  archive move.
 - A curated Markdown entry under `heuristic-system/error-inbox/` when creation
   is appropriate.
-- Deterministic script output for list, verify, new, and set-status operations
-  in text or JSON.
+- Deterministic script output for list, verify, new, set-status, and archive
+  operations in text or JSON.
 - Validation evidence from the script and project checks before claiming the
   lifecycle update is complete.
 
@@ -60,6 +63,9 @@ Failure modes:
   details that should stay linked rather than copied.
 - Requested lifecycle status lacks a durable link or next action when the status
   is `planned`, `promoted`, or `wontfix`.
+- Archive is requested for an entry that is not `promoted` or `wontfix`, still
+  has actionable `Next Action` text, lacks a durable outcome link, or would
+  overwrite an existing archived record.
 - The user is actually asking to implement the underlying bug fix; route that to
   `create-plan`, `execute-from-implementation-doc`, or the provider/domain skill
   instead of fixing it inside this inbox workflow.
@@ -109,7 +115,20 @@ Failure modes:
    - For lifecycle status changes, preserve a concrete next action or durable
      outcome link.
 
-5. Route implementation work outside this skill.
+5. Archive completed entries out of the active inbox.
+   - Closed entries keep status `promoted` or `wontfix`; do not add an
+     `archived` lifecycle status.
+   - Before archiving, verify that `Next Action` starts with `None.`, durable
+     outcome evidence exists, and future follow-up has moved to a separate issue,
+     plan, or source document.
+   - Use dry-run first when reviewing an existing entry:
+
+     ```bash
+     $AGENT_HOME/skills/workflows/heuristic-system/heuristic-error-inbox/scripts/heuristic-error-inbox.sh \
+       archive heuristic-system/error-inbox/<entry>.md --dry-run --format json
+     ```
+
+6. Route implementation work outside this skill.
    - Use `create-plan` or `execute-from-implementation-doc` for planned fixes.
    - Use provider-specific PR/MR/release skills for delivery failures.
    - Promote fixed and validated lessons into operation records, tests, scripts,
@@ -122,13 +141,14 @@ heuristic-error-inbox.sh list [--inbox-dir <dir>] [--status <csv>] [--format tex
 heuristic-error-inbox.sh verify <entry.md> [--inbox-dir <dir>] [--format text|json]
 heuristic-error-inbox.sh new --from-skill-usage <record-dir> --slug <slug> [--out-dir <dir>] [--severity low|medium|high] [--format text|json]
 heuristic-error-inbox.sh set-status <entry.md> --status planned|promoted|wontfix|open|triaged [--link <path-or-url>] [--format text|json]
+heuristic-error-inbox.sh archive <entry.md> [--link <path-or-url>] [--reason <text>] [--archive-root <dir>] [--date YYYY-MM-DD] [--dry-run] [--format text|json]
 ```
 
 ## Relationship To Later Skills
 
-- `heuristic-operation-record` should be added only after at least one promoted
-  inbox entry proves the promotion surface.
-- `heuristic-compression-review` should be added only after enough records exist
-  to group repeated lessons.
+- `heuristic-operation-record` should be added only after promoted inbox entries
+  prove operation-record creation is too large for this inbox helper.
+- `heuristic-compression-review` should be added only after several related
+  archived inbox or operation records exist in one workflow family.
 - Do not add a broad `heuristic-system-lifecycle` skill until the narrower
   inbox, operation-record, and compression workflows are stable.

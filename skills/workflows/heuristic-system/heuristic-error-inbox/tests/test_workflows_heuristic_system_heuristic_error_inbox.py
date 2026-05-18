@@ -34,6 +34,8 @@ def write_entry(
     status: str = "open",
     severity: str = "medium",
     raw_record: str = "out/projects/example/skill-usage.record.json",
+    evidence_extra: str = "- Durable fix: `docs/fix.md`\n",
+    next_action: str = "Create a focused implementation plan.",
 ) -> None:
     path.write_text(
         f"""# {title}
@@ -53,6 +55,7 @@ The fixture workflow gap was observed and needs triage.
 
 - Raw record: `{raw_record}`
 - Summary: fixture evidence summary
+{evidence_extra.rstrip()}
 
 ## Impact
 
@@ -68,7 +71,7 @@ Promote after a durable fix and validation are linked.
 
 ## Next Action
 
-Create a focused implementation plan.
+{next_action}
 """,
         encoding="utf-8",
     )
@@ -130,7 +133,7 @@ def test_heuristic_error_inbox_help_lists_commands() -> None:
     proc = run_script("--help")
 
     assert proc.returncode == 0
-    assert "heuristic-error-inbox.sh <list|verify|new|set-status>" in proc.stdout
+    assert "heuristic-error-inbox.sh <list|verify|new|set-status|archive>" in proc.stdout
     assert "--format text|json" in proc.stdout
 
 
@@ -205,6 +208,28 @@ def test_heuristic_error_inbox_list_outputs_json(tmp_path: Path) -> None:
     assert payload["ok"] is True
     assert payload["entries"][0]["status"] == "triaged"
     assert payload["entries"][0]["severity"] == "high"
+    assert payload["entries"][0]["archived"] is False
+
+
+def test_heuristic_error_inbox_list_excludes_archived_by_default(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    archive = inbox / "archive" / "2026"
+    archive.mkdir(parents=True)
+    inbox.mkdir(parents=True, exist_ok=True)
+    write_entry(inbox / "active-gap.md", status="open")
+    write_entry(archive / "archived-gap.md", status="promoted", next_action="None. Done.")
+
+    active_proc = run_script("list", "--inbox-dir", str(inbox), "--format", "json")
+    archived_proc = run_script("list", "--inbox-dir", str(inbox), "--include-archived", "--format", "json")
+
+    assert active_proc.returncode == 0, active_proc.stderr
+    assert archived_proc.returncode == 0, archived_proc.stderr
+    active_payload = json.loads(active_proc.stdout)
+    archived_payload = json.loads(archived_proc.stdout)
+    assert [Path(item["path"]).name for item in active_payload["entries"]] == ["active-gap.md"]
+    assert {Path(item["path"]).name for item in archived_payload["entries"]} == {"active-gap.md", "archived-gap.md"}
+    archived_item = next(item for item in archived_payload["entries"] if Path(item["path"]).name == "archived-gap.md")
+    assert archived_item["archived"] is True
 
 
 def test_heuristic_error_inbox_new_from_skill_usage_redacts_raw_details(tmp_path: Path) -> None:
@@ -259,3 +284,158 @@ def test_heuristic_error_inbox_set_status_updates_status_and_link(tmp_path: Path
     text = entry.read_text(encoding="utf-8")
     assert "- Status: planned" in text
     assert "docs/plans/example/example-plan.md" in text
+
+
+def test_heuristic_error_inbox_archive_dry_run_reports_destination(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    inbox.mkdir(parents=True)
+    entry = inbox / "fixture-gap.md"
+    write_entry(entry, status="promoted", next_action="None. Fixed and validated.")
+
+    proc = run_script(
+        "archive",
+        str(entry),
+        "--inbox-dir",
+        str(inbox),
+        "--date",
+        "2026-05-18",
+        "--dry-run",
+        "--format",
+        "json",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    payload = json.loads(proc.stdout)
+    assert payload["ok"] is True
+    assert payload["dry_run"] is True
+    assert payload["archive_ready"] is True
+    assert payload["destination"].endswith("archive/2026/fixture-gap.md")
+    assert entry.exists()
+
+
+def test_heuristic_error_inbox_archive_moves_promoted_entry(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    inbox.mkdir(parents=True)
+    entry = inbox / "fixture-gap.md"
+    write_entry(entry, status="promoted", next_action="None. Fixed and validated.")
+
+    proc = run_script(
+        "archive",
+        str(entry),
+        "--inbox-dir",
+        str(inbox),
+        "--date",
+        "2026-05-18",
+        "--reason",
+        "Fixed and compressed into docs.",
+        "--format",
+        "json",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    payload = json.loads(proc.stdout)
+    destination = Path(payload["destination"])
+    assert payload["ok"] is True
+    assert entry.exists() is False
+    assert destination.exists()
+    text = destination.read_text(encoding="utf-8")
+    assert "## Archive" in text
+    assert "- Archived: 2026-05-18" in text
+    assert "- Reason: Fixed and compressed into docs." in text
+
+
+def test_heuristic_error_inbox_archive_accepts_wontfix_entry_with_link(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    inbox.mkdir(parents=True)
+    entry = inbox / "accepted-risk.md"
+    write_entry(
+        entry,
+        status="wontfix",
+        evidence_extra="",
+        next_action="None. Risk accepted.",
+    )
+
+    proc = run_script(
+        "archive",
+        str(entry),
+        "--inbox-dir",
+        str(inbox),
+        "--date",
+        "2026-05-18",
+        "--link",
+        "docs/accepted-risk.md",
+        "--format",
+        "json",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    payload = json.loads(proc.stdout)
+    destination = Path(payload["destination"])
+    assert destination.exists()
+    text = destination.read_text(encoding="utf-8")
+    assert "- Durable link: `docs/accepted-risk.md`" in text
+
+
+def test_heuristic_error_inbox_archive_rejects_active_status(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    inbox.mkdir(parents=True)
+    entry = inbox / "active-gap.md"
+    write_entry(entry, status="planned")
+
+    proc = run_script("archive", str(entry), "--inbox-dir", str(inbox), "--format", "json")
+
+    assert proc.returncode == 1
+    payload = json.loads(proc.stdout)
+    assert payload["ok"] is False
+    assert any("closed status" in item["message"] for item in payload["violations"])
+    assert entry.exists()
+
+
+def test_heuristic_error_inbox_archive_rejects_actionable_next_action(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    inbox.mkdir(parents=True)
+    entry = inbox / "actionable-gap.md"
+    write_entry(entry, status="promoted", next_action="Create a follow-up plan.")
+
+    proc = run_script("archive", str(entry), "--inbox-dir", str(inbox), "--format", "json")
+
+    assert proc.returncode == 1
+    payload = json.loads(proc.stdout)
+    assert any("Next Action" in item["message"] for item in payload["violations"])
+
+
+def test_heuristic_error_inbox_archive_rejects_missing_durable_link(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    inbox.mkdir(parents=True)
+    entry = inbox / "missing-link.md"
+    write_entry(entry, status="promoted", evidence_extra="", next_action="None. Fixed.")
+
+    proc = run_script("archive", str(entry), "--inbox-dir", str(inbox), "--format", "json")
+
+    assert proc.returncode == 1
+    payload = json.loads(proc.stdout)
+    assert any("durable outcome link" in item["message"] for item in payload["violations"])
+
+
+def test_heuristic_error_inbox_archive_rejects_duplicate_destination(tmp_path: Path) -> None:
+    inbox = tmp_path / "heuristic-system" / "error-inbox"
+    archive = inbox / "archive" / "2026"
+    archive.mkdir(parents=True)
+    entry = inbox / "fixture-gap.md"
+    write_entry(entry, status="promoted", next_action="None. Fixed.")
+    write_entry(archive / "fixture-gap.md", status="promoted", next_action="None. Already archived.")
+
+    proc = run_script(
+        "archive",
+        str(entry),
+        "--inbox-dir",
+        str(inbox),
+        "--date",
+        "2026-05-18",
+        "--format",
+        "json",
+    )
+
+    assert proc.returncode == 1
+    payload = json.loads(proc.stdout)
+    assert any("archive target already exists" in item["message"] for item in payload["violations"])
