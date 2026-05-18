@@ -4,9 +4,9 @@
 
 - Status: complete
 - Current task: GitLab MR pipeline cleanup complete
-- Next task: Optional PR or release delivery if needed
-- Last updated: 2026-05-18 16:27 Asia/Taipei
-- Branch/commit: `main`; implementation validated before final commit
+- Next task: none for GitLab MR workflow
+- Last updated: 2026-05-18 17:15 Asia/Taipei
+- Branch/commit: `main`; implementation delivered through PR #254
 - Source document: `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-plan.md`
 
 ## Task Ledger
@@ -19,7 +19,8 @@
 | T2.1 | done | Fix pipeline status parsing | focused tests pass | Both GitLab MR scripts read nested `pipeline.*` status paths. |
 | T2.2 | done | Tighten skipped source CI policy | docs/tests pass | Skill docs and error text document explicit target-branch CI handling. |
 | T2.3 | done | Make local cleanup deterministic | cleanup test pass | Cleanup now fetches `origin/<target>` and fast-forwards explicitly. |
-| T2.4 | done | Refresh script specs and retained inbox state | inbox verify pending full gate | Inbox entry marked `promoted` with plan and execution-state links. |
+| T2.4 | done | Refresh script specs and retained inbox state | inbox verify + full gate | Inbox entry marked `promoted` with plan and execution-state links. |
+| T2.5 | done | Validate with a live GitLab MR | `livekit-agents!104` | Temporary non-deploy MR proved skipped source pipeline parsing, explicit `--skip-pipeline`, ready transition, merge, and cleanup. |
 
 ## Validation
 
@@ -42,6 +43,10 @@
 | `skills/workflows/heuristic-system/heuristic-error-inbox/scripts/heuristic-error-inbox.sh verify heuristic-system/error-inbox/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md --format json` | pass | Promoted inbox entry verified with no duplicate or section violations. | terminal |
 | `plan-tooling validate --file docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-plan.md` | pass | Plan metadata and task structure remain valid. | terminal |
 | `scripts/check.sh --all` | pass | Full repo gate passed: 753 tests, lint, docs, markdown, semgrep, contracts, and layout. | terminal |
+| GitHub PR #254 | pass | Agent-kit GitLab MR workflow fix merged to `main`. | `https://github.com/graysurf/agent-kit/pull/254` |
+| `deliver-gitlab-mr.sh --kind docs wait-pipeline --mr 104 --poll-seconds 5 --max-wait-seconds 30` | pass | Live acceptance produced `PIPELINE_STATUS=skipped` and the expected policy block, proving nested GitLab JSON parsing no longer fails. | `https://gitlab.gamania.com/gim/backend/livekit-agents/-/merge_requests/104` |
+| `deliver-gitlab-mr.sh --kind docs close --mr 104 --skip-pipeline --poll-seconds 5 --max-wait-seconds 30` | pass | Live acceptance marked the draft MR ready, merged it, fast-forwarded the temporary target branch, and deleted the local source branch. | `https://gitlab.gamania.com/gim/backend/livekit-agents/-/merge_requests/104` |
+| `git push origin --delete docs/agent-kit-gitlab-mr-smoke agent-kit-gitlab-mr-smoke-target` | pass | Temporary remote smoke branches deleted after MR validation. | terminal |
 
 ## Blockers
 
@@ -93,4 +98,31 @@
 - Blocked by:
   - None.
 - Next:
-  - Optional PR or release delivery if needed.
+  - Deliver through GitHub PR and optionally validate with a live GitLab MR.
+
+### 2026-05-18 16:57 Asia/Taipei
+
+- Read:
+  - `livekit-agents` `AGENTS.md` and `.gitlab-ci.yml`
+  - `deliver-gitlab-mr` and `create-gitlab-mr` skill contracts
+  - GitLab MR !104 metadata and source pipeline status
+- Changed:
+  - `heuristic-system/error-inbox/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md`
+  - `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-execution-state.md`
+- Validated:
+  - GitHub PR #254 merged the agent-kit GitLab MR workflow fix.
+  - Live GitLab MR !104 targeted temporary branch
+    `agent-kit-gitlab-mr-smoke-target`, not deploy branches `test`, `main`,
+    `stg`, or `prod`.
+  - `wait-pipeline` parsed nested GitLab JSON as `PIPELINE_STATUS=skipped` and
+    blocked with the documented target-branch CI guidance.
+  - `close --skip-pipeline` marked the MR ready, merged it, fast-forwarded the
+    temporary target branch from `origin/<target>`, and deleted the local source
+    branch.
+  - Temporary remote branches `docs/agent-kit-gitlab-mr-smoke` and
+    `agent-kit-gitlab-mr-smoke-target` were deleted; `livekit-agents` returned
+    to clean `test...origin/test`.
+- Blocked by:
+  - None.
+- Next:
+  - No GitLab MR workflow action remains.
