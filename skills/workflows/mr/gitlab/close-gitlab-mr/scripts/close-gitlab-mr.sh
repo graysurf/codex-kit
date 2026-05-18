@@ -12,7 +12,7 @@ What it does:
   - Marks draft MRs as ready automatically before merge
   - Merges the MR with glab mr merge
   - Removes the remote source branch only when --remove-source-branch is supplied
-  - Switches to the target branch, pulls, and deletes the local source branch unless cleanup is disabled
+  - Switches to the target branch, fast-forwards from origin, and deletes the local source branch unless cleanup is disabled
 
 Options:
   --kind <kind>            Delivery kind: feature, bug, config, deploy, docs, or chore.
@@ -171,7 +171,7 @@ mr_json_for_ref() {
 }
 
 pipeline_status_from_json() {
-  json_field status detailed_status.group detailedStatus.group 2>/dev/null || true
+  json_field pipeline.status pipeline.detailed_status.group pipeline.detailedStatus.group status detailed_status.group detailedStatus.group 2>/dev/null || true
 }
 
 pipeline_status_for_branch() {
@@ -244,7 +244,12 @@ wait_pipeline_for_branch() {
         echo "ok: pipeline passed for branch ${branch}"
         return 0
         ;;
-      failed|fail|canceled|cancelled|skipped|manual|blocked|action_required)
+      skipped|manual|blocked|action_required)
+        echo "error: source-branch pipeline is not mergeable for branch ${branch} (status=${normalized})" >&2
+        echo "error: if this repo intentionally uses target-branch CI, verify MR mergeability and target-branch validation, then use --skip-pipeline only after explicit user confirmation" >&2
+        return 1
+        ;;
+      failed|fail|canceled|cancelled)
         echo "error: pipeline is not mergeable for branch ${branch} (status=${normalized})" >&2
         return 1
         ;;
@@ -348,9 +353,10 @@ cleanup_after_merge() {
   fi
 
   if [[ "$checkout_mode" == "attached" ]]; then
-    git pull --ff-only
+    git fetch origin "$target_branch"
+    git merge --ff-only "origin/${target_branch}"
   else
-    echo "note: skipped git pull --ff-only because local cleanup is using detached origin/${target_branch}" >&2
+    echo "note: skipped target-branch fast-forward because local cleanup is using detached origin/${target_branch}" >&2
   fi
 
   if [[ "$keep_local_branch" == "1" || -z "$source_branch" ]]; then

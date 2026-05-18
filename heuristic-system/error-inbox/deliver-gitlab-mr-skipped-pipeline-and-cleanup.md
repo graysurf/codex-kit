@@ -2,7 +2,7 @@
 
 ## Status
 
-- Status: planned
+- Status: promoted
 - First observed: 2026-05-18
 - Area: GitLab MR delivery skills / heuristic-system retention
 - Severity: high
@@ -145,3 +145,5 @@ uses this inbox entry as read-first context, then fix the GitLab MR scripts and
 add the heuristic-system inbox promotion workflow.
 
 Lifecycle link: `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-plan.md`
+
+Lifecycle link: `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-execution-state.md`

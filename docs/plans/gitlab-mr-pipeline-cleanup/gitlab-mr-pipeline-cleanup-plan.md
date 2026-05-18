@@ -15,6 +15,8 @@ GitLab provider boundaries.
 - Primary source:
   `heuristic-system/error-inbox/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md`
 - Source type: existing issue/spec
+- Execution state:
+  `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-execution-state.md`
 - Open questions carried into execution: none
 
 ## Scope
