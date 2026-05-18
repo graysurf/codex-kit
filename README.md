@@ -33,16 +33,16 @@ Best fit:
 
 ```text
 .
-├── .agents/    # repo-local agent helper scripts, including release entrypoint
-├── .github/    # CI workflows (GitHub Actions)
-├── docker/     # Docker image docs and workspace launcher pointers
-├── docs/       # runbooks, plans, and testing docs
+├── .agents/          # repo-local agent helper scripts, including release entrypoint
+├── .github/          # CI workflows (GitHub Actions)
+├── docker/           # Docker image docs and workspace launcher pointers
+├── docs/             # runbooks, plans, and testing docs
 ├── heuristic-system/ # retained workflow gaps and operation records
-├── hooks/      # Codex hook source and managed config block
-├── scripts/    # validation, sync, build, and helper entrypoints
-├── skills/     # tracked public skills, prompt-style skills, and ignored overlays
-├── tests/      # pytest regression/smoke tests
-├── AGENTS.md   # global agent rules (response/tooling)
+├── hooks/            # Codex hook source and managed config block
+├── scripts/          # validation, sync, build, and helper entrypoints
+├── skills/           # tracked public skills, prompt-style skills, and ignored overlays
+├── tests/            # pytest regression/smoke tests
+├── AGENTS.md         # global agent rules (response/tooling)
 ├── DEVELOPMENT.md
 └── HEURISTIC_SYSTEM.md
 ```
