@@ -80,6 +80,8 @@ workaround, promotion criteria, and next action.
 Store unresolved gap entries under `heuristic-system/error-inbox/`.
 Move or compress an entry into `operation-records/` after the gap is fixed and
 validated, or close it in place when the project accepts the risk.
+Use the `heuristic-error-inbox` workflow skill when an agent needs to create,
+verify, deduplicate, triage, or update these entries.
 
 ## Operation Records
 

@@ -58,6 +58,8 @@ See `../docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full directory anatom
 
 - Planning and durable implementation artifact lifecycle:
   - `workflows/plan/README.md`
+- HEURISTIC_SYSTEM lifecycle workflows:
+  - `workflows/heuristic-system/README.md`
 
 ## Naming and layout conventions
 

@@ -1,0 +1,36 @@
+{
+  "smoke": [
+    {
+      "name": "help",
+      "args": ["--help"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "heuristic-error-inbox\\.sh <list\\|verify\\|new\\|set-status>"
+      }
+    },
+    {
+      "name": "list-json",
+      "args": ["list", "--format", "json"],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"entries\""
+      }
+    },
+    {
+      "name": "verify-existing-entry",
+      "args": [
+        "verify",
+        "heuristic-system/error-inbox/deliver-gitlab-mr-skipped-pipeline-and-cleanup.md",
+        "--format",
+        "json"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"ok\": true"
+      }
+    }
+  ]
+}

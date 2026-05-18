@@ -12,6 +12,7 @@ def test_heuristic_system_documents_error_inbox_and_operation_records() -> None:
     assert "Important unresolved workflow gap" in text
     assert "heuristic-system/error-inbox/" in text
     assert "heuristic-system/operation-records/" in text
+    assert "heuristic-error-inbox" in text
     assert "raw runtime records in their evidence location" in text
 
 
@@ -23,6 +24,7 @@ def test_heuristic_system_error_inbox_readme_defines_curated_queue_contract() ->
     assert "- `open`: gap is known and not yet triaged." in text
     assert "## Entry Template" in text
     assert "## Cleanup Rules" in text
+    assert "heuristic-error-inbox" in text
 
 
 def test_skill_usage_runbook_routes_unresolved_gaps_to_error_inbox() -> None:
@@ -30,4 +32,5 @@ def test_skill_usage_runbook_routes_unresolved_gaps_to_error_inbox() -> None:
 
     assert "If a failure remains unresolved" in text
     assert "heuristic-system/error-inbox/" in text
+    assert "heuristic-error-inbox" in text
     assert "Do not commit the raw `skill-usage.record.json` as the tracker." in text

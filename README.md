@@ -188,6 +188,7 @@ not part of the public catalog unless explicitly tracked.
 | PR / GitHub | [deliver-github-pr](./skills/workflows/pr/github/deliver-github-pr/)                                | Deliver GitHub pull requests end to end with preflight, creation, CI wait/fix loop, merge, and cleanup                                    |
 | PR / GitHub | [close-github-pr](./skills/workflows/pr/github/close-github-pr/)                                    | Merge and close GitHub pull requests after PR hygiene review and branch cleanup                                                           |
 | PR / Plan Issue | [create-plan-issue-sprint-pr](./skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/) | Open a draft GitHub sprint PR for a plan-issue implementation lane using the canonical sprint PR body schema and assigned dispatch record |
+| Heuristic System | [heuristic-error-inbox](./skills/workflows/heuristic-system/heuristic-error-inbox/) | Manage curated HEURISTIC_SYSTEM error-inbox lifecycle entries with judgment-first workflow guidance and deterministic list, verify, new, and status helper commands. |
 
 ### Tools
 

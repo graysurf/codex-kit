@@ -140,7 +140,8 @@ Do not duplicate specialized records. Link them from `linked_records`.
 If a failure remains unresolved but is important enough to survive local `out/`
 cleanup, create a curated HEURISTIC_SYSTEM error inbox entry under
 `heuristic-system/error-inbox/` and point it back to this raw
-record. Do not commit the raw `skill-usage.record.json` as the tracker.
+record. Use the `heuristic-error-inbox` workflow skill for creation,
+verification, deduplication, and lifecycle status updates. Do not commit the raw `skill-usage.record.json` as the tracker.
 
 Supported child evidence includes:
 

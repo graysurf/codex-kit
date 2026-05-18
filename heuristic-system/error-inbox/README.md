@@ -20,6 +20,11 @@ Create an inbox entry when any of these are true:
 Do not create an entry for transient failures that were immediately fixed and
 covered by tests or an operation record.
 
+Use the `heuristic-error-inbox` workflow skill when an agent needs to create,
+verify, deduplicate, triage, or update entries in this folder. Its script can
+list entries, verify required sections and lifecycle fields, create curated
+drafts from verified `skill-usage.record.json` records, and update status.
+
 ## Lifecycle
 
 - `open`: gap is known and not yet triaged.

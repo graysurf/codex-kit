@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **heuristic-error-inbox**: add a workflow skill and deterministic helper
+  script for listing, verifying, drafting, deduplicating, and updating curated
+  `heuristic-system/error-inbox/` lifecycle entries.
 - **HEURISTIC_SYSTEM**: add the first curated operation record for a real
   workflow failure and document how retained evidence is compressed into
   durable repo knowledge.

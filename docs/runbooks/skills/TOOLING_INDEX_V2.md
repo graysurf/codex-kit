@@ -57,7 +57,9 @@ only when they are intentionally retained as migration history.
 - Artifact contract: `skill-usage.record.json` with record schema `skill-usage.record.v1`.
 - Durable unresolved workflow gaps: keep raw `skill-usage.record.json` in its
   evidence location, then commit a curated tracker under
-  `heuristic-system/error-inbox/` when the gap must not be lost.
+  `heuristic-system/error-inbox/` when the gap must not be lost. Use
+  `heuristic-error-inbox` for tracker creation, verification, deduplication, and
+  lifecycle status updates.
 - Boundary: use a PATH `skill-usage` binary only after `skill-usage --version` reports 0.8.5 or newer. If the released PATH binary is
   absent or older, consume the primitive through a validated local `nils-cli` checkout:
   `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p nils-agent-workflow-primitives --bin skill-usage -- <subcommand>
@@ -65,6 +67,19 @@ only when they are intentionally retained as migration history.
 - Legacy fallback/reference validator:
   - `scripts/skills/validate_skill_usage_record.py path/to/skill-usage.record.json`
   - Keep this only for transition and fixtures; do not add new canonical behavior outside nils-cli.
+
+## HEURISTIC_SYSTEM inbox lifecycle
+
+- Manage curated unresolved workflow gaps under `heuristic-system/error-inbox/`:
+  - Skill contract: `skills/workflows/heuristic-system/heuristic-error-inbox/SKILL.md`
+  - Entrypoint:
+    `$AGENT_HOME/skills/workflows/heuristic-system/heuristic-error-inbox/scripts/heuristic-error-inbox.sh`
+  - Commands: `list`, `verify <entry.md>`,
+    `new --from-skill-usage <record-dir> --slug <slug>`, and
+    `set-status <entry.md> --status <status>`.
+- Boundary: skills own judgment about whether a gap deserves retention, while
+  this script owns deterministic list, verify, draft creation, duplicate
+  detection, and status-line updates.
 
 ## Skill management
 
