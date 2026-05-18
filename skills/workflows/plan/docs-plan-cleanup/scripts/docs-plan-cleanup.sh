@@ -80,6 +80,11 @@ is_important_doc() {
   [[ "$rel" == docs/specs/* || "$rel" == docs/runbooks/* ]]
 }
 
+is_retained_heuristic_record() {
+  local rel="$1"
+  [[ "$rel" == docs/runbooks/heuristic-system/error-inbox/* || "$rel" == docs/runbooks/heuristic-system/operation-records/* ]]
+}
+
 extract_plan_refs() {
   local abs_file="$1"
   rg -o -N "docs/plans/[A-Za-z0-9._/-]+\\.md" "$abs_file" 2>/dev/null | LC_ALL=C sort -u || true
@@ -431,6 +436,11 @@ for rel in "${docs_files[@]}"; do
   fi
 
   if [[ "$has_kept_ref" -eq 1 ]]; then
+    review_related+=( "$rel" )
+    continue
+  fi
+
+  if is_retained_heuristic_record "$rel"; then
     review_related+=( "$rel" )
     continue
   fi

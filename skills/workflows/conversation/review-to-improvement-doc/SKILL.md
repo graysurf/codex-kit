@@ -60,6 +60,10 @@ Failure modes:
    - Treat this document as the primary source artifact for later plan
      generation when the source material is review findings, risks, lessons
      learned, validation guardrails, or a fix-later backlog.
+   - For unresolved HEURISTIC_SYSTEM workflow gaps that should be versioned but
+     are not yet ready for a fix, use
+     `docs/runbooks/heuristic-system/error-inbox/<slug>.md` instead of a
+     temporary `docs/plans/` review source.
    - Treat `docs/plans/` as the default location for plan-source documents. Promote or rewrite into domain docs/runbooks only when the
      content has value after execution finishes.
    - Do not turn it into a handoff prompt. If the user also wants session continuity, write or reference the durable doc first, then use

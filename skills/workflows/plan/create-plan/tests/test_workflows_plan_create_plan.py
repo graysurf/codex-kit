@@ -63,6 +63,7 @@ def test_create_plan_requires_primary_source_artifact_before_plan() -> None:
     assert "`review-to-improvement-doc`" in text
     assert "docs/plans/<slug>/<slug>-discussion-source.md" in text
     assert "docs/plans/<slug>/<slug>-review-source.md" in text
+    assert "docs/runbooks/heuristic-system/error-inbox/<slug>.md" in text
     assert "coordination artifacts" in text
     assert "cleanup after execution" in text
     assert "<slug>-discussion-source.md" in shared

@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - **HEURISTIC_SYSTEM**: add the first curated operation record for a real
   workflow failure and document how retained evidence is compressed into
   durable repo knowledge.
+- **HEURISTIC_SYSTEM**: add a versioned error inbox for important unresolved
+  workflow gaps that should survive local evidence cleanup before promotion.
 - **macOS setup**: add an idempotent workstation bootstrap script that installs
   Homebrew CLI tools, clones agent-kit into `$HOME/.agents`, links live
   `AGENTS.md` policy through `$HOME/.codex`, and syncs Codex hook config.

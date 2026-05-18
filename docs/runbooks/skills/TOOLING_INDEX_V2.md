@@ -55,6 +55,9 @@ only when they are intentionally retained as migration history.
   - `skill-usage verify --out <dir> --format json`
   - `skill-usage show --out <dir> --format json`
 - Artifact contract: `skill-usage.record.json` with record schema `skill-usage.record.v1`.
+- Durable unresolved workflow gaps: keep raw `skill-usage.record.json` in its
+  evidence location, then commit a curated tracker under
+  `docs/runbooks/heuristic-system/error-inbox/` when the gap must not be lost.
 - Boundary: use a PATH `skill-usage` binary only after `skill-usage --version` reports 0.8.5 or newer. If the released PATH binary is
   absent or older, consume the primitive through a validated local `nils-cli` checkout:
   `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p nils-agent-workflow-primitives --bin skill-usage -- <subcommand>

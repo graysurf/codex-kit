@@ -27,6 +27,8 @@ def test_durable_artifact_cleanup_preserves_evidence_and_references() -> None:
     assert "Scan references" in text
     assert "retained evidence" in text
     assert "diagnostic logs" in text
+    assert "docs/runbooks/heuristic-system/error-inbox/" in text
+    assert "docs/runbooks/heuristic-system/operation-records/" in text
     assert "dangling links" in text
     assert "Status: complete" in text
 

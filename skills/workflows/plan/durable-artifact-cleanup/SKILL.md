@@ -39,6 +39,8 @@ Failure modes:
 - Candidate artifact is still active, blocked, in progress, or lacks clear completion evidence.
 - Candidate is still referenced by source docs, plans, issues, PRs, code comments, tests, README/index files, or execution state.
 - Artifact contains retained evidence, diagnostic history, raw run output, or compliance/audit material that project policy requires keeping.
+- Artifact is a HEURISTIC_SYSTEM error inbox or operation record that is still
+  open, promoted, or retained as durable evidence.
 - Cleanup scope mixes obsolete durable docs with runtime fixtures, generated outputs, raw logs, or test evidence; split the scope first.
 - Deletion would leave dangling links or remove the only source for acceptance, validation, or decision history.
 
@@ -63,6 +65,10 @@ Failure modes:
 4. Separate evidence from stale coordination docs
    - Do not delete retained evidence, redacted validation artifacts, diagnostic logs, or raw run outputs unless the user explicitly asks and
      project retention rules allow it.
+   - Treat `docs/runbooks/heuristic-system/error-inbox/` and
+     `docs/runbooks/heuristic-system/operation-records/` as retained evidence
+     locations. Keep them unless the entry is closed/promoted and the cleanup
+     request explicitly includes it.
    - Do not mix cleanup of durable docs with cleanup of runtime fixtures or generated build/test outputs.
    - If evidence is useful but the coordination doc is stale, keep evidence linked from a maintained location and delete the coordination
      doc.
