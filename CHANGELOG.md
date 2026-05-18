@@ -11,12 +11,18 @@ All notable changes to this project will be documented in this file.
   durable repo knowledge.
 - **HEURISTIC_SYSTEM**: add a versioned error inbox for important unresolved
   workflow gaps that should survive local evidence cleanup before promotion.
+- **GitLab MR delivery**: add a HEURISTIC_SYSTEM error inbox entry for skipped
+  source-branch pipeline handling, close cleanup failure, and missing
+  `skill-usage` promotion workflow gaps.
 - **macOS setup**: add an idempotent workstation bootstrap script that installs
   Homebrew CLI tools, clones agent-kit into `$HOME/.agents`, links live
   `AGENTS.md` policy through `$HOME/.codex`, and syncs Codex hook config.
 
 ### Changed
 
+- **HEURISTIC_SYSTEM**: move retained error inbox and operation records to root
+  `heuristic-system/` so they read as system-level feedback records instead of
+  ordinary docs runbooks.
 - **skill taxonomy**: move public tool and automation skills into nested
   behavior-boundary folders, update catalog/runbook/script-spec references, and
   teach skill-management tooling to catalog nested public areas.

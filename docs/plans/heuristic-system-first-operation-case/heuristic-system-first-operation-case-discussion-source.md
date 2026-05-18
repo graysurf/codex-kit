@@ -110,7 +110,7 @@ state fixes cannot drift between wait and close flows.
 
 Add a curated operation record after the fix lands. Recommended path:
 
-`docs/runbooks/heuristic-system/operation-records/github-pr-required-check-gating.md`
+`heuristic-system/operation-records/github-pr-required-check-gating.md`
 
 The operation record should include:
 
@@ -215,7 +215,7 @@ HEURISTIC_SYSTEM loop operated on a real workflow failure.
 - Repos with no required checks fall back to the existing all-checks gate. Repos
   with no checks still require explicit `--allow-no-checks`.
 - Operation records live under
-  `docs/runbooks/heuristic-system/operation-records/`.
+  `heuristic-system/operation-records/`.
 - `HEURISTIC_SYSTEM.md` owns the short operation-record concept and location;
   `docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md` continues to own raw
   `skill-usage.record.v1` mechanics.

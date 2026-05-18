@@ -1,8 +1,13 @@
-# Heuristic System Runbooks
+# Heuristic System Records
 
-This directory keeps durable records and runbooks for agent-kit heuristic-system
-operation. It is for compressed learning that should remain discoverable after
-temporary `docs/plans/` coordination artifacts are cleaned up.
+This root directory keeps retained records for agent-kit heuristic-system
+operation. It is intentionally outside `docs/` because these entries are
+system-level feedback loops, not ordinary project documentation or temporary
+coordination artifacts.
+
+Use `HEURISTIC_SYSTEM.md` for the framework overview and this directory for
+curated records that should remain discoverable after temporary `docs/plans/`
+coordination artifacts are cleaned up.
 
 ## Error Inbox
 

@@ -73,7 +73,7 @@ operation record.>
 
 ## Cleanup Rules
 
-`docs/runbooks/heuristic-system/error-inbox/` is retained evidence, not
+`heuristic-system/error-inbox/` is retained evidence, not
 temporary plan coordination. Do not remove entries through broad
 `docs-plan-cleanup` or durable-artifact cleanup unless the entry is promoted,
 closed, or explicitly included in the user's cleanup scope.

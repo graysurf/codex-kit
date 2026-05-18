@@ -19,7 +19,8 @@ Behavior:
   1) Targets all markdown files under docs/plans/**.
   2) Deletes all plans/source docs except those explicitly preserved.
      When a kept file is inside docs/plans/<slug>/, preserve that whole bundle.
-  3) Finds related docs under docs/**/*.md (excluding docs/plans/**):
+  3) Finds related docs under docs/**/*.md and heuristic-system/**/*.md
+     (excluding docs/plans/**):
      - auto-delete if they only reference removed plans,
      - keep them when they are referenced by other non-plan markdown files,
      - mark docs/specs/** and docs/runbooks/** as "important to rehome".
@@ -82,7 +83,7 @@ is_important_doc() {
 
 is_retained_heuristic_record() {
   local rel="$1"
-  [[ "$rel" == docs/runbooks/heuristic-system/error-inbox/* || "$rel" == docs/runbooks/heuristic-system/operation-records/* ]]
+  [[ "$rel" == heuristic-system/error-inbox/* || "$rel" == heuristic-system/operation-records/* ]]
 }
 
 extract_plan_refs() {
@@ -398,7 +399,12 @@ docs_files=()
 while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue
   docs_files+=( "$rel" )
-done < <(find docs -type f -name '*.md' ! -path 'docs/plans/*' -print | LC_ALL=C sort)
+done < <(
+  for docs_root in docs heuristic-system; do
+    [[ -d "$docs_root" ]] || continue
+    find "$docs_root" -type f -name '*.md' ! -path 'docs/plans/*' -print
+  done | LC_ALL=C sort
+)
 
 candidate_related=()
 candidate_related_type=()

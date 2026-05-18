@@ -65,8 +65,8 @@ Failure modes:
 4. Separate evidence from stale coordination docs
    - Do not delete retained evidence, redacted validation artifacts, diagnostic logs, or raw run outputs unless the user explicitly asks and
      project retention rules allow it.
-   - Treat `docs/runbooks/heuristic-system/error-inbox/` and
-     `docs/runbooks/heuristic-system/operation-records/` as retained evidence
+   - Treat `heuristic-system/error-inbox/` and
+     `heuristic-system/operation-records/` as retained evidence
      locations. Keep them unless the entry is closed/promoted and the cleanup
      request explicitly includes it.
    - Do not mix cleanup of durable docs with cleanup of runtime fixtures or generated build/test outputs.

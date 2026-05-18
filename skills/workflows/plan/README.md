@@ -18,12 +18,12 @@ Use durable artifacts when discussion, review, planning, execution, or handoff m
 7. `durable-artifact-cleanup` after execution is complete and the coordination docs are obsolete, unreferenced, and safe to delete.
 
 Plan-created source docs live under the same `docs/plans/<slug>/` folder as the
-plan that consumes them. Promote or rewrite them into domain docs/runbooks only
-when they have value after execution.
+plan that consumes them. Promote or rewrite them into domain docs, runbooks, or
+HEURISTIC_SYSTEM records only when they have value after execution.
 
 Prefer deleting obsolete coordination docs after completion and reference checks. Keep or rehome retained evidence, audit material, and
 diagnostic artifacts when project policy or future validation needs require them. For HEURISTIC_SYSTEM gaps that remain unfixed after
-execution, write or preserve a curated `docs/runbooks/heuristic-system/error-inbox/` entry before deleting the temporary plan source.
+execution, write or preserve a curated `heuristic-system/error-inbox/` entry before deleting the temporary plan source.
 
 ## Workflow Roles
 

@@ -17,7 +17,7 @@
 | T1 | done | Add failing regression tests for required pass plus optional skipped checks | `scripts/check.sh --tests -- -k 'github_pr and (deliver or close)'` failed before script fix, then passed after fix. | Test-first evidence recorded in skill usage envelope. |
 | T2 | done | Fix shared GitHub PR check classification and required-check gating | `skills/workflows/pr/github/_shared/lib/github-pr-checks.bash` | Both `deliver-github-pr` and `close-github-pr` now gate on required checks first. |
 | T3 | done | Update skill docs and HEURISTIC_SYSTEM guidance | `HEURISTIC_SYSTEM.md`, GitHub PR skill docs | Added required-vs-optional check policy and operation-record guidance. |
-| T4 | done | Add curated HEURISTIC_SYSTEM operation record | `docs/runbooks/heuristic-system/operation-records/github-pr-required-check-gating.md` | Raw records remain in `out/`; curated record is retained in repo. |
+| T4 | done | Add curated HEURISTIC_SYSTEM operation record | `heuristic-system/operation-records/github-pr-required-check-gating.md` | Raw records remain in `out/`; curated record is retained in repo. |
 | T5 | done | Validate and record cleanup decision | `scripts/check.sh --all` | Full gate passed after fixing agent-doc-init test isolation and the live no-required-checks fallback. |
 
 ## Validation

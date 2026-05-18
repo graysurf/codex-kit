@@ -15,8 +15,9 @@ The framework does not train model weights. It keeps learning explicit and audit
 fixes, validate outcomes, or update policies, the durable lessons can become skill contracts, tests, scripts, primitives, or runbooks.
 
 The portable core is the tracked repository content: [AGENTS.md](./AGENTS.md),
-[DEVELOPMENT.md](./DEVELOPMENT.md), [HEURISTIC_SYSTEM.md](./HEURISTIC_SYSTEM.md), [docs/](./docs), [scripts/](./scripts),
-[hooks/](./hooks), and public skills under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and
+[DEVELOPMENT.md](./DEVELOPMENT.md), [HEURISTIC_SYSTEM.md](./HEURISTIC_SYSTEM.md), [heuristic-system/](./heuristic-system),
+[docs/](./docs), [scripts/](./scripts), [hooks/](./hooks), and public skills under [skills/workflows/](skills/workflows),
+[skills/tools/](skills/tools), and
 [skills/automation/](skills/automation). Project, company, system, and local overlays are supported, but they are not part of the portable
 core unless they are explicitly tracked and documented.
 
@@ -36,6 +37,7 @@ Best fit:
 ├── .github/    # CI workflows (GitHub Actions)
 ├── docker/     # Docker image docs and workspace launcher pointers
 ├── docs/       # runbooks, plans, and testing docs
+├── heuristic-system/ # retained workflow gaps and operation records
 ├── hooks/      # Codex hook source and managed config block
 ├── scripts/    # validation, sync, build, and helper entrypoints
 ├── skills/     # tracked public skills, prompt-style skills, and ignored overlays

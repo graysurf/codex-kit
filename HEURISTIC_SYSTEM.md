@@ -77,7 +77,7 @@ not fixed in the same turn. Keep raw runtime records in their evidence location;
 commit only a short tracker entry with the signal, evidence pointer, impact,
 workaround, promotion criteria, and next action.
 
-Store unresolved gap entries under `docs/runbooks/heuristic-system/error-inbox/`.
+Store unresolved gap entries under `heuristic-system/error-inbox/`.
 Move or compress an entry into `operation-records/` after the gap is fixed and
 validated, or close it in place when the project accepts the risk.
 
@@ -89,7 +89,7 @@ records in their evidence location; commit only the compressed record that names
 the signal, evidence, diagnosis, promotion decision, durable fix, validation, and
 retention outcome.
 
-Store operation records under `docs/runbooks/heuristic-system/operation-records/`
+Store operation records under `heuristic-system/operation-records/`
 when they should remain visible after temporary plan or execution documents are
 cleaned up.
 

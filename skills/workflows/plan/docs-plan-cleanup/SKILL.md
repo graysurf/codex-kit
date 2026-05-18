@@ -44,6 +44,7 @@ Outputs:
   - preserves every Markdown file in the same `docs/plans/<slug>/` folder as a
     kept plan/source doc,
   - removes related `docs/**/*.md` that only depend on removed plans and are not externally referenced,
+  - scans `heuristic-system/**/*.md` as retained records for manual review,
   - preserves important docs unless `--delete-important` is explicitly set.
 
 Exit codes:

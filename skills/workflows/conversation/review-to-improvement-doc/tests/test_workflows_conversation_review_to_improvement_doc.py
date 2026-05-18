@@ -55,7 +55,7 @@ def test_review_to_improvement_doc_can_be_plan_source() -> None:
 
     assert "primary source artifact for later plan" in text
     assert "review findings, risks, lessons" in text
-    assert "docs/runbooks/heuristic-system/error-inbox/<slug>.md" in text
+    assert "heuristic-system/error-inbox/<slug>.md" in text
     assert "Promote or rewrite into domain docs/runbooks" in text
     assert "cleanup after execution or promotion candidate" in text
     assert "plan's `Read First` section as the primary source" in text
