@@ -8,7 +8,7 @@ Usage:
 
 Commands:
   preflight    Validate delivery preconditions and enforce base-branch guard.
-  wait-checks  Poll PR checks until fully green, failure, no-check block, or timeout.
+  wait-checks  Poll required PR checks until green, failure, no-check block, or timeout.
   close        Delegate PR merge/cleanup to close-github-pr.
 
 Global options:
@@ -38,6 +38,10 @@ Exit codes:
   124  Checks wait timeout
 USAGE
 }
+
+github_pr_workflow_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=/dev/null
+source "$github_pr_workflow_dir/_shared/lib/github-pr-checks.bash"
 
 DELIVER_GITHUB_PR_KIND=''
 
@@ -385,128 +389,19 @@ print_worktree_state_summary() {
   echo "CHANGE_STATE_SUMMARY=staged:${#WORKTREE_STAGED_PATHS[@]},unstaged:${#WORKTREE_UNSTAGED_PATHS[@]},untracked:${#WORKTREE_UNTRACKED_PATHS[@]},mixed_status=$([[ "${#WORKTREE_STAGED_PATHS[@]}" -gt 0 && "${#WORKTREE_UNSTAGED_PATHS[@]}" -gt 0 ]] && echo "true" || echo "false")"
 }
 
-is_missing_checks_output() {
-  local text="${1:-}"
-  printf '%s\n' "$text" | grep -Eqi 'no (checks|check runs|status checks|check suites)|checks? (have|has) not been reported|no checks reported|no check runs found|no status checks found'
-}
-
-contains_failed_check_state() {
-  local text="${1:-}"
-  printf '%s\n' "$text" | grep -Eqi '(^|[[:space:]])(fail|failed|cancel|cancelled|timed_out|timed out|action_required|startup_failure|blocked|skipped)([[:space:]]|$)'
-}
-
-contains_pending_check_state() {
-  local text="${1:-}"
-  printf '%s\n' "$text" | grep -Eqi '(^|[[:space:]])(pending|queued|waiting|in_progress|in progress|requested|expected)([[:space:]]|$)'
-}
-
-classify_checks_json() {
-  python3 -c '
-import json
-import sys
-
-try:
-    checks = json.load(sys.stdin)
-except json.JSONDecodeError:
-    raise SystemExit(2)
-
-if not isinstance(checks, list):
-    raise SystemExit(2)
-if not checks:
-    print("missing")
-    raise SystemExit(0)
-
-failed_buckets = {"fail", "cancel"}
-pending_buckets = {"pending", "skipping"}
-failed_states = {
-    "fail",
-    "failed",
-    "cancel",
-    "cancelled",
-    "timed_out",
-    "action_required",
-    "startup_failure",
-    "blocked",
-    "skipped",
-}
-pending_states = {"pending", "queued", "waiting", "in_progress", "requested", "expected"}
-pass_states = {"pass", "passed", "success", "successful", "completed"}
-
-for check in checks:
-    if not isinstance(check, dict):
-        print("unknown")
-        raise SystemExit(0)
-    bucket = str(check.get("bucket", "")).lower()
-    state = str(check.get("state", "")).lower()
-    if bucket in failed_buckets or state in failed_states:
-        print("failed")
-        raise SystemExit(0)
-    if bucket in pending_buckets or state in pending_states:
-        print("pending")
-        raise SystemExit(0)
-    if bucket == "pass" or state in pass_states:
-        continue
-    print("unknown")
-    raise SystemExit(0)
-
-print("passed")
-'
-}
-
 check_once_for_pr() {
   local pr="${1:-}"
-  local output=''
-  local rc=0
   local status=''
+  local rc=0
 
   set +e
-  output="$(gh pr checks "$pr" --json name,state,bucket 2>&1)"
+  status="$(github_pr_checks_status_for_pr "$pr")"
   rc=$?
   set -e
+  status="$(printf '%s\n' "$status" | tail -n 1)"
 
-  if [[ "$rc" -eq 0 ]]; then
-    status="$(printf '%s' "$output" | classify_checks_json 2>/dev/null || true)"
-    case "$status" in
-      passed)
-        echo "passed"
-        return 0
-        ;;
-      missing)
-        echo "missing"
-        return 3
-        ;;
-      failed)
-        echo "failed"
-        return 4
-        ;;
-      pending)
-        echo "pending"
-        return 5
-        ;;
-      unknown|"")
-        echo "unknown"
-        return 4
-        ;;
-    esac
-  fi
-
-  if is_missing_checks_output "$output"; then
-    echo "missing"
-    return 3
-  fi
-
-  if contains_failed_check_state "$output"; then
-    echo "failed"
-    return 4
-  fi
-
-  if contains_pending_check_state "$output"; then
-    echo "pending"
-    return 5
-  fi
-
-  echo "pending"
-  return 5
+  echo "${status:-unknown}"
+  return "$rc"
 }
 
 wait_checks_for_pr() {
@@ -535,7 +430,7 @@ wait_checks_for_pr() {
 
     case "$status" in
       passed)
-        echo "ok: all checks passed for PR #$pr"
+        echo "ok: required GitHub checks passed for PR #$pr"
         return 0
         ;;
       missing)

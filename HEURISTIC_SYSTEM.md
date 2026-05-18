@@ -69,6 +69,18 @@ Promote workflow lessons by durability:
 Do not promote secrets, raw credentials, unredacted logs, or temporary task
 state into durable docs or memory.
 
+## Operation Records
+
+Use curated operation records when a retained workflow failure is important
+enough to prove that the heuristic loop actually operated. Keep raw runtime
+records in their evidence location; commit only the compressed record that names
+the signal, evidence, diagnosis, promotion decision, durable fix, validation, and
+retention outcome.
+
+Store operation records under `docs/runbooks/heuristic-system/operation-records/`
+when they should remain visible after temporary plan or execution documents are
+cleaned up.
+
 ## Compression Rule
 
 Heuristic Systems decay when they only grow. When a skill accumulates several

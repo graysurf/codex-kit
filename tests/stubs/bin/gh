@@ -298,8 +298,13 @@ fi
 if [[ "${1-}" == "pr" && "${2-}" == "checks" ]]; then
   shift 2
   json_fields=""
+  required_only="false"
   while [[ $# -gt 0 ]]; do
     case "${1-}" in
+      --required)
+        required_only="true"
+        shift
+        ;;
       --json)
         json_fields="${2:-}"
         shift 2
@@ -323,7 +328,11 @@ if [[ "${1-}" == "pr" && "${2-}" == "checks" ]]; then
         printf '[{"name":"ci","state":"PENDING","bucket":"pending"}]\n'
         ;;
       custom)
-        printf '%s\n' "${CODEX_GH_STUB_PR_CHECKS_JSON:-[]}"
+        if [[ "$required_only" == "true" && -n "${CODEX_GH_STUB_PR_REQUIRED_CHECKS_JSON:-}" ]]; then
+          printf '%s\n' "$CODEX_GH_STUB_PR_REQUIRED_CHECKS_JSON"
+        else
+          printf '%s\n' "${CODEX_GH_STUB_PR_CHECKS_JSON:-[]}"
+        fi
         ;;
       *)
         printf '[{"name":"ci","state":"SUCCESS","bucket":"pass"}]\n'
