@@ -34,6 +34,12 @@ All notable changes to this project will be documented in this file.
   folder, and teach `docs-plan-cleanup` to preserve or delete those bundles
   together. `plan-tooling scaffold --slug <slug>` is now the documented helper
   path with `nils-cli >= 0.8.7`.
+- **plan workflows**: clarify the source doc, plan, and execution-state
+  lifecycle so multi-step implementation defaults to a plan, direct source-doc
+  execution requires a bounded waiver, and `durable-artifact-cleanup` remains the
+  policy audit before broad `docs-plan-cleanup` batches.
+- **execute-from-plan**: rename the plan execution workflow to match the
+  plan-first contract and remove the implementation-doc-centered naming.
 - **GitHub PR delivery**: gate `deliver-github-pr` and `close-github-pr` on
   required GitHub checks so optional skipped checks no longer block merge when
   required checks pass.
@@ -52,7 +58,7 @@ All notable changes to this project will be documented in this file.
 - **durable artifacts**: document the cross-session artifact workflow in
   `skills/workflows/plan/README.md` and add a cleanup workflow for deleting
   obsolete coordination docs after completion and reference checks.
-- **execute-from-implementation-doc**: add a workflow for resuming long-running
+- **execute-from-plan**: add a workflow for resuming long-running
   implementation from execution-ready handoff, improvement, or plan documents
   with a separate execution-state ledger.
 - **discussion-to-implementation-doc**: add a conversation workflow for turning

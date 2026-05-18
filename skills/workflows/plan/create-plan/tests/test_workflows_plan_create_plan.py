@@ -49,7 +49,7 @@ def test_create_plan_distinguishes_plans_from_durable_improvement_records() -> N
     assert "durable review/improvement record" in text
     assert "link that doc under the plan's" in text
     assert "context/read-first section" in text
-    assert "use `execute-from-implementation-doc` instead" in text
+    assert "use `execute-from-plan` instead" in text
 
 
 def test_create_plan_requires_primary_source_artifact_before_plan() -> None:

@@ -28,7 +28,7 @@ def test_discussion_to_implementation_doc_routes_to_nearby_skills() -> None:
     assert "`review-evidence`" in text
     assert "`review-to-improvement-doc`" in text
     assert "`create-plan`" in text
-    assert "`execute-from-implementation-doc`" in text
+    assert "`execute-from-plan`" in text
     assert "`handoff-session-prompt`" in text
     assert "review findings and validation records" in text
 

@@ -43,7 +43,7 @@ def test_review_to_improvement_doc_can_prepare_execution_ready_records() -> None
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
 
-    assert "`execute-from-implementation-doc`" in text
+    assert "`execute-from-plan`" in text
     assert "executable backlog" in text
     assert "execution-state path" in text
     assert "later implementation" in text

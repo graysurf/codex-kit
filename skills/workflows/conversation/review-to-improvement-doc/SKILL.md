@@ -124,8 +124,8 @@ Failure modes:
 
 - `discussion-to-implementation-doc`: use when the source material is a converged requirements, design, feasibility, or product discussion
   and the next artifact should prepare later implementation.
-- `execute-from-implementation-doc`: use after this skill when the improvement record has executable backlog, acceptance, validation, and
-  an execution-state path or enough context to create one.
+- `execute-from-plan`: use after a plan links this improvement record under `Read First`, or for explicitly bounded direct source-doc
+  execution when the record has executable backlog, acceptance, and validation.
 - `create-plan`: use after this skill when the user wants phases, sprints, atomic tasks, PR grouping, or validation sequencing; link this
   document under the plan's `Read First` section as the primary source.
 - `create-dispatch-plan`: use after this skill when the user wants sizing, sprint scorecards, PR grouping, subagent review, or

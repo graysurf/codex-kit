@@ -7,11 +7,22 @@ description: Prune outdated docs/plans coordination markdown and reconcile plan-
 
 ## Contract
 
+Scope boundary:
+
+- Use this skill as the deterministic batch executor for broad `docs/plans/`
+  coordination-doc pruning.
+- This skill does not decide whether a durable artifact is complete, still
+  needed, or safe to delete. Use `durable-artifact-cleanup` first when that
+  judgment is unclear or the scope includes named artifacts outside
+  `docs/plans/`.
+
 Prereqs:
 
 - `bash`, `git`, `find`, and `rg` available on `PATH`.
 - Target project must be a git work tree and contain `docs/plans/`.
 - Choose preserved active plan folders or source docs first; run dry-run before `--execute`.
+- Active bundle keep/delete intent is known, or a prior `durable-artifact-cleanup`
+  audit has classified it.
 
 Inputs:
 
@@ -68,6 +79,10 @@ Failure modes:
 ## Workflow
 
 1. Identify active plans and plan-source docs that must be kept.
+   - If you cannot tell whether a plan bundle is complete, blocked, retained, or
+     still referenced, stop and use `durable-artifact-cleanup` for the audit.
+   - Do not use this skill for one-off cleanup of handoff prompts, domain docs,
+     runtime fixtures, raw evidence, or generated output.
 2. Run dry-run first (defaults to `$PROJECT_PATH` when exported):
    - `PROJECT_PATH=/path/to/project bash $AGENT_HOME/skills/workflows/plan/docs-plan-cleanup/scripts/docs-plan-cleanup.sh --keep-plan active-plan`
 3. Review report sections:

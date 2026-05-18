@@ -1,24 +1,36 @@
 ---
-name: execute-from-implementation-doc
-description: Resume and execute long-running implementation work from a durable execution-ready document and progress state.
+name: execute-from-plan
+description: Resume and execute plan-driven implementation work with a durable execution-state ledger.
 ---
 
-# Execute From Implementation Doc
+# Execute From Plan
 
-Use this skill when a durable implementation document should be the source of truth for execution and cross-session progress.
+Use this skill when a durable plan should be the execution-control source for implementation and cross-session progress.
 
 ## Contract
 
+Scope boundary:
+
+- For multi-step or cross-session implementation, prefer a plan as the
+  execution-control source.
+- Source docs such as `*-discussion-source.md` and `*-review-source.md` should
+  normally be paired with a sibling plan that links them under `Read First`.
+- Direct source-doc execution is allowed only for bounded single-step work, or
+  when the user explicitly accepts a direct-execution waiver and that waiver is
+  recorded in execution state.
+
 Prereqs:
 
-- User explicitly asks to start, continue, resume, or execute work from a durable implementation document.
-- Source document exists and is execution-ready, or gaps can be recorded safely before asking for the minimum clarification.
+- User explicitly asks to start, continue, resume, or execute work from a durable plan or bounded source doc.
+- Execution source exists and is ready enough to proceed, or gaps can be recorded safely before asking for the minimum clarification.
 - Target workspace is available, required project preflight has passed, and project rules allow edits.
 - A progress record exists or can be created as an execution-state document.
 
 Inputs:
 
-- Source document path, such as an implementation handoff, improvement record, execution-ready plan, or equivalent project doc.
+- Execution source path, preferably an execution-ready plan. A source doc such
+  as an implementation handoff, improvement record, or equivalent project doc is
+  accepted only when direct execution is bounded or explicitly waived.
 - Optional execution-state path; when absent, use the source document's `Execution` section or create a sibling
   `<source-slug>-execution-state.md`.
 - Optional task, phase, sprint, or priority selector.
@@ -52,6 +64,11 @@ Accepted source documents include:
 - `create-plan` or `create-dispatch-plan` plans.
 - Hand-written project docs that carry the same execution contract.
 
+Plan-created source docs under `docs/plans/<slug>/` are read-first inputs, not
+the preferred execution-control artifact. If a sibling `<slug>-plan.md` exists,
+execute from that plan. If no sibling plan exists and the work is multi-step,
+create or request a plan before editing production files.
+
 Required source content:
 
 - Goal or purpose.
@@ -70,11 +87,19 @@ Do not treat `review-evidence.json` as the primary source document. Link it as e
 1. Resolve and classify the source
    - Read the source document first.
    - Classify it as `implementation-handoff`, `improvement-record`, `plan`, or `other-execution-doc`.
+   - If the source is a plan-created `*-discussion-source.md` or
+     `*-review-source.md`, look for a sibling `<slug>-plan.md` and use that plan
+     as the execution source when it exists.
+   - If the source doc is not paired with a plan and the requested work needs
+     sequencing, dependencies, or multiple tasks, stop and use `create-plan` or
+     `create-dispatch-plan` instead of starting edits.
    - Follow project preflight before reading or editing additional files.
    - If the document references `Read First` files, read only the files needed for the selected task.
 
 2. Verify execution readiness
    - Check for the required source content listed above.
+   - For direct source-doc execution, verify the work is a bounded single-step
+     change or record an explicit direct-execution waiver in execution state.
    - If fields are missing but the next safe step is obvious, record assumptions in execution state and continue.
    - If missing context could change scope, safety, acceptance, or reversibility, ask the minimum clarification and stop.
 
@@ -151,7 +176,7 @@ Do not treat `review-evidence.json` as the primary source document. Link it as e
 
 - `discussion-to-implementation-doc`: creates implementation handoffs that can become execution-ready sources.
 - `review-to-improvement-doc`: creates improvement records; use this skill after the record has executable backlog and validation gates.
-- `create-plan` / `create-dispatch-plan`: create execution-ready plans; use this skill to resume implementation from those plans.
+- `create-plan` / `create-dispatch-plan`: create execution-ready plans; use this skill to resume multi-step implementation from those plans.
 - `execute-plan-parallel`: use only when the user explicitly wants plan execution through parallel subagents.
 - `durable-artifact-cleanup`: use after execution is complete and the source/progress docs are no longer needed as maintained records.
 - `handoff-session-prompt`: use when a fresh session prompt is needed; point it at the source document and execution state instead of

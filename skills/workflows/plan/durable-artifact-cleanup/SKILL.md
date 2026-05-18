@@ -5,10 +5,17 @@ description: Audit and remove obsolete durable implementation artifacts after ex
 
 # Durable Artifact Cleanup
 
-Use this skill when implementation handoffs, improvement records, plans, or execution-state docs have served their purpose and should not
-drift from maintained code.
+Use this skill when source docs, implementation handoffs, improvement records, plans, execution-state docs, or handoff prompts have served
+their purpose and should not drift from maintained code.
 
 ## Contract
+
+Scope boundary:
+
+- This is the audit and policy workflow for cleanup.
+- For broad `docs/plans/` batch deletion, use this skill to classify ambiguous
+  scope first, then use `docs-plan-cleanup` as the deterministic batch executor
+  when keep/delete intent is known.
 
 Prereqs:
 
@@ -49,6 +56,12 @@ Failure modes:
 1. Confirm cleanup scope
    - Identify whether the candidates are implementation handoffs, improvement records, plans, execution-state docs, handoff prompts, or
      related evidence.
+   - Classify source docs, plans, and execution-state docs as one execution
+     bundle when they live together under `docs/plans/<slug>/` and none has been
+     promoted into maintained docs.
+   - Use this workflow for named artifacts or unclear cleanup status. Use
+     `docs-plan-cleanup` for broad `docs/plans/` pruning after active bundles are
+     known.
    - Treat deletion as the preferred end state for obsolete durable docs once they are complete and unreferenced.
    - Use archive/rehome only when the project has audit, release, compliance, or historical lookup needs.
 
@@ -60,6 +73,9 @@ Failure modes:
 3. Scan references
    - Use `rg` over tracked docs/code/tests plus relevant issue/PR links when available.
    - Check docs indexes, README files, `Read First` lists, execution-state links, plan references, and handoff prompts.
+   - If a sibling source doc, plan, or execution-state doc still points at the
+     candidate, either keep the bundle together or update the maintained
+     reference before deletion.
    - Classify candidates still referenced by maintained material as `keep` or `archive-or-rehome` until references are updated.
 
 4. Separate evidence from stale coordination docs
@@ -75,6 +91,8 @@ Failure modes:
 
 5. Apply cleanup
    - Delete only artifacts classified as `delete`.
+   - For broad `docs/plans/` cleanup, run `docs-plan-cleanup` dry-run/execute
+     instead of manually deleting plan bundles.
    - Update docs indexes, README files, and source documents so links do not dangle.
    - If deletion creates empty docs folders, remove them only when project rules allow it.
    - Keep changes scoped to cleanup; do not refactor the docs tree unless asked.
@@ -89,7 +107,8 @@ Failure modes:
 - `discussion-to-implementation-doc`: creates implementation handoffs that may later become cleanup candidates.
 - `review-to-improvement-doc`: creates improvement records; delete them only after fixes are complete and evidence is retained elsewhere when
   needed.
-- `execute-from-implementation-doc`: updates execution state; use this cleanup skill after execution status is complete and no future resume
+- `execute-from-plan`: updates execution state; use this cleanup skill after execution status is complete and no future resume
   is needed.
-- `docs-plan-cleanup`: use for broad `docs/plans/` coordination-doc pruning with its existing report format.
+- `docs-plan-cleanup`: deterministic batch executor for broad `docs/plans/` coordination-doc pruning with its existing report format. Use
+  it after this workflow when cleanup scope needs policy classification first.
 - `handoff-session-prompt`: prompt artifacts should usually be deleted once source docs and execution state are the maintained record.

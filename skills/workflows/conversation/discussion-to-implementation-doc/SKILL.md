@@ -133,6 +133,6 @@ Failure modes:
   this document under the plan's `Read First` section as the primary source.
 - `create-dispatch-plan`: use after this skill when implementation also needs sizing, scorecards, PR grouping, and review; link this
   document under the plan's `Read First` section as the primary source.
-- `execute-from-implementation-doc`: use after this skill when the handoff should become the execution source of truth across sessions.
+- `execute-from-plan`: use after a plan links this handoff under `Read First`, or for explicitly bounded direct source-doc execution.
 - `handoff-session-prompt`: use after this skill when the user wants a copy-ready prompt for a fresh session; put this document under
   `Read First`.

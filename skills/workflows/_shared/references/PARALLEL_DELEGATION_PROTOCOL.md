@@ -28,8 +28,8 @@ result.
 
 - Use `execute-plan-parallel` when an existing markdown plan should be executed
   through parallel subagents.
-- Use `execute-from-implementation-doc` when a durable implementation document
-  and execution-state ledger should drive long-running work.
+- Use `execute-from-plan` when a durable plan and execution-state ledger should
+  drive long-running work.
 - Use `issue-delivery`, `plan-issue-delivery`, and `issue-subagent-pr` for
   GitHub issue, sprint, PR, and task-lane execution.
 - Use this protocol only for cross-skill ad-hoc delegation after the active

@@ -27,12 +27,17 @@ def _response_template_text() -> str:
 
 def test_docs_plan_cleanup_skill_declares_response_template_usage() -> None:
     text = _skill_md_text()
+    normalized = " ".join(text.split())
     assert "## Output and clarification rules" in text
     assert "references/ASSISTANT_RESPONSE_TEMPLATE.md" in text
     assert "status: applied" in text
     assert "coordination markdown" in text
     assert "plan-source coordination docs" in text
     assert "HEURISTIC_SYSTEM `error-inbox/` and `operation-records/` entries" in text
+    assert "deterministic batch executor for broad `docs/plans/`" in text
+    assert "does not decide whether a durable artifact is" in text
+    assert "Use `durable-artifact-cleanup` first" in normalized
+    assert "Active bundle keep/delete intent is known" in text
 
 
 def test_docs_plan_cleanup_response_template_includes_required_summary_fields() -> None:
@@ -77,3 +82,12 @@ def test_docs_plan_cleanup_skill_requires_markdown_table_output() -> None:
     assert "rendered as a Markdown table" in text
     assert "rendered as Markdown tables" in text
     assert "render a `none` row in that table" in text
+
+
+def test_docs_plan_cleanup_routes_unclear_or_non_plan_cleanup_to_durable_audit() -> None:
+    text = _skill_md_text()
+
+    assert "If you cannot tell whether a plan bundle is complete" in text
+    assert "stop and use `durable-artifact-cleanup` for the audit" in text
+    assert "Do not use this skill for one-off cleanup of handoff prompts" in text
+    assert "runtime fixtures, raw evidence, or generated output" in text

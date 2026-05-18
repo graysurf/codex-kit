@@ -67,7 +67,7 @@ Failure modes:
   has actionable `Next Action` text, lacks a durable outcome link, or would
   overwrite an existing archived record.
 - The user is actually asking to implement the underlying bug fix; route that to
-  `create-plan`, `execute-from-implementation-doc`, or the provider/domain skill
+  `create-plan`, `execute-from-plan`, or the provider/domain skill
   instead of fixing it inside this inbox workflow.
 
 ## Scripts (only entrypoints)
@@ -129,7 +129,7 @@ Failure modes:
      ```
 
 6. Route implementation work outside this skill.
-   - Use `create-plan` or `execute-from-implementation-doc` for planned fixes.
+   - Use `create-plan` or `execute-from-plan` for planned fixes.
    - Use provider-specific PR/MR/release skills for delivery failures.
    - Promote fixed and validated lessons into operation records, tests, scripts,
      runbooks, or skill policy before marking an entry `promoted`.
