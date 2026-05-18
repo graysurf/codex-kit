@@ -85,9 +85,7 @@ values.
 
 - Raw skill usage records remain in `out/` and are not committed as normal repo
   artifacts.
-- The temporary execution source under
-  `docs/plans/heuristic-system-first-operation-case/` can be removed after
-  implementation if this operation record and regression tests retain the useful
-  lesson.
+- The temporary execution source was removed after this operation record and
+  regression tests retained the useful lesson.
 - This operation record remains as the durable repo-local proof that the
   HEURISTIC_SYSTEM loop operated on a real workflow failure.
