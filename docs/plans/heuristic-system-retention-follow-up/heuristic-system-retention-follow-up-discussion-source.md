@@ -37,7 +37,7 @@ future-system follow-up text inside the completed entry.
   `open`, `triaged`, `planned`, `promoted`, and `wontfix`.
 - `heuristic-error-inbox` now provides a workflow skill and deterministic script
   for listing, verifying, creating, and updating curated inbox entries.
-- The `heuristic-system-skills` execution state intentionally deferred
+- The landed `heuristic-error-inbox` workflow intentionally deferred
   `heuristic-operation-record` and `heuristic-compression-review` until real
   inbox usage exists.
 - `skill-usage.record.json` can be corrupted when multiple write commands target
@@ -238,8 +238,8 @@ plan cleanup flow.
 - `heuristic-system/README.md`
 - `HEURISTIC_SYSTEM.md`
 - `docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md`
-- `docs/plans/heuristic-system-skills/heuristic-system-skills-execution-state.md`
-- `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-execution-state.md`
+- `skills/workflows/heuristic-system/heuristic-error-inbox/SKILL.md`
+- `heuristic-system/operation-records/github-pr-required-check-gating.md`
 
 ## Recommended Next Artifact
 

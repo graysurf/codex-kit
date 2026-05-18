@@ -131,8 +131,4 @@ true:
 ## Next Action
 
 None. The GitLab MR workflow gap is resolved by PR #254 and live MR !104
-validation.
-
-Lifecycle link: `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-plan.md`
-
-Lifecycle link: `docs/plans/gitlab-mr-pipeline-cleanup/gitlab-mr-pipeline-cleanup-execution-state.md`
+validation. Durable outcome links are recorded in Evidence.

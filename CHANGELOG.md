@@ -42,6 +42,8 @@ All notable changes to this project will be documented in this file.
 
 - **plans**: remove completed skill-folder migration coordination docs after
   promoting durable guidance into maintained docs, tests, and catalog entries.
+- **plans**: remove completed HEURISTIC_SYSTEM and GitLab MR cleanup
+  coordination docs while retaining the active retention follow-up source.
 
 ## [2.4.7] - 2026-05-18
 
