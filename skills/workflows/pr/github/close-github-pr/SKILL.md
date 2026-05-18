@@ -24,7 +24,8 @@ Inputs:
 
 Outputs:
 
-- PR checks verified as passing, or explicitly accepted as missing with `--allow-no-checks`.
+- Required PR checks verified as passing, or checks explicitly accepted as
+  missing with `--allow-no-checks`. Optional skipped checks do not block merge.
 - Draft PRs marked ready with `gh pr ready <pr>` before merge.
 - PR merged with a merge commit.
 - Remote head branch deleted unless `--keep-branch` is supplied.
@@ -39,7 +40,8 @@ Exit codes:
 Failure modes:
 
 - PR checks are missing and `--allow-no-checks` was not supplied.
-- PR checks are failing, canceled, timed out, blocked, or still pending.
+- Required PR checks are failing, canceled, timed out, skipped, blocked, or
+  still pending.
 - PR is draft and automatic `gh pr ready` fails.
 - PR is not open, not mergeable, or `gh`/`git` permissions are insufficient.
 
@@ -54,12 +56,15 @@ Failure modes:
      - `close-github-pr.sh --kind <feature|bug> --pr <number>`
    - Resolve PR URL, base branch, head branch, state, and draft state through `gh pr view`.
 
-2. Gate on GitHub checks
+2. Gate on required GitHub checks
    - Default behavior blocks missing checks:
      - `close-github-pr.sh --kind <feature|bug> --pr <number>`
    - Repositories with no checks require explicit acknowledgement:
      - `close-github-pr.sh --kind <feature|bug> --pr <number> --allow-no-checks`
-   - `--allow-no-checks` only accepts missing checks. It must not bypass failed, canceled, timed out, blocked, pending, or unknown check states.
+   - Required checks are the hard merge gate. Optional skipped checks are
+     non-blocking when required checks pass.
+   - `--allow-no-checks` only accepts missing checks. It must not bypass failed, canceled, timed out, blocked, pending, skipped, or unknown
+     required check states.
 
 3. Mark ready and merge
    - If draft, run `gh pr ready <pr>` automatically.

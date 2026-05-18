@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -53,7 +54,12 @@ def _init_repo(repo: Path) -> None:
     _assert_ok(_git(repo, "commit", "-q", "-m", "chore: seed repository"))
 
 
-def _setup_repo(tmp_path: Path, *, checks_mode: str) -> tuple[Path, dict[str, str], Path]:
+def _setup_repo(
+    tmp_path: Path,
+    *,
+    checks_mode: str,
+    extra_env: dict[str, str] | None = None,
+) -> tuple[Path, dict[str, str], Path]:
     repo = tmp_path / "repo"
     repo.mkdir()
     _init_repo(repo)
@@ -69,6 +75,8 @@ def _setup_repo(tmp_path: Path, *, checks_mode: str) -> tuple[Path, dict[str, st
         "CODEX_GH_STUB_STATE": "OPEN",
         "CODEX_GH_STUB_PR_CHECKS_MODE": checks_mode,
     }
+    if extra_env:
+        env.update(extra_env)
     return repo, env, log_dir
 
 
@@ -87,6 +95,13 @@ def _run_close(repo: Path, env: dict[str, str], *extra_args: str) -> subprocess.
         cwd=repo,
         env=env,
     )
+
+
+def _custom_checks(required: list[dict[str, str]], all_checks: list[dict[str, str]]) -> dict[str, str]:
+    return {
+        "CODEX_GH_STUB_PR_REQUIRED_CHECKS_JSON": json.dumps(required),
+        "CODEX_GH_STUB_PR_CHECKS_JSON": json.dumps(all_checks),
+    }
 
 
 def test_close_blocks_missing_checks_by_default(tmp_path: Path) -> None:
@@ -118,6 +133,89 @@ def test_close_blocks_failed_checks_even_when_no_checks_are_allowed(tmp_path: Pa
     repo, env, log_dir = _setup_repo(tmp_path, checks_mode="failed")
 
     proc = _run_close(repo, env, "--allow-no-checks")
+
+    assert proc.returncode == 1
+    assert "CHECK_STATUS=failed" in proc.stdout
+    calls = (log_dir / "gh.calls.txt").read_text(encoding="utf-8")
+    assert "gh pr merge 123" not in calls
+
+
+def test_close_allows_optional_skipped_when_required_checks_pass(tmp_path: Path) -> None:
+    repo, env, log_dir = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env=_custom_checks(
+            required=[{"name": "test", "state": "SUCCESS", "bucket": "pass"}],
+            all_checks=[
+                {"name": "test", "state": "SUCCESS", "bucket": "pass"},
+                {"name": "coverage_badge", "state": "SKIPPED", "bucket": "skipping"},
+            ],
+        ),
+    )
+
+    proc = _run_close(repo, env)
+
+    assert proc.returncode == 0, proc.stderr
+    assert "CHECK_STATUS=passed" in proc.stdout
+    calls = (log_dir / "gh.calls.txt").read_text(encoding="utf-8")
+    assert "gh pr checks 123 --required --json name,state,bucket" in calls
+    assert "gh pr merge 123" in calls
+
+
+def test_close_falls_back_to_all_checks_when_no_required_checks_reported(tmp_path: Path) -> None:
+    repo, env, log_dir = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env={
+            "CODEX_GH_STUB_PR_REQUIRED_CHECKS_MISSING": "1",
+            "CODEX_GH_STUB_PR_CHECKS_JSON": json.dumps(
+                [{"name": "ci", "state": "SUCCESS", "bucket": "pass"}]
+            ),
+        },
+    )
+
+    proc = _run_close(repo, env)
+
+    assert proc.returncode == 0, proc.stderr
+    assert "CHECK_STATUS=passed" in proc.stdout
+    calls = (log_dir / "gh.calls.txt").read_text(encoding="utf-8")
+    assert "gh pr checks 123 --required --json name,state,bucket" in calls
+    assert "gh pr checks 123 --json name,state,bucket" in calls
+    assert "gh pr merge 123" in calls
+
+
+def test_close_blocks_pending_required_checks_even_with_optional_skipped(tmp_path: Path) -> None:
+    repo, env, log_dir = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env=_custom_checks(
+            required=[{"name": "test", "state": "PENDING", "bucket": "pending"}],
+            all_checks=[
+                {"name": "test", "state": "PENDING", "bucket": "pending"},
+                {"name": "coverage_badge", "state": "SKIPPED", "bucket": "skipping"},
+            ],
+        ),
+    )
+
+    proc = _run_close(repo, env)
+
+    assert proc.returncode == 1
+    assert "CHECK_STATUS=pending" in proc.stdout
+    calls = (log_dir / "gh.calls.txt").read_text(encoding="utf-8")
+    assert "gh pr merge 123" not in calls
+
+
+def test_close_blocks_skipped_required_checks(tmp_path: Path) -> None:
+    repo, env, log_dir = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env=_custom_checks(
+            required=[{"name": "test", "state": "SKIPPED", "bucket": "skipping"}],
+            all_checks=[{"name": "test", "state": "SKIPPED", "bucket": "skipping"}],
+        ),
+    )
+
+    proc = _run_close(repo, env)
 
     assert proc.returncode == 1
     assert "CHECK_STATUS=failed" in proc.stdout

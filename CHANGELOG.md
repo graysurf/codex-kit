@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **HEURISTIC_SYSTEM**: add the first curated operation record for a real
+  workflow failure and document how retained evidence is compressed into
+  durable repo knowledge.
 - **macOS setup**: add an idempotent workstation bootstrap script that installs
   Homebrew CLI tools, clones agent-kit into `$HOME/.agents`, links live
   `AGENTS.md` policy through `$HOME/.codex`, and syncs Codex hook config.
@@ -20,6 +23,9 @@ All notable changes to this project will be documented in this file.
   folder, and teach `docs-plan-cleanup` to preserve or delete those bundles
   together. `plan-tooling scaffold --slug <slug>` is now the documented helper
   path with `nils-cli >= 0.8.7`.
+- **GitHub PR delivery**: gate `deliver-github-pr` and `close-github-pr` on
+  required GitHub checks so optional skipped checks no longer block merge when
+  required checks pass.
 
 ### Removed
 

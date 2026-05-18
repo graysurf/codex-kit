@@ -11,7 +11,7 @@ description:
 Prereqs:
 
 - Run inside the target GitHub-backed git repo.
-- `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
+- `git`, `gh`, and `python3` available on `PATH`, and `gh auth status` succeeds.
 - Working tree may be dirty before preflight; preflight must run scope triage first.
 - Working tree must be clean before close/merge.
 - Companion skills available: `create-github-pr` and `close-github-pr`.
@@ -31,7 +31,9 @@ Outputs:
   - `kind=feature` -> `feat/<slug>`
   - `kind=bug` -> `fix/<slug>`
 - A GitHub PR created through `create-github-pr`.
-- GitHub checks fully green; failed or blocked checks are fixed before close.
+- Required GitHub checks green; failed, pending, skipped, or blocked required
+  checks are fixed before close. Optional skipped checks are reported by GitHub
+  but do not block delivery.
 - PR marked ready when draft, merged, and cleaned up through `close-github-pr`.
 - `deliver-github-pr` is successful only after close/merge is complete; create-only is not a successful delivery outcome.
 
@@ -46,7 +48,8 @@ Failure modes:
 
 - Initial branch is not the expected base branch (`main` by default):
   - Stop immediately and ask the user to confirm source branch and target branch.
-- GitHub checks fail, are canceled, time out, are blocked, or require action:
+- Required GitHub checks fail, are canceled, time out, are skipped, are blocked,
+  or require action:
   - Do not merge; fix issues on the delivery branch, push, and re-run `wait-checks`.
 - No checks exist for the PR:
   - Stop by default; continue only when the user explicitly supplied `--allow-no-checks`.
@@ -84,16 +87,17 @@ Failure modes:
      - commit + push
      - open a draft PR by default
 
-4. Wait for checks and repair until green
+4. Wait for required checks and repair until green
    - Run:
      - `deliver-github-pr.sh --kind <feature|bug> wait-checks --pr <number>`
    - For repositories without checks, use explicit no-check acknowledgement:
      - `deliver-github-pr.sh --kind <feature|bug> wait-checks --pr <number> --allow-no-checks`
-   - If any check fails or blocks:
+   - If any required check fails or blocks:
      - fix on the same delivery branch
      - push updates
      - re-run `wait-checks`
-   - Do not proceed to close until checks are green, unless the user explicitly confirms `--allow-no-checks`.
+   - Do not proceed to close until required checks are green, unless the user explicitly confirms `--allow-no-checks`.
+   - Optional skipped checks do not block when required checks pass.
 
 5. Close PR
    - Run:
@@ -103,6 +107,7 @@ Failure modes:
      - marks draft PRs ready with `gh pr ready <number>`
      - merges with a merge commit
      - allows missing checks only when `--allow-no-checks` is explicitly supplied
+     - gates on required checks; optional skipped checks do not block
      - deletes the remote source branch unless `--keep-branch` is explicitly supplied
      - switches back to the target branch, pulls it, and deletes the local source branch unless cleanup is disabled
 

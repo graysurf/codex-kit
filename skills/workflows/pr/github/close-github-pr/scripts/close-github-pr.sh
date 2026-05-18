@@ -8,7 +8,8 @@ Usage:
 
 What it does:
   - Blocks missing GitHub checks unless --allow-no-checks is explicit
-  - Blocks failed, canceled, timed out, blocked, pending, or unknown checks
+  - Gates on required checks; optional skipped checks do not block
+  - Blocks failed, canceled, timed out, skipped, blocked, pending, or unknown required checks
   - Marks draft PRs as ready automatically before merge
   - Merges the PR with a merge commit
   - Deletes the remote head branch unless --keep-branch is supplied
@@ -27,6 +28,10 @@ Exit codes:
   2  Usage error
 USAGE
 }
+
+github_pr_workflow_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=/dev/null
+source "$github_pr_workflow_dir/_shared/lib/github-pr-checks.bash"
 
 require_kind() {
   local kind="${1:-}"
@@ -68,138 +73,43 @@ require_clean_worktree() {
   fi
 }
 
-is_missing_checks_output() {
-  local text="${1:-}"
-  printf '%s\n' "$text" | grep -Eqi 'no (checks|check runs|status checks|check suites)|checks? (have|has) not been reported|no checks reported|no check runs found|no status checks found'
-}
-
-contains_failed_check_state() {
-  local text="${1:-}"
-  printf '%s\n' "$text" | grep -Eqi '(^|[[:space:]])(fail|failed|cancel|cancelled|timed_out|timed out|action_required|startup_failure|blocked|skipped)([[:space:]]|$)'
-}
-
-contains_pending_check_state() {
-  local text="${1:-}"
-  printf '%s\n' "$text" | grep -Eqi '(^|[[:space:]])(pending|queued|waiting|in_progress|in progress|requested|expected)([[:space:]]|$)'
-}
-
-classify_checks_json() {
-  python3 -c '
-import json
-import sys
-
-try:
-    checks = json.load(sys.stdin)
-except json.JSONDecodeError:
-    raise SystemExit(2)
-
-if not isinstance(checks, list):
-    raise SystemExit(2)
-if not checks:
-    print("missing")
-    raise SystemExit(0)
-
-failed_buckets = {"fail", "cancel"}
-pending_buckets = {"pending", "skipping"}
-failed_states = {
-    "fail",
-    "failed",
-    "cancel",
-    "cancelled",
-    "timed_out",
-    "action_required",
-    "startup_failure",
-    "blocked",
-    "skipped",
-}
-pending_states = {"pending", "queued", "waiting", "in_progress", "requested", "expected"}
-pass_states = {"pass", "passed", "success", "successful", "completed"}
-
-for check in checks:
-    if not isinstance(check, dict):
-        print("unknown")
-        raise SystemExit(0)
-    bucket = str(check.get("bucket", "")).lower()
-    state = str(check.get("state", "")).lower()
-    if bucket in failed_buckets or state in failed_states:
-        print("failed")
-        raise SystemExit(0)
-    if bucket in pending_buckets or state in pending_states:
-        print("pending")
-        raise SystemExit(0)
-    if bucket == "pass" or state in pass_states:
-        continue
-    print("unknown")
-    raise SystemExit(0)
-
-print("passed")
-'
-}
-
 check_pr_checks_once() {
   local pr_number="${1:-}"
   local allow_no_checks="${2:-0}"
-  local output=''
-  local rc=0
   local status=''
 
   set +e
-  output="$(gh pr checks "$pr_number" --json name,state,bucket 2>&1)"
-  rc=$?
+  status="$(github_pr_checks_status_for_pr "$pr_number")"
   set -e
+  status="$(printf '%s\n' "$status" | tail -n 1)"
 
-  if [[ "$rc" -eq 0 ]]; then
-    status="$(printf '%s' "$output" | classify_checks_json 2>/dev/null || true)"
-    case "$status" in
-      passed)
-        echo "CHECK_STATUS=passed"
-        return 0
-        ;;
-      missing)
-        echo "CHECK_STATUS=missing"
-        if [[ "$allow_no_checks" == "1" ]]; then
-          echo "ok: no GitHub checks found for PR #${pr_number}; accepted by --allow-no-checks"
-          return 0
-        fi
-        echo "error: no GitHub checks found for PR #${pr_number}; use --allow-no-checks only after confirming this repo has no CI" >&2
-        return 1
-        ;;
-      pending)
-        echo "CHECK_STATUS=pending"
-        echo "error: GitHub checks are not complete for PR #${pr_number}" >&2
-        return 1
-        ;;
-      failed|unknown|"")
-        echo "CHECK_STATUS=${status:-unknown}"
-        echo "error: GitHub checks are not mergeable for PR #${pr_number}" >&2
-        return 1
-        ;;
-    esac
-  fi
-
-  if is_missing_checks_output "$output"; then
-    echo "CHECK_STATUS=missing"
-    if [[ "$allow_no_checks" == "1" ]]; then
-      echo "ok: no GitHub checks found for PR #${pr_number}; accepted by --allow-no-checks"
+  case "$status" in
+    passed)
+      echo "CHECK_STATUS=passed"
       return 0
-    fi
-    echo "error: no GitHub checks found for PR #${pr_number}; use --allow-no-checks only after confirming this repo has no CI" >&2
-    return 1
-  fi
+      ;;
+    missing)
+      echo "CHECK_STATUS=missing"
+      if [[ "$allow_no_checks" == "1" ]]; then
+        echo "ok: no GitHub checks found for PR #${pr_number}; accepted by --allow-no-checks"
+        return 0
+      fi
+      echo "error: no GitHub checks found for PR #${pr_number}; use --allow-no-checks only after confirming this repo has no CI" >&2
+      return 1
+      ;;
+    pending)
+      echo "CHECK_STATUS=pending"
+      echo "error: GitHub checks are not complete for PR #${pr_number}" >&2
+      return 1
+      ;;
+    failed|unknown|"")
+      echo "CHECK_STATUS=${status:-unknown}"
+      echo "error: GitHub checks are not mergeable for PR #${pr_number}" >&2
+      return 1
+      ;;
+  esac
 
-  if contains_failed_check_state "$output"; then
-    echo "CHECK_STATUS=failed"
-    echo "error: GitHub checks are not mergeable for PR #${pr_number}" >&2
-    return 1
-  fi
-
-  if contains_pending_check_state "$output"; then
-    echo "CHECK_STATUS=pending"
-    echo "error: GitHub checks are not complete for PR #${pr_number}" >&2
-    return 1
-  fi
-
-  echo "CHECK_STATUS=failed"
+  echo "CHECK_STATUS=unknown"
   echo "error: GitHub checks are not mergeable for PR #${pr_number}" >&2
   return 1
 }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -53,7 +54,12 @@ def _init_repo(repo: Path) -> None:
     _assert_ok(_git(repo, "commit", "-q", "-m", "chore: seed repository"))
 
 
-def _setup_repo(tmp_path: Path, *, checks_mode: str = "pass") -> tuple[Path, dict[str, str]]:
+def _setup_repo(
+    tmp_path: Path,
+    *,
+    checks_mode: str = "pass",
+    extra_env: dict[str, str] | None = None,
+) -> tuple[Path, dict[str, str]]:
     repo = tmp_path / "repo"
     repo.mkdir()
     _init_repo(repo)
@@ -63,11 +69,20 @@ def _setup_repo(tmp_path: Path, *, checks_mode: str = "pass") -> tuple[Path, dic
         "CODEX_GH_STUB_PR_NUMBER": "123",
         "CODEX_GH_STUB_PR_CHECKS_MODE": checks_mode,
     }
+    if extra_env:
+        env.update(extra_env)
     return repo, env
 
 
 def _run_skill(repo: Path, env: dict[str, str], *args: str) -> subprocess.CompletedProcess[str]:
     return _run([str(SCRIPT), *args], cwd=repo, env=env)
+
+
+def _custom_checks(required: list[dict[str, str]], all_checks: list[dict[str, str]]) -> dict[str, str]:
+    return {
+        "CODEX_GH_STUB_PR_REQUIRED_CHECKS_JSON": json.dumps(required),
+        "CODEX_GH_STUB_PR_CHECKS_JSON": json.dumps(all_checks),
+    }
 
 
 def test_help_surface() -> None:
@@ -154,3 +169,95 @@ def test_wait_checks_blocks_failed_checks_even_when_no_checks_are_allowed(tmp_pa
 
     assert proc.returncode == 1
     assert "CHECK_STATUS=failed" in proc.stdout
+
+
+def test_wait_checks_allows_optional_skipped_when_required_checks_pass(tmp_path: Path) -> None:
+    repo, env = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env=_custom_checks(
+            required=[{"name": "test", "state": "SUCCESS", "bucket": "pass"}],
+            all_checks=[
+                {"name": "test", "state": "SUCCESS", "bucket": "pass"},
+                {"name": "coverage_badge", "state": "SKIPPED", "bucket": "skipping"},
+            ],
+        ),
+    )
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "feature",
+        "wait-checks",
+        "--pr",
+        "123",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "CHECK_STATUS=passed" in proc.stdout
+
+
+def test_wait_checks_falls_back_to_all_checks_when_no_required_checks_reported(tmp_path: Path) -> None:
+    repo, env = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env={
+            "CODEX_GH_STUB_PR_REQUIRED_CHECKS_MISSING": "1",
+            "CODEX_GH_STUB_PR_CHECKS_JSON": json.dumps(
+                [{"name": "ci", "state": "SUCCESS", "bucket": "pass"}]
+            ),
+        },
+    )
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "feature",
+        "wait-checks",
+        "--pr",
+        "123",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "CHECK_STATUS=passed" in proc.stdout
+
+
+def test_wait_checks_keeps_waiting_when_required_checks_are_pending(tmp_path: Path) -> None:
+    repo, env = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env=_custom_checks(
+            required=[{"name": "test", "state": "PENDING", "bucket": "pending"}],
+            all_checks=[
+                {"name": "test", "state": "PENDING", "bucket": "pending"},
+                {"name": "coverage_badge", "state": "SKIPPED", "bucket": "skipping"},
+            ],
+        ),
+    )
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "feature",
+        "wait-checks",
+        "--pr",
+        "123",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 124
+    assert "CHECK_STATUS=pending" in proc.stdout
