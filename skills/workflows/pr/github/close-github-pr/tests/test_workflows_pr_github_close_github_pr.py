@@ -162,6 +162,28 @@ def test_close_allows_optional_skipped_when_required_checks_pass(tmp_path: Path)
     assert "gh pr merge 123" in calls
 
 
+def test_close_falls_back_to_all_checks_when_no_required_checks_reported(tmp_path: Path) -> None:
+    repo, env, log_dir = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env={
+            "CODEX_GH_STUB_PR_REQUIRED_CHECKS_MISSING": "1",
+            "CODEX_GH_STUB_PR_CHECKS_JSON": json.dumps(
+                [{"name": "ci", "state": "SUCCESS", "bucket": "pass"}]
+            ),
+        },
+    )
+
+    proc = _run_close(repo, env)
+
+    assert proc.returncode == 0, proc.stderr
+    assert "CHECK_STATUS=passed" in proc.stdout
+    calls = (log_dir / "gh.calls.txt").read_text(encoding="utf-8")
+    assert "gh pr checks 123 --required --json name,state,bucket" in calls
+    assert "gh pr checks 123 --json name,state,bucket" in calls
+    assert "gh pr merge 123" in calls
+
+
 def test_close_blocks_pending_required_checks_even_with_optional_skipped(tmp_path: Path) -> None:
     repo, env, log_dir = _setup_repo(
         tmp_path,

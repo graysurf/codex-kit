@@ -1,6 +1,6 @@
 github_pr_checks_is_missing_output() {
   local text="${1:-}"
-  printf '%s\n' "$text" | grep -Eqi 'no (checks|check runs|status checks|check suites)|checks? (have|has) not been reported|no checks reported|no check runs found|no status checks found'
+  printf '%s\n' "$text" | grep -Eqi 'no (required )?(checks|check runs|status checks|check suites)|checks? (have|has) not been reported|no checks reported|no check runs found|no status checks found'
 }
 
 github_pr_checks_contains_failed_state() {

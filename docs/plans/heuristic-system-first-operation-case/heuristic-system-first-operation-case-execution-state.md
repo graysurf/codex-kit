@@ -18,19 +18,19 @@
 | T2 | done | Fix shared GitHub PR check classification and required-check gating | `skills/workflows/pr/github/_shared/lib/github-pr-checks.bash` | Both `deliver-github-pr` and `close-github-pr` now gate on required checks first. |
 | T3 | done | Update skill docs and HEURISTIC_SYSTEM guidance | `HEURISTIC_SYSTEM.md`, GitHub PR skill docs | Added required-vs-optional check policy and operation-record guidance. |
 | T4 | done | Add curated HEURISTIC_SYSTEM operation record | `docs/runbooks/heuristic-system/operation-records/github-pr-required-check-gating.md` | Raw records remain in `out/`; curated record is retained in repo. |
-| T5 | done | Validate and record cleanup decision | `scripts/check.sh --all` | Full gate passed after fixing agent-doc-init test isolation. |
+| T5 | done | Validate and record cleanup decision | `scripts/check.sh --all` | Full gate passed after fixing agent-doc-init test isolation and the live no-required-checks fallback. |
 
 ## Validation
 
 | Command | Status | Summary | Artifact |
 | --- | --- | --- | --- |
 | `scripts/check.sh --tests -- -k 'github_pr and (deliver or close)'` | fail | Test-first failure before script fix: optional skipped `coverage_badge` blocked required-pass delivery. | skill usage record |
-| `scripts/check.sh --tests -- -k 'github_pr and (deliver or close)'` | pass | 20 selected GitHub PR workflow tests passed after the fix. | local output |
+| `scripts/check.sh --tests -- -k 'github_pr and (deliver or close)'` | pass | 22 selected GitHub PR workflow tests passed after the fix. | local output |
 | `scripts/check.sh --markdown` | pass | Markdown lint passed. | local output |
 | `scripts/check.sh --docs` | pass | Docs freshness audit passed. | local output |
 | `bash scripts/ci/stale-skill-scripts-audit.sh --check` | pass | Skill script audit passed. | local output |
 | `scripts/check.sh --entrypoint-ownership` | pass | Entrypoint ownership test passed. | local output |
-| `scripts/check.sh --all` | pass | Full gate passed with 729 pytest tests after fixing ambient env isolation. | local output |
+| `scripts/check.sh --all` | pass | Full gate passed with 731 pytest tests after fixing ambient env isolation and the live no-required-checks fallback. | local output |
 
 ## Blockers
 
@@ -89,3 +89,18 @@
 - Blocked by: none.
 - Next: run direct full validation and commit the test-isolation fix before PR
   delivery.
+
+### 2026-05-18 12:35 CST
+
+- Read:
+  live `gh pr checks --required` output from PR #252.
+- Changed:
+  GitHub PR check helper now recognizes `no required checks reported` as a
+  missing-required-check signal and falls back to the existing all-checks gate.
+  Added deliver/close regression tests for that live message path.
+- Validated:
+  `scripts/check.sh --tests -- -k 'github_pr and (deliver or close)'` and
+  live `deliver-github-pr wait-checks --pr 252` returning `CHECK_STATUS=pending`
+  instead of `unknown` while checks were still in progress.
+- Blocked by: none.
+- Next: run full validation and push the PR branch update.

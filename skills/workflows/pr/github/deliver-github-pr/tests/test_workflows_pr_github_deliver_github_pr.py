@@ -202,6 +202,36 @@ def test_wait_checks_allows_optional_skipped_when_required_checks_pass(tmp_path:
     assert "CHECK_STATUS=passed" in proc.stdout
 
 
+def test_wait_checks_falls_back_to_all_checks_when_no_required_checks_reported(tmp_path: Path) -> None:
+    repo, env = _setup_repo(
+        tmp_path,
+        checks_mode="custom",
+        extra_env={
+            "CODEX_GH_STUB_PR_REQUIRED_CHECKS_MISSING": "1",
+            "CODEX_GH_STUB_PR_CHECKS_JSON": json.dumps(
+                [{"name": "ci", "state": "SUCCESS", "bucket": "pass"}]
+            ),
+        },
+    )
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "feature",
+        "wait-checks",
+        "--pr",
+        "123",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "CHECK_STATUS=passed" in proc.stdout
+
+
 def test_wait_checks_keeps_waiting_when_required_checks_are_pending(tmp_path: Path) -> None:
     repo, env = _setup_repo(
         tmp_path,

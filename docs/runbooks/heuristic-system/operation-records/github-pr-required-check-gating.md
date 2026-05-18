@@ -56,6 +56,8 @@ This was promoted as a HEURISTIC_SYSTEM operation case because it was:
 - Added focused regression tests for required checks passing while optional
   `coverage_badge` is skipped.
 - Extended the `gh` test stub to simulate `gh pr checks --required`.
+- Added live-message fallback coverage for `no required checks reported`, which
+  GitHub emits when a branch has checks but no branch-protection-required checks.
 - Moved GitHub PR check classification into a shared helper.
 - Updated both PR delivery scripts to gate on required checks first and fall
   back to existing all-checks behavior when no required checks are configured.
@@ -73,7 +75,7 @@ Current validation:
 - `scripts/check.sh --docs`: pass
 - `bash scripts/ci/stale-skill-scripts-audit.sh --check`: pass
 - `scripts/check.sh --entrypoint-ownership`: pass
-- `scripts/check.sh --all`: pass, 729 pytest tests passed
+- `scripts/check.sh --all`: pass, 731 pytest tests passed
 
 The full gate runs in the normal shell after `agent-doc-init` test isolation was
 fixed to clear ambient resolver variables before each test injects explicit
