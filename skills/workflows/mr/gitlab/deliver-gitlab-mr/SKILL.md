@@ -104,6 +104,9 @@ Failure modes:
      - push updates
      - re-run `wait-pipeline`
    - Do not proceed to merge until the pipeline is green, unless the user explicitly confirms `--allow-no-pipeline` or `--skip-pipeline`.
+   - For repos whose source-branch pipeline is intentionally skipped and whose
+     real build/deploy gate is target-branch CI, verify MR mergeability and the
+     target-branch validation model before using explicit `--skip-pipeline`.
 
 5. Close MR
    - Run:
@@ -114,7 +117,7 @@ Failure modes:
      - merges with `glab mr merge <iid> --yes`
      - allows missing CI only when `--allow-no-pipeline` is explicitly supplied
      - does not remove the remote source branch unless `--remove-source-branch` is explicitly supplied
-     - switches back to the target branch, pulls it, and deletes the local source branch unless cleanup is disabled
+     - switches back to the target branch, fast-forwards from `origin/<target>`, and deletes the local source branch unless cleanup is disabled
 
 6. Report delivery artifacts
    - Include MR URL/IID, pipeline status summary, merge result, target branch, and final branch state.

@@ -557,7 +557,7 @@ resolve_mr_source_branch() {
 }
 
 pipeline_status_from_json() {
-  json_field status detailed_status.group detailedStatus.group 2>/dev/null || true
+  json_field pipeline.status pipeline.detailed_status.group pipeline.detailedStatus.group status detailed_status.group detailedStatus.group 2>/dev/null || true
 }
 
 pipeline_status_for_branch() {
@@ -630,7 +630,12 @@ wait_pipeline_for_branch() {
         echo "ok: pipeline passed for branch ${branch}"
         return 0
         ;;
-      failed|fail|canceled|cancelled|skipped|manual|blocked|action_required)
+      skipped|manual|blocked|action_required)
+        echo "error: source-branch pipeline is not mergeable for branch ${branch} (status=${normalized})" >&2
+        echo "error: if this repo intentionally uses target-branch CI, verify MR mergeability and target-branch validation, then use --skip-pipeline only after explicit user confirmation" >&2
+        return 1
+        ;;
+      failed|fail|canceled|cancelled)
         echo "error: pipeline is not mergeable for branch ${branch} (status=${normalized})" >&2
         return 1
         ;;
@@ -734,7 +739,8 @@ cleanup_after_merge() {
   fi
 
   if [[ "$checkout_mode" == "attached" ]]; then
-    git pull --ff-only
+    git fetch origin "$target_branch"
+    git merge --ff-only "origin/${target_branch}"
   fi
 
   if [[ "$keep_local_branch" == "1" || -z "$source_branch" ]]; then

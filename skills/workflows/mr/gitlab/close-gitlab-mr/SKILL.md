@@ -65,6 +65,9 @@ Failure modes:
    - `--allow-no-pipeline` only accepts a missing pipeline. It must not bypass failed, skipped, blocked, manual, pending, or
      unknown pipeline states.
    - `--skip-pipeline` is reserved for explicit user-confirmed cases where the pipeline gate should not run at all.
+   - For repos whose source-branch pipeline is intentionally skipped and whose
+     real build/deploy gate is target-branch CI, verify MR mergeability and the
+     target-branch validation model before using explicit `--skip-pipeline`.
 
 3. Mark ready and merge
    - If draft, run `glab mr update <mr> --ready --yes` automatically.
@@ -72,7 +75,9 @@ Failure modes:
    - Pass `--remove-source-branch`, `--squash`, and `--sha <commit>` only when explicitly supplied.
 
 4. Cleanup
-   - Switch to the target branch, pull fast-forward, and delete the local source branch unless cleanup is disabled.
+   - Switch to the target branch, fetch `origin/<target>`, fast-forward the
+     local target branch, and delete the local source branch unless cleanup is
+     disabled.
    - If the target branch is locked by another worktree, fall back to detached `origin/<target>` for local branch deletion.
 
 ## Kind Policy

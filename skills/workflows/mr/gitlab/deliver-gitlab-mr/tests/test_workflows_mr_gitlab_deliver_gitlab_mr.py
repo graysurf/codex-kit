@@ -90,6 +90,10 @@ def _install_fake_glab(tmp_path: Path) -> tuple[Path, Path]:
         "    echo \"No pipeline found. It might not exist yet. Check your pipeline configuration.\" >&2\n"
         "    exit 1\n"
         "  fi\n"
+        "  if [[ -n \"${GLAB_FAKE_PIPELINE_JSON:-}\" ]]; then\n"
+        "    printf '%s\\n' \"${GLAB_FAKE_PIPELINE_JSON}\"\n"
+        "    exit 0\n"
+        "  fi\n"
         "  printf '{\"status\":\"%s\"}\\n' \"${GLAB_FAKE_PIPELINE_STATUS:-success}\"\n"
         "  exit 0\n"
         "fi\n"
@@ -242,6 +246,55 @@ def test_wait_pipeline_fails_on_failed_status(tmp_path: Path) -> None:
 
     assert proc.returncode == 1
     assert "pipeline is not mergeable" in proc.stderr
+
+
+def test_wait_pipeline_blocks_nested_skipped_status_with_policy_guidance(tmp_path: Path) -> None:
+    repo, env, _ = _setup_repo(tmp_path)
+    env["GLAB_FAKE_PIPELINE_JSON"] = '{"pipeline":{"status":"skipped"},"jobs":[]}'
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "feature",
+        "wait-pipeline",
+        "--branch",
+        "feat/demo",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 1
+    assert "PIPELINE_STATUS=skipped" in proc.stdout
+    assert "failed to parse pipeline status" not in proc.stderr
+    assert "target-branch CI" in proc.stderr
+    assert "--skip-pipeline" in proc.stderr
+
+
+def test_wait_pipeline_blocks_nested_manual_detailed_status(tmp_path: Path) -> None:
+    repo, env, _ = _setup_repo(tmp_path)
+    env["GLAB_FAKE_PIPELINE_JSON"] = '{"pipeline":{"detailed_status":{"group":"manual"}}}'
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "feature",
+        "wait-pipeline",
+        "--branch",
+        "feat/demo",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 1
+    assert "PIPELINE_STATUS=manual" in proc.stdout
+    assert "failed to parse pipeline status" not in proc.stderr
+    assert "--skip-pipeline" in proc.stderr
 
 
 def test_wait_pipeline_fails_on_missing_pipeline_by_default(tmp_path: Path) -> None:
